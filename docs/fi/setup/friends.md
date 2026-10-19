@@ -93,7 +93,7 @@ käynnistyskerralla. Alla olevat käsin tehtävät vaiheet näyttävät tarkalle
 
 **Tämä sivusto ja repositorio eivät jaa peliä eivätkä linkitä sen latauksiin.** Mitä kopiota
 käytätkin, vaihe 2 tarkistaa sen. Jos omasi tuli `BaseGame144.zip`-arkistona, josta alkuperäisen
-Undauntedin käynnistin asentaa pelin, vaihe 2 kertoo myös arkiston tiivisteen. Sivulta
+Dauntless Unbroken käynnistin asentaa pelin, vaihe 2 kertoo myös arkiston tiivisteen. Sivulta
 [Kiitokset ja lisenssi]({{ legal_page.url | relative_url }}) näet, miksi toimimme näin.
 
 ## Vaihe 1: Asenna Tailscale ja hyväksy isännän jako {#step-1-install-tailscale-and-accept-the-hosts-share}
@@ -155,11 +155,11 @@ Molemmat tiedostot menevät kansioon `<game folder>\Archon\Binaries\Win64\` eli 
 | Tiedosto | Koko | SHA-256 |
 |:-----|-----:|:--------|
 | `dxgi.dll` | 11 264 tavua | `f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c` |
-| `DauntlessUnbroken.dll` | 123 392 tavua | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` |
+| `DauntlessUnbroken.dll` | 306 176 tavua | `6CE7E0EA3EFF8C6841EA81C67A0EB177D84223AF844F15C6679EF0827143BE8D` |
 
 Saat ne isännältä, helpoimmin kaveripaketissa (katso yllä), tai
 alkuperäisestä repositoriosta kansiosta
-[`DauntlessUnbrokenLauncher/assets/`](https://github.com/SyST3MDeV/Undaunted/tree/main/DauntlessUnbrokenLauncher/assets).
+[`DauntlessUnbrokenLauncher/assets/`](https://vvoidddd.github.io/dauntless-unbroken/legal.html).
 Ne ovat samat tiedostot. Kopioinnin jälkeen tarkista ne ja poista niistä ”ladattu internetistä”
 -merkintä:
 
@@ -288,7 +288,7 @@ $exe = Join-Path $W "Dauntless-Win64-Shipping.exe"
 $pinned = @{
   "Dauntless-Win64-Shipping.exe" = "D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4"
   "dxgi.dll"                     = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
-  "DauntlessUnbroken.dll"  = "520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933"
+  "DauntlessUnbroken.dll"  = "6CE7E0EA3EFF8C6841EA81C67A0EB177D84223AF844F15C6679EF0827143BE8D"
 }
 foreach ($f in $pinned.Keys) {
   $p = Join-Path $W $f
@@ -387,7 +387,7 @@ Tämä on pieni yksityinen elvytyshanke, ja työ on kesken. Tätä kirjoitettaes
   Dojon (harjoitussalin), tavallisen metsästyksen ja takaa-ajon (pursuit), ja 22.9.2026 saman polun
   ensimmäiseen metsästykseen asti internetin yli vuokratulla palvelimella. Myöhemmin samana iltana
   kaksi pelaajaa metsästi siellä yhdessä, kun he jonottivat samaan metsästykseen muutaman sekunnin
-  sisällä toisistaan. Alkuperäinen Undaunted kertoo, että metsästykset enintään neljän hengen
+  sisällä toisistaan. Alkuperäinen Dauntless Unbroken kertoo, että metsästykset enintään neljän hengen
   ryhmissä toimivat; me olemme kokeilleet kahta.
 - Slayer-taso, aseiden ja hirviöiden mestaruus (mastery) ja Hunt Pass alkavat alusta (Slayer-taso 1)
   ja tallentuvat, kun palvelimella on nykyinen koodi oletusasetuksin. Jokaisella tilillä on Elite Hunt
@@ -524,7 +524,7 @@ lokiin.
 
 ## Oikeutesi lähdekoodiin {#your-right-to-the-source}
 
-Palvelin, jolla pelaat, on muokattu versio [Undauntedista](https://github.com/SyST3MDeV/Undaunted),
+Palvelin, jolla pelaat, on muokattu versio [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html),
 jonka lisenssi on GNU AGPL-3.0. Koska käytät muokattua palvelinta verkon yli, sinulla on oikeus saada
 sen koko lähdekoodi (lisenssin kohta 13). Koska isäntä antaa sinulle DLL-ohjelmatiedostoja, sinulla on
 oikeus myös niiden lähdekoodiin (kohta 6).
@@ -532,7 +532,7 @@ oikeus myös niiden lähdekoodiin (kohta 6).
 - Forkimme lähdekoodi on [tämän sivuston repositoriossa]({{ site.github.repository_url }}), haarassa
   `dauntless-unbroken`. Kysy isännältä, mitä versiota (commit) hänen palvelimensa ajaa.
 - Alkuperäisen projektin lähdekoodi on osoitteessa
-  [github.com/SyST3MDeV/Undaunted](https://github.com/SyST3MDeV/Undaunted).
+  [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html).
 - Tunnettu puute: alkuperäinen projekti ei koskaan julkaissut valmiiksi käännetyn `dxgi.dll`-tiedoston
   lähdekoodia. Aiomme korjata tämän toimittamalla oman välittäjän, joka on käännetty lähdekoodista
   (katso vaihe 3).

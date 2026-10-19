@@ -16,34 +16,16 @@ const path = require("path");
 
 const root = path.join(__dirname, "..");
 const docs = path.join(root, "docs");
-const SITE = "https://mixutin.github.io/dauntless-unbroken";
+const SITE = "https://vvoidddd.github.io/dauntless-unbroken";
 const REPO = "https://github.com/Vvoidddd/dauntless-unbroken";
-const UPSTREAM = "https://github.com/SyST3MDeV/Undaunted";
-
-const SUMMARY =
-    "Dauntless Unbroken is a private, non-commercial server revival of Dauntless, the Phoenix Labs co-op " +
-    "monster-hunting game whose official servers shut down on 30 May 2025. It runs the genuine Dauntless 1.4.4 " +
-    "client (October 2020, Unreal Engine 4) against a self-hosted fork of the open-source Undaunted server by " +
-    "gwog and contributors (AGPL-3.0).";
-
+const SUMMARY = "Dauntless Unbroken is an independent community realm and self-hosted server stack for the Dauntless 1.4.4 client. These guides cover playing, server architecture, configuration and operations.";
 const FACTS = [
-    "It is not a public server. It is run for a few friends, and anyone with their own copy of the 1.4.4 client " +
-        `can host the same thing from the source code (${REPO}).`,
-    "Status as of 22 September 2026: the owner played it first on the host PC and then over the internet " +
-        "on a rented server, from the invite and the game download to the first hunt. For the owner, login with " +
-        "a personal account key (no Epic account needed), the tutorial, Ramsgate, the Training Dojo, hunts and " +
-        "crafting work. Items, gear and quests are saved and backed up hourly. Slayer level, mastery and the Hunt " +
-        "Pass (with the Elite pass for every account) are saved too: real progression is on by default and passed " +
-        "an in-game test on a throwaway account. Later that night two players saw each other in Ramsgate and hunted " +
-        "together over the internet, after queueing the same hunt. Parties, the friends list and guilds are built on " +
-        "the server side; in that test a party invite and a friend request did not show in game, and the fixes " +
-        "(running on the server, not yet tried in game) wait for the next two-player test. Not yet working: text chat, online status and " +
-        "bounties. The home page and the roadmap have the current state.",
-    "No game files are distributed by the site or the repository. Every player needs their own copy of the client.",
-    "Not affiliated with, endorsed by or supported by Phoenix Labs or Epic Games. \"Dauntless\" is a trademark " +
-        "of its owners.",
-    `Built on Undaunted (${UPSTREAM}) by gwog (Gregory Morford) and contributors: the server-mode DLL, the ` +
-        "deploy server, the metagame backend and the launcher are theirs.",
+    "The launcher checks existing game folders before offering a download, verifies pinned files and supports resumable HTTPS game downloads.",
+    "Account keys are saved automatically to the Desktop after successful sign-in. Keep these recovery files private.",
+    "The metagame persists online progression; Offline mode uses a separate local save.",
+    "Game processes start on demand, with queues, resource admission and empty-hunt cleanup.",
+    "There are no hosting-provider partnerships. Build results do not establish every in-game scenario.",
+    "Retail game assets are not included in the source repository. Required licenses and source provenance are documented on the legal page.",
 ];
 
 // ---------------------------------------------------------------------------------------------------------
@@ -271,8 +253,8 @@ const llms = [
     "## Project",
     "",
     ...projectPages.map(p => link(p)),
-    `- [Source code on GitHub](${REPO}): The fork's complete source, AGPL-3.0-only, on branch dauntless-unbroken.`,
-    `- [ROADMAP.md](https://raw.githubusercontent.com/Vvoidddd/dauntless-unbroken/dauntless-unbroken/ROADMAP.md): ` +
+    `- [Source code on GitHub](${REPO}): Dauntless Unbroken source, AGPL-3.0-only, on branch main.`,
+    `- [ROADMAP.md](https://raw.githubusercontent.com/Vvoidddd/dauntless-unbroken/main/ROADMAP.md): ` +
         "The live checklist behind the roadmap page, as raw Markdown. Done items start with \"- [x] **<id>\", open ones with \"- [ ] **<id>\".",
     "",
     // Every line under an H2 must be a link entry (llmstxt.org), so the section's language is in its name.
@@ -283,8 +265,7 @@ const llms = [
     "## Optional",
     "",
     `- [Full text of the English pages](${SITE}/llms-full.txt): Every English page above as Markdown in one file, each headed by its URL.`,
-    `- [Undaunted](${UPSTREAM}): The upstream open-source project by gwog (Gregory Morford) and contributors that this fork is based on.`,
-    "- [Mystic Paradox](https://github.com/pranav158/Mystic-Paradox): A related project porting the same approach to the Dauntless 1.12.0 client.",
+    `- [Legal and source notices](${SITE}/legal.html): Licensing, source provenance and required third-party attribution.`,
     "",
 ]
     .filter(l => l !== undefined && l !== false)

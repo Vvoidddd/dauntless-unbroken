@@ -71,17 +71,15 @@ joilta sallit etätyöpöydän, joten älä julkaise sitäkään.
 
 ## Repositorio {#the-repository}
 
-Repositorio on [Undauntedin](https://github.com/SyST3MDeV/Undaunted) fork, ja työhaara on
-`dauntless-unbroken`. Osien kansiot ovat säilyttäneet alkuperäisen projektin `Undaunted...`-nimet;
-niiden npm-pakettien nimet ovat muotoa `dauntless-unbroken-*` (esimerkiksi `dauntless-unbroken-metagame`).
+Lähdekoodi on repositoriossa [Vvoidddd/dauntless-unbroken](https://github.com/Vvoidddd/dauntless-unbroken), jonka oletushaara on `main`. Osien kansiot käyttävät nimiä `DauntlessUnbroken*` ja npm-paketit nimiä `dauntless-unbroken-*`.
 
 | Kansio | Mitä siinä on | Käännöstulos (gitin ohittama) |
 |:-------|:--------------|:------------------------------|
-| `DauntlessUnbrokenMetagame/` | Taustapalvelu, jonka kanssa peli keskustelee (TypeScript, Express): tilit, tallennukset, eteneminen, matchmaking, ryhmät, kaverit, killat, `/unbroken/api`-ylläpitorajapinta ja pelin tekstichat (`src/realtime/`, XMPP-kuuntelija samassa prosessissa, päällä kun `CHAT=1`). `src/db/schema.ts` määrittelee tietokannan, `src/drizzle/` sisältää sen migraatiot ja `src/vendor/` pelin `progression_config.json`-tiedoston, generoidun `hunt_titles.json`-tiedoston sekä Harmonicin 1.4.4-forkin datan: `escalation/seasons.json` (Escalationin kausiluettelo), `store_catalog.json` (ilmaisen kaupan tarjoukset) ja `store_item_kinds.json` (miten kukin kaupan tavara annetaan). `test/data/store_art_skus.json` luettelee testiä varten kaupan tarjoustunnukset, joiden ruutukuva on 2:1. Käännös kopioi kansion `src/vendor/` kansioon `dist/vendor/`. Kansiossa `scripts/` ovat `write-build-info.js` ja `make-hunt-titles.js`. | `dist/` (jossa `dist/build-info.json`), `build/` (testit), `node_modules/` |
+| `DauntlessUnbrokenMetagame/` | Taustapalvelu, jonka kanssa peli keskustelee (TypeScript, Express): tilit, tallennukset, eteneminen, matchmaking, ryhmät, kaverit, killat, `/unbroken/api`-ylläpitorajapinta ja pelin tekstichat (`src/realtime/`, XMPP-kuuntelija samassa prosessissa, päällä kun `CHAT=1`). `src/db/schema.ts` määrittelee tietokannan, `src/drizzle/` sisältää sen migraatiot ja `src/vendor/` pelin `progression_config.json`-tiedoston, generoidun `hunt_titles.json`-tiedoston sekä lähdeintegraation 1.4.4-toteutuksen datan: `escalation/seasons.json` (Escalationin kausiluettelo), `store_catalog.json` (ilmaisen kaupan tarjoukset) ja `store_item_kinds.json` (miten kukin kaupan tavara annetaan). `test/data/store_art_skus.json` luettelee testiä varten kaupan tarjoustunnukset, joiden ruutukuva on 2:1. Käännös kopioi kansion `src/vendor/` kansioon `dist/vendor/`. Kansiossa `scripts/` ovat `write-build-info.js` ja `make-hunt-titles.js`. | `dist/` (jossa `dist/build-info.json`), `build/` (testit), `node_modules/` |
 | `DauntlessUnbrokenDeployServer/` | Käynnistää ja valvoo pelipalvelinprosesseja (Ramsgate, Training Dojo, metsästykset). `src/vendor/` sisältää metsästystaulukot. | `dist/`, `build/` |
 | `DauntlessUnbrokenGateway/` | Vain julkinen tila: TLS-yhdyskäytävä (`dist/server.js`) ja sallittujen listan apuri (`dist/allowlist/server.js`). `tools/make-cert.js` tekee yhdyskäytävän varmenteen. | `dist/`, `build/` |
 | `DauntlessUnbrokenContent/` | Sisältöpalvelin: pelitiedostot, uutiset ja kuvapaketti rekisteröityneille käynnistimille. `data/dauntless-1.4.4.json` on pelin tiedostoluettelo (manifest, 410 tiedostoa), joka käännetään myös käynnistimen sisään. | `dist/`, `build/` |
-| `DauntlessUnbrokenLauncher/` | Tämän forkin käynnistin kavereille (Electron). `assets/` sisältää kuvakkeet (kopiot kansiosta `brand/launcher/`) ja kaksi kiinnitettyä valmiiksi käännettyä DLL-tiedostoa, `dxgi.dll` ja `DauntlessUnbroken.dll`, jotka jokainen asennustapa asentaa (palvelinkone, palvelinpaketti, kaveripaketti ja käynnistin). Kansiossa `src/renderer/brand/` ovat kopiot ikkunassa näkyvistä logo- ja tunnuskuvista. Kansiossa `scripts/` ovat testien ajaja, brändikuvien kopioija (`make-icon.mjs`) ja `collect-release.ps1`. | `.vite/` (`npm start`), `out/` (`npm run package` ja `npm run make`), `.test-build/` (testit), `release/` (julkaisutiedostot, jotka `scripts/collect-release.ps1` kokoaa komennon `npm run make` jälkeen: asennusohjelma, Squirrelin päivitystiedostot, zip ja `SHA256SUMS.txt`). |
+| `DauntlessUnbrokenLauncher/` | Tämän toteutuksen käynnistin kavereille (Electron). `assets/` sisältää kuvakkeet (kopiot kansiosta `brand/launcher/`) ja kaksi kiinnitettyä valmiiksi käännettyä DLL-tiedostoa, `dxgi.dll` ja `DauntlessUnbroken.dll`, jotka jokainen asennustapa asentaa (palvelinkone, palvelinpaketti, kaveripaketti ja käynnistin). Kansiossa `src/renderer/brand/` ovat kopiot ikkunassa näkyvistä logo- ja tunnuskuvista. Kansiossa `scripts/` ovat testien ajaja, brändikuvien kopioija (`make-icon.mjs`) ja `collect-release.ps1`. | `.vite/` (`npm start`), `out/` (`npm run package` ja `npm run make`), `.test-build/` (testit), `release/` (julkaisutiedostot, jotka `scripts/collect-release.ps1` kokoaa komennon `npm run make` jälkeen: asennusohjelma, Squirrelin päivitystiedostot, zip ja `SHA256SUMS.txt`). |
 | `DauntlessUnbrokenInternalServer/` | Palvelin-DLL:n C++-lähdekoodi: Visual Studio -ratkaisu, `dllmain.cpp` (jossa on osoitetaulukko, josta `Game.ini` generoidaan), pelimoottorin otsaketiedostot kansiossa `SDK/` sekä `MinHook/`. Mikään tämän repositorion skripti tai työnkulku ei käännä sitä; kaikki käyttävät valmiiksi käännettyjä DLL-tiedostoja kansiosta `DauntlessUnbrokenLauncher/assets/`. MinHookin include-korjauksesta (syyskuu 2026) alkaen se kääntyy Visual Studio 2022 Build Toolsilla (Release, x64), mutta täällä käännettyä DLL:ää ei jaeta. | Visual Studion tuotokset (`x64/`, `*.dll` ja vastaavat) |
 | `deploy/windows-server/` | Windows-palvelinpaketti: skriptit, `lib/` (Node-apurit `dr-db.js`, `dr-keys.js` ja `verify-game.js`) ja `tests/`. | ei mitään |
 | `friend-kit/` | Kutsuttujen kavereiden asennus- ja pelaamisskriptit, vain Tailscalen kautta pelaamiseen. | `tools/make-friend-kit.ps1` rakentaa zip-tiedoston repositorion ulkopuolelle |
@@ -122,7 +120,7 @@ pakota näihin polkuihin: niitä käyttävät vain ohjeet ja muutaman skriptin o
 
 | Polku | Mikä se on |
 |:------|:-----------|
-| `C:\dr\undaunted\` | Repositorion kopio ([Pystytä palvelin, vaihe 4]({{ host_page.url | relative_url }}#fork)). Asetukset ovat tiedostoissa `DauntlessUnbrokenMetagame\.env` ja `DauntlessUnbrokenDeployServer\.env`, jotka git ohittaa. **Salaisuuksia: älä koskaan jaa niitä äläkä committoi niitä.** Käynnistä jokainen palvelin sen oman kansion sisältä: metagame löytää migraationsa suhteellisella polulla `./src/drizzle`. |
+| `C:\dr\dauntless-unbroken\` | Repositorion kopio ([Pystytä palvelin, vaihe 4]({{ host_page.url | relative_url }}#codebase)). Asetukset ovat tiedostoissa `DauntlessUnbrokenMetagame\.env` ja `DauntlessUnbrokenDeployServer\.env`, jotka git ohittaa. **Salaisuuksia: älä koskaan jaa niitä äläkä committoi niitä.** Käynnistä jokainen palvelin sen oman kansion sisältä: metagame löytää migraationsa suhteellisella polulla `./src/drizzle`. |
 | `C:\dr\data\` | Ajonaikainen data repositorion ulkopuolella: `dauntless-unbroken.db` (`DB_FILENAME=C:/dr/data/dauntless-unbroken.db`), `owner.key` ja `gameserver.key` (**salaisuuksia: älä koskaan jaa niitä äläkä committoi niitä**), lokit `metagame.log`, `metagame.err`, `deploy.log` ja `deploy.err` sekä pid-tiedostot `metagame.pid`, `deploy.pid` ja `client.pid`. Lokit korvautuvat jokaisella käynnistyksellä, koska ohje käynnistää palvelimet komennolla `Start-Process -RedirectStandardOutput`. |
 | `C:\dr\data\rekey-<UserId>.txt` | Uusi tiliavain, jonka sivun [Palvelin ryhmälle]({{ admin_page.url | relative_url }}) avaimenvaihtoskripti on tehnyt. **Salaisuus**: anna se pelaajalle kahden kesken ja poista tiedosto sitten. |
 | `C:\dr\data\ssh\` | `dauntless_deploy` (vuokrapalvelimen SSH-avain) ja `known_hosts`, `Deploy-Remote.ps1`:n oletukset. **Avain on salaisuus: älä koskaan jaa sitä äläkä committoi sitä.** |
@@ -134,7 +132,7 @@ pakota näihin polkuihin: niitä käyttävät vain ohjeet ja muutaman skriptin o
 | `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\` | Tämän Windows-käyttäjän pelin käyttäjäasetukset: `Engine.ini`, `Game.ini` ja `GameUserSettings.ini`. Katso [Pelin asetukset]({{ gamesettings_page.url | relative_url }}). |
 
 Kun `LOG_BODIES=1` on asetettu mutta `BODY_LOG_FILE` ei ole, metagame kirjoittaa `bodies.log`-tiedoston
-työhakemistoonsa, joka on `C:\dr\undaunted\DauntlessUnbrokenMetagame`. **Mikään `.gitignore`-sääntö ei kata
+työhakemistoonsa, joka on `C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame`. **Mikään `.gitignore`-sääntö ei kata
 tätä tiedostoa.** Aseta `BODY_LOG_FILE=C:/dr/data/bodies.log` tai poista tiedosto ennen kuin committoit.
 Metagamen yksikkötestit käyttävät jokaiselle testitiedostolle uutta tietokantaa väliaikaisessa
 `dauntless-unbroken-test-*`-kansiossa ja poistavat sen lopuksi.
@@ -316,9 +314,9 @@ pystytetyllä palvelinkoneella ota varmuuskopio itse ennen kuin haet uutta koodi
 | `0015_store_purchases` | Luo taulun `storepurchases` ja sen indeksin sarakkeelle `accountId`. Lisää vain tauluja. |
 | `0016_slayer_links` | Luo taulut `slayerlinkinvites` ja `slayerlinks` indekseineen. Lisää vain tauluja. |
 
-Migraatiot 0014–0016 tulivat Harmonicin forkin siirron mukana. Yksikään niistä ei muuta, kopioi tai
+Migraatiot 0014–0016 tulivat lähdeintegraation toteutuksen siirron mukana. Yksikään niistä ei muuta, kopioi tai
 muunna olemassa olevaa taulua; niitä edeltävä versio käynnistyy yhä muutetulla tietokannalla ja jättää
-uudet taulut huomiotta ([Päivitysohjeet]({{ upgrade_page.url | relative_url }}#harmonic-port)).
+uudet taulut huomiotta ([Päivitysohjeet]({{ upgrade_page.url | relative_url }}#feature-integrations)).
 
 Kun haluat lisätä migraation, muuta tiedostoa `src/db/schema.ts` ja aja `npm run db:generate`; katso
 [Kehittäjän opas]({{ dev_page.url | relative_url }}).

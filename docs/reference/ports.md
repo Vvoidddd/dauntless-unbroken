@@ -83,7 +83,7 @@ Notes:
   `DEPLOYSERVER_URL` has no default either: without it every request for a game server, Ramsgate
   included, ends as `FAILED`.
 - **Why 61000 and not 60000.** Upstream's development launcher expects `127.0.0.1:60000`. On our host
-  another program already held that port, so the fork moved to 61000 and 61001. See
+  another program already held that port, so the project moved to 61000 and 61001. See
   [Troubleshooting]({{ trouble_page.url | relative_url }}#port-60000-is-taken-and-the-metagame-says-clear-skies-anyway).
 - **How the kit picks ports.** An explicit parameter wins, then the value in the install's
   `data\config\server.json` (`Ports`; see [Files and data]({{ files_page.url | relative_url }})), then the

@@ -55,19 +55,19 @@ in [Ports and network]({{ ports_page.url | relative_url }}).
 
 ```powershell
 New-Item -ItemType Directory -Force C:\dr | Out-Null
-git -c core.longpaths=true clone https://github.com/Vvoidddd/dauntless-unbroken.git C:\dr\undaunted
-git -C C:\dr\undaunted config core.longpaths true
-git -C C:\dr\undaunted checkout dauntless-unbroken
+git -c core.longpaths=true clone https://github.com/Vvoidddd/dauntless-unbroken.git C:\dr\dauntless-unbroken
+git -C C:\dr\dauntless-unbroken config core.longpaths true
+git -C C:\dr\dauntless-unbroken checkout main
 ```
 
-`dauntless-unbroken` is the default branch: pull requests go to it, and the docs site is published
+`main` is the default branch: pull requests go to it, and the docs site is published
 from its `docs/` folder. Keep the clone at a short path: the server DLL's generated SDK alone has over
 4,000 files, and a clone into a deeply nested folder has failed with "Filename too long"
 ([Troubleshooting]({{ trouble_page.url | relative_url }}#git-filename-too-long)).
 
 ### What is in the repository {#layout}
 
-The `Undaunted*` folder names come from upstream Undaunted and are kept as they are. The npm packages
+Component folders use the `DauntlessUnbroken*` naming convention. The npm packages
 inside them are named `dauntless-unbroken-metagame`, `dauntless-unbroken-deploy-server`,
 `dauntless-unbroken-content`, `dauntless-unbroken-gateway` and `dauntless-unbroken-launcher`.
 
@@ -93,7 +93,7 @@ Each Node package is installed, built and tested on its own, from its own folder
 you get exactly the versions in that package's `package-lock.json`:
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 npm ci --no-audit --no-fund
 npm run build
 npm test
@@ -132,7 +132,7 @@ files whose name contains `relay`.
 
 | Package | What the tests cover | Good to know |
 |---|---|---|
-| Metagame | Accounts and usernames, what each kind of key may do, characters and save history, the database and its migrations (a database at migration 0013 full of rows keeps every row through the new ones), inventory transactions, loadouts and slots, progression (the default, real mode and stub mode, rank math, the upgrade notice, the retry guard, the config folder), Escalation, the free store, entitlements, cooldowns and bounties, parties, friends, Slayer Links, guilds, chat and friends' presence, matchmaking and its failures, the body log, server status. The cases ported from Harmonic's fork (`*ported.test.ts`, `escalation`, `freestore`, `matchmakingfailure`, `slayerlinks`) name the original file and line in a comment. | Each file gets its own empty database in `%TEMP%\dauntless-unbroken-test-*`, a throwaway signing key pair, `AUTH_MODE=APIKEY` and `NODE_ENV=production`. Logs are silent; set `TEST_LOG_LEVEL` (for example `debug`) to see them. |
+| Metagame | Accounts and usernames, what each kind of key may do, characters and save history, the database and its migrations (a database at migration 0013 full of rows keeps every row through the new ones), inventory transactions, loadouts and slots, progression (the default, real mode and stub mode, rank math, the upgrade notice, the retry guard, the config folder), Escalation, the free store, entitlements, cooldowns and bounties, parties, friends, Slayer Links, guilds, chat and friends' presence, matchmaking and its failures, the body log, server status. The cases ported from the source integration's codebase (`*ported.test.ts`, `escalation`, `freestore`, `matchmakingfailure`, `slayerlinks`) name the original file and line in a comment. | Each file gets its own empty database in `%TEMP%\dauntless-unbroken-test-*`, a throwaway signing key pair, `AUTH_MODE=APIKEY` and `NODE_ENV=production`. Logs are silent; set `TEST_LOG_LEVEL` (for example `debug`) to see them. |
 | Deploy server | Game-server kinds and the list the metagame reads, the checks on a matchmaking request, loopback-only access, Ramsgate and the Dojo started again on demand with one launch, a missing game binary and a failed startup (with a stand-in spawn) | `TEST_LOG_LEVEL` works here too. |
 | Gateway | TLS and the pinned fingerprint, routing and refusals, forwarding headers, size and rate limits, WebSocket proxying, the allowlist feed and helper, both entry points as real processes | The helper always runs in dry-run mode: the tests never change the firewall. |
 | Content server | Settings, paths, ranges, the key cache, limits, the manifest, art pack and news, the request handler | `npm run test:integration` needs a real install ([below](#content-integration-test)). |
@@ -141,7 +141,7 @@ files whose name contains `relay`.
 To run one metagame test file, build the tests once and call Node from the package folder:
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 npx tsc -p tsconfig.test.json
 node --test build/test/party.test.js
 ```
@@ -156,7 +156,7 @@ and the sandbox both use 62002. **Run one suite at a time on a PC.** The full li
 ### Content server integration test {#content-integration-test}
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenContent
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenContent
 $env:CONTENT_IT_GAME_DIR = "C:\D144\Dauntless"   # the default; the folder that contains Archon\
 npm run test:integration
 ```
@@ -174,7 +174,7 @@ Three scripts in `deploy\windows-server\tests\`, for Windows PowerShell 5.1. Non
 firewall, services, scheduled tasks, accounts or certificate stores, and none uses ports 61000-61099.
 
 ```powershell
-Set-Location C:\dr\undaunted
+Set-Location C:\dr\dauntless-unbroken
 powershell -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-KitUnit.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-DeployRemote.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-Sandbox.ps1
@@ -244,7 +244,7 @@ QOS_TARGET_URL=http://127.0.0.1:61000/QoS
 MATCHMAKING_MODE=DEPLOYSERVER
 DEPLOYSERVER_URL=127.0.0.1:61001
 REGISTRATION_MODE=OPEN
-"@ | Set-Content C:\dr\undaunted\DauntlessUnbrokenMetagame\.env -Encoding ascii
+"@ | Set-Content C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame\.env -Encoding ascii
 ```
 
 Then append the signing keys (next section): without them the metagame stops at start. Always set
@@ -287,7 +287,7 @@ The signing key pair, appended to the metagame's `.env` without printing it (the
 `>>`: in Windows PowerShell 5.1, `>>` writes UTF-16, which Node can't read as a `.env` file.
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 node -e "const c=require('crypto');const k=c.generateKeyPairSync('rsa',{modulusLength:2048,privateKeyEncoding:{type:'pkcs8',format:'pem'},publicKeyEncoding:{type:'spki',format:'pem'}});console.log('AUTH_SIGNING_PRIVKEY_B64='+Buffer.from(k.privateKey).toString('base64'));console.log('AUTH_SIGNING_PUBKEY_B64='+Buffer.from(k.publicKey).toString('base64'))" | Add-Content .env -Encoding ascii
 ```
 
@@ -362,7 +362,7 @@ Every gateway and helper setting, with its range, is in
 ### The launcher in development {#launcher-dev}
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenLauncher
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenLauncher
 npm ci
 npm start
 ```
@@ -427,7 +427,7 @@ this page:
 | Job | What it runs | Runner |
 |---|---|---|
 | Server packages | `npm ci`, `npm run build` and `npm test` in each of the four packages | Windows, Node 24 |
-| Launcher | `npm ci`, `npm run typecheck`, `npm test` and `npm run make`, then `scripts/collect-release.ps1`. The release files (the installer, the Squirrel update files, the zip and `SHA256SUMS.txt`) stay downloadable from the run's **Artifacts** for 7 days (not for pull requests from forks). | Windows, Node 24 |
+| Launcher | `npm ci`, `npm run typecheck`, `npm test` and `npm run make`, then `scripts/collect-release.ps1`. The release files (the installer, the Squirrel update files, the zip and `SHA256SUMS.txt`) stay downloadable from the run's **Artifacts** for 7 days (not for pull requests from external repositories). | Windows, Node 24 |
 | Server kit | Every tracked `.ps1` must parse in Windows PowerShell 5.1, PSScriptAnalyzer must find no errors (when the runner has it), then the three kit tests | Windows PowerShell 5.1 |
 | Docs | `sync-roadmap.js` and `build-llms.js` must change nothing, the site must build with the builder GitHub Pages uses, and the built site must have its main pages | Linux |
 | Repository hygiene | `tools/ci/check-repo.js`: no secrets, keys, databases, logs or game files in the tracked files or in any commit the push or pull request brings, no tracked file that a `.gitignore` rule excludes, the two DLLs match their pins, and the launcher version is valid | Linux |
@@ -453,7 +453,7 @@ to it. To release, raise that version. Then:
   still the head of the branch, and its launcher version has no `launcher-v<version>` release yet, CI
   publishes the installer it built and tested in that run, through
   `.github/workflows/launcher-release.yml`. This happens only in the repository
-  `Vvoidddd/dauntless-unbroken`, never in a fork. To pause it, set the repository variable
+  `Vvoidddd/dauntless-unbroken`, not in an external repository. To pause it, set the repository variable
   `LAUNCHER_AUTO_RELEASE` to `false`
   ([Configuration]({{ config_page.url | relative_url }}#ci-settings)).
 - **By hand.** Actions > **Launcher release** > **Run workflow** on `dauntless-unbroken` builds that
@@ -487,7 +487,7 @@ that changes any file.
 `docs/fi/roadmap.md` is a hand-written Finnish summary, not generated.
 
 ```powershell
-Set-Location C:\dr\undaunted
+Set-Location C:\dr\dauntless-unbroken
 node tools/sync-roadmap.js
 node tools/build-llms.js
 git status --short docs
@@ -553,7 +553,7 @@ In practice:
 - **Small pull requests**, with what you changed, how you tested it and the roadmap step.
 - **Security problems** go through private vulnerability reporting, not issues
   ([SECURITY.md]({{ site.github.repository_url }}/blob/main/SECURITY.md)).
-- **License.** AGPL-3.0-only, like upstream Undaunted. Keep existing copyright and license notices.
+- **License.** AGPL-3.0-only. Keep existing copyright and license notices; see [Legal]({{ '/legal.html' | relative_url }}).
 
 ---
 
@@ -566,7 +566,7 @@ Paths in each table are relative to the folder named above it.
 | Subsystem | Code | Notes |
 |---|---|---|
 | Startup, routing, request log | `server.ts`, `app.ts`, `logger.ts`, `middleware/BodyLog.ts` (`LOG_BODIES`: the routes, redaction, status and duration, the per-path cap) | `app.ts` mounts every router; unknown routes are logged and answered 404. |
-| Feature switches | `features.ts` | The switches added with the port of Harmonic's fork, parsed in one place (on/off, counts, choices), with the `features:` boot line. Older switches keep their own parsing. |
+| Feature switches | `features.ts` | The switches added with the port of the source integration's codebase, parsed in one place (on/off, counts, choices), with the `features:` boot line. Older switches keep their own parsing. |
 | Game-server writes | `middleware/GameServerOnly.ts` | `RefuseUnlessGameserver` (the shared guard of the game-server-only writes) and `NoteRelayedAccountMismatch` (logs a relayed token of another account, never refuses). |
 | Database | `db.ts`, `db/schema.ts`, `drizzle/` | Migrations run at every start, in journal order; the applied ones are recorded in the `__drizzle_migrations` table. `DB_WAL` is applied in `db.ts`. |
 | Where a request came from | `middleware/RequestOrigin.ts` | Public mode: the gateway secret, the player's address, `AUTH_MODE=NONE` refusals. |
@@ -575,12 +575,12 @@ Paths in each table are relative to the folder named above it.
 | Characters and save history | `controllers/character.ts`, `controllers/savehistory.ts`, `routes/character.ts` | Rollbacks are admin routes in `routes/unbrokenapi.ts`. |
 | Progression | `controllers/progressionmode.ts` (real or stub, `PROGRESSION_MODE`), `controllers/realprogression.ts` (tracks, objectives, grants and their retry guard, rank confirmations and the optional confirm entitlements, the admin seed, the upgrade notice), `controllers/progressionconfig.ts` (the one loader of the progression config: the bundled `vendor/progression_config.json`, `PROGRESSION_CONFIG_DIR`, `ACTIVE_HUNT_PASS`), `controllers/progressionrank.ts` (rank math), `controllers/progressionevents.ts` (audit rows), `controllers/progression.ts` (encountered content and breadcrumbs), `routes/progression.ts`, `middleware/RealProgressionOnly.ts` | `routes/progression.ts` answers both the real and the stub shapes, and logs requests under `/progression` that no route answers. Tables in migration `0011_real_progression.sql`. |
 | Hunt Pass, entitlements, bounties, cooldowns | `routes/system.ts`, `controllers/entitlements.ts`, `controllers/bounties.ts`, `controllers/cooldowns.ts` | Part of real progression. |
-| Escalation | `controllers/escalationConfig.ts` (the season registry `vendor/escalation/seasons.json`, checked at load), `controllers/escalation.ts` (reads, the save rules, the audit rows), `routes/escalation.ts` (the stub and the real routes, `ESCALATION_MODE`) | Ported from Harmonic's fork. Tables in migration `0014_escalation.sql`. [Escalation]({{ '/findings/escalation.html' | relative_url }}); tests `test/escalation.test.ts`. |
+| Escalation | `controllers/escalationConfig.ts` (the season registry `vendor/escalation/seasons.json`, checked at load), `controllers/escalation.ts` (reads, the save rules, the audit rows), `routes/escalation.ts` (the stub and the real routes, `ESCALATION_MODE`) | Ported from the source integration's codebase. Tables in migration `0014_escalation.sql`. [Escalation]({{ '/findings/escalation.html' | relative_url }}); tests `test/escalation.test.ts`. |
 | Loadouts and loadout slots | `controllers/loadout.ts`, `routes/loadout.ts` | Slots exist for real-progression accounts only. |
-| Inventory, currency and store | `controllers/inventory.ts` (transactions, overspends, retries; `ApplyInventoryTransactionInTx` runs inside a caller's transaction, `RunInventoryTransaction` wraps it for `POST /inventory`), `routes/inventory.ts`, `controllers/store.ts` (the currency sheet and the held currencies), `controllers/activecharacter.ts` (the account's character saved last), `controllers/freestore.ts` (the free store: catalogue, tokens, redeem), `routes/store.ts` | The store is ported from Harmonic's fork, off unless `STORE=free`; data in `vendor/store_catalog.json` and `vendor/store_item_kinds.json`, table in migration `0015_store_purchases.sql`. Tests `test/freestore.test.ts`, `test/inventorytx.test.ts`. |
+| Inventory, currency and store | `controllers/inventory.ts` (transactions, overspends, retries; `ApplyInventoryTransactionInTx` runs inside a caller's transaction, `RunInventoryTransaction` wraps it for `POST /inventory`), `routes/inventory.ts`, `controllers/store.ts` (the currency sheet and the held currencies), `controllers/activecharacter.ts` (the account's character saved last), `controllers/freestore.ts` (the free store: catalogue, tokens, redeem), `routes/store.ts` | The store is ported from the source integration's codebase, off unless `STORE=free`; data in `vendor/store_catalog.json` and `vendor/store_item_kinds.json`, table in migration `0015_store_purchases.sql`. Tests `test/freestore.test.ts`, `test/inventorytx.test.ts`. |
 | Parties | `controllers/party.ts` (in memory), `routes/party.ts`, `middleware/PlayerAuth.ts` | A party's hunt goes through `controllers/matchmaking.ts`; `PartyInvite` is in `routes/unbrokenapi.ts`. |
 | Friends and blocks | `controllers/friends.ts` (stored in SQLite, migration `0012_friends_and_blocks.sql`; `AddFriendshipListener` tells the chat server about accepted and ended friendships), `routes/friends.ts` (the Epic-style friends service the client calls) | `Friends` is in `routes/unbrokenapi.ts`. |
-| Slayer Links | `controllers/slayerlinks.ts` (the rules, the reply shapes, with the executable's addresses), `routes/slayerlinks.ts` (the eight routes, `SLAYER_LINKS`) | Contract from Harmonic's fork, corrected. Tables in migration `0016_slayer_links.sql`. Tests `test/slayerlinks.test.ts`. |
+| Slayer Links | `controllers/slayerlinks.ts` (the rules, the reply shapes, with the executable's addresses), `routes/slayerlinks.ts` (the eight routes, `SLAYER_LINKS`) | Contract from the source integration's codebase, corrected. Tables in migration `0016_slayer_links.sql`. Tests `test/slayerlinks.test.ts`. |
 | Guilds | `controllers/guild.ts` (stored in SQLite, migration `0013_guilds.sql`; the rules and reply shapes), `routes/guild.ts` (the eleven v2 routes, in registration order), `middleware/GameServerKeyAuth.ts` (the game-server-only create) | `GuildInvite`, `Guilds` and `DisbandGuild` are in `routes/unbrokenapi.ts`. `test/socialclient.ts` models how the client parses the social replies; `test/guildhttp.test.ts` and `test/socialflow.test.ts` use it. |
 | Chat (XMPP) | `realtime/chat.ts` (the WebSocket listener, SASL login with the player token, sessions and their limits, pings, whispers; `ReadChatConfig` and `StartChat`, which `server.ts` calls only with `CHAT=1`), `realtime/muc.ts` (rooms: joins, leaves, the fan-out of room lines, party and guild membership checks, the 60 s sweep), `realtime/chatnick.ts` (the client's URL encoding and the room nickname rules), `realtime/xmpp.ts` (parsing, escaping, JIDs, token buckets, the trace redaction), `realtime/presence.ts` (friends' online status with `CHAT_PRESENCE=1`: who hears whom, the relays, the friends-list push, and the rule that no stanza outside a room reaches a player from their own account) | Membership and blocks come from `GetPartyOf` in `controllers/party.ts`, `IsGuildMember` in `controllers/guild.ts` and `BlockersAmong` in `controllers/friends.ts`. [Text chat]({{ '/findings/chat.html' | relative_url }}) explains why each answer has its shape. Tests: `test/chat.test.ts` (end to end over WebSocket), `test/chatmodel.test.ts` and `test/chatclient.ts` (a model of how the 1.4.4 client reads chat), `test/chathttp.test.ts` with `test/chatenv.ts` (names through the real account routes), `test/chatwire.ts` (a raw client shaped like the game's), `test/presence.test.ts`, and `test/chatinvariant.ts` (checks every stanza of those files against the own-account rule). |
 | Matchmaking | `controllers/matchmaking.ts` (queues, candidate status, parties, the call to the deploy server), `routes/matchmaking.ts` | |

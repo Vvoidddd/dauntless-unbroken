@@ -6,7 +6,7 @@ nav_order: 6
 lang: fi
 ref: findings/multiplayer
 locale: fi_FI
-description: "Miten Undaunted tekee Dauntless 1.4.4 -peliohjelman kopioista pelipalvelimia DLL-tiedoston avulla, ja miksi luulimme kerran moninpelin olevan mahdoton."
+description: "Miten Dauntless Unbroken tekee Dauntless 1.4.4 -peliohjelman kopioista pelipalvelimia DLL-tiedoston avulla, ja miksi luulimme kerran moninpelin olevan mahdoton."
 ---
 
 {% assign ci_page = site.pages | where: "path", "fi/findings/client-internals.md" | first %}
@@ -17,14 +17,14 @@ description: "Miten Undaunted tekee Dauntless 1.4.4 -peliohjelman kopioista peli
 
 Dauntlessin peliohjelma on pelkkä asiakasohjelma (client): se on tehty pelaamiseen omalla koneella,
 ei pelin pyörittämiseen muille. Yksinään se ei pysty isännöimään peliä. Silti
-[Undaunted](https://github.com/SyST3MDeV/Undaunted) pyörittää yhteistä Ramsgatea (pelin kaupunkia,
+[source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html) pyörittää yhteistä Ramsgatea (pelin kaupunkia,
 jossa pelaajat tapaavat toisiaan) ja usean pelaajan metsästysretkiä aidolla **1.4.4**-version
 asiakasohjelmalla. Se tekee sen lataamalla DLL-tiedoston (lisäosan, joka ladataan toisen ohjelman
 sisään) saman ohjelmatiedoston ylimääräisiin kopioihin. Näin jokaisesta kopiosta tulee pelipalvelin
 (ohjelma, joka pyörittää peliä pelaajille verkossa).
 
 Tämä sivu selittää, miksi se toimii ja miten osat sopivat yhteen. Kaikki, mitä tällä sivulla
-kerrotaan Undauntedin koodista, koskee **vain versiota 1.4.4**. Todisteet siitä, että käännös on
+kerrotaan Dauntless Unbroken koodista, koskee **vain versiota 1.4.4**. Todisteet siitä, että käännös on
 pelkkä asiakasohjelma, löytyvät sivulta
 [Asiakasohjelman sisäosat]({{ ci_page.url | relative_url }}).
 
@@ -59,7 +59,7 @@ Siihen jää kuitenkin suurin osa siitä, mitä palvelin tarvitsee, kun se kerra
 | Ohjausviestien (Hello, Login, Join) käsittely `UWorld::NotifyControlMessage`-funktiossa | Ehjä | 2.1.1: `0x1453e5d40`, täysi `NMT_*`-hyppytaulu |
 | Pelitilan kirjautumiskäsittely (`PreLogin`, `PostLogin`, pelaajan luominen) | Ehjä | `AArchonGameMode::PostLogin` osoitteessa `0x14B7460` |
 | Actor-kanavat ja `ReplicateActor` | Ehjä | `CreateChannelByName` `0x3449E10`, `ReplicateActor` `0x327E860` |
-| Moottorin oma palvelimen replikointisilmukka | Undaunted ei käytä sitä | Sen `ServerReplicateActors_*`-apufunktioiden nimet puuttuvat molemmista ohjelmatiedostoista. Tulkitsemme senkin poistetuksi, mutta puuttuvat nimet ovat heikko todiste (**ei todistettu**). |
+| Moottorin oma palvelimen replikointisilmukka | Dauntless Unbroken ei käytä sitä | Sen `ServerReplicateActors_*`-apufunktioiden nimet puuttuvat molemmista ohjelmatiedostoista. Tulkitsemme senkin poistetuksi, mutta puuttuvat nimet ovat heikko todiste (**ei todistettu**). |
 
 Puuttuvat osat ovat siis kutsu, joka avaa kuuntelevan verkkoajurin (net driver), verkkotilan
 vastaus, kaksi globaalia lippua ja, sikäli kuin voimme päätellä, palvelimen replikointisilmukka.
@@ -68,7 +68,7 @@ on käännetty mukaan, mutta tavallinen asiakasohjelma ei koskaan kutsu sitä.
 
 ---
 
-## Undauntedin rakenne {#undaunteds-design}
+## Dauntless Unbroken rakenne {#server-design}
 
 | Osa | Kieli | Tehtävä |
 |---|---|---|
@@ -93,7 +93,7 @@ on käännetty mukaan, mutta tavallinen asiakasohjelma ei koskaan kutsu sitä.
   ladattaisiin mihin tahansa muuhun ohjelmatiedostoon, se kirjoittaisi väärään koodiin.
   1.4.4-ohjelmatiedoston, jota varten se on tehty, SHA-256 on
   `d3d41e614908d2befd518b27046d9822d6130ef12ba3504babbdb786bef9cff4`, eli sama arvo, joka on
-  kiinnitetty Undauntedin käynnistimeen. Yksikään siirtymä (offset) ei täsmää versioon 2.1.1.
+  kiinnitetty Dauntless Unbroken käynnistimeen. Yksikään siirtymä (offset) ei täsmää versioon 2.1.1.
 
 ### Yksi DLL, kaksi tilaa {#one-dll-two-modes}
 
@@ -172,10 +172,10 @@ Muut palvelinpuolen koukut:
   tyhjältä.
 
 **Miten palvelin puhuu taustapalvelulle.** Palvelintila lisää `x-dauntless-unbroken-gameserver-apikey`-otsakkeen
-jokaiseen prosessin tekemään HTTP-pyyntöön. Metagame (Undauntedin taustapalvelu) hyväksyy tämän
+jokaiseen prosessin tekemään HTTP-pyyntöön. Metagame (Dauntless Unbroken taustapalvelu) hyväksyy tämän
 otsakkeen, ja jos pyynnössä on myös pelaajan bearer-tunniste, se kirjaa pyynnön sen pelaajan
 nimiin. Palvelintila **ei** ohjaa päätepisteiden URL-osoitteita uudelleen, eikä upstream-koodista
-selviä, miten Undauntedin palvelimet tavoittavat metagamen. Meidän palvelinkoneellamme
+selviä, miten Dauntless Unbroken palvelimet tavoittavat metagamen. Meidän palvelinkoneellamme
 palvelinprosessit ajetaan samalla Windows-tilillä kuin asiakasohjelma. Ne lukevat saman käyttäjän
 `Game.ini`-tiedoston, jossa on lainausmerkeissä olevat ohitukset kaikille 167 päätepisteavaimelle,
 ja ne osoittavat metagameen. Sivu [Asiakasohjelman sisäosat]({{ ci_page.url | relative_url }})
@@ -208,7 +208,7 @@ Pelaajan asiakasohjelma lataa saman DLL:n. Asiakastilassa ensimmäinen argumentt
 
 Deploy-palvelin on pieni Express-sovellus. Upstreamissa sillä on yksi päätepiste,
 `POST /api/matchmaker/handle-matchmaking-for-player`, jolla ei ole **mitään tunnistautumista**, ja se
-kuuntelee kaikissa verkkoliitännöissä. Meidän haaramme (fork, eli oma muokattu kopiomme) sitoo sen,
+kuuntelee kaikissa verkkoliitännöissä. Meidän haaramme (codebase, eli oma muokattu kopiomme) sitoo sen,
 samoin kuin metagamen, oletuksena osoitteeseen `127.0.0.1`. Haaramme lisää toisen, pelkästään
 lukevan reitin, `GET /gameservers`, joka luettelee käynnissä olevat pelipalvelimet metagamen
 `ServerStatus`-vastausta varten. Kummallakaan reitillä ei vieläkään ole tunnistautumista, ja
@@ -233,7 +233,7 @@ kautta. Yksityiskohdat ovat sivulla [HTTP-rajapinta]({{ api_page.url | relative_
 - **Valvonta.** Kerran minuutissa vahtikoira (watchdog) tarkistaa jokaisen prosessin kutsulla
   `process.kill(pid, 0)`. Jos Ramsgate- tai Dojo-prosessi on kadonnut, se käynnistää uuden. Se ei
   koskaan tapa mitään, koska metsästyspalvelimet sammuttavat itse itsensä.
-- **Kaatunut Ramsgate tarvittaessa (haaramme, 23.9.2026, Harmonicin haarasta).** Ennen kuin
+- **Kaatunut Ramsgate tarvittaessa (haaramme, 23.9.2026, lähdeintegraation haarasta).** Ennen kuin
   deploy-palvelin antaa Ramsgaten tai Dojon osoitteen (`CITY`-matka, Dojo tai varalla Ramsgate), se
   tarkistaa samalla tavalla, että prosessi on yhä elossa, ja käynnistää kaatuneen ensin
   (`PERSISTENT_WORLD_LIVENESS`, oletuksena päällä; `0` jättää sen vahtikoiralle kuten ennen). Ennen
@@ -253,7 +253,7 @@ kautta. Yksityiskohdat ovat sivulla [HTTP-rajapinta]({{ api_page.url | relative_
   `FAILED`.
 - **Vastaus.** Deploy-palvelin palauttaa `{host, port}` heti, kun se on käynnistänyt prosessin. Se ei
   odota palvelimen valmistumista. Uusi palvelin alkaa kuunnella vasta noin kolme sekuntia sen
-  jälkeen, kun sen maailma on olemassa. Harmonicin haara odottaa ensin pelin UDP-porttia; jätimme sen
+  jälkeen, kun sen maailma on olemassa. lähdeintegraation haara odottaa ensin pelin UDP-porttia; jätimme sen
   toistaiseksi pois, koska se pitäisi pelaajan matkapyynnön auki koko palvelimen käynnistyksen ajan,
   peliohjelman aikaraja tälle pyynnölle on tuntematon, ja 60 sekunnin takaraja voisi kaataa hitaasti
   käynnistyvän Ramsgaten (tiekartan kohta 4.6). Myös hänen pelipalvelinten lokitiedostonsa jätettiin
@@ -268,7 +268,7 @@ Porttijakomme palvelinkoneella:
 | Deploy-palvelin | TCP `127.0.0.1:61001` |
 | Pelipalvelimet | UDP 8770–8777. Ramsgate portissa 8777, Dojo portissa 8776, metsästykset porteissa 8770–8775. |
 
-Siirsimme metagamen pois Undauntedin kehitysoletusportista 60000, koska toinen sovellus
+Siirsimme metagamen pois Dauntless Unbroken kehitysoletusportista 60000, koska toinen sovellus
 palvelinkoneellamme käyttää jo sitä porttia.
 
 ---
@@ -296,13 +296,13 @@ client                     metagame                      deploy server          
   |== UDP: Hello / Login / Join (stock engine handshake) ============================>|
 ```
 
-- **Tilavastaus.** Undauntedin `/candidate/status` palauttaa `MATCHING`, kunnes palvelin on
+- **Tilavastaus.** Dauntless Unbroken `/candidate/status` palauttaa `MATCHING`, kunnes palvelin on
   tiedossa, ja sen jälkeen `IN_PROGRESS` sekä `serverInfo {buildId, gameSessionId, host, port}`. Se
   pyytää asiakasta kyselemään 10 sekunnin välein (`candidateStatusPeriodMillis: 10000`). Meidän
   haaramme vastaa `FAILED` (kentän `statusReason: null` kanssa ja ilman `serverInfo`-kenttää), kun
   deploy-palvelin ei pystynyt antamaan palvelinta: 500 tai 503, vastaus ilman palvelinta, lainausmerkeissä
   oleva portti, runko joka ei ole JSONia tai katkennut yhteys, kukin testattuna Ramsgaten, opetusjakson
-  ja jonotetun metsästyksen poluilla (virhetapaukset ovat Harmonicin testeistä). Upstream lähetti ryhmän
+  ja jonotetun metsästyksen poluilla (virhetapaukset ovat lähdeintegraation testeistä). Upstream lähetti ryhmän
   palvelimeen `""` ja porttiin 0.
 - **Ryhmittely.** Metsästykset, jotka tarvitsevat matchmakingia, ryhmitellään pelaajan
   metsästystunnuksen mukaan. Ryhmä lähetetään deploy-palvelimelle, kun siinä on 4 pelaajaa tai kun
@@ -327,7 +327,7 @@ client                     metagame                      deploy server          
   - Asiakas rakentaa siirtymisosoitteensa (travel URL) muodossa
     `%s:%d?ticket=%s?gameSessionId=%s?EncryptionToken=%s`, jossa jokaisen valinnan välissä on `?`.
 
-  Emme ole johtaneet näitä sääntöjä uudelleen versiolle 1.4.4, vaikka Undauntedin vastaukset
+  Emme ole johtaneet näitä sääntöjä uudelleen versiolle 1.4.4, vaikka Dauntless Unbroken vastaukset
   sopivat niihin.
 
 ---
@@ -364,13 +364,13 @@ palvelinkäännöksen, jota Phoenix ei koskaan julkaissut.
 
 Todisteet pitivät paikkansa. Johtopäätös ei. Tulkitsimme lauseen "tavallinen koodipolku ei pääse
 tähän koodiin" tarkoittavan "tätä koodia ei voi ajaa". Mielemme muutti tieto, että muut pelaajat
-pääsivät matchmakingin kautta Ramsgateen samoilla tiedostoilla. Undaunted näyttää, mitä versiossa
+pääsivät matchmakingin kautta Ramsgateen samoilla tiedostoilla. Dauntless Unbroken näyttää, mitä versiossa
 1.4.4 pohjimmiltaan tarvitaan: yksi paikattu kutsu, viisi tavupaikkausta, yksi verkkotilan koukku,
 suora kutsu ehjään `InitListen`-funktioon, korjaus verkkoajurin ilmoitusosoittimeen ja käsin
 kirjoitettu replikointisilmukka. Sen muut koukut hoitavat komentorivin, käynnistyskartan ja pelin
 yksityiskohdat.
 
-Emme ole kokeilleet samaa versiossa 2.1.1. Mikään Undauntedin siirtymistä ei käy sellaisenaan.
+Emme ole kokeilleet samaa versiossa 2.1.1. Mikään Dauntless Unbroken siirtymistä ei käy sellaisenaan.
 Löytämämme vastaavat 2.1.1-funktiot (`Listen`-tynkä osoitteessa `0x140bfde50`, `GetNetMode`
 osoitteessa `0x1453e4ef0`, `GIsClient`-kirjoitus osoitteessa `0x140c0f683`, `InitListen` osoitteessa
 `0x140c6d200`) viittaavat siihen, että sama lähestymistapa toimisi siellä. Se on
@@ -387,5 +387,5 @@ osoitteessa `0x1453e4ef0`, `GIsClient`-kirjoitus osoitteessa `0x140c0f683`, `Ini
   valmiiden DLL-tiedostojen tiivisteet ja aiomme kääntää ne itse lähdekoodista.
 - **Kaksinkertainen kyvyn aktivointi.** Palvelimen RPC-koukku aktivoi kyvyn suoraan ja kutsuu sitten
   myös alkuperäistä RPC:tä. Sitä, aktivoiko tämä kyvyt kahdesti, ei ole testattu.
-- **Neljä pelaajaa.** Undauntedin historian mukaan tavalliset ja 4 pelaajan metsästykset
+- **Neljä pelaajaa.** Dauntless Unbroken historian mukaan tavalliset ja 4 pelaajan metsästykset
   toimivat, mutta olemme itse ajaneet vain opetusmetsästystä ja Ramsgatea.

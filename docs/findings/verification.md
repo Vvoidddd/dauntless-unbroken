@@ -28,7 +28,7 @@ executed until all checks had passed.
 | Build | What we received | Result |
 |:------|:-----------------|:-------|
 | **2.1.1** (final "Awakening" build, UE5, IoStore). Build 682486, signed 18 Dec 2024 | A RAR5 archive, 13.53 GiB, 833 files, 15.52 GB unpacked | Genuine, complete, clean |
-| **1.4.4** (UE4, pak v9). `dauntless_rel-1.4.4_Shipping_2020-10-28`, signed 29 Oct 2020 | `BaseGame144.zip`, 10.48 GB, 410 files (471 zip entries counting 61 directory entries). This is the archive the upstream [Undaunted](https://github.com/SyST3MDeV/Undaunted) launcher downloads | Genuine, complete, clean |
+| **1.4.4** (UE4, pak v9). `dauntless_rel-1.4.4_Shipping_2020-10-28`, signed 29 Oct 2020 | `BaseGame144.zip`, 10.48 GB, 410 files (471 zip entries counting 61 directory entries). This is the archive the upstream [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html) launcher downloads | Genuine, complete, clean |
 
 <details open markdown="block">
   <summary>Contents</summary>
@@ -294,7 +294,7 @@ agrees with Phoenix's own file list.
 Two more cross-checks for 1.4.4:
 
 - The SHA-256 of the main executable and of the zip both equal the values pinned in the upstream
-  Undaunted launcher (`DauntlessUnbrokenLauncher/src/main.ts`):
+  Dauntless Unbroken launcher (`DauntlessUnbrokenLauncher/src/main.ts`):
 
   | File | SHA-256 |
   |:-----|:--------|
@@ -398,15 +398,15 @@ zero-byte `debug.log` files: ClamAV reported each as `Empty file` and did not co
 
 ---
 
-## The prebuilt Undaunted DLLs
+## The prebuilt Dauntless Unbroken DLLs
 
-The 1.4.4 setup adds two prebuilt files from the upstream Undaunted repository to the game folder:
+The 1.4.4 setup adds two prebuilt files from the the earlier implementation repository to the game folder:
 `dxgi.dll` and `DauntlessUnbroken.dll`. They are not game files, but they run inside the game
 process, so we checked them the same way. Both are unsigned, which is normal for a hobby project.
 
 | Check | `dxgi.dll` | `DauntlessUnbroken.dll` |
 |:------|:-----------|:------------------------------|
-| Size | 11,264 bytes | 123,392 bytes |
+| Size | 11,264 bytes | 306,176 bytes |
 | SHA-256 | `9A431D7B…4B0D1F` | `520EC588…0D0933` |
 | Matches the git blob in the repository (not a Git LFS pointer) | Yes | Yes |
 | Packing, overlay, TLS callbacks, RWX sections | None | None |
@@ -424,7 +424,7 @@ Every hard-coded game address in the server DLL either appears in its published 
 the offsets of the generated SDK. We found none that the source does not explain. Windows Defender
 raised no detections when we copied the files into the game folder.
 
-One open issue: **the source of `dxgi.dll` is not in the Undaunted repository.** Its debug path points
+One open issue: **the source of `dxgi.dll` is not in the Dauntless Unbroken repository.** Its debug path points
 to a separate project whose source we have not found published anywhere. That matters under the AGPL. Replacing it with our
 own proxy, and building `DauntlessUnbroken.dll` from source ourselves, are both on the roadmap.
 Until then we check both files against the pinned hashes before every copy. The full hashes are in the

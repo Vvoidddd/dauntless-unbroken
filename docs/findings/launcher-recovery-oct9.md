@@ -10,4 +10,4 @@ For launchers that never appear, startup and renderer-load failures now produce 
 
 The production key bot was connected to Discord but its metagame requests were failing. CPU profiles identified the inventory receipt expiry DELETE as the dominant synchronous operation. Migration 0025 adds the missing createdDate index. Before: HTTP requests timed out/refused with hundreds of queued connections. After: inventory grants succeeded; bot InviteCodes/GetUserInfo read checks returned 200 in 46/7 ms, and a real private key reply was logged. No key was reissued for diagnosis.
 
-ZFXSTATIC is included in the client cosmetic developer-name styling. The ordinary halo asset is available; a black variant was not verified. Cosmetic developer styling grants no administrative privileges.
+Client cosmetic developer-name styling is supported. The ordinary halo asset is available; a black variant was not verified. Cosmetic developer styling grants no administrative privileges.

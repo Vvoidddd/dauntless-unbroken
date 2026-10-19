@@ -263,7 +263,7 @@ response shapes.
 - **2.1.1** has an `[/Script/OnlineSubsystemEOS.EOSSettings]` block. `bShouldEnforceBeingLaunchedByEGS`
   is already `False` there and `bUseEAS=True`.
 - **1.4.4** has no EOS section at all. It uses Epic's older `OnlineSubsystemMcp` services instead, whose
-  `Domain`, `RedirectUrl` and `Protocol` keys the Undaunted DLL rewrites at run time.
+  `Domain`, `RedirectUrl` and `Protocol` keys the Dauntless Unbroken DLL rewrites at run time.
 - `[/Script/EngineSettings.GameMapsSettings]` in `DefaultEngine.ini` is identical in both builds:
 
   ```ini
@@ -304,7 +304,7 @@ If you extract the config yourself, keep these values out of anything you publis
 ## Key map paths
 
 Unreal package paths: `/Game/` corresponds to `Archon/Content/` inside the containers. Some places,
-such as Undaunted's hunt table and `CityMap`, use the object-path form `path.name`, for example
+such as the native integration's hunt table and `CityMap`, use the object-path form `path.name`, for example
 `/Game/Maps/islands/1702/cora_jamima.cora_jamima`.
 
 | Map | Package path | 2.1.1 container | 1.4.4 container | Notes |
@@ -312,9 +312,9 @@ such as Undaunted's hunt table and `CityMap`, use the object-path form `path.nam
 | Login menu | `/Game/Maps/Map_LoginMenu` | `Archon_Maps_2` | `Archon_Maps_2` | `GameDefaultMap`. Login and character selection run inside this map |
 | Ramsgate | `/Game/Maps/ramsgate/ramsgate_01_persistent` | `Archon_Maps_2` | `Archon_Maps_2` | The persistent level. The other `ramsgate_01_*` maps (bazaar, docks, pub, crafting zone, NPCs, vistas…) are streaming sublevels |
 | 1.4.4 tutorial island | `/Game/Maps/islands/1705/dia_moss_triforce` | `Archon_Maps_0` | `Archon_Maps_0` | On our 1.4.4 server, new characters are matchmade here with the tutorial Gnasher `/Game/Monsters/mcrollin/mcbeaver_tutorial_bp` |
-| Training dojo | `/Game/Maps/islands/dojo/training_dojo_persistent` | `Archon_Maps_2` | `Archon_Maps_1` | Our fork starts it on demand |
-| Trials arena | `/Game/Maps/islands/arenas/arena_ramsgate_00` | `Archon_Maps_2` | `Archon_Maps_1` | Undaunted uses it for Trials |
-| Hunt islands | `/Game/Maps/islands/<nnnn>/<name>` | | | For example `1705/dia_snow_big`, `1803/frida_moss_falls`, `1806/gaia_moss_cave`. Undaunted's hunt table lists the ones it uses |
+| Training dojo | `/Game/Maps/islands/dojo/training_dojo_persistent` | `Archon_Maps_2` | `Archon_Maps_1` | our implementation starts it on demand |
+| Trials arena | `/Game/Maps/islands/arenas/arena_ramsgate_00` | `Archon_Maps_2` | `Archon_Maps_1` | Dauntless Unbroken uses it for Trials |
+| Hunt islands | `/Game/Maps/islands/<nnnn>/<name>` | | | For example `1705/dia_snow_big`, `1803/frida_moss_falls`, `1806/gaia_moss_cave`. the native integration's hunt table lists the ones it uses |
 
 Both builds also contain a `/Game/Maps/tutorial/` family (`island_tutorial_00_*`,
 `city_00_art_tutorial_vista`), which our 1.4.4 server does not use. 2.1.1 adds
@@ -371,18 +371,18 @@ A key set here overrides the cooked value. On our 2.1.1 machine, after the game'
 | `LocalMapOptions=?CharacterId=<id>` | `Engine.ini` | 2.1.1 | Read by the client: requests then carry that character id. `?AuthToken=` and `?AccountId=` are **not** read. `?listen` makes the boot fail |
 | `GlobalDefaultGameMode=/Game/blueprints/gamemode/BPGM_City.BPGM_City_C` | `Engine.ini` | 2.1.1 | Game mode for the direct city boot |
 | `[/Script/Archon.ArchonPlayerController] PlayerStartEventTimeout=600.0` | `Game.ini` | 2.1.1 | Stretches the 120 s failsafe that ends in "You have been signed out" |
-| `[OnlineSubsystemPhoenix]` `*Endpoint="http://127.0.0.1:61000/..."` (167 keys, all quoted) | `Game.ini` | 1.4.4 game servers | Points our game-server processes at our metagame. In server mode the Undaunted DLL does not redirect endpoints, so this override is what makes the server's backend calls arrive at the metagame. The **client** needs none of it: the DLL hooks `FConfigCacheIni::GetString` and substitutes the URLs in memory |
+| `[OnlineSubsystemPhoenix]` `*Endpoint="http://127.0.0.1:61000/..."` (167 keys, all quoted) | `Game.ini` | 1.4.4 game servers | Points our game-server processes at our metagame. In server mode the Dauntless Unbroken DLL does not redirect endpoints, so this override is what makes the server's backend calls arrive at the metagame. The **client** needs none of it: the DLL hooks `FConfigCacheIni::GetString` and substitutes the URLs in memory |
 
 ### What it cannot do
 
 - **Open the console on 2.1.1.** `DefaultInput.ini` still lists `ConsoleKeys` and nearly 900
   `ManualAutoCompleteList` cheat-command entries, but the console is compiled out of the shipping
-  build. `+ConsoleKeys=` in `Input.ini` does nothing. On 1.4.4 with Undaunted, the DLL creates a
+  build. `+ConsoleKeys=` in `Input.ini` does nothing. On 1.4.4 with Dauntless Unbroken, the DLL creates a
   console itself and binds it to F2.
 - **Make the stock client host.** `?listen` fails on 2.1.1 because the entry point for listening
   (`UWorld::Listen`) is stubbed in this client-only build. We first read that as "multiplayer is
   impossible". **That was wrong.** The network layer underneath is intact, and an injected DLL can
-  drive it, which is exactly how Undaunted hosts 1.4.4 game servers. See
+  drive it, which is exactly how Dauntless Unbroken hosts 1.4.4 game servers. See
   [How multiplayer works]({{ mp_page.url | relative_url }}).
 - **Skip `-EpicPortal` on 2.1.1.** `LauncherCheck` reads only command-line switches.
 - **Supply an account identity.** On 2.1.1, identity comes only from the real login flow in
@@ -394,7 +394,7 @@ Both builds keep the CA bundle the engine uses for HTTPS (`cacert.pem`) inside `
 we ran 2.1.1 against our own HTTPS backend, a loose
 `<game folder>\Engine\Content\Certificates\cacert.pem` holding our private CA was picked up. That
 meant the pak stayed untouched and the Windows certificate store stayed untouched. On 1.4.4 this is
-unnecessary. Undaunted's DLL rewrites every endpoint to plain HTTP on the metagame address.
+unnecessary. the native integration's DLL rewrites every endpoint to plain HTTP on the metagame address.
 
 ---
 

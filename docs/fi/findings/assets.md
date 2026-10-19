@@ -285,7 +285,7 @@ vastausten muotoja.
 - **2.1.1**:ssä on lohko `[/Script/OnlineSubsystemEOS.EOSSettings]`. Siinä
   `bShouldEnforceBeingLaunchedByEGS` on jo valmiiksi `False` ja `bUseEAS=True`.
 - **1.4.4**:ssä ei ole EOS-osiota lainkaan. Se käyttää sen sijaan Epicin vanhempia
-  `OnlineSubsystemMcp`-palveluja, joiden avaimet `Domain`, `RedirectUrl` ja `Protocol` Undauntedin DLL
+  `OnlineSubsystemMcp`-palveluja, joiden avaimet `Domain`, `RedirectUrl` ja `Protocol` Dauntless Unbroken DLL
   kirjoittaa uudelleen ajon aikana.
 - `[/Script/EngineSettings.GameMapsSettings]` tiedostossa `DefaultEngine.ini` on sama kummassakin
   versiossa:
@@ -329,7 +329,7 @@ Jos purat asetukset itse, pidä nämä arvot poissa kaikesta, mitä julkaiset.
 ## Tärkeät karttapolut {#key-map-paths}
 
 Unrealin pakettipolut: `/Game/` vastaa säiliöiden sisällä polkua `Archon/Content/`. Jotkin kohdat,
-kuten Undauntedin metsästystaulukko ja `CityMap`, käyttävät objektipolkumuotoa `path.name`,
+kuten Dauntless Unbroken metsästystaulukko ja `CityMap`, käyttävät objektipolkumuotoa `path.name`,
 esimerkiksi `/Game/Maps/islands/1702/cora_jamima.cora_jamima`.
 
 | Kartta | Pakettipolku | 2.1.1-säiliö | 1.4.4-säiliö | Huomioita |
@@ -338,8 +338,8 @@ esimerkiksi `/Game/Maps/islands/1702/cora_jamima.cora_jamima`.
 | Ramsgate | `/Game/Maps/ramsgate/ramsgate_01_persistent` | `Archon_Maps_2` | `Archon_Maps_2` | Pysyvä taso. Muut `ramsgate_01_*`-kartat (basaari, satama, pubi, valmistusalue, NPC:t, näköalat…) ovat virtaavia alitasoja, jotka ladataan tarpeen mukaan |
 | Version 1.4.4 opetussaari | `/Game/Maps/islands/1705/dia_moss_triforce` | `Archon_Maps_0` | `Archon_Maps_0` | Meidän 1.4.4-palvelimellamme uudet hahmot ohjataan tänne opetusosion Gnasherin `/Game/Monsters/mcrollin/mcbeaver_tutorial_bp` kanssa |
 | Harjoitusdojo (Training Dojo) | `/Game/Maps/islands/dojo/training_dojo_persistent` | `Archon_Maps_2` | `Archon_Maps_1` | Haaramme käynnistää sen tarvittaessa |
-| Trials-areena | `/Game/Maps/islands/arenas/arena_ramsgate_00` | `Archon_Maps_2` | `Archon_Maps_1` | Undaunted käyttää sitä Trials-haasteisiin |
-| Metsästyssaaret | `/Game/Maps/islands/<nnnn>/<name>` | | | Esimerkiksi `1705/dia_snow_big`, `1803/frida_moss_falls`, `1806/gaia_moss_cave`. Undauntedin metsästystaulukko luettelee ne, joita se käyttää |
+| Trials-areena | `/Game/Maps/islands/arenas/arena_ramsgate_00` | `Archon_Maps_2` | `Archon_Maps_1` | Dauntless Unbroken käyttää sitä Trials-haasteisiin |
+| Metsästyssaaret | `/Game/Maps/islands/<nnnn>/<name>` | | | Esimerkiksi `1705/dia_snow_big`, `1803/frida_moss_falls`, `1806/gaia_moss_cave`. Dauntless Unbroken metsästystaulukko luettelee ne, joita se käyttää |
 
 Molemmissa versioissa on myös `/Game/Maps/tutorial/`-karttaperhe (`island_tutorial_00_*`,
 `city_00_art_tutorial_vista`), jota 1.4.4-palvelimemme ei käytä. 2.1.1 lisää kartan
@@ -401,18 +401,18 @@ vapaasti käytettävissä. Peli kirjoittaa `GameUserSettings.ini`-tiedoston aset
 | `LocalMapOptions=?CharacterId=<id>` | `Engine.ini` | 2.1.1 | Asiakasohjelma lukee tämän: pyynnöissä kulkee sen jälkeen tuo hahmotunniste. Arvoja `?AuthToken=` ja `?AccountId=` se **ei** lue. `?listen` saa käynnistyksen epäonnistumaan |
 | `GlobalDefaultGameMode=/Game/blueprints/gamemode/BPGM_City.BPGM_City_C` | `Engine.ini` | 2.1.1 | Pelitila, kun peli käynnistetään suoraan kaupunkiin |
 | `[/Script/Archon.ArchonPlayerController] PlayerStartEventTimeout=600.0` | `Game.ini` | 2.1.1 | Pidentää 120 sekunnin varmistusajastinta, joka päättyy ilmoitukseen "You have been signed out" |
-| `[OnlineSubsystemPhoenix]` `*Endpoint="http://127.0.0.1:61000/..."` (167 avainta, kaikki lainausmerkeissä) | `Game.ini` | 1.4.4-pelipalvelimet | Ohjaa pelipalvelinprosessimme metagame-palvelimeemme (taustapalvelu, joka korvaa Phoenixin verkkopalvelut). Palvelintilassa Undauntedin DLL ei ohjaa päätepisteitä uudelleen, joten juuri tämä ohitus saa palvelimen taustapalvelukutsut perille metagame-palvelimeen. **Asiakasohjelma** ei tarvitse tästä mitään: DLL koukuttaa funktion `FConfigCacheIni::GetString` ja vaihtaa osoitteet muistissa |
+| `[OnlineSubsystemPhoenix]` `*Endpoint="http://127.0.0.1:61000/..."` (167 avainta, kaikki lainausmerkeissä) | `Game.ini` | 1.4.4-pelipalvelimet | Ohjaa pelipalvelinprosessimme metagame-palvelimeemme (taustapalvelu, joka korvaa Phoenixin verkkopalvelut). Palvelintilassa Dauntless Unbroken DLL ei ohjaa päätepisteitä uudelleen, joten juuri tämä ohitus saa palvelimen taustapalvelukutsut perille metagame-palvelimeen. **Asiakasohjelma** ei tarvitse tästä mitään: DLL koukuttaa funktion `FConfigCacheIni::GetString` ja vaihtaa osoitteet muistissa |
 
 ### Mitä sillä ei voi tehdä {#what-it-cannot-do}
 
 - **Avata konsolia versiossa 2.1.1.** `DefaultInput.ini` luettelee yhä `ConsoleKeys`-näppäimet ja lähes
   900 `ManualAutoCompleteList`-huijauskomentomerkintää, mutta konsoli on jätetty pois julkaisuversion
-  käännöksestä. `+ConsoleKeys=` tiedostossa `Input.ini` ei tee mitään. Versiossa 1.4.4 Undauntedin
+  käännöksestä. `+ConsoleKeys=` tiedostossa `Input.ini` ei tee mitään. Versiossa 1.4.4 Dauntless Unbroken
   kanssa DLL luo konsolin itse ja sitoo sen F2-näppäimeen.
 - **Saada tavallista asiakasohjelmaa toimimaan isäntänä.** `?listen` epäonnistuu versiossa 2.1.1,
   koska kuuntelun aloituskohta (`UWorld::Listen`) on tässä pelkässä asiakasversiossa korvattu tyhjällä
   tyngällä. Tulkitsimme sen ensin niin, että "moninpeli on mahdoton". **Se oli väärin.** Alla oleva
-  verkkokerros on ehjä, ja ohjelmaan ujutettu DLL voi ohjata sitä. Juuri näin Undaunted pyörittää
+  verkkokerros on ehjä, ja ohjelmaan ujutettu DLL voi ohjata sitä. Juuri näin Dauntless Unbroken pyörittää
   1.4.4-pelipalvelimia. Katso [Näin moninpeli toimii]({{ mp_page.url | relative_url }}).
 - **Ohittaa `-EpicPortal`-valitsinta versiossa 2.1.1.** `LauncherCheck` lukee vain
   komentorivivalitsimia.
@@ -426,7 +426,7 @@ salatuissa HTTPS-yhteyksissä) `Archon_0`-pakkauksen sisällä. Kun ajoimme vers
 HTTPS-taustapalveluamme vasten, peli otti käyttöön irrallisen tiedoston
 `<game folder>\Engine\Content\Certificates\cacert.pem`, jossa oli oma yksityinen varmentajamme. Pak-tiedosto
 jäi siis koskemattomaksi, ja samoin Windowsin varmennevarasto. Versiossa 1.4.4 tätä ei tarvita.
-Undauntedin DLL kirjoittaa jokaisen päätepisteen uudelleen tavalliseksi HTTP-osoitteeksi, joka
+Dauntless Unbroken DLL kirjoittaa jokaisen päätepisteen uudelleen tavalliseksi HTTP-osoitteeksi, joka
 osoittaa metagame-palvelimeen.
 
 ---

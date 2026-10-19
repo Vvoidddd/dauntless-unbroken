@@ -2,7 +2,7 @@
 title: The in-game store
 parent: Findings
 nav_order: 11
-description: "How the Dauntless 1.4.4 client's store buys an item, read from the executable, and the free store we built from Harmonic's fork: the four routes and the purchase token, the catalogue and its tabs, stacked and instanced grants, which character gets the item, and the switches."
+description: "How the Dauntless 1.4.4 client's store buys an item, read from the executable, and the free store we built from the source integration's codebase: the four routes and the purchase token, the catalogue and its tabs, stacked and instanced grants, which character gets the item, and the switches."
 lang: en
 ref: findings/store
 ---
@@ -12,7 +12,7 @@ ref: findings/store
 {% assign files_page = site.pages | where: "path", "reference/files.md" | first %}
 {% assign game_page = site.pages | where: "path", "reference/game-settings.md" | first %}
 {% assign contract_page = site.pages | where: "path", "findings/backend-contract.md" | first %}
-{% assign harmonic_page = site.pages | where: "path", "findings/harmonic-fork.md" | first %}
+{% assign integration_page = site.pages | where: "path", "findings/feature-integrations.md" | first %}
 {% assign roadmap_page = site.pages | where: "path", "roadmap.md" | first %}
 {% assign admin_page = site.pages | where: "path", "setup/admin.md" | first %}
 
@@ -30,10 +30,10 @@ prices in in-game currency (roadmap 3.7), and a store test in game on our server
 the store screen gets the same error as before.
 
 The catalogue, the purchase-token flow, the tab layout and the list of how each item is granted come
-from **Harmonic's** Dauntless 1.4.4 fork
-([github.com/Harmonicrain/Undaunted](https://github.com/Harmonicrain/Undaunted), commit `895f7c7`),
-where Harmonic tried the store in game. We rebuilt the routes on our own inventory, entitlement and audit
-code. What we took and what we changed is on [The Harmonic port]({{ harmonic_page.url | relative_url }}).
+from **the source integration's** Dauntless 1.4.4 codebase
+([source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html), commit `895f7c7`),
+where the source integration tried the store in game. We rebuilt the routes on our own inventory, entitlement and audit
+code. What we took and what we changed is on [Feature integrations]({{ integration_page.url | relative_url }}).
 
 <details open markdown="block">
   <summary>Contents</summary>
@@ -48,7 +48,7 @@ code. What we took and what we changed is on [The Harmonic port]({{ harmonic_pag
 |:------|:-------|
 | **B** | The 1.4.4 executable (`Dauntless-Win64-Shipping.exe`): strings and disassembly. Addresses are virtual addresses with image base `0x140000000`. |
 | **K** | The endpoint table in `DauntlessUnbrokenInternalServer/dllmain.cpp` and the client's own data tables. |
-| **O** | Observed in game by Harmonic on that fork (one client), not yet on our server. |
+| **O** | Observed in game by the source integration on that codebase (one client), not yet on our server. |
 | **S** | Strong inference: one link in the chain was not traced. |
 | **G** | A design decision of ours, where nothing in the client decides it. |
 | **C** | Our own code and tests. |
@@ -72,9 +72,9 @@ The store uses four endpoint keys, all of them already pointed at the metagame b
   offer's price fields; any other currency is refused with 400).
 - The offer's price fields are **flat**: `platinumPrice`, `platinumSalePrice`, `cellDustPrice`,
   `prestigePrice`, `event01Price`, `steelMarksPrice` and `gildedMarksPrice` (B, the field names in the
-  1.4.4 executable, read by Harmonic). The newer `prices: [{currencyId, price}]` array of later clients
+  1.4.4 executable, read by the source integration). The newer `prices: [{currencyId, price}]` array of later clients
   has no reader in 1.4.4, so an offer sent that way has no price the client recognises and is dropped
-  (S, from Harmonic's notes: the store stays empty).
+  (S, from the source integration's notes: the store stays empty).
 - `remaining` tells the client whether the offer can still be bought. We send 0 once the character
   holds every item of the offer and the account owns every entitlement it grants.
 
@@ -94,8 +94,8 @@ by its id every time.
 | `season09b_rank` | 0 | Hunt Pass rank skips. Served empty: a rank skip would be a progression grant, not an item (see below). |
 | `loadout_slots`, `fountain_daily_free_bundle` | 0 | Tags the 1.4.4 client asks for; nothing is sold under them. |
 
-These five are the tags Harmonic saw the 1.4.4 client ask for (O). Any other tag gets an empty list and
-a warning line. Every offer has `platinumPrice` 0. A few facts about the list, from Harmonic's work:
+These five are the tags the source integration saw the 1.4.4 client ask for (O). Any other tag gets an empty list and
+a warning line. Every offer has `platinumPrice` 0. A few facts about the list, from the source integration's work:
 
 - **Store tabs.** Each offer carries category tags besides `webstore` (`skin_armour`, `feature`,
   `social_emote`, `personality_fabric` and so on). The store's tab bar indexes the full list of tabs,
@@ -122,12 +122,12 @@ An item enters the inventory in one of two ways: as a **stack** (a catalogue id 
 an **instance** (an item with an instance id of its own). The client's item catalogue decides which,
 through each item's stackable flag, and a wrong kind leaves the item invisible or breaks the
 inventory. `DauntlessUnbrokenMetagame/src/vendor/store_item_kinds.json` records the flag for each of the 211
-items the store sells (95 stacked, 116 instanced), read from the client's catalogue by Harmonic. A rule
+items the store sells (95 stacked, 116 instanced), read from the client's catalogue by the source integration. A rule
 by name prefix gets individual items wrong: most weapon skins and a few arrivals are instanced, while a
 few fabrics and lanterns are stacked.
 
 - **Stacked armour was seen working in game** (O). The store sells armour only where it is stackable.
-- **Instanced grants are not proven in game**, not even by Harmonic. The instance id is
+- **Instanced grants are not proven in game**, not even by the source integration. The instance id is
   `sha256(<token hash>:<catalogue id>)`, cut to 32 hex characters, so a retried confirm names the same
   instance. The in-game test buys one instanced weapon skin and checks that it shows and can be
   equipped after a relog.
@@ -146,7 +146,7 @@ That this is the character on screen is a strong inference (S). An account with 
 for the token, and a confirm is refused (403) when the token's character no longer belongs to the
 account.
 
-Harmonic's version refused accounts with more than one character. Before `STORE=free` goes on for
+the source integration's version refused accounts with more than one character. Before `STORE=free` goes on for
 real players, the owner counts the characters per account on the live database (the read-only query
 is on [Run it for a group]({{ admin_page.url | relative_url }}#switching-features-on)); how many
 accounts have more than one has not been counted yet.
@@ -186,7 +186,7 @@ alone gets 403. Purchases can be traced (`inventorylog.caller = 'store'`, `entit
 
 | Left out | Why |
 |:---------|:----|
-| Harmonic's `season09b_10_ranks` offer (ten Hunt Pass ranks) | It granted `CURRENCY_PRESTIGE`, which the fork's own store code could not sell (no grant kind: 409). A real rank skip is a progression grant through the rank rules, not an item. |
+| the source integration's `season09b_10_ranks` offer (ten Hunt Pass ranks) | It granted `CURRENCY_PRESTIGE`, which the project's own store code could not sell (no grant kind: 409). A real rank skip is a progression grant through the rank rules, not an item. |
 | Prices | Every offer is free until the owner decides otherwise (roadmap 3.7). The code refuses any offer whose `platinumPrice` is not 0. |
 | The bounty-token bundle, by default | `bundle_currency_bounty_small` gives 20 `TOKEN_BOUNTY_DRAFT_PREMIUM`, the premium bounty token that lasts into the next season, and may be bought any number of times: unlimited free premium bounty drafts. It is listed only with `STORE_REPEATABLE_TOKENS=1`, an owner decision. A token issued while it was on is refused (409) after it is switched off. |
 | The Trials, event and prestige stores, the cell-dust exchange, loadout-slot purchases | The same service ran them; nothing is built for them yet (roadmap 3.7, 3.9). |

@@ -391,7 +391,7 @@ aikana. Protonissa tämä saattoi jättää `Dauntless-Win64-Shipping.exe`-prose
 alkusäikeellä ilman UE-lokia tai näkyvää ikkunaa.
 
 Versio 0.1.13 tunnistaa Winen/Protonin ja ohittaa tämän asiakaspuolen debug-konsolin alustuksen.
-Käynnistin asentaa edelleen normaalin natiivin `dxgi`-ohituksen ja Revived-DLL:n; niitä ei pidä
+Käynnistin asentaa edelleen normaalin natiivin `dxgi`-ohituksen ja Unbroken-DLL:n; niitä ei pidä
 poistaa pysyväksi kiertotieksi.
 
 GNOME/Waylandissa 0.1.13 säilyttää myös Protonille työpöytäsession `XAUTHORITY`-arvon. Jos wrapper

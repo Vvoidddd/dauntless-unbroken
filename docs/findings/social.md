@@ -15,7 +15,7 @@ ref: findings/social
 {% assign awakening_page = site.pages | where: "path", "findings/awakening-2-1-1.md" | first %}
 {% assign friends_page = site.pages | where: "path", "setup/friends.md" | first %}
 {% assign chat_page = site.pages | where: "path", "findings/chat.md" | first %}
-{% assign harmonic_page = site.pages | where: "path", "findings/harmonic-fork.md" | first %}
+{% assign integration_page = site.pages | where: "path", "findings/feature-integrations.md" | first %}
 
 # Friends, parties and guilds in 1.4.4
 {: .no_toc }
@@ -31,8 +31,8 @@ of the client's parsing. The next two-player test on the rented server will conf
 [How to verify](#how-to-verify) lists its steps and the log lines to expect. Text chat is built too,
 and has a page of its own: [Text chat]({{ chat_page.url | relative_url }}).
 
-**Update (23 September 2026), from the port of Harmonic's 1.4.4 fork
-([The Harmonic port]({{ harmonic_page.url | relative_url }})), built and tested without the game, not
+**Update (23 September 2026), from the port of the earlier 1.4.4 implementation
+([Feature integrations]({{ integration_page.url | relative_url }})), built and tested without the game, not
 deployed yet:** [Slayer Links](#slayer-links) (on by default), friends' online status inside the chat
 server (off by default, [Text chat]({{ chat_page.url | relative_url }}#presence)), a
 [party accept that arrives twice](#a-repeated-accept) now succeeds, and the client's
@@ -262,7 +262,7 @@ client). A block removes the pending invites between the two.
 
 ### A repeated accept {#a-repeated-accept}
 
-An accept can arrive twice: the client retries a request whose answer was lost, and Harmonic's fork
+An accept can arrive twice: the client retries a request whose answer was lost, and the source integration's codebase
 tolerated that (G for how often it happens in 1.4.4). Since 23 September 2026, a
 `PUT /party/invite/accept/<id>` that matches no live invite still answers **200 with the caller's
 party** (the same body as the party poll) when the caller is already in a party of two or more and the
@@ -453,7 +453,7 @@ One player invites a friend into a slot, the friend accepts into one of theirs, 
 168 hours.
 
 **Status (23 September 2026): built and tested without the game, on by default (`SLAYER_LINKS`), not
-yet tried in game.** The contract comes from Harmonic's fork, which had the first working version; we
+yet tried in game.** The contract comes from the source integration's codebase, which had the first working version; we
 checked every route and body against the executable and corrected five points (below). No Slayer
 Link call appeared in the census of 22 September 2026 (L), so the client may keep the tab hidden
 (`ULinkedSlayersFeature`); if it never calls these routes, nothing changes for players.
@@ -518,9 +518,9 @@ client never sends them.
   in SQLite (migration `0016_slayer_links`, tables `slayerlinkinvites` and `slayerlinks`; see
   [Files and data]({{ files_page.url | relative_url }})).
 
-### What we corrected from Harmonic's version {#slayer-link-corrections}
+### What we corrected from the source integration's version {#slayer-link-corrections}
 
-| Harmonic's fork | The client (B) |
+| the source integration's codebase | The client (B) |
 |:---------|:---------------|
 | The invite list names the other player `linked_account_id` | It reads `account_id` (`0x1415ff170`) |
 | A link is removed at `/slayerlink/link` | That key is never used; the client sends `DELETE /slayerlink/links` with a body (`0x1415dc442`) |
@@ -580,7 +580,7 @@ The fixes are tested over HTTP against the real metagame, with the client's own 
   expiry, the limits, ranks and hand-over, kick, leave and disband (including the route order), what
   a block, a decline and a demoted, kicked or departed Officer do to open invites, a restart,
   permissions and `GUILDS=0`. Each reply is checked as exact JSON and through the model.
-- **Slayer Links** (`test/slayerlinks.test.ts`, rewritten from Harmonic's case with the client's exact
+- **Slayer Links** (`test/slayerlinks.test.ts`, rewritten from the source integration's case with the client's exact
   paths and bodies): every route and its keys, both directions of the invite list, accept with the
   chosen or the first free slot, reject and cancel by `account_id`, both meanings of the invite delete,
   a link removed for both players, the three slots numbered 1 to 3 (0 and 4 refused, the third slot

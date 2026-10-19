@@ -67,17 +67,15 @@ either.
 
 ## The repository
 
-The repository is a fork of [Undaunted](https://github.com/SyST3MDeV/Undaunted); the working branch is
-`dauntless-unbroken`. The component folders keep upstream's `Undaunted...` names; the npm packages in
-them are named `dauntless-unbroken-*` (for example `dauntless-unbroken-metagame`).
+The source is maintained at [Vvoidddd/dauntless-unbroken](https://github.com/Vvoidddd/dauntless-unbroken) on the `main` branch. Component folders use `DauntlessUnbroken*` names, and npm packages use `dauntless-unbroken-*`.
 
 | Folder | What it holds | Build output (git-ignored) |
 |:-------|:--------------|:---------------------------|
-| `DauntlessUnbrokenMetagame/` | The backend the game talks to (TypeScript, Express): accounts, saves, progression, matchmaking, parties, friends, guilds, the `/unbroken/api` admin API and the game's text chat (`src/realtime/`, an XMPP listener in the same process, on when `CHAT=1`). `src/db/schema.ts` defines the database, `src/drizzle/` holds its migrations, `src/vendor/` the game's `progression_config.json`, the generated `hunt_titles.json`, and the data from Harmonic's 1.4.4 fork: `escalation/seasons.json` (the Escalation season registry), `store_catalog.json` (the free store's offers) and `store_item_kinds.json` (how each store item is granted). `test/data/store_art_skus.json` lists the store SKU ids with a 2:1 tile image, for a test. The build copies `src/vendor/` to `dist/vendor/`. `scripts/` has `write-build-info.js` and `make-hunt-titles.js`. | `dist/` (with `dist/build-info.json`), `build/` (tests), `node_modules/` |
+| `DauntlessUnbrokenMetagame/` | The backend the game talks to (TypeScript, Express): accounts, saves, progression, matchmaking, parties, friends, guilds, the `/unbroken/api` admin API and the game's text chat (`src/realtime/`, an XMPP listener in the same process, on when `CHAT=1`). `src/db/schema.ts` defines the database, `src/drizzle/` holds its migrations, `src/vendor/` the game's `progression_config.json`, the generated `hunt_titles.json`, and the data from the earlier 1.4.4 implementation: `escalation/seasons.json` (the Escalation season registry), `store_catalog.json` (the free store's offers) and `store_item_kinds.json` (how each store item is granted). `test/data/store_art_skus.json` lists the store SKU ids with a 2:1 tile image, for a test. The build copies `src/vendor/` to `dist/vendor/`. `scripts/` has `write-build-info.js` and `make-hunt-titles.js`. | `dist/` (with `dist/build-info.json`), `build/` (tests), `node_modules/` |
 | `DauntlessUnbrokenDeployServer/` | Starts and supervises the game-server processes (Ramsgate, the Training Dojo, hunts). `src/vendor/` holds the hunt tables. | `dist/`, `build/` |
 | `DauntlessUnbrokenGateway/` | Public mode only: the TLS gateway (`dist/server.js`) and the allowlist helper (`dist/allowlist/server.js`). `tools/make-cert.js` makes the gateway certificate. | `dist/`, `build/` |
 | `DauntlessUnbrokenContent/` | The content server: game files, news and the art pack for registered launchers. `data/dauntless-1.4.4.json` is the game manifest (410 files) that the launcher also compiles in. | `dist/`, `build/` |
-| `DauntlessUnbrokenLauncher/` | This fork's friend launcher (Electron). `assets/` holds the two pinned prebuilt DLLs, `dxgi.dll` and `DauntlessUnbroken.dll`, which every setup installs (host, server kit, friend kit and launcher), and the icons (copies from `brand/launcher/`). `src/renderer/brand/` holds copies of the logo and emblem images the window shows. `scripts/` holds the test runner, the brand image copier (`make-icon.mjs`) and `collect-release.ps1`. | `.vite/` (`npm start`), `out/` (`npm run package` and `npm run make`), `.test-build/` (tests), `release/` (the release files that `scripts/collect-release.ps1` collects after `npm run make`: the installer, the Squirrel update files, the zip and `SHA256SUMS.txt`). |
+| `DauntlessUnbrokenLauncher/` | this project's friend launcher (Electron). `assets/` holds the two pinned prebuilt DLLs, `dxgi.dll` and `DauntlessUnbroken.dll`, which every setup installs (host, server kit, friend kit and launcher), and the icons (copies from `brand/launcher/`). `src/renderer/brand/` holds copies of the logo and emblem images the window shows. `scripts/` holds the test runner, the brand image copier (`make-icon.mjs`) and `collect-release.ps1`. | `.vite/` (`npm start`), `out/` (`npm run package` and `npm run make`), `.test-build/` (tests), `release/` (the release files that `scripts/collect-release.ps1` collects after `npm run make`: the installer, the Squirrel update files, the zip and `SHA256SUMS.txt`). |
 | `DauntlessUnbrokenInternalServer/` | The C++ source of the server DLL: a Visual Studio solution, `dllmain.cpp` (with the endpoint table that `Game.ini` is generated from), the `SDK/` engine headers and `MinHook/`. No script or workflow in this repository builds it; everyone runs the prebuilt DLLs from `DauntlessUnbrokenLauncher/assets/`. Since the MinHook include fix (September 2026) it compiles with the Visual Studio 2022 Build Tools (Release, x64), but no DLL built here is shipped. | Visual Studio output (`x64/`, `*.dll` and the like) |
 | `deploy/windows-server/` | The Windows server kit: the scripts, `lib/` (Node helpers `dr-db.js`, `dr-keys.js`, `verify-game.js`) and `tests/`. | none |
 | `friend-kit/` | The Tailscale-only setup and play scripts for invited friends. | `tools/make-friend-kit.ps1` builds the zip outside the repository |
@@ -117,7 +115,7 @@ what the guides and a few script defaults use.
 
 | Path | What it is |
 |:-----|:-----------|
-| `C:\dr\undaunted\` | The repository checkout ([Host a server, step 4]({{ host_page.url | relative_url }}#fork)). The settings are in `DauntlessUnbrokenMetagame\.env` and `DauntlessUnbrokenDeployServer\.env`, both git-ignored. **Secret: never share, never commit.** Start each server from its own package folder: the metagame finds its migrations through the relative path `./src/drizzle`. |
+| `C:\dr\dauntless-unbroken\` | The repository checkout ([Host a server, step 4]({{ host_page.url | relative_url }}#codebase)). The settings are in `DauntlessUnbrokenMetagame\.env` and `DauntlessUnbrokenDeployServer\.env`, both git-ignored. **Secret: never share, never commit.** Start each server from its own package folder: the metagame finds its migrations through the relative path `./src/drizzle`. |
 | `C:\dr\data\` | Runtime data, outside the repository: `dauntless-unbroken.db` (`DB_FILENAME=C:/dr/data/dauntless-unbroken.db`), `owner.key` and `gameserver.key` (**secret: never share, never commit**), the logs `metagame.log`, `metagame.err`, `deploy.log` and `deploy.err`, and the pid files `metagame.pid`, `deploy.pid` and `client.pid`. The logs are replaced at every start, because the guide starts the servers with `Start-Process -RedirectStandardOutput`. |
 | `C:\dr\data\rekey-<UserId>.txt` | A new account key made by the re-key script in [Run it for a group]({{ admin_page.url | relative_url }}). **Secret**: hand it over privately, then delete it. |
 | `C:\dr\data\ssh\` | `dauntless_deploy` (the SSH key for a rented server) and `known_hosts`, the defaults of `Deploy-Remote.ps1`. **The key is secret: never share, never commit.** |
@@ -129,7 +127,7 @@ what the guides and a few script defaults use.
 | `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\` | The game's user config for this Windows user: `Engine.ini`, `Game.ini` and `GameUserSettings.ini`. See [Game settings]({{ gamesettings_page.url | relative_url }}). |
 
 With `LOG_BODIES=1` and no `BODY_LOG_FILE`, the metagame writes `bodies.log` into its working
-directory, which is `C:\dr\undaunted\DauntlessUnbrokenMetagame`. **No `.gitignore` rule covers that file.** Set
+directory, which is `C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame`. **No `.gitignore` rule covers that file.** Set
 `BODY_LOG_FILE=C:/dr/data/bodies.log`, or delete the file before you commit. The metagame's unit tests
 use a fresh database in a temporary `dauntless-unbroken-test-*` folder per test file and delete it afterwards.
 
@@ -300,9 +298,9 @@ update; on a hand-built host, back up before you pull new code.
 | `0015_store_purchases` | Creates `storepurchases` and its index on `accountId`. Adds tables only. |
 | `0016_slayer_links` | Creates `slayerlinkinvites` and `slayerlinks` with their indexes. Adds tables only. |
 
-Migrations 0014 to 0016 came with the port of Harmonic's fork. None of them changes, copies or converts
+Migrations 0014 to 0016 came with the port of the source integration's codebase. None of them changes, copies or converts
 an existing table; the build before them still starts on a migrated database and ignores the new
-tables ([Upgrading]({{ upgrade_page.url | relative_url }}#harmonic-port)).
+tables ([Upgrading]({{ upgrade_page.url | relative_url }}#feature-integrations)).
 
 To add a migration, change `src/db/schema.ts` and run `npm run db:generate`; see
 [Developer guide]({{ dev_page.url | relative_url }}).

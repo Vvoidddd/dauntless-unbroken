@@ -22,7 +22,7 @@ Install the Unbroken launcher, add your realm invite and sign in with your perso
 
 ## Host or develop
 
-Start with the [server guide](docs/setup/windows-server.md), [configuration reference](docs/reference/configuration.md) and [contributing guide](CONTRIBUTING.md).
+Start with [how the server works](docs/server.md), the [Windows installation guide](docs/setup/windows-server.md), [configuration reference](docs/reference/configuration.md) and [contributing guide](CONTRIBUTING.md).
 
 | Component | Directory |
 |:--|:--|

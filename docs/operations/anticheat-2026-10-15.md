@@ -7,7 +7,7 @@ server RPCs, not a verified fix for attack-speed, infinite-stamina, movement-spe
 or monster-freeze cheats. The supplied videos were inaccessible; the cheat
 behaviors come from the operator's description. No automatic bans are enabled.
 
-`UndauntedInternalServer/ServerRpcGuard.h` lists exact SDK function names.
+`DauntlessUnbrokenInternalServer/ServerRpcGuard.h` lists exact SDK function names.
 The server-only `ProcessEventHook` checks `NetServer`, caches decisions per thread,
 and returns before invoking a denied handler. Each denied function is logged at
 most once per thread, without arguments, player identifiers or credentials.
@@ -82,7 +82,7 @@ on port 8772 after replacement, with no assigned players. Main backend HTTP200
 and complete fleet inventory were verified after all four replacements.
 
 Rollback directories (timestamps use each host's timezone):
-- Main: `C:/DauntlessRevived/backups/native-guard-20261016-021828`
+- Main: `C:/DauntlessUnbroken/backups/native-guard-20261016-021828`
 - US: `C:/DauntlessUS/backups/native-guard-20261015-211715`
 - Germany: `C:/DauntlessGermany/backups/native-guard-20261016-031832`
 - New EU: `E:/DauntlessEU2/backups/native-guard-20261016-031835`

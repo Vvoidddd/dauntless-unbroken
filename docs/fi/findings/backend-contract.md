@@ -51,7 +51,7 @@ Jokaisella tämän sivun muodolla on yksi seuraavista merkinnöistä.
 |---|---|
 | **testattu** | Palvelimemme lähetti tämän oikealle asiakasohjelmalle, ja asiakasohjelma toimi sen mukaan näkyvästi: se teki ketjun seuraavan kutsun, loi hahmon tai jatkoi toimintaansa kohdassa, jossa se ennen kaatui. |
 | **koodista luettu** | Luettu asiakasohjelman jäsentimestä ohjelmatiedostossa. Palvelimemme saattaa lähettää sen, mutta emme ole nähneet todisteita siitä, että asiakasohjelma käytti sitä. |
-| **Undaunted** | Se, mitä [Undauntedin](https://github.com/SyST3MDeV/Undaunted) palvelin lähettää 1.4.4-asiakasohjelmalle, jolla sen kautta oikeasti pelataan. Tämä osoittaa, että asiakasohjelma *hyväksyy* muodon. Se ei osoita, että asiakasohjelma jäsentää sen. Useat näistä lataajista jatkavat, vaikka jäsennys epäonnistuisi. |
+| **DauntlessUnbroken** | Se, mitä [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html) palvelin lähettää 1.4.4-asiakasohjelmalle, jolla sen kautta oikeasti pelataan. Tämä osoittaa, että asiakasohjelma *hyväksyy* muodon. Se ei osoita, että asiakasohjelma jäsentää sen. Useat näistä lataajista jatkavat, vaikka jäsennys epäonnistuisi. |
 | **varmistamaton** | Päätelty, tai lähteemme ovat eri mieltä. Tekstissä kerrotaan kumpi. |
 
 Osoitteet ovat staattisia virtuaaliosoitteita version 2.1.1 tiedostossa
@@ -100,11 +100,11 @@ Tiedoston saaminen ulos:
 Jokainen palvelinnimi noudattaa kaavaa `<service>-prod.steelyard.ca`, muutamaa poikkeusta lukuun
 ottamatta. Version 2.1.1 tutkimuspalvelimemme vastasi niihin kaikkiin niin, että jokainen nimi
 ohjattiin hosts-tiedostossa (Windowsin tiedosto, joka kertoo, mihin koneeseen mikäkin verkkonimi
-osoittaa) palvelimelle itselleen (sekä `127.0.0.1` että `::1`). Undaunted tekee sen versiossa 1.4.4
+osoittaa) palvelimelle itselleen (sekä `127.0.0.1` että `::1`). Dauntless Unbroken tekee sen versiossa 1.4.4
 toisin: sen ohjelmaan ujuttama DLL (ohjelmakirjasto, jonka koodi liitetään käynnissä olevaan peliin)
 koukuttaa asiakasohjelman asetushaun ja kirjoittaa jokaisen
 `[OnlineSubsystemPhoenix]`-osoitteen uudelleen tavalliseksi `http://`-osoitteeksi metagame-palvelimen
-(Undauntedin taustapalvelu, joka korvaa Phoenixin verkkopalvelut) omaan osoitteeseen, joten
+(Dauntless Unbroken taustapalvelu, joka korvaa Phoenixin verkkopalvelut) omaan osoitteeseen, joten
 hosts-tiedostoa tai TLS-salausta ei tarvita. Pelipalvelinprosessit saavat saman vaikutuksen käyttäjän
 `Game.ini`-tiedostoon lainausmerkeissä kirjoitetuista ohituksista (katso alla).
 
@@ -164,7 +164,7 @@ yhtäkään niistä.
   varmennevarastoa vasten. 2.1.1 lukee pelikansiosta irrallisen tiedoston
   `Engine/Content/Certificates/cacert.pem`, ja sinne laitoimme oman yksityisen varmentajamme version
   2.1.1 testausta varten. 1.4.4 pitää kokoelmansa tiedoston `Archon_0-WindowsClient.pak` sisällä. Emme
-  koskaan koske Windowsin luottamusvarastoon. (Undaunted välttää koko kysymyksen versiossa 1.4.4
+  koskaan koske Windowsin luottamusvarastoon. (Dauntless Unbroken välttää koko kysymyksen versiossa 1.4.4
   kirjoittamalla jokaisen osoitteen uudelleen `http://`-muotoon, kuten kohdassa
   [Palvelinnimet](#hosts) kerrotaan.)
 - **Laita osoitteet lainausmerkkeihin käyttäjän ini-ohituksissa.** Päätepisteet voi ohittaa käyttäjän
@@ -205,7 +205,7 @@ kääre on paljon yleisempi:
 | **Paljas taulukko** | `GET dauntless-prod/character` |
 
 Millään jäljittämällämme polulla mikään ei toimi `code`-kentän perusteella. (Loadout-käsittelijä
-muuntaa sen virhearvoksi, mutta sen kuuntelija ei koskaan katso tuota arvoa.) Undaunted lähettää
+muuntaa sen virhearvoksi, mutta sen kuuntelija ei koskaan katso tuota arvoa.) Dauntless Unbroken lähettää
 versiolle 1.4.4 lähes jokaisessa kuorellisessa vastauksessa `"code": null`, ja 1.4.4 toimii sen kanssa;
 poikkeus on `/candidate/regions`, joka saa arvon `"code": 200`. Lähetä silti merkkijono (tai luku
 int32-muunnelmalle), jotta kenttä ainakin jäsentyy.
@@ -240,29 +240,29 @@ viisi avainta:
 väliä). Mikä tahansa muu tila, tai `state`-kentän puuttuminen kokonaan, saa sen kysymään uudelleen
 `max(timeout * 0.001, 5.0)` sekunnin kuluttua. Muut avaimet jätetään yksinkertaisesti huomiotta:
 varhaisissa vastauksissamme oli kenttiä kuten `position` ja `ready` mutta ei `state`-kenttää, ja
-asiakasohjelma jatkoi kyselemistä 5 sekunnin välein. `timeout`-kentän on oltava JSON-luku. Undaunted
+asiakasohjelma jatkoi kyselemistä 5 sekunnin välein. `timeout`-kentän on oltava JSON-luku. Dauntless Unbroken
 lähettää samat viisi avainta versiolle 1.4.4 (`error_code` `"TicketRateOk"`, `timeout` 8000).
 
 **Alustan ominaisuudet.** Kaksi staattista luentaamme olivat eri mieltä siitä, onko tämä kuoressa,
 joten 2.1.1-palvelimemme lähettää molemmat muodot samassa rungossa; tuntemattomat avaimet jätetään
-huomiotta. Undaunted lähettää versiolle 1.4.4 vain kuorellisen muodon.
+huomiotta. Dauntless Unbroken lähettää versiolle 1.4.4 vain kuorellisen muodon.
 
 **Istuntotunniste.** Asiakasohjelma lähettää Epic-tunnisteensa muodossa `Authorization: BEARER <jwt>`
 ja odottaa takaisin kenttiä `payload.sessiontoken` ja `payload.sessionid`. Siitä eteenpäin
 `sessiontoken` on bearer-tunniste kaikkiin muihin palveluihin. Polun osa on versiossa 2.1.1 `epiceos`
-ja versiossa 1.4.4 `epic` (Undauntedin mukaan), ja se täytetään samaan `{linkedaccountservice}`-pohjaan.
+ja versiossa 1.4.4 `epic` (Dauntless Unbroken mukaan), ja se täytetään samaan `{linkedaccountservice}`-pohjaan.
 Epic myöntää JWT-tunnisteen uudelleen, joten bearer vaihtuu kirjautumisten välillä. Ota pelaajan
 identiteetti sen sijaan JWT:n `sub`-kentästä (claim), tai pelaaja saa uuden hahmon jokaisella
 kirjautumisella.
 
 **Tilitiedot.** Litteä, ei käärettä. Tässä palautettu `accountId` menee jokaiseen myöhempään
-`{accountid}`-polun osaan, joten sen on pysyttävä samana samalle pelaajalle. Undauntedin
+`{accountid}`-polun osaan, joten sen on pysyttävä samana samalle pelaajalle. Dauntless Unbroken
 1.4.4-vastaus lisää kentät `creationDate`, `email`, `preferredLanguage` ja `verified`.
 
 **Muut identiteettipäätepisteet (koodista luettu).** `POST auth-prod/game/login` (`AuthEndpoint`,
 sähköposti- ja salasanapolku) luetaan litteänä muotona `{"displayName", "accountId", "token"}`, ja
 kaikki kolme ovat pakollisia. Version 2.1.1 Epic-kirjautuminen ei koskaan kutsu sitä, joten emme ole
-kokeilleet sitä. Undauntedin 1.4.4-kokoonpano käynnistää pelin valitsimella `-AUTH_TYPE=exchangecode`
+kokeilleet sitä. Dauntless Unbroken 1.4.4-kokoonpano käynnistää pelin valitsimella `-AUTH_TYPE=exchangecode`
 ja vastaa itse Epic-tyyliseen tunnisteenvaihtoon. Sen DLL ohjaa myös `AuthEndpoint`-osoitteen
 uudelleen, mutta sen palvelimella ei ole käsittelijää polulle `/game/login`, joten päättelemme, ettei
 1.4.4 kutsu sitä siinäkään kokoonpanossa (varmistamaton). `PUT gamesession-prod/account`
@@ -307,7 +307,7 @@ antaa virheen `Failed to get all characters: ParseError`.
 
 **`updateVersion`.** Asiakasohjelma kasvattaa välimuistissa olevaa versionumeroaan *ennen* kuin se
 lähettää tallennuksen. Tallenna luku täsmälleen sellaisena kuin se lähetettiin. Jos palvelin lisää
-siihen 1, se menee asiakasohjelman edelle, ja seuraava luku näyttää ristiriidalta. Undaunted hylkää
+siihen 1, se menee asiakasohjelman edelle, ja seuraava luku näyttää ristiriidalta. Dauntless Unbroken hylkää
 tallennuksen koodilla `409`, kun tallennettu versio on jo suurempi tai yhtä suuri kuin saapuva. Se
 sääntö on sopusoinnussa tämän kanssa.
 
@@ -362,7 +362,7 @@ riippuvuusketjun juuressa (katso [Lataajat](#why-these-endpoints-matter-the-play
 Niin kauan kuin vastasimme `[]`, asiakasohjelma pyysi käyttöoikeuksia uudelleen jokaisella
 latauskierroksella eikä koskaan pyytänyt mitään polusta `/progression/*`.
 
-**1.4.4:** Undaunted vastaa `{"code": null, "message": "OK", "payload": []}`, mikä on eri muoto. Emme
+**1.4.4:** Dauntless Unbroken vastaa `{"code": null, "message": "OK", "payload": []}`, mikä on eri muoto. Emme
 tiedä, odottaako version 1.4.4 jäsennin sitä vai jatkaako se vain, kun jäsennys epäonnistuu.
 (varmistamaton)
 
@@ -429,7 +429,7 @@ sijoittuu; alueen ulkopuoliset alkiot pudotetaan), `update_version`; `weapon`, `
 `quick_items` (`[{"item_index", "item_id", "instance_id"}]`). Tavaraluettelo käyttää samoista asioista
 camelCase-kirjoitustapaa. Tyylien sekoittaminen antaa hiljaa tyhjiä kenttiä.
 
-**1.4.4 (Undaunted):** sama kääre ja samat kenttien nimet, oikeat varustukset, paikat 1/1/1/1 ja
+**1.4.4 (Dauntless Unbroken):** sama kääre ja samat kenttien nimet, oikeat varustukset, paikat 1/1/1/1 ja
 `active_index: 0`.
 
 ### Muut loadout-kutsut (2.1.1, koodista luettu) {#other-loadout-calls-211-static}
@@ -467,7 +467,7 @@ jotka kaikki ovat valinnaisia taulukoita:
 ```
 
 Jos palautat pyynnön sellaisenaan takaisin, asiakasohjelma laskee transaktion onnistuneeksi eikä saa
-mitään. Undaunted käyttää samoja neljää tulosavainta versiolle 1.4.4. Version 2.1.1 palvelimemme
+mitään. Dauntless Unbroken käyttää samoja neljää tulosavainta versiolle 1.4.4. Version 2.1.1 palvelimemme
 lähettää tällä hetkellä kentän `deletedInstancedItems`, jota asiakasohjelma ei koskaan lue. Siitä ei ole
 haittaa niin kauan kuin se on aina tyhjä, mutta oikea nimi on `removedInstancedItems`.
 
@@ -512,7 +512,7 @@ Tällä palvelimella muodot vaihtelevat, joten tarkista jokainen päätepiste er
 esiintyvälle `rank_id`-arvolle tarvitaan vastaava vaatimus, muuten asiakasohjelma kirjoittaa lokiin
 "Found rewards for rank_id %d but could not find a corresponding requirement". Version 2.1.1
 ohjelmatiedostosta vakioina löytämämme ratojen tunnisteet ovat `SLAYER_RANK` ja `WEAPONSMITH`.
-Undaunted tarjoaa versiolle 1.4.4 oikean 10 polun asetuksen, jossa on tunnisteet `season09b` ja
+Dauntless Unbroken tarjoaa versiolle 1.4.4 oikean 10 polun asetuksen, jossa on tunnisteet `season09b` ja
 `MasteryTrack_*`.
 
 **Ratojen tietueet** (`/progression/{accountid}` ja vastaavat): `phx_account_id`, `progression_id`,
@@ -530,7 +530,7 @@ latauksella:
 ```
 
 Talent-alkiot ovat muotoa `{"rank", "talent_id"}` ja unlock-alkiot muotoa `{"collected", "reward_id"}`.
-`update_version` on int32 naapuriensa perusteella; sen lukemista emme eristäneet. Undaunted lähettää
+`update_version` on int32 naapuriensa perusteella; sen lukemista emme eristäneet. Dauntless Unbroken lähettää
 versiolle 1.4.4 saman kuorellisen muodon. Version 1.4.4 kausiluettelo, tallennusreitti ja palvelimemme
 säännöt (oletuksena pois päältä) ovat sivulla [Escalation]({{ escalation_page.url | relative_url }}).
 
@@ -557,7 +557,7 @@ Kuorellisella muodolla on paremmat todisteet.
 `cooldown_started_date` luetaan **tavallisena merkkijonona** eikä päivämäärälukijan kautta,
 esimerkiksi `"2026-09-20T00:00:00.000Z"`. Erä-`PUT`-pyyntö ja vastaus jakavat saman sarjallistajan,
 joten saapuvan erän yhdistäminen hallussasi olevaan ja sen palauttaminen on oikein. Saman
-sarjallistajan käytön `GET`-kutsussa näimme vain välillisesti (todennäköisesti). Undaunted lähettää
+sarjallistajan käytön `GET`-kutsussa näimme vain välillisesti (todennäköisesti). Dauntless Unbroken lähettää
 versiolle 1.4.4 kuorellisen cooldown-vastauksen.
 
 **Palkkiotehtävät (bounties).** `bounties`-alkioissa on kentät `bounty_id`, `premium_bounty`,
@@ -567,7 +567,7 @@ ja `claimed`. `draft_data` on `{"current_draft_choices": [], "previous_draft_sel
 `GET /bounty/game-data`.** Sen asetusavain, `GetBountiesConfigEndpoint`, on yhä ini-tiedostossa,
 mutta avaimen nimeä ei esiinny missään ohjelmatiedostossa, joten mikään ei koskaan hae sitä.
 Palkkiotehtävien asetukset tulevat sen sijaan pelin viritysmöhkäleestä `bounty_game_data`
-(`GET /game_tuning/{blobid}`). Undaunted tarjoaa polun `/bounty/game-data` versiolle 1.4.4.
+(`GET /game_tuning/{blobid}`). Dauntless Unbroken tarjoaa polun `/bounty/game-data` versiolle 1.4.4.
 
 ### Oma 1.4.4-palvelimemme: tasopalkinnot, uusinnat ja asetukset {#progression-on-our-server}
 
@@ -580,7 +580,7 @@ pelissä, **S** vahva päätelmä.
   pelitestimme näki jokaisen palkinnon annettavan täsmälleen kerran (V, tiekartan kohta 2.10). Siksi
   `POST /progression/<tili>/<rata>/<taso>/confirm/<public tai premium>` vain nostaa vahvistettua tasoa
   eikä anna mitään. Testi vartioi, että vahvistus jättää tavaraluettelot, tavaralokin ja oikeudet
-  ennalleen. Harmonicin haara maksoi vahvistuksessa; meidän tietokannassamme, jossa sen
+  ennalleen. lähdeintegraation haara maksoi vahvistuksessa; meidän tietokannassamme, jossa sen
   lunastuskirjanpito alkaisi tyhjänä, se maksaisi uudelleen jokaisen tason, jonka pelaajat ovat jo
   vahvistaneet.
 - **Elite-tasojen oikeudet (valinnainen).** Vain pelin oma `GrantProgressionAction` nimeää oikeuden
@@ -635,7 +635,7 @@ ja [Pelin asetukset]({{ game_page.url | relative_url }}#hunt-pass-seasons). Vers
 | `GET mailbox-prod/survey/config` | **ei selvitetty** |
 
 Cohorts-lataaja epäonnistuu avoimesti (fails open) eli päästää pelaajan silti eteenpäin. Kun kysely
-epäonnistuu, se palaa oletuskäsittelyyn `E1000` ja ilmoittaa silti valmistuneensa. Siksi Undauntedin
+epäonnistuu, se palaa oletuskäsittelyyn `E1000` ja ilmoittaa silti valmistuneensa. Siksi Dauntless Unbroken
 kuoreton 1.4.4-vastaus (`{"treatments": [...]}`) ei kerro meille mitään suuntaan eikä toiseen.
 
 ---
@@ -697,9 +697,9 @@ samalla tavalla.
 > asiakasohjelman toisella kopiolla. Sitten päättelimme, ettei julkaistu asiakasohjelma voi toimia
 > pelipalvelimena lainkaan, ja lopetimme siihen. Siksi siirtymisosuutta ei koskaan testattu versiolla
 > 2.1.1. Tuo päätelmä oli väärä. Asiakasohjelman verkkokerros on ehjä, ja ohjelmaan ujutettu DLL voi
-> ohjata sitä; näin Undaunted toimii isäntänä versiossa 1.4.4 (katso
+> ohjata sitä; näin Dauntless Unbroken toimii isäntänä versiossa 1.4.4 (katso
 > [Näin moninpeli toimii]({{ mp_page.url | relative_url }})). Kaikki alla oleva on version 2.1.1 osalta
-> **koodista luettua**. Version 1.4.4 kulku toimii **käytännössä** Undauntedin kautta.
+> **koodista luettua**. Version 1.4.4 kulku toimii **käytännössä** Dauntless Unbroken kautta.
 
 ### Kulku {#the-flow}
 
@@ -755,7 +755,7 @@ Kentät, jotka asiakasohjelma lukee (2.1.1, `FCandidateStatus::Serialize` `0x141
   ja `playerStates`-kentän on sisällettävä paikallinen pelaaja.
 - **`playerStates` on pelaajan tunnisteella avainnettu olio** eikä taulukko. Jokainen arvo on
   `{"isReadyToLeaveLobby": bool, "publicLoadoutHash": "..."}`. Sitä haetaan vain, kun
-  `isNewMatchmaker` on true. (Undaunted lähettää versiolle 1.4.4 kirjaimellisen avaimen `"UserId"`.
+  `isNewMatchmaker` on true. (Dauntless Unbroken lähettää versiolle 1.4.4 kirjaimellisen avaimen `"UserId"`.
   Se toimii vain siksi, että `isNewMatchmaker` puuttuu, joten hakua ei koskaan tehdä.)
 - **`serverInfo`-kentässä** on täsmälleen viisi kenttää: `gameSessionId`, `instanceId`, `host`
   (merkkijonoja), `port` (int32) ja `gameArgs`. Siinä ei ole `ticket`-kenttää.
@@ -765,12 +765,12 @@ Kentät, jotka asiakasohjelma lukee (2.1.1, `FCandidateStatus::Serialize` `0x141
   "Invalid session info". Julkaisuversioista on poistettu tiedostoon lokitus, joten tuo viesti ei
   koskaan päädy lokitiedostoon.
 
-**Kuoressa vai ei?** Versiolle 1.4.4 Undaunted vastaa ilman kuorta, ja se toimii käytännössä.
+**Kuoressa vai ei?** Versiolle 1.4.4 Dauntless Unbroken vastaa ilman kuorta, ja se toimii käytännössä.
 Versiossa 2.1.1 emme saaneet tilakäsittelijää yhdistettyä mihinkään jäsentimeen. Lähellä on kaksi
 kääreen jäsennintä, joista toinen lukee muotoa `{code, message, payload}` ja toinen muotoa
 `{statusCode, message, payload}`, kummassakin int32-koodit. (varmistamaton)
 
-**`/candidate/regions`.** Undaunted lähettää versiolle 1.4.4 kuorellisen vastauksen, `code` 200,
+**`/candidate/regions`.** Dauntless Unbroken lähettää versiolle 1.4.4 kuorellisen vastauksen, `code` 200,
 payloadina `{"maxPingingStepTime", "pingCount", "pingFrequency", "regionUrls"}` ja ajat sekunteina.
 Versiossa 2.1.1 `pingFrequency` ja `maxPingingStepTime` kulkevat float-lukijan kautta. Version 2.1.1
 kuori on varmistamaton.
@@ -813,7 +813,7 @@ kertovat, mitä asiakasohjelma tekee. Tiedostoon lokitus on poistettu julkaisuve
 
 - **`tracking-prod/heartbeat`** (2.1.1): asiakasohjelma lähettää `{state, map, server, session, ping,
   playtime}` joka sekunti. `map` on luotettavin tapa tietää, missä asiakasohjelma oikeasti on.
-  Undauntedin 1.4.4-palvelin ottaa vastaan kutsun `POST /heartbeat` rungolla `{map}` ja vastaa pelkällä
+  Dauntless Unbroken 1.4.4-palvelin ottaa vastaan kutsun `POST /heartbeat` rungolla `{map}` ja vastaa pelkällä
   tekstillä `20000`, jonka merkitystä emme tiedä.
 - **`telemetry-ingest-prod/event?id=prod`**: analytiikkatapahtumat, muun muassa `client_login_failed`.
   Versiossa 2.1.1 `UArchonLoadManager::LoadFailed` (`0x1429ad0f0`) lähettää tapahtuman
@@ -907,10 +907,10 @@ Viisi muuta avainta on vain versiossa 2.1.1, mutta ne on nimetty eri tavalla:
 (`-AUTH_TYPE=accountportal`). Istuntotunnisteen polun osa seuraa samaa linjaa: `/gamesession/epic`
 versiossa 1.4.4, `/gamesession/epiceos` versiossa 2.1.1.
 
-**Sama osoite ei tarkoita samaa muotoa.** Undauntedin 1.4.4-palvelin ja meidän 2.1.1-luentamme ovat eri
+**Sama osoite ei tarkoita samaa muotoa.** Dauntless Unbroken 1.4.4-palvelin ja meidän 2.1.1-luentamme ovat eri
 mieltä useista päätepisteistä:
 
-| Päätepiste | 2.1.1 (staattinen luentamme) | 1.4.4 (mitä Undaunted lähettää) |
+| Päätepiste | 2.1.1 (staattinen luentamme) | 1.4.4 (mitä Dauntless Unbroken lähettää) |
 |---|---|---|
 | `/entitlementsv2` | litteä `{"entitlements": []}` | kuoressa, `payload: []` |
 | `/cooldown/{id}` | litteä `{"cooldowns": [...]}` | kuoressa |
@@ -924,7 +924,7 @@ Osa näistä on todellisia muutoksia neljän vuoden ajalta. Toiset voivat olla m
 1.4.4-asiakasohjelma sietää jäsentämättä niitä. Tiedämme sen vasta, kun luemme version 1.4.4
 jäsentimet, mitä emme ole vielä tehneet.
 
-**Kirjainkoko.** Undaunted lähettää versiolle 1.4.4 kentän `sessionToken`, kun taas version 2.1.1
+**Kirjainkoko.** Dauntless Unbroken lähettää versiolle 1.4.4 kentän `sessionToken`, kun taas version 2.1.1
 lukija pyytää kenttää `sessiontoken`. Unrealin `FJsonObject` pitää kenttänsä
 `TMap<FString, ...>`-rakenteessa, ja `FString`-avaimia verrataan yleensä kirjainkoosta välittämättä,
 joten tällaisilla kirjainkokoeroilla ei pitäisi olla merkitystä. Tämä on pelimoottorin vakiokäytöstä;
@@ -943,5 +943,5 @@ emme ole testanneet sitä kummallakaan versiolla. Kirjoitusasulla on sen sijaan 
   todella ei ole asettajaa, eteneminen ei voi koskaan valmistua erillisessä käynnistyksessämme, lähetti
   taustapalvelu mitä tahansa.
 - Onko latausvirheiden telemetria-ajastimen tahti nollasta poikkeava.
-- Version 1.4.4 jäsentimet itse. Jokainen tämän sivun 1.4.4-muoto tulee Undauntedin palvelimelta, ei
+- Version 1.4.4 jäsentimet itse. Jokainen tämän sivun 1.4.4-muoto tulee Dauntless Unbroken palvelimelta, ei
   version 1.4.4 ohjelmatiedostosta.

@@ -86,7 +86,7 @@ Huomioita:
   käynnistyessään virheeseen `Could not listen on ...`. Myöskään metagamen `DEPLOYSERVER_URL`-asetuksella
   ei ole oletusta: ilman sitä jokainen pelipalvelinpyyntö, myös Ramsgateen, päättyy tilaan `FAILED`.
 - **Miksi 61000 eikä 60000.** Alkuperäisen projektin kehityskäynnistin odottaa osoitetta
-  `127.0.0.1:60000`. Palvelinkoneellamme toinen ohjelma piti jo sitä porttia, joten fork siirtyi
+  `127.0.0.1:60000`. Palvelinkoneellamme toinen ohjelma piti jo sitä porttia, joten codebase siirtyi
   portteihin 61000 ja 61001. Katso
   [Vianetsintä]({{ trouble_page.url | relative_url }}#port-60000-is-taken-and-the-metagame-says-clear-skies-anyway).
 - **Miten paketti valitsee portit.** Erikseen annettu parametri voittaa, sitten asennuksen tiedoston

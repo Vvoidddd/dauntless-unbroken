@@ -745,7 +745,7 @@ asennuskohtaisesti, nimiä ei.
 | Pelizip, 1.4.4 (`BaseGame144.zip`, 10 479 214 119 tavua) | `556B9A648A5E5E7E11B6F8DD3D80FF8E88FCEB0D3448297AAF47CE7BF756BC6D` | `friend-kit/setup.ps1`, `tools/make-game-manifest.js` |
 | `Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe` | `D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-game-manifest.js`, `DauntlessUnbrokenLauncher/src/main/constants.ts`, sisältöluettelo |
 | `dxgi.dll` | `f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-friend-kit.ps1`, `DauntlessUnbrokenLauncher/src/main/constants.ts` |
-| `DauntlessUnbroken.dll` | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` | samat tiedostot kuin `dxgi.dll`:llä |
+| `DauntlessUnbroken.dll` | `6CE7E0EA3EFF8C6841EA81C67A0EB177D84223AF844F15C6679EF0827143BE8D` | samat tiedostot kuin `dxgi.dll`:llä |
 | Node.js 24.19.0 MSI (`node-v24.19.0-x64.msi`) | `F0F66C2A80C08A30A5AB5179EE9EA9E45F9B46289436A8CC87FF833B852DB351` | vain paketissa; sen on vastattava myös nodejs.org:n `SHASUMS256.txt`-tiedostoa |
 | Tailscale 1.102.4 MSI (yksityinen tila) | `80EB007E39DFEBE17299FA1A09C79A8E1D934F76E0246C0817EBE3AF675B7EF6` | vain paketissa; sen on vastattava myös julkaistua `.sha256`-tiedostoa |
 

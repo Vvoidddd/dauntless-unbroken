@@ -395,7 +395,7 @@ the metagame when nobody is playing (`Stack.ps1 restart -Only metagame`). The lo
 
 ### Other features you switch in `metagame.env` {#other-switches}
 
-The kit writes none of the switches that came with the port of Harmonic's fork, so a kit server runs
+The kit writes none of the switches that came with the port of the source integration's codebase, so a kit server runs
 them at their defaults: Slayer Links and friends' online status on; Escalation (`ESCALATION_MODE`)
 and the store (`STORE`) off. To change one, add the line to `C:\DauntlessUnbroken\data\config\metagame.env`
 (deploy server: `deployserver.env`) from an elevated editor and restart that component when nobody is

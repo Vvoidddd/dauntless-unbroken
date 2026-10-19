@@ -103,9 +103,9 @@ test("OpenBSD PF config redirects TLS and source-NATs allowed game UDP to the Li
     ], { encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr);
     const rules = readFileSync(out, "utf8");
-    assert.match(rules, /table <dauntless_revived_players> persist/);
+    assert.match(rules, /table <dauntless_unbroken_players> persist/);
     assert.match(rules, /port 443 rdr-to 127\.0\.0\.1 port 61443/);
-    assert.match(rules, /from <dauntless_revived_players>.*8770:8777 rdr-to 10\.0\.0\.2/);
+    assert.match(rules, /from <dauntless_unbroken_players>.*8770:8777 rdr-to 10\.0\.0\.2/);
     assert.match(rules, /received-on em0 nat-to \(vether0\)/);
     assert.match(rules, /block in quick.*8770:8777/);
   } finally {

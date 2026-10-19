@@ -8,6 +8,12 @@ const source = fs.readFileSync(path.join(root, "ROADMAP.md"), "utf8").replace(/\
 
 const repoUrl = "{{ site.github.repository_url }}";
 const body = source
+    .replace(/\]\((docs\/[^)]+\.md|NOTICE\.md|UPSTREAM\.md)\)/g, (_, target) => {
+        const url = target.startsWith("docs/")
+            ? "/dauntless-unbroken/" + target.slice(5).replace(/index\.md$/, "").replace(/\.md$/, ".html")
+            : `${repoUrl}/blob/main/${target}`;
+        return `](${url})`;
+    })
     // The page title comes from the front matter.
     .replace(/^# .*\n+/, "")
     .replace(
@@ -22,7 +28,7 @@ const literal = "{% raw %}\n" + body.split(repoUrl).join(`{% endraw %}${repoUrl}
 // Search and social description (keep it 120-160 characters) and the language keys the docs use to pair
 // English and Finnish pages (lang + ref, see docs/_includes/head_custom.html).
 const description =
-    "The Dauntless Unbroken roadmap: what already works, and milestones M0 to M4, from a safety net and playing together to saved progression and the full game loop.";
+    "The Dauntless Unbroken roadmap: implemented launcher and server features, operating principles and ongoing in-game verification.";
 
 const page = [
     "---",

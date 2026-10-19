@@ -36,7 +36,7 @@ these files.
 ## Licence and ground rules
 
 - The scripts are released under the **GNU Affero General Public License v3.0 (AGPL-3.0)**,
-  together with our fork of Undaunted. **Status:** they are not in the repository yet; we plan to
+  together with our implementation of Dauntless Unbroken. **Status:** they are not in the repository yet; we plan to
   add them in a `tools/` folder. The `tools/` folder that exists today holds the project's own build
   and packaging scripts, not these; they are listed in
   [Scripts and parameters]({{ scripts_page.url | relative_url }}).

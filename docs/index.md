@@ -1,54 +1,39 @@
 ---
 title: Dauntless Unbroken
-nav_order: 1
+description: "The field guide to playing, hosting and maintaining Dauntless Unbroken."
 permalink: /
-description: "Play, host and maintain Dauntless Unbroken. Launcher setup, server guides and technical documentation."
 lang: en
 ref: index
-seo:
-  type: WebPage
 ---
 
-<div class="ub-hero">
-  <div class="ub-hero-content">
-    <span class="ub-eyebrow">DAUNTLESS UNBROKEN · DOCUMENTATION</span>
-    <h1>Your next hunt starts here.</h1>
-    <p>A fresh community realm for Dauntless 1.4.4. Find your way into the game, host a server, or explore how the services work.</p>
-    <div class="ub-actions">
-      <a class="btn btn-primary" href="https://github.com/Vvoidddd/dauntless-unbroken/releases/latest">Get the launcher ↗</a>
-      <a class="btn" href="{{ '/setup/' | relative_url }}">Read the setup guide</a>
-    </div>
-  </div>
+<div class="home-intro">
+  <span class="eyebrow">THE DAUNTLESS UNBROKEN FIELD GUIDE</span>
+  <h1>Less searching.<br><em>More hunting.</em></h1>
+  <p class="lead">Everything you need to join the realm, run a server and understand what happens behind the hunt.</p>
+  <div class="actions"><a class="button button-primary" href="https://github.com/Vvoidddd/dauntless-unbroken/releases/latest">Download the launcher ↗</a><a class="button" href="{{ '/setup/' | relative_url }}">Start playing →</a></div>
+  <div class="quick-facts"><span><strong>1.4.4</strong> game client</span><span><strong>Windows &amp; Linux</strong> launcher</span><span><strong>Separate</strong> offline saves</span></div>
 </div>
 
-<div class="ub-facts"><span><strong>1.4.4</strong> Game client</span><span><strong>Windows + Linux</strong> Launcher</span><span><strong>Fresh realm</strong> New progression</span><span><strong>Open source</strong> AGPL-3.0</span></div>
+## Find your way
 
-## Choose your path
-
-<div class="ub-cards">
-  <a class="ub-card" href="{{ '/setup/' | relative_url }}"><span class="ub-step">01 / PLAY</span><span class="ub-card-title">Get into the game</span><p>Install the launcher, connect with a server invite and keep your account key safe.</p><span class="ub-card-link">Player setup →</span></a>
-  <a class="ub-card" href="{{ '/setup/windows-server.html' | relative_url }}"><span class="ub-step">02 / HOST</span><span class="ub-card-title">Run your own realm</span><p>Deploy the Windows server kit, configure access and operate the game services.</p><span class="ub-card-link">Server setup →</span></a>
-  <a class="ub-card" href="{{ '/reference/' | relative_url }}"><span class="ub-step">03 / UNDERSTAND</span><span class="ub-card-title">Know what runs where</span><p>Read the service architecture, configuration and account/progression reference.</p><span class="ub-card-link">Technical reference →</span></a>
+<div class="guide-links">
+  <a class="guide-link" href="{{ '/setup/' | relative_url }}"><span class="number">01</span><div><strong>I want to play</strong><p>Install the launcher, sign in and find your existing game files.</p></div><span class="arrow" aria-hidden="true">↗</span></a>
+  <a class="guide-link" href="{{ '/server.html' | relative_url }}"><span class="number">02</span><div><strong>I run a server</strong><p>Understand the services, network, saves, queues and day-to-day operations.</p></div><span class="arrow" aria-hidden="true">↗</span></a>
+  <a class="guide-link" href="{{ '/reference/' | relative_url }}"><span class="number">03</span><div><strong>I need a specific answer</strong><p>Look up configuration, ports, API routes, files and development commands.</p></div><span class="arrow" aria-hidden="true">↗</span></a>
 </div>
 
-## What is included
+## A realm that remembers your progress
 
-| Area | Features |
-|:--|:--|
-| **Launcher** | Purple interface, verified downloads, resume support, updates, settings and isolated offline saves. |
-| **Accounts** | Personal account keys, saved progression, inventory, loadouts, friends and parties. |
-| **The shop** | Weekly category rotation, Rams purchases and the once-per-account **Void** creator reward. |
-| **Crafting** | Granny Strega crafting and Rams purchases, with normal progression requirements. |
-| **Hunt hosting** | On-demand servers, fair waiting queues, CPU/RAM admission and empty-hunt cleanup. |
-| **Operations** | Moderation tools, health monitoring, a Discord key bot and automated build checks. |
+Accounts, quests, equipment, inventory, mastery and loadouts are stored by the server. Friends and parties share the same realm, while hunt processes start when there is room for a group.
 
-These are implemented features. Host availability, capacity and in-game verification are separate from a successful build. See the [roadmap]({{ '/roadmap.html' | relative_url }}) and [known issues]({{ '/setup/troubleshooting.html' | relative_url }}) for technical detail.
+The in-game shop uses Rams, rotates weekly with the Middleman reset and supports the once-per-account **Void** creator reward. Granny Strega supports crafting and Rams purchases once the required progression is unlocked.
 
-## Before you start
+## Downloads without starting over
 
-1. Use the **Unbroken launcher and invite together**. Its update feed and application data are separate from other realms.
-2. A fresh realm means **new accounts and progression**. Old realm saves are not imported.
-3. Keep your personal account key private. Offline play uses a separate local save.
-4. Server operators should read the [configuration reference]({{ '/reference/configuration.html' | relative_url }}) before changing ports, keys or capacity limits.
+The launcher checks common local game folders before asking you to download. Confirm the location to reuse and verify the files, or choose a separate folder. Missing files download from the existing R2 catalog with resume support and SHA-256 verification.
 
-<div class="ub-note"><strong>Independent community project.</strong> Dauntless Unbroken is not affiliated with Phoenix Labs or Epic Games. Game assets remain the property of their owners. This repository contains server and launcher source, not the retail game assets. <a href="{{ '/legal.html' | relative_url }}">Legal and license information →</a></div>
+Your account key is saved automatically to your Desktop after successful registration or sign-in. Keep that file private. Offline play uses its own local save and does not replace your online progression.
+
+<div class="callout"><strong>Already stuck?</strong><p>Start with <a href="{{ '/setup/troubleshooting.html' | relative_url }}">troubleshooting</a>, or search this guide for the exact message you see.</p></div>
+
+Dauntless Unbroken is an independent community project. This repository contains server and launcher source; retail game assets are not included. There are no hosting-provider partnerships.

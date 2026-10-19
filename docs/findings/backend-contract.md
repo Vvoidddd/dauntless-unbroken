@@ -45,7 +45,7 @@ Every shape on this page carries one of these labels.
 |---|---|
 | **live** | Our server sent this to a real client, and the client visibly acted on it: it made the next call in the chain, created a character, or kept running where it used to crash. |
 | **static** | Read from the client's deserialiser in the binary. Our server may send it, but we have not seen proof that the client used it. |
-| **Undaunted** | What [Undaunted](https://github.com/SyST3MDeV/Undaunted)'s server sends to the 1.4.4 client, which plays through it live. That shows the client *accepts* the shape. It does not show that the client parses it. Several of these loaders carry on when parsing fails. |
+| **DauntlessUnbroken** | What [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html)'s server sends to the 1.4.4 client, which plays through it live. That shows the client *accepts* the shape. It does not show that the client parses it. Several of these loaders carry on when parsing fails. |
 | **unverified** | Inferred, or our sources disagree. The text says which. |
 
 Addresses are static virtual addresses in the 2.1.1 `Dauntless-Win64-Shipping.exe`, image base
@@ -90,7 +90,7 @@ Getting the file out:
 
 Every hostname follows the pattern `<service>-prod.steelyard.ca`, apart from a few outliers. Our
 2.1.1 research server answered all of them by pointing each name at itself in the hosts file (both
-`127.0.0.1` and `::1`). Undaunted does it differently on 1.4.4: its injected DLL hooks the client's
+`127.0.0.1` and `::1`). Dauntless Unbroken does it differently on 1.4.4: its injected DLL hooks the client's
 config lookup and rewrites every `[OnlineSubsystemPhoenix]` URL to plain `http://` on the
 metagame's own address, so no hosts file and no TLS are involved. Game-server processes get the
 same effect from quoted overrides in the user `Game.ini` (see below).
@@ -144,7 +144,7 @@ These hold for 2.1.1, where we read the handlers. We have not seen 1.4.4 break a
   `cacert.pem` it ships, not the Windows store. 2.1.1 reads a loose
   `Engine/Content/Certificates/cacert.pem` from the game folder, and that is where we put our
   private CA for 2.1.1 testing. 1.4.4 keeps its bundle inside `Archon_0-WindowsClient.pak`. We never
-  touch the Windows trust store. (Undaunted avoids the question on 1.4.4 by rewriting every URL to
+  touch the Windows trust store. (Dauntless Unbroken avoids the question on 1.4.4 by rewriting every URL to
   `http://`, as described under [Hosts](#hosts).)
 - **Quote URLs in user ini overrides.** Endpoints can be overridden in the user config,
   `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\Game.ini`. Our 1.4.4 setup points its
@@ -182,7 +182,7 @@ more widespread:
 | **Bare array** | `GET dauntless-prod/character` |
 
 On every path we traced, nothing acts on `code`. (The loadout handler maps it to an error value, but
-its listener never looks at that value.) Undaunted sends `"code": null` in almost every wrapped
+its listener never looks at that value.) Dauntless Unbroken sends `"code": null` in almost every wrapped
 reply to 1.4.4, and 1.4.4 works with it; the exception is `/candidate/regions`, which gets
 `"code": 200`. Still, send a string (or a number, for the int32 variant) so that the field at least
 parses.
@@ -215,27 +215,27 @@ row marked **live** below proven end to end.
 case-sensitive). Any other state, or no `state` at all, makes it poll again after
 `max(timeout * 0.001, 5.0)` seconds. Other keys are simply ignored: our early replies carried
 fields like `position` and `ready` but no `state`, and the client kept polling every 5 seconds.
-`timeout` must be a JSON number. Undaunted sends the same five
+`timeout` must be a JSON number. Dauntless Unbroken sends the same five
 keys to 1.4.4 (`error_code` `"TicketRateOk"`, `timeout` 8000).
 
 **Platform features.** Our two static readings disagreed on whether this one is wrapped, so our
-2.1.1 server sends both forms in one body; unknown keys are ignored. Undaunted sends 1.4.4 only the
+2.1.1 server sends both forms in one body; unknown keys are ignored. Dauntless Unbroken sends 1.4.4 only the
 wrapped form.
 
 **Session token.** The client sends its Epic token as `Authorization: BEARER <jwt>` and expects
 `payload.sessiontoken` and `payload.sessionid` back. From then on, `sessiontoken` is the bearer for
-every other service. The path segment is `epiceos` in 2.1.1 and `epic` in 1.4.4 (per Undaunted),
+every other service. The path segment is `epiceos` in 2.1.1 and `epic` in 1.4.4 (per Dauntless Unbroken),
 filled into the same `{linkedaccountservice}` template. Epic re-issues the JWT, so the bearer
 changes between logins. Take the player's identity from the JWT's `sub` claim instead, or the
 player gets a new character on every login.
 
 **Account info.** Flat, no wrapper. The `accountId` returned here goes into every later
-`{accountid}` path segment, so it must stay the same for a given player. Undaunted's 1.4.4 reply
+`{accountid}` path segment, so it must stay the same for a given player. the native integration's 1.4.4 reply
 adds `creationDate`, `email`, `preferredLanguage` and `verified`.
 
 **Other identity endpoints (static).** `POST auth-prod/game/login` (`AuthEndpoint`, the
 email/password path) is read as a flat `{"displayName", "accountId", "token"}`, and all three are
-required. The 2.1.1 Epic flow never calls it, so we have not exercised it. Undaunted's 1.4.4 setup
+required. The 2.1.1 Epic flow never calls it, so we have not exercised it. the native integration's 1.4.4 setup
 launches with `-AUTH_TYPE=exchangecode` and answers an Epic-style token exchange itself. Its DLL
 redirects `AuthEndpoint` too, but its server has no handler for `/game/login`, so we infer that
 1.4.4 does not call it in that setup either (unverified). `PUT gamesession-prod/account` (create a Phoenix account) is only reached when
@@ -278,7 +278,7 @@ Wrapping the list as `{"characters": [...]}` gives `Failed to get all characters
 
 **`updateVersion`.** The client increments its cached version *before* it sends a save. Store the
 number exactly as sent. Adding 1 on the server puts it ahead of the client, and the next read looks
-like a conflict. Undaunted rejects a save with `409` when the stored version is already greater than
+like a conflict. Dauntless Unbroken rejects a save with `409` when the stored version is already greater than
 or equal to the incoming one. That rule is consistent with this.
 
 **The `data` blob is a JSON string holding a JSON object, and every value in it must be a string.**
@@ -329,7 +329,7 @@ dependency chain (see [Loaders](#why-these-endpoints-matter-the-player-data-load
 answered `[]`, the client asked for entitlements again on every load cycle and never requested
 anything from `/progression/*`.
 
-**1.4.4:** Undaunted answers `{"code": null, "message": "OK", "payload": []}`, which is a different
+**1.4.4:** Dauntless Unbroken answers `{"code": null, "message": "OK", "payload": []}`, which is a different
 shape. We don't know whether 1.4.4's parser expects that or just carries on when it fails.
 (unverified)
 
@@ -394,7 +394,7 @@ elements are dropped), `update_version`; `weapon`, `helmet`, `chest`, `arms`, `l
 (`[{"item_index", "item_id", "instance_id"}]`). Inventory uses camelCase for the same ideas. Mixing
 the two styles silently gives you empty fields.
 
-**1.4.4 (Undaunted):** the same wrapper and field names, with real loadouts, 1/1/1/1 slots and
+**1.4.4 (Dauntless Unbroken):** the same wrapper and field names, with real loadouts, 1/1/1/1 slots and
 `active_index: 0`.
 
 ### Other loadout calls (2.1.1, static)
@@ -431,7 +431,7 @@ keys**, all optional arrays:
 ```
 
 If you echo the request back, the client counts the transaction as successful and receives nothing.
-Undaunted uses the same four result keys for 1.4.4. Our 2.1.1 server currently sends
+Dauntless Unbroken uses the same four result keys for 1.4.4. Our 2.1.1 server currently sends
 `deletedInstancedItems`, which the client never reads. That does no harm while it is always empty,
 but `removedInstancedItems` is the real name.
 
@@ -473,7 +473,7 @@ This host mixes shapes, so check each endpoint. All 2.1.1, **static** unless not
 `progression_multiplier_end_date` and `prestige` (`{"xp_per_level"}`). Every `rank_id` that appears
 in a reward list needs a matching requirement, or the client logs "Found rewards for rank_id %d but
 could not find a corresponding requirement". The track ids we found as literals in the 2.1.1
-binary are `SLAYER_RANK` and `WEAPONSMITH`. Undaunted serves 1.4.4 a real 10-path config with
+binary are `SLAYER_RANK` and `WEAPONSMITH`. Dauntless Unbroken serves 1.4.4 a real 10-path config with
 `season09b` and `MasteryTrack_*` ids.
 
 **Track records** (`/progression/{accountid}` and friends): `phx_account_id`, `progression_id`,
@@ -490,7 +490,7 @@ the value at 0.
 ```
 
 Talent elements are `{"rank", "talent_id"}` and unlock elements are `{"collected", "reward_id"}`.
-`update_version` is an int32 by analogy with its neighbours; we did not isolate its read. Undaunted
+`update_version` is an int32 by analogy with its neighbours; we did not isolate its read. Dauntless Unbroken
 sends 1.4.4 the same wrapped shape. For 1.4.4, the season registry, the save route and the rules our
 server applies (off by default) are on [Escalation]({{ escalation_page.url | relative_url }}).
 
@@ -516,7 +516,7 @@ never reached. The wrapped form has the better evidence.
 read as a **plain string**, not through the date reader, for example `"2026-09-20T00:00:00.000Z"`.
 The batch `PUT` request and response share one serializer, so merging the incoming batch into what
 you hold and returning it is correct. We saw the same serializer used for the `GET` only
-indirectly (likely). Undaunted sends 1.4.4 a wrapped cooldown reply.
+indirectly (likely). Dauntless Unbroken sends 1.4.4 a wrapped cooldown reply.
 
 **Bounties.** `bounties` elements carry `bounty_id`, `premium_bounty`, `slot_index`, `objectives`
 (`[{"objective_id", "progress"}]`), `drafted_timestamp`, `update_version` and `claimed`.
@@ -524,7 +524,7 @@ indirectly (likely). Undaunted sends 1.4.4 a wrapped cooldown reply.
 "silver_count": 0, "gold_count": 0}`. **2.1.1 never requests `GET /bounty/game-data`.** Its config
 key, `GetBountiesConfigEndpoint`, is still in the ini, but the key's name does not appear anywhere
 in the executable, so nothing ever looks it up. Bounty configuration comes from the game-tuning
-blob `bounty_game_data` instead (`GET /game_tuning/{blobid}`). Undaunted does serve
+blob `bounty_game_data` instead (`GET /game_tuning/{blobid}`). Dauntless Unbroken does serve
 `/bounty/game-data` to 1.4.4.
 
 ### Our 1.4.4 server: rank rewards, retries and the config {#progression-on-our-server}
@@ -538,7 +538,7 @@ executable and our in-game tests. Labels: **B** read in the 1.4.4 executable, **
   each reward granted exactly once (V, roadmap 2.10). So
   `POST /progression/<account>/<track>/<rank>/confirm/<public or premium>` only raises the confirmed
   rank and grants nothing. A test guards that a confirm leaves inventories, the item log and
-  entitlements unchanged. Harmonic's fork paid on confirm; on our database, whose claims ledger would
+  entitlements unchanged. the source integration's codebase paid on confirm; on our database, whose claims ledger would
   start empty, that would pay again every rank players had already confirmed.
 - **The Elite ranks' entitlements (an option).** Only the game's `GrantProgressionAction` names an
   entitlement grant (B `0x1446c84c0`, used at `0x141487aa5`). Whether the game server grants the
@@ -587,7 +587,7 @@ and [Game settings]({{ game_page.url | relative_url }}#hunt-pass-seasons). The s
 | `GET mailbox-prod/survey/config` | **not established** |
 
 The cohorts loader fails open. When the query fails it falls back to a default treatment, `E1000`,
-and still reports done. So Undaunted's unwrapped 1.4.4 reply (`{"treatments": [...]}`) tells us
+and still reports done. So the native integration's unwrapped 1.4.4 reply (`{"treatments": [...]}`) tells us
 nothing either way.
 
 ---
@@ -644,10 +644,10 @@ to a real game server over UDP. Hunts and the tutorial island work the same way.
 > **A correction.** We wrote our 2.1.1 matchmaking handlers planning to host the city on a second
 > copy of the client. Then we concluded that the retail client could not act as a game server at
 > all, and stopped there. So the travel half was never tested on 2.1.1. That conclusion was wrong.
-> The client's network layer is intact, and an injected DLL can drive it; that is how Undaunted
+> The client's network layer is intact, and an injected DLL can drive it; that is how Dauntless Unbroken
 > hosts on 1.4.4 (see
 > [How multiplayer works]({{ mp_page.url | relative_url }})). Everything below is **static** for 2.1.1. The
-> 1.4.4 flow works **live** through Undaunted.
+> 1.4.4 flow works **live** through Dauntless Unbroken.
 
 ### The flow
 
@@ -702,7 +702,7 @@ Fields the client reads (2.1.1, `FCandidateStatus::Serialize` `0x1414c2a10`): `c
   and `playerStates` must contain the local player.
 - **`playerStates` is an object keyed by the player's id**, not an array. Each value is
   `{"isReadyToLeaveLobby": bool, "publicLoadoutHash": "..."}`. It is only looked up when
-  `isNewMatchmaker` is true. (Undaunted sends 1.4.4 the literal key `"UserId"`. That works only
+  `isNewMatchmaker` is true. (Dauntless Unbroken sends 1.4.4 the literal key `"UserId"`. That works only
   because `isNewMatchmaker` is absent, so the lookup never happens.)
 - **`serverInfo`** has exactly five fields: `gameSessionId`, `instanceId`, `host` (strings),
   `port` (int32) and `gameArgs`. There is no `ticket` in it.
@@ -711,11 +711,11 @@ Fields the client reads (2.1.1, `FCandidateStatus::Serialize` `0x1414c2a10`): `c
   `host`), and then `GetResolvedConnectStringInternal` rejects the session with "Invalid session
   info". File logging is stripped from shipping builds, so that message never reaches a log file.
 
-**Wrapped or not?** For 1.4.4, Undaunted answers unwrapped and it works live. For 2.1.1 we could not
+**Wrapped or not?** For 1.4.4, Dauntless Unbroken answers unwrapped and it works live. For 2.1.1 we could not
 tie the status handler to a parser. Two wrapper parsers sit nearby, one reading `{code, message,
 payload}` and one reading `{statusCode, message, payload}`, both with int32 codes. (unverified)
 
-**`/candidate/regions`.** Undaunted sends 1.4.4 a wrapped reply, `code` 200, with payload
+**`/candidate/regions`.** Dauntless Unbroken sends 1.4.4 a wrapped reply, `code` 200, with payload
 `{"maxPingingStepTime", "pingCount", "pingFrequency", "regionUrls"}` and times in seconds. In 2.1.1,
 `pingFrequency` and `maxPingingStepTime` go through the float reader. The 2.1.1 envelope is
 unverified.
@@ -757,7 +757,7 @@ from the shipping build.
 
 - **`tracking-prod/heartbeat`** (2.1.1): the client sends `{state, map, server, session, ping,
   playtime}` every second. `map` is the most reliable way to know where the client really is.
-  Undaunted's 1.4.4 server takes `POST /heartbeat` with `{map}` and replies with the plain text
+  the native integration's 1.4.4 server takes `POST /heartbeat` with `{map}` and replies with the plain text
   `20000`, whose meaning we don't know.
 - **`telemetry-ingest-prod/event?id=prod`**: analytics events, including `client_login_failed`. In
   2.1.1, `UArchonLoadManager::LoadFailed` (`0x1429ad0f0`) sends `playerdata_load_failed` with
@@ -848,10 +848,10 @@ with Epic's older MCP subsystem and accepts `-AUTH_TYPE=password`, `exchangecode
 2.1.1 logs in through EOS (`-AUTH_TYPE=accountportal`). The session-token path segment follows
 suit: `/gamesession/epic` in 1.4.4, `/gamesession/epiceos` in 2.1.1.
 
-**Same URL does not mean same shape.** Undaunted's 1.4.4 server and our 2.1.1 reading disagree on
+**Same URL does not mean same shape.** the native integration's 1.4.4 server and our 2.1.1 reading disagree on
 several endpoints:
 
-| Endpoint | 2.1.1 (our static reading) | 1.4.4 (what Undaunted sends) |
+| Endpoint | 2.1.1 (our static reading) | 1.4.4 (what Dauntless Unbroken sends) |
 |---|---|---|
 | `/entitlementsv2` | flat `{"entitlements": []}` | wrapped, `payload: []` |
 | `/cooldown/{id}` | flat `{"cooldowns": [...]}` | wrapped |
@@ -864,7 +864,7 @@ several endpoints:
 Some of these are real changes over four years. Others may be shapes the 1.4.4 client tolerates
 without parsing. We will only know by reading the 1.4.4 deserialisers, which we have not done yet.
 
-**Letter case.** Undaunted sends 1.4.4 `sessionToken`, while the 2.1.1 reader asks for
+**Letter case.** Dauntless Unbroken sends 1.4.4 `sessionToken`, while the 2.1.1 reader asks for
 `sessiontoken`. Unreal's `FJsonObject` keeps its fields in a `TMap<FString, ...>`, and `FString`
 keys normally compare without regard to case, so case differences like this should not matter.
 That is standard engine behaviour; we have not tested it on either build. Spelling does matter
@@ -881,5 +881,5 @@ That is standard engine behaviour; we have not tested it on either build. Spelli
   no code that ever sets one of them (`+0x3f3`). If it really has no setter, progression can never
   finish in our standalone boot, whatever the backend sends.
 - Whether the load-failure telemetry timer has a non-zero rate.
-- The 1.4.4 deserialisers themselves. Every 1.4.4 shape on this page comes from Undaunted's
+- The 1.4.4 deserialisers themselves. Every 1.4.4 shape on this page comes from the native integration's
   server, not from the 1.4.4 binary.

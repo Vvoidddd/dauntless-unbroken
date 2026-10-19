@@ -81,6 +81,6 @@ oletusarvoineen. Kopioi se nimelle `.env` ja täytä tarvitsemasi kohdat. Sivu
   asennusohjeet käyttävät esimerkkinä; käytä omia kansioitasi.
 - Esimerkkiosoitteet ovat dokumentaatiota varten varatuista osoitteista (`203.0.113.x`,
   `198.51.100.x`), ja `100.x.y.z` tarkoittaa Tailscale-osoitetta.
-- ”Alkuperäinen projekti” tarkoittaa [Undauntedia](https://github.com/SyST3MDeV/Undaunted), jonka
-  pohjalta tämä fork on tehty. Asetukset-sivulla **Vain forkissa** merkitsee asetuksia, joita
+- ”Alkuperäinen projekti” tarkoittaa [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html), jonka
+  pohjalta tämä codebase on tehty. Asetukset-sivulla **Vain forkissa** merkitsee asetuksia, joita
   alkuperäisessä projektissa ei ole.

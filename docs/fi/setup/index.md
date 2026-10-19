@@ -18,7 +18,6 @@ locale: fi_FI
 {% assign winserver_page = site.pages | where: "path", "fi/setup/windows-server.md" | first %}
 {% assign linuxserver_page = site.pages | where: "path", "fi/setup/linux-server.md" | first %}
 {% assign openbsdserver_page = site.pages | where: "path", "fi/setup/openbsd-server.md" | first %}
-{% assign partner_page = site.pages | where: "path", "fi/setup/hosting-partner.md" | first %}
 {% assign upgrade_page = site.pages | where: "path", "fi/setup/upgrading.md" | first %}
 {% assign verification_page = site.pages | where: "path", "fi/findings/verification.md" | first %}
 {% assign legal_page = site.pages | where: "path", "fi/legal.md" | first %}
@@ -28,7 +27,7 @@ locale: fi_FI
 
 Nämä sivut ovat ohjeita niille, jotka haluavat pystyttää palvelimen tai liittyä kaverin
 palvelimelle. Aito **Dauntless 1.4.4** -peliohjelma (lokakuu 2020, UE4, pak v9) keskustelee meidän
-muokatun [Undaunted](https://github.com/SyST3MDeV/Undaunted)-versiomme kanssa. Windows on edelleen
+muokatun [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html)-versiomme kanssa. Windows on edelleen
 pisimmälle oikeassa pelissä testattu palvelinpolku, mutta mukana ovat nyt myös erilliset Linux- ja
 OpenBSD-porttaukset. Kaikki tämän osion tieto koskee versiota **1.4.4**. Pelin viimeinen versio 2.1.1
 ei toimi tällä kokoonpanolla, koska palvelin-DLL käyttää 1.4.4:n kiinteitä muistiosoitteita.
@@ -55,7 +54,6 @@ etappi on täysi kahden koneen pelitesti.
 | [Windows-palvelin]({{ winserver_page.url | relative_url }}) | Oikeassa pelissä pisimmälle testattuun Windows-polkuun | Yhden komennon Windows Server 2019+ -asennus nykyisine varmuuskopio- ja päivitystyökaluineen. Windows-porttia ei muutettu. |
 | [Linux-palvelin]({{ linuxserver_page.url | relative_url }}) | Linux-isännälle | Natiivi Node/SQLite-ohjauspuoli, systemd, nftables sekä Dauntless 1.4.4 -peliprosessit Protonilla/Winellä. Mukana yhden koneen asennus ja erillinen Linux-pelityöntekijä. |
 | [OpenBSD-palvelin]({{ openbsdserver_page.url | relative_url }}) | OpenBSD-isännälle + Linux-pelityöntekijälle | Natiivi OpenBSD 7.9 -ohjauspuoli rc.d:llä ja PF:llä. Peliprosessit käynnistetään rajatulla SSH-yhteydellä Linux/Proton/Wine-työntekijällä. |
-| [Hosting-kumppani: EU Gamehost]({{ partner_page.url | relative_url }}) | Vuokrattua rautaa haluavalle hostille | Selkeästi merkitty kumppani-/mainossivu, pakettiesimerkit, omiin mittauksiin perustuva kapasiteettiperuste ja suorat pakettilinkit. |
 | [Vianetsintä]({{ trouble_page.url | relative_url }}) | Kaikille | Ongelmat, joihin oikeasti törmäsimme, syineen ja korjauksineen. Muutama kohta on peräisin koodin lukemisesta, ja ne on merkitty sellaisiksi. |
 | [Päivitysohjeet]({{ upgrade_page.url | relative_url }}) | Isännälle ennen sellaisen palvelimen päivitystä, jolla on jo pelaajia | Mitä kukin päivitys muuttaa pelaajille ja mitä pitää päättää ensin. Nyt: oikea eteneminen on oletuksena päällä, joten aiemmin pelanneet aloittavat Slayer-tasolta 1, ellet pidä heidän maksimitasojaan tai jatka tyngällä. |
 

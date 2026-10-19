@@ -85,7 +85,7 @@ double-click `Setup.cmd`: it does steps 2 to 4 for you, checking every hash. Aft
 
 **This site and the repository do not distribute the game or link to downloads of it.** Whatever
 copy you use, step 2 checks it. If yours came as the `BaseGame144.zip` archive that the upstream
-Undaunted launcher installs from, step 2 also lists the archive's hash. See
+Dauntless Unbroken launcher installs from, step 2 also lists the archive's hash. See
 [Credits and license]({{ legal_page.url | relative_url }}) for why we handle it this way.
 
 ## Step 1: Install Tailscale and accept the host's share
@@ -129,7 +129,7 @@ Get-Content "$Game\Version.txt"
 | `Dauntless-Win64-Shipping.exe` size | 103,673,520 bytes |
 | `BaseGame144.zip` SHA-256, if you have the archive | `556B9A648A5E5E7E11B6F8DD3D80FF8E88FCEB0D3448297AAF47CE7BF756BC6D` (10.48 GB) |
 
-The executable hash is the same value the upstream Undaunted launcher checks. If it does not match,
+The executable hash is the same value the the earlier implementation launcher checks. If it does not match,
 stop here: the DLLs will not work with a different build.
 
 On the host we checked our reference copy more thoroughly. All 406 files match the `Manifest.bin.json`
@@ -144,11 +144,11 @@ Both files go into `<game folder>\Archon\Binaries\Win64\`, next to `Dauntless-Wi
 | File | Size | SHA-256 |
 |:-----|-----:|:--------|
 | `dxgi.dll` | 11,264 bytes | `f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c` |
-| `DauntlessUnbroken.dll` | 123,392 bytes | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` |
+| `DauntlessUnbroken.dll` | 306,176 bytes | `6CE7E0EA3EFF8C6841EA81C67A0EB177D84223AF844F15C6679EF0827143BE8D` |
 
 You get them from the host, most easily in the friend kit (see above), or from the upstream
 repository under
-[`DauntlessUnbrokenLauncher/assets/`](https://github.com/SyST3MDeV/Undaunted/tree/main/DauntlessUnbrokenLauncher/assets).
+[`DauntlessUnbrokenLauncher/assets/`](https://vvoidddd.github.io/dauntless-unbroken/legal.html).
 They are the same files. After copying, check them and clear the "downloaded from the internet" flag:
 
 ```powershell
@@ -173,7 +173,7 @@ runs Ramsgate and hunts.
   match (0.0.3), but that is not proof.
 - The source of `dxgi.dll` was never published. We disassembled it: it does only the three things
   described above and imports nothing beyond `KERNEL32` and the C runtime. We plan to replace it with
-  our own small proxy, built from source in our fork.
+  our own small proxy, built from source in our implementation.
 - Antivirus software may flag a DLL proxy, because the technique is common in malware too. Check the
   hashes and decide for yourself.
 
@@ -268,7 +268,7 @@ $exe = Join-Path $W "Dauntless-Win64-Shipping.exe"
 $pinned = @{
   "Dauntless-Win64-Shipping.exe" = "D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4"
   "dxgi.dll"                     = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
-  "DauntlessUnbroken.dll"  = "520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933"
+  "DauntlessUnbroken.dll"  = "6CE7E0EA3EFF8C6841EA81C67A0EB177D84223AF844F15C6679EF0827143BE8D"
 }
 foreach ($f in $pinned.Keys) {
   $p = Join-Path $W $f
@@ -365,7 +365,7 @@ This is a small private revival and a work in progress. As of this writing:
 - On our own servers, one player has played the tutorial, Ramsgate, the Training Dojo, a normal hunt
   and a pursuit on the host PC, and on 22 September 2026 the same path up to the first hunt over the
   internet on the rented server. Later that night two players hunted together there, after queueing
-  the same hunt within a few seconds of each other. Upstream Undaunted reports hunts in groups of up
+  the same hunt within a few seconds of each other. the earlier implementation reports hunts in groups of up
   to 4 working; we have tried two.
 - Slayer level, weapon and behemoth mastery and the Hunt Pass start from the beginning (Slayer level
   1) and are saved, on a server that runs the current code with its default settings. Every account
@@ -495,14 +495,14 @@ If something does not show, tell the host what you did and roughly when; the ser
 
 ## Your right to the source
 
-The server you play on is a modified version of [Undaunted](https://github.com/SyST3MDeV/Undaunted),
+The server you play on is a modified version of [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html),
 which is licensed under the GNU AGPL-3.0. Because you use the modified server over a network, you are
 entitled to its complete source code (section 13). Because the host gives you DLL binaries, you are
 also entitled to their source (section 6).
 
-- Our fork's source is in [this site's repository]({{ site.github.repository_url }}), branch
+- our implementation's source is in [this site's repository]({{ site.github.repository_url }}), branch
   `dauntless-unbroken`. Ask the host which commit their server runs.
-- Upstream's source is at [github.com/SyST3MDeV/Undaunted](https://github.com/SyST3MDeV/Undaunted).
+- Upstream's source is at [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html).
 - Known gap: upstream never published the source of the prebuilt `dxgi.dll`. We plan to close this by
   shipping our own proxy, built from source (see step 3).
 - The DLL includes MinHook, which is under the BSD 2-Clause licence.

@@ -17,7 +17,7 @@ udp_end=8777
 output=/etc/pf.dauntless-unbroken.conf
 install=0
 anchor=dauntless-unbroken
-table=dauntless_revived_players
+table=dauntless_unbroken_players
 
 while [ "$#" -gt 0 ]; do
   case "$1" in

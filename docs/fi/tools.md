@@ -39,7 +39,7 @@ avaamaan näitä tiedostoja.
 ## Lisenssi ja perussäännöt {#licence-and-ground-rules}
 
 - Skriptit julkaistaan **GNU Affero General Public License v3.0 (AGPL-3.0)** -lisenssillä yhdessä
-  dauntless-unbroken-haaramme (fork, eli oman muokatun kopiomme) kanssa. **Tila:** ne eivät ole vielä
+  dauntless-unbroken-haaramme (codebase, eli oman muokatun kopiomme) kanssa. **Tila:** ne eivät ole vielä
   repositoriossa; aiomme lisätä ne `tools/`-kansioon. Nykyisessä `tools/`-kansiossa on projektin omat
   käännös- ja paketointiskriptit, eivät nämä; ne on lueteltu sivulla
   [Skriptit ja parametrit]({{ scripts_page.url | relative_url }}).

@@ -38,7 +38,7 @@ which build it is about.
 | Our use | Research only | What we run |
 
 **Addresses.** For 2.1.1 we give virtual addresses, with image base `0x140000000`. For 1.4.4 we give
-RVAs, as Undaunted's source does. Add `0x140000000` to an RVA to get the VA.
+RVAs, as the native integration's source does. Add `0x140000000` to an RVA to get the VA.
 
 ---
 
@@ -109,7 +109,7 @@ Only the entry points were removed. The layer beneath them is intact:
 
 At first we read this as "compiled in but unreachable, so hosting is impossible". **That was wrong.**
 The stock code path never reaches these functions, but injected code can.
-[How multiplayer works]({{ mp_page.url | relative_url }}) explains how Undaunted does it on 1.4.4.
+[How multiplayer works]({{ mp_page.url | relative_url }}) explains how Dauntless Unbroken does it on 1.4.4.
 
 ---
 
@@ -127,9 +127,9 @@ The stock code path never reaches these functions, but injected code can.
   only consults it when `-EpicPortal` is absent. It is not what `LauncherCheck` tests.
 - Start `Dauntless-Win64-Shipping.exe` directly. `start_protected_game.exe` is the EasyAntiCheat
   bootstrapper. When you start the shipping exe directly, EasyAntiCheat never runs. On 2.1.1 the
-  install then stays unmodified and signature-valid. On 1.4.4, Undaunted adds two DLLs to
+  install then stays unmodified and signature-valid. On 1.4.4, Dauntless Unbroken adds two DLLs to
   `Archon\Binaries\Win64` but leaves the exe itself byte-identical (its launcher checks the hash).
-- On 1.4.4, Undaunted's launcher passes `-EpicPortal` together with placeholder values for the other
+- On 1.4.4, the native integration's launcher passes `-EpicPortal` together with placeholder values for the other
   Epic switches. The game runs with the placeholders, so nothing on this path checks them:
 
 ```text
@@ -154,7 +154,7 @@ either build. One 2.1.1 observation fits it: plain `-NoEpicPortal`, which `Launc
 accept, did not get the client past `LauncherCheck`. If the filter works as disassembled, switches such as `-server`, `-nothreadtimeout`,
 `-noheartbeatthread`, `-UseStandaloneDedicatedServer`, `-NoEpicPortal`, `-q` and `-EngineINI=`
 are removed before any code reads them. So treat any 2.1.1 finding that depends on such a switch
-as unverified, and prefer ini settings where one exists. Undaunted's server DLL on
+as unverified, and prefer ini settings where one exists. the native integration's server DLL on
 1.4.4 reads its own arguments with the Win32 `GetCommandLineW` and gives the engine a fixed command
 line through a hook on `FCommandLine::Get` (see
 [How multiplayer works]({{ mp_page.url | relative_url }})).
@@ -211,14 +211,14 @@ Any other value fails with `"Unable to Login() user (%d) due to missing auth par
   sections name hosts on `epicgames.com`.
 - `accountportal` and `persistentauth` do not exist in this build. It knows `exchangecode`,
   `password` and `developer`.
-- **We use Undaunted's approach:**
-  `-AUTH_TYPE=exchangecode -AUTH_LOGIN=unused -AUTH_PASSWORD=<account key>`. Undaunted's client DLL
+- **We use the native integration's approach:**
+  `-AUTH_TYPE=exchangecode -AUTH_LOGIN=unused -AUTH_PASSWORD=<account key>`. the native integration's client DLL
   points every MCP section's `Domain` and `Protocol` at the metagame. The metagame's
   `POST /account/api/oauth/token` treats the exchange code as the player's account key and returns
   a signed token. The client then sends that token as the bearer on every request. No Epic account
   is involved. Treat the account key like a password.
 - `-AUTH_TYPE=password` should send an email and password to Phoenix's `/game/login`. We have **not
-  tested** this, because we use the exchange-code path. Undaunted's metagame has no `/game/login`
+  tested** this, because we use the exchange-code path. the native integration's metagame has no `/game/login`
   handler, so this route would need backend work first.
 
 ---
@@ -231,7 +231,7 @@ Any other value fails with `"Unable to Login() user (%d) due to missing auth par
   reads it.
 - **Neither build** contains `-ExecCmds`, so console commands cannot be passed on the command line
   either.
-- **1.4.4:** Undaunted's client DLL creates a `UConsole` object itself and binds it to **F2**. That
+- **1.4.4:** the native integration's client DLL creates a `UConsole` object itself and binds it to **F2**. That
   suggests the stock build creates none. We have not checked which commands it accepts.
 
 ---
@@ -248,7 +248,7 @@ Any other value fails with `"Unable to Login() user (%d) due to missing auth par
   or setting that depends on.
 - `[Core.Log]` in the user `Engine.ini` is read (`0x142f22e80`). `-LogCmds=` is **not** parsed. It
   appears only in help text.
-- On 1.4.4 we have not checked the binary for a file sink. Undaunted's DLL prints its own messages
+- On 1.4.4 we have not checked the binary for a file sink. the native integration's DLL prints its own messages
   to a console window.
 
 ### HTTPEventLog ships only Warning and above (2.1.1)
@@ -292,7 +292,7 @@ was doing.
   - **`state`**: we recorded `menu` on the login map and `city` in Ramsgate. The strings `menu`,
     `city`, `island` and `lobby` sit right after the field names in the string table. We read these
     as the four possible values (**likely, not proven**).
-  - On 1.4.4, Undaunted's metagame (`POST /heartbeat`) uses `map` to record player activity.
+  - On 1.4.4, the native integration's metagame (`POST /heartbeat`) uses `map` to record player activity.
 - **Analytics events** (2.1.1) are batched to `telemetry-ingest-prod.steelyard.ca/event?id=prod`,
   up to 100 events per request and up to 30 seconds late (`MaximumSecondsBeforeTelemetrySent=30`).
   Two are worth watching:

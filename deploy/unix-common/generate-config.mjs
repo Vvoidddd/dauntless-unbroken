@@ -201,10 +201,10 @@ if (mode === "public") {
     ALLOWLIST_STATE_FILE: path.join(data, "allowlist-state.json"),
     DR_GATEWAY_DIR: path.join(root, "DauntlessUnbrokenGateway"),
     ...(platform === "linux" ? {
-      DR_NFT_TABLE: "dauntless_revived",
+      DR_NFT_TABLE: "dauntless_unbroken",
       ...(args["firewall-interface"] ? { DR_FIREWALL_INTERFACE: args["firewall-interface"] } : {}),
     } : {
-      DR_PF_TABLE: "dauntless_revived_players",
+      DR_PF_TABLE: "dauntless_unbroken_players",
       DR_PF_ANCHOR: "dauntless-unbroken",
     }),
   });

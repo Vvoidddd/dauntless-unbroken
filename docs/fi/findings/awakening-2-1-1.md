@@ -18,7 +18,7 @@ description: "Kokeilu käynnistää Dauntless 2.1.1 suoraan Ramsgateen ilman pel
 # Itsenäinen käynnistys 2.1.1:llä
 {: .no_toc }
 
-Ennen kuin siirryimme versioon 1.4.4 ja Undauntediin, aloitimme pelin viimeisestä versiosta,
+Ennen kuin siirryimme versioon 1.4.4 ja Dauntless Unbroken, aloitimme pelin viimeisestä versiosta,
 **2.1.1**:stä ("Awakening", joulukuu 2024, Unreal Engine 5.1.1, IoStore). Tavoitteena oli seistä
 Ramsgatessa (pelin kaupungissa, jossa pelaajat tapaavat toisiaan) yksin, ilman pelipalvelinta
 (ohjelmaa, joka pyörittää peliä pelaajille verkossa). Yritimme tehdä sen käynnistämällä pelin
@@ -40,7 +40,7 @@ jumiutumisen tunnistin ovat sivulla
 > **Korjaus.** Kokeilimme itsenäistä käynnistystä ylipäätään siksi, että olimme päätelleet moninpelin
 > olevan mahdoton pelkällä asiakasohjelmakäännöksellä. Tuo päätelmä oli väärä. Ohjelmatiedosto ei
 > pysty isännöimään peliä *yksinään*, mutta sen verkkokerros on ehjä, ja ohjelmaan ladattu DLL
-> (lisäosa, joka ladataan ohjelman sisään) voi ohjata sitä. Näin Undaunted isännöi Ramsgatea ja
+> (lisäosa, joka ladataan ohjelman sisään) voi ohjata sitä. Näin Dauntless Unbroken isännöi Ramsgatea ja
 > metsästyksiä versiossa 1.4.4. Katso [Näin moninpeli toimii]({{ mp_page.url | relative_url }}).
 > Jälkiviisaasti ajateltuna 2.1.1:n reitti on se, joka on kuvattu kohdassa
 > [Mistä jatkaa](#where-to-continue), eikä itsenäinen käynnistys.
@@ -508,11 +508,11 @@ automaattista kirjautumista: funktiolla, joka lukee `AuthEndpoint`-arvon, ei ole
   paikallisen paketin nimi.
 - Tarvitset siis isännän. 2.1.1-ohjelmatiedosto ei pysty isännöimään yksinään, mutta ohjelmaan
   ladattu DLL voi saada saman ohjelmatiedoston toisen kopion isännöimään.
-  [Näin moninpeli toimii]({{ mp_page.url | relative_url }}) kuvaa, miten Undaunted tekee tämän
+  [Näin moninpeli toimii]({{ mp_page.url | relative_url }}) kuvaa, miten Dauntless Unbroken tekee tämän
   versiossa 1.4.4. Asiakkaan odottama matchmaking-sopimus (`/candidate/status`, `serverInfo`,
   `isNewMatchmaker`, `playerStates`) on sivulla
   [Taustapalvelun rajapinta]({{ contract_page.url | relative_url }}).
-- **Älä lataa Undauntedin DLL:ää versioon 2.1.1.** Se paikkaa kiinteitä osoitteita
+- **Älä lataa Dauntless Unbroken DLL:ää versioon 2.1.1.** Se paikkaa kiinteitä osoitteita
   1.4.4-ohjelmatiedostossa ja sotkisi muistin missä tahansa muussa versiossa. Jokainen osoite on
   etsittävä uudelleen versiolle 2.1.1. Toinen yhteisöprojekti,
   [Mystic Paradox](https://github.com/pranav158/Mystic-Paradox), siirtää samaa lähestymistapaa
@@ -559,7 +559,7 @@ kunkin funktion lokimerkkijonoista. Julkaisuversion ohjelmatiedostossa ei ole sy
 
 ## Miksi siirryimme versioon 1.4.4 {#why-we-moved-to-144}
 
-- **Undaunted pyörittää jo moninpeli-Ramsgatea, metsästyksiä ja opetusosiota versiossa 1.4.4**
+- **Dauntless Unbroken pyörittää jo moninpeli-Ramsgatea, metsästyksiä ja opetusosiota versiossa 1.4.4**
   alkuperäisellä asiakasohjelmalla ja ohjelmaan ladatulla palvelin-DLL:llä. Versiossa 2.1.1
   olisimme joutuneet rakentamaan kaiken tämän itse.
 - **1.4.4 on EOS:ää vanhempi.** Pelaajat kirjautuvat omalla palvelimellamme olevalla tilillä.

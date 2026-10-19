@@ -250,7 +250,7 @@ tar -xzf DauntlessUnbrokenLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-
 
 The AppImage is also usable on an appropriately configured desktop.
 
-Gentoo ships Valve's Wine fork as `app-emulation/wine-proton` on amd64:
+Gentoo ships Valve's Wine codebase as `app-emulation/wine-proton` on amd64:
 
 ```bash
 sudo emerge --ask app-emulation/wine-proton
@@ -405,7 +405,7 @@ under Proton this could leave `Dauntless-Win64-Shipping.exe` alive with only its
 no UE log or visible window.
 
 0.1.13 detects Wine/Proton and skips that client debug-console initialization. The launcher still
-installs the normal native `dxgi` override and the Revived DLL; do not remove those files as a
+installs the normal native `dxgi` override and the Unbroken DLL; do not remove those files as a
 permanent workaround.
 
 On GNOME/Wayland, 0.1.13 also preserves the session's `XAUTHORITY` for Proton. If a wrapper or

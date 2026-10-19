@@ -15,7 +15,7 @@ $script:DRPinned = @{
     ExeRelative     = 'Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe'
     Build           = 'dauntless_rel-1.4.4_Shipping_2020-10-28_20-11-15_239827'
     Changelist      = '239827'
-    # Undaunted's prebuilt DLLs, kept in DauntlessUnbrokenLauncher/assets/ (same pins as friend-kit/).
+    # Verified DLLs in DauntlessUnbrokenLauncher/assets/ (same pins as friend-kit/).
     Dlls            = [ordered]@{
         'dxgi.dll'                    = 'f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c'
         'DauntlessUnbroken.dll' = '6ce7e0ea3eff8c6841ea81c67a0eb177d84223af844f15c6679ef0827143be8d'

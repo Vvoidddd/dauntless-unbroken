@@ -33,7 +33,7 @@ call it, what it does, and whether it can be reached through the gateway.
 
 The game routes follow the contract of the 1.4.4 client: the paths and reply shapes of the original
 backend (see [Backend contract]({{ contract_page.url | relative_url }})). They are not an API of their
-own. The management routes under `/unbroken/api` come from Undaunted and from this fork.
+own. The management routes under `/unbroken/api` come from Dauntless Unbroken and from this project.
 
 <details open markdown="block">
   <summary>Contents</summary>

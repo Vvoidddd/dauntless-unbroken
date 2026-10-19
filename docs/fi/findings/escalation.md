@@ -6,7 +6,7 @@ nav_order: 12
 lang: fi
 ref: findings/escalation
 locale: fi_FI
-description: "Miten Dauntless 1.4.4 tallentaa Escalation-etenemisen ja Harmonicin forkin pohjalta rakennetut oikeat Escalation-tallennukset: peliohjelmasta luettu kausiluettelo, säännöt, jotka jokaisen tallennuksen on läpäistävä, ja ne, jotka vain varoittavat, vanha tynkä sekä se, mitä pelaajat näkevät, kun ominaisuus otetaan käyttöön."
+description: "Miten Dauntless 1.4.4 tallentaa Escalation-etenemisen ja lähdeintegraation toteutuksen pohjalta rakennetut oikeat Escalation-tallennukset: peliohjelmasta luettu kausiluettelo, säännöt, jotka jokaisen tallennuksen on läpäistävä, ja ne, jotka vain varoittavat, vanha tynkä sekä se, mitä pelaajat näkevät, kun ominaisuus otetaan käyttöön."
 ---
 
 {% assign api_page = site.pages | where: "path", "fi/reference/api.md" | first %}
@@ -14,7 +14,7 @@ description: "Miten Dauntless 1.4.4 tallentaa Escalation-etenemisen ja Harmonici
 {% assign files_page = site.pages | where: "path", "fi/reference/files.md" | first %}
 {% assign game_page = site.pages | where: "path", "fi/reference/game-settings.md" | first %}
 {% assign contract_page = site.pages | where: "path", "fi/findings/backend-contract.md" | first %}
-{% assign harmonic_page = site.pages | where: "path", "fi/findings/harmonic-fork.md" | first %}
+{% assign integration_page = site.pages | where: "path", "fi/findings/feature-integrations.md" | first %}
 {% assign trouble_page = site.pages | where: "path", "fi/setup/troubleshooting.md" | first %}
 
 # Escalation versiossa 1.4.4
@@ -33,10 +33,10 @@ etenemisen pelaajat säilyttävät oman Escalation-tasonsa, kykynsä ja palkinto
 ylläpitäjä pelitestin jälkeen, koska jokainen pelaaja aloittaa silloin alusta tasolta 0 (katso
 [Käyttöönotto](#switching-it-on)).
 
-Kausiluettelo, tallennussäännöt ja niiden testit ovat peräisin **Harmonicin** Dauntless 1.4.4
--forkista ([github.com/Harmonicrain/Undaunted](https://github.com/Harmonicrain/Undaunted), muutos
+Kausiluettelo, tallennussäännöt ja niiden testit ovat peräisin **lähdeintegraation** Dauntless 1.4.4
+-toteutuksesta ([source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html), muutos
 `895f7c7`). Sovitimme ne omaan tapahtumalokiimme ja teimme epävarmemmista säännöistä varoituksia
-hylkäysten sijaan; yksityiskohdat sivulla [Harmonicin työn siirto]({{ harmonic_page.url | relative_url }}).
+hylkäysten sijaan; yksityiskohdat sivulla [lähdeintegraation työn siirto]({{ integration_page.url | relative_url }}).
 
 <details open markdown="block">
   <summary>Sisältö</summary>
@@ -79,7 +79,7 @@ Sisältö (payload), samoin kuin tallennuksen runko, on yksi kausi:
 
 - `escalation_level` on saavutettu taso (0–25) ja `next_level_xp` seuraavaa tasoa varten kerätyt
   kokemuspisteet (XP).
-- **Pelipalvelin laskee kaiken** (S, Harmonicin tulkinta pelin omasta koodista): se lisää kokemuksen,
+- **Pelipalvelin laskee kaiken** (S, lähdeintegraation tulkinta pelin omasta koodista): se lisää kokemuksen,
   nostaa tason, antaa pelaajan käyttää pisteitä ja jakaa palkinnot itse, ja lähettää sitten koko
   kauden. Taustapalvelu vain säilyttää viimeisimmän hyvän tilannekuvan ja hylkää sellaisen, jota mikään
   oikea pelaaminen ei voisi tuottaa tai joka pyyhkisi pois uudemman etenemisen.
@@ -92,7 +92,7 @@ Sisältö (payload), samoin kuin tallennuksen runko, on yksi kausi:
 ## Kausiluettelo {#registry}
 
 `DauntlessUnbrokenMetagame/src/vendor/escalation/seasons.json` luettelee jokaisen kauden, joka 1.4.4-peliohjelmassa
-on. Harmonic vei sen vain lukien peliohjelman omasta Escalation-etenemistaulukosta ja kunkin kauden
+on. the source integration vei sen vain lukien peliohjelman omasta Escalation-etenemistaulukosta ja kunkin kauden
 nimeämästä kykytaulukosta (versio CL239827). Metagame tarkistaa tiedoston käynnistyessään, ja
 virheellinen tiedosto pysäyttää käynnistyksen.
 
@@ -204,7 +204,7 @@ ja luettelotiedosto sivulla [Pelin asetukset]({{ game_page.url | relative_url }}
 
 ## Testit {#tests}
 
-`DauntlessUnbrokenMetagame/test/escalation.test.ts` sisältää 27 tapausta: Harmonicin 17 (kausiluettelo,
+`DauntlessUnbrokenMetagame/test/escalation.test.ts` sisältää 27 tapausta: lähdeintegraation 17 (kausiluettelo,
 luvut, versiosäännöt, kovat ja pehmeät säännöt, tynkävahti) meidän vastauksiimme sovitettuina (toisen
 tilin luku on 403, uusinta on kirjattu 200, toisen tilin välitetty tunniste kirjataan ja hyväksytään,
 pehmeät säännöt vastaavat 409 vain, kun `ESCALATION_STRICT=1`, tiukka XP-tapaus nousee tasolle 25

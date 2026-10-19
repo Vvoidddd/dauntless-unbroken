@@ -16,7 +16,7 @@ ref: findings/awakening-2-1-1
 # The 2.1.1 standalone attempt
 {: .no_toc }
 
-Before we moved to 1.4.4 and Undaunted, we started on the final client, **2.1.1**
+Before we moved to 1.4.4 and Dauntless Unbroken, we started on the final client, **2.1.1**
 ("Awakening", December 2024, Unreal Engine 5.1.1, IoStore). The goal was to stand in Ramsgate
 alone, with no game server, by booting the client straight into the city against our own backend.
 
@@ -32,7 +32,7 @@ the hang detector are on [Client internals]({{ internals_page.url | relative_url
 > **Correction.** We tried a standalone boot at all because we had concluded that multiplayer was
 > impossible with a client-only build. That conclusion was wrong. The executable cannot host
 > *by itself*, but its network layer is intact, and an injected DLL can drive it. That is how
-> Undaunted hosts Ramsgate and hunts on 1.4.4. See
+> Dauntless Unbroken hosts Ramsgate and hunts on 1.4.4. See
 > [How multiplayer works]({{ mp_page.url | relative_url }}). With hindsight, the route for 2.1.1 is
 > the one under [Where to continue](#where-to-continue), not a standalone boot.
 
@@ -470,10 +470,10 @@ flow. **It removes it.**
   package name.
 - So you need a host. The 2.1.1 executable cannot host by itself, but an injected DLL can make a
   second copy of the same exe host. [How multiplayer works]({{ mp_page.url | relative_url }})
-  describes how Undaunted does this on 1.4.4. The matchmaking contract the client expects
+  describes how Dauntless Unbroken does this on 1.4.4. The matchmaking contract the client expects
   (`/candidate/status`, `serverInfo`, `isNewMatchmaker`, `playerStates`) is on
   [Backend contract]({{ contract_page.url | relative_url }}).
-- **Do not load Undaunted's DLL into 2.1.1.** It patches fixed addresses in the 1.4.4 exe and would
+- **Do not load the native integration's DLL into 2.1.1.** It patches fixed addresses in the 1.4.4 exe and would
   corrupt memory in any other build. Every address has to be found again for 2.1.1. Another
   community project, [Mystic Paradox](https://github.com/pranav158/Mystic-Paradox), is porting the
   approach to 1.12.0. We have not tried it.
@@ -517,7 +517,7 @@ function. The shipping exe has no symbols.
 
 ## Why we moved to 1.4.4
 
-- **Undaunted already runs multiplayer Ramsgate, hunts and the tutorial on 1.4.4**, with the retail
+- **Dauntless Unbroken already runs multiplayer Ramsgate, hunts and the tutorial on 1.4.4**, with the retail
   client and an injected server DLL. On 2.1.1 we would have had to build all of that ourselves.
 - **1.4.4 predates EOS.** Players log in with an account on our own server. No Epic account is needed,
   and no Epic service can switch it off.

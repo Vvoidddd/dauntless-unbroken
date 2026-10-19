@@ -72,7 +72,6 @@ The existing deploy server still starts one executable path. On Linux that path 
 
 ## Requirements
 
-> **Hosted Linux:** EU Gamehost is a project partner. Our [hosting partner guide]({{ "/setup/hosting-partner.html" | relative_url }}) lists example plans; confirm that the exact OS/virtualisation setup you need is available before ordering.
 
 - x86_64 Linux with glibc
 - Node.js **20.19+**; Node 22 or 24 recommended
@@ -143,7 +142,7 @@ Public mode uses the same pinned-TLS launcher flow as the Windows server:
 - metagame/content/deploy stay behind it;
 - UDP 8770-8777 is fail-closed except for player addresses reported by authenticated gateway traffic.
 
-The helper owns its own nftables table, `inet dauntless_revived`.
+The helper owns its own nftables table, `inet dauntless_unbroken`.
 
 ## Choose Proton or Wine
 
@@ -253,7 +252,7 @@ Then pull/copy the newer source and re-run the installer with the same arguments
 already supplied.
 
 **Public players reach the gateway but not hunts:** check that your provider/cloud firewall permits
-the UDP game range and that the nftables `dauntless_revived` table is still in the packet path.
+the UDP game range and that the nftables `dauntless_unbroken` table is still in the packet path.
 
 **Ramsgate repeatedly restarts:** inspect `journalctl -u dauntless-deploy` and the compatibility
 runtime output first. Do not replace the pinned EXE/DLLs with another game build.

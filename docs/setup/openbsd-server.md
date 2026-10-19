@@ -139,7 +139,7 @@ A live install refuses to edit PF unless you explicitly pass `--configure-pf`.
 
 Public mode creates a dedicated `dauntless-unbroken` PF anchor containing:
 
-- a persistent `<dauntless_revived_players>` table;
+- a persistent `<dauntless_unbroken_players>` table;
 - TCP 443 redirect to the unprivileged gateway on `127.0.0.1:61443`;
 - UDP 8770-8777 redirect only for addresses in the player table;
 - source NAT toward the Linux worker;

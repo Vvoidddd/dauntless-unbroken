@@ -7,7 +7,7 @@ file records where the parts of the repository come from. Suomeksi: [below](#suo
 ## Modification notice
 
 This repository, [github.com/Vvoidddd/dauntless-unbroken](https://github.com/Vvoidddd/dauntless-unbroken)
-(branch `dauntless-unbroken`), modifies Undaunted from upstream commit `7f692aa`, to run a private
+(branch `main`), modifies Undaunted from upstream commit `7f692aa`, to run a private
 server for the Dauntless 1.4.4 client (`1.4.4_shipping`, changelist 239827). Modifications began on
 21 September 2026. Every change is recorded in the commit history, and the planned work is in
 [ROADMAP.md](ROADMAP.md). This is not an official release of Undaunted, nor of any other project
@@ -24,7 +24,7 @@ named below.
 - The server-mode DLL, the deploy server, the metagame backend and the original launcher are
   Undaunted's work. Our changes are on top of it, commit by commit.
 
-### Harmonic's Dauntless 1.4.4 fork
+### Harmonic's Dauntless 1.4.4 codebase
 
 - By Harmonic. Repository:
   [github.com/Harmonicrain/Undaunted](https://github.com/Harmonicrain/Undaunted), commit `895f7c7`,
@@ -33,31 +33,31 @@ named below.
   - the Escalation season registry, its save rules and version rules (real Escalation saves);
   - the free store: the catalogue, the two-step purchase token, the store tabs and tile-art list, the
     grant kind of each item, and the sheen and hair-tint entitlements;
-  - Slayer Links (the fork's contract, corrected against the 1.4.4 executable);
+  - Slayer Links (the project's contract, corrected against the 1.4.4 executable);
   - the deploy server's restart of a dead Ramsgate or Dojo on demand, the stored restart record, and
     the handling of a failed game-server start;
-  - the idea of friends' online status (rebuilt inside our own chat server, with none of the fork's code);
+  - the idea of friends' online status (rebuilt inside our own chat server, with none of the project's code);
   - smaller ideas: protection against retried progression grants, Hunt Pass seasons from a folder on
     disk and `ACTIVE_HUNT_PASS`, real currencies in `/balance`, the caller's own account in
     `oauth/verify`, tolerance for a repeated party accept, status and duration in the body log, a log
     line for unhandled progression requests, the MinHook include fix and five `.gitignore` patterns;
-  - the fork's test cases: 103 of its 119 ported and 7 turned around to assert our behaviour, each
+  - the project's test cases: 103 of its 119 ported and 7 turned around to assert our behaviour, each
     marked with the original file and line.
 - Files that carry Harmonic's copyright notice (`Ported from Harmonicrain/Undaunted (895f7c7), Copyright (C)
   2026 Harmonic, AGPL-3.0-only`, with how each was modified for Dauntless Unbroken):
   `DauntlessUnbrokenMetagame/src/controllers/escalationConfig.ts`, `escalation.ts`, `freestore.ts` and
   `slayerlinks.ts`.
-- Data files from the fork, each with a provenance note in its `_comment`:
+- Data files from the project, each with a provenance note in its `_comment`:
   `DauntlessUnbrokenMetagame/src/vendor/escalation/seasons.json`, `src/vendor/store_catalog.json`,
   `src/vendor/store_item_kinds.json` and `test/data/store_art_skus.json`. They hold identifiers and
   tuning values read from the installed 1.4.4 client for interoperability, and no game assets.
-- Code of ours built on Harmonic's ideas names the fork in its comments.
+- Code of ours built on Harmonic's ideas names the project in its comments.
 - What was not taken, and why, is recorded on
-  [The Harmonic port](https://mixutin.github.io/dauntless-unbroken/findings/harmonic-fork.html).
+  [The Harmonic port](https://vvoidddd.github.io/dauntless-unbroken/findings/feature-integrations.html).
 
 ### No Mystic Paradox material
 
-Harmonic's fork also contains realtime XMPP code derived from
+Harmonic's codebase also contains realtime XMPP code derived from
 [Mystic Paradox](https://github.com/pranav158/Mystic-Paradox), which carries additional terms under
 AGPLv3 section 7. **Dauntless Unbroken contains none of that code**: our chat and presence code
 (`DauntlessUnbrokenMetagame/src/realtime/`) was written for this project, and nothing from Harmonic's
@@ -79,7 +79,7 @@ implies no endorsement or affiliation.
 
 No game files are distributed in this repository. "Dauntless" is a trademark of its owners;
 Dauntless Unbroken is not affiliated with or endorsed by Phoenix Labs or Epic Games. The full credits
-are on [Credits and license](https://mixutin.github.io/dauntless-unbroken/legal.html).
+are on [Credits and license](https://vvoidddd.github.io/dauntless-unbroken/legal.html).
 
 ## Suomeksi
 
@@ -109,4 +109,4 @@ mainitun projektin virallinen julkaisu.
 
 Repositoriossa ei ole pelitiedostoja. Dauntless Unbroken ei ole sidoksissa Phoenix Labsiin tai Epic
 Gamesiin. Kaikki kiitokset ovat sivulla
-[Kiitokset ja lisenssi](https://mixutin.github.io/dauntless-unbroken/fi/legal.html).
+[Kiitokset ja lisenssi](https://vvoidddd.github.io/dauntless-unbroken/fi/legal.html).

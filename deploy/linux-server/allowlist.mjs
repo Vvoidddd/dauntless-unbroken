@@ -31,7 +31,7 @@ function runNft(nft, script) {
 let preparedKey = null;
 
 async function ensureTable(nft, config) {
-  const table = process.env.DR_NFT_TABLE || "dauntless_revived";
+  const table = process.env.DR_NFT_TABLE || "dauntless_unbroken";
   if (!/^[a-zA-Z0-9_]{1,32}$/.test(table)) throw new Error("DR_NFT_TABLE is invalid");
   const iface = process.env.DR_FIREWALL_INTERFACE;
   if (iface && !/^[A-Za-z0-9_.:@-]{1,32}$/.test(iface)) throw new Error("DR_FIREWALL_INTERFACE is invalid");

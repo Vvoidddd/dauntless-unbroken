@@ -37,7 +37,7 @@ yhdyskäytävän kautta.
 Pelin reitit noudattavat 1.4.4-peliohjelman sopimusta eli alkuperäisen taustapalvelun polkuja ja
 vastausten muotoja (katso [Taustapalvelun rajapinta]({{ contract_page.url | relative_url }})). Ne
 eivät ole oma rajapintansa. Polun `/unbroken/api` alla olevat hallintareitit ovat peräisin
-Undauntedista ja tästä forkista.
+Dauntless Unbroken ja tästä toteutuksesta.
 
 <details open markdown="block">
   <summary>Sisältö</summary>

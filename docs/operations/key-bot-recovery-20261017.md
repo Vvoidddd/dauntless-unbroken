@@ -2,7 +2,7 @@
 
 The bot was connected, not stopped. At 20:48–20:54 UTC, claims failed with
 backend fetch errors/timeouts and transient Windows EPERM when atomically replacing
-`C:/DauntlessRevived/data/discord-keys/keys.json`. Subsequent attempts sometimes
+`C:/DauntlessUnbroken/data/discord-keys/keys.json`. Subsequent attempts sometimes
 succeeded. Three read-only backend health requests took 8545, 1805 and 1169 ms;
 backend responsiveness remains a separate concern, not a confirmed bot crash.
 
@@ -20,7 +20,7 @@ The newer recovery journal, global queue and moderation behavior were preserved.
 Do not deploy the old checkout's whole bot over the live implementation.
 
 The live source and state were backed up under
-`C:/DauntlessRevived/backups/keybot-recovery-20261017` while the bot was stopped.
+`C:/DauntlessUnbroken/backups/keybot-recovery-20261017` while the bot was stopped.
 Only the Discord keys task/process restarted. The bot logged ready at 21:03:55 UTC
 and a real claim logged `private_sent` at 21:04:02 UTC. No game/backend restart.
 

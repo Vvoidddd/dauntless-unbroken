@@ -58,20 +58,19 @@ jokainen portti sivulla [Portit ja verkko]({{ ports_page.url | relative_url }}).
 
 ```powershell
 New-Item -ItemType Directory -Force C:\dr | Out-Null
-git -c core.longpaths=true clone https://github.com/Vvoidddd/dauntless-unbroken.git C:\dr\undaunted
-git -C C:\dr\undaunted config core.longpaths true
-git -C C:\dr\undaunted checkout dauntless-unbroken
+git -c core.longpaths=true clone https://github.com/Vvoidddd/dauntless-unbroken.git C:\dr\dauntless-unbroken
+git -C C:\dr\dauntless-unbroken config core.longpaths true
+git -C C:\dr\dauntless-unbroken checkout main
 ```
 
-`dauntless-unbroken` on oletushaara: pull requestit tehdään siihen, ja dokumentaatiosivusto julkaistaan
+`main` on oletushaara: pull requestit tehdään siihen, ja dokumentaatiosivusto julkaistaan
 sen `docs/`-kansiosta. Pidä klooni lyhyessä polussa: pelkästään palvelin-DLL:n generoidussa SDK:ssa on
 yli 4 000 tiedostoa, ja kloonaus syvälle sisäkkäiseen kansioon on kaatunut virheeseen "Filename too
 long" ([Vianetsintä]({{ trouble_page.url | relative_url }}#git-filename-too-long)).
 
 ### Mitä repositoriossa on {#layout}
 
-`Undaunted*`-kansioiden nimet tulevat alkuperäisestä dauntless-unbroken-projektista (upstream), ja ne on pidetty
-ennallaan. Kansioiden npm-pakettien nimet ovat `dauntless-unbroken-metagame`,
+Osien kansiot käyttävät nimeämistapaa `DauntlessUnbroken*`. Kansioiden npm-pakettien nimet ovat `dauntless-unbroken-metagame`,
 `dauntless-unbroken-deploy-server`, `dauntless-unbroken-content`, `dauntless-unbroken-gateway` ja
 `dauntless-unbroken-launcher`.
 
@@ -97,7 +96,7 @@ Jokainen Node-paketti asennetaan, käännetään ja testataan erikseen omasta ka
 `npm ci`, niin saat täsmälleen ne versiot, jotka paketin `package-lock.json` määrää:
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 npm ci --no-audit --no-fund
 npm run build
 npm test
@@ -139,7 +138,7 @@ testitiedosto ajetaan omassa prosessissaan. Yhdyskäytävä ajaa tiedostonsa yks
 
 | Paketti | Mitä testit kattavat | Hyvä tietää |
 |---|---|---|
-| Metagame | Tilit ja käyttäjänimet, mitä kukin avaintyyppi saa tehdä, hahmot ja tallennushistoria, tietokanta, inventaarion tapahtumat, varustukset ja varustuspaikat, eteneminen (oletus, oikea tila ja stub-tila, tasojen laskenta, päivitysilmoitus, uusintavahti, asetuskansio), Escalation, ilmainen kauppa, oikeudet (entitlements), jäähtymisajat (cooldowns) ja bountyt, ryhmät, kaverit, Slayer Links, killat, chat ja kavereiden läsnäolo, matchmaking ja sen virheet, runkoloki, palvelimen tila sekä tietokannan migraatiot (migraation 0013 tasolla oleva, riveillä täytetty tietokanta säilyttää jokaisen rivinsä uusien migraatioiden läpi). Harmonicin haarasta siirretyt tapaukset (`*ported.test.ts`, `escalation`, `freestore`, `matchmakingfailure`, `slayerlinks`) nimeävät kommentissa hänen tiedostonsa ja rivinsä. | Jokainen tiedosto saa oman tyhjän tietokannan kansioon `%TEMP%\dauntless-unbroken-test-*`, kertakäyttöisen allekirjoitusavainparin sekä asetukset `AUTH_MODE=APIKEY` ja `NODE_ENV=production`. Lokit ovat hiljaa; aseta `TEST_LOG_LEVEL` (esimerkiksi `debug`), niin näet ne. |
+| Metagame | Tilit ja käyttäjänimet, mitä kukin avaintyyppi saa tehdä, hahmot ja tallennushistoria, tietokanta, inventaarion tapahtumat, varustukset ja varustuspaikat, eteneminen (oletus, oikea tila ja stub-tila, tasojen laskenta, päivitysilmoitus, uusintavahti, asetuskansio), Escalation, ilmainen kauppa, oikeudet (entitlements), jäähtymisajat (cooldowns) ja bountyt, ryhmät, kaverit, Slayer Links, killat, chat ja kavereiden läsnäolo, matchmaking ja sen virheet, runkoloki, palvelimen tila sekä tietokannan migraatiot (migraation 0013 tasolla oleva, riveillä täytetty tietokanta säilyttää jokaisen rivinsä uusien migraatioiden läpi). lähdeintegraation haarasta siirretyt tapaukset (`*ported.test.ts`, `escalation`, `freestore`, `matchmakingfailure`, `slayerlinks`) nimeävät kommentissa hänen tiedostonsa ja rivinsä. | Jokainen tiedosto saa oman tyhjän tietokannan kansioon `%TEMP%\dauntless-unbroken-test-*`, kertakäyttöisen allekirjoitusavainparin sekä asetukset `AUTH_MODE=APIKEY` ja `NODE_ENV=production`. Lokit ovat hiljaa; aseta `TEST_LOG_LEVEL` (esimerkiksi `debug`), niin näet ne. |
 | Deploy-palvelin | Pelipalvelintyypit ja lista, jonka metagame lukee, matchmaking-pyynnön tarkistukset, pääsy vain loopbackista, Ramsgaten ja Dojon uudelleenkäynnistys tarvittaessa yhdellä käynnistyksellä, puuttuva peliohjelma ja epäonnistunut käynnistys (korvaavalla käynnistysfunktiolla) | `TEST_LOG_LEVEL` toimii myös tässä. |
 | Yhdyskäytävä | TLS ja kiinnitetty sormenjälki, reititys ja hylkäykset, välitysotsakkeet, koko- ja nopeusrajat, WebSocket-yhteyksien välitys, sallittujen listan syöte ja apuri, molemmat käynnistystiedostot oikeina prosesseina | Apuri ajetaan aina kuivaharjoitustilassa (dry run): testit eivät koskaan muuta palomuuria. |
 | Sisältöpalvelin | Asetukset, polut, tavualueet (range), avainvälimuisti, rajat, manifesti, kuvapaketti ja uutiset, pyyntöjen käsittelijä | `npm run test:integration` tarvitsee oikean asennuksen ([alla](#content-integration-test)). |
@@ -148,7 +147,7 @@ testitiedosto ajetaan omassa prosessissaan. Yhdyskäytävä ajaa tiedostonsa yks
 Kun haluat ajaa yhden metagamen testitiedoston, käännä testit kerran ja kutsu Nodea paketin kansiosta:
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 npx tsc -p tsconfig.test.json
 node --test build/test/party.test.js
 ```
@@ -165,7 +164,7 @@ koneella vain yksi testisarja kerrallaan.** Koko lista on sivulla
 ### Sisältöpalvelimen integraatiotesti {#content-integration-test}
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenContent
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenContent
 $env:CONTENT_IT_GAME_DIR = "C:\D144\Dauntless"   # oletus; kansio, jossa Archon\ on
 npm run test:integration
 ```
@@ -185,7 +184,7 @@ muuta palomuuria, palveluita, ajastettuja tehtäviä, käyttäjätilejä tai var
 niistä käytä portteja 61000–61099.
 
 ```powershell
-Set-Location C:\dr\undaunted
+Set-Location C:\dr\dauntless-unbroken
 powershell -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-KitUnit.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-DeployRemote.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-Sandbox.ps1
@@ -259,7 +258,7 @@ QOS_TARGET_URL=http://127.0.0.1:61000/QoS
 MATCHMAKING_MODE=DEPLOYSERVER
 DEPLOYSERVER_URL=127.0.0.1:61001
 REGISTRATION_MODE=OPEN
-"@ | Set-Content C:\dr\undaunted\DauntlessUnbrokenMetagame\.env -Encoding ascii
+"@ | Set-Content C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame\.env -Encoding ascii
 ```
 
 Lisää sen jälkeen allekirjoitusavaimet (seuraava osio): ilman niitä metagame pysähtyy heti
@@ -306,7 +305,7 @@ kuin [vaiheessa 9]({{ host_page.url | relative_url }}#metagame)). Käytä koment
 jota Node ei osaa lukea `.env`-tiedostona.
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 node -e "const c=require('crypto');const k=c.generateKeyPairSync('rsa',{modulusLength:2048,privateKeyEncoding:{type:'pkcs8',format:'pem'},publicKeyEncoding:{type:'spki',format:'pem'}});console.log('AUTH_SIGNING_PRIVKEY_B64='+Buffer.from(k.privateKey).toString('base64'));console.log('AUTH_SIGNING_PUBKEY_B64='+Buffer.from(k.publicKey).toString('base64'))" | Add-Content .env -Encoding ascii
 ```
 
@@ -382,7 +381,7 @@ Jokainen yhdyskäytävän ja apurin asetus sallittuine arvoineen on sivulla
 ### Käynnistin kehityskäytössä {#launcher-dev}
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenLauncher
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenLauncher
 npm ci
 npm start
 ```
@@ -469,17 +468,17 @@ GitHub Actionsille viikoittain, jokaiselle npm-paketille kuukausittain.
 ### Käynnistimen julkaisut {#launcher-releases}
 
 Käynnistimen julkaisu on GitHub-julkaisu `launcher-v<versio>` sille versiolle, joka on
-`DauntlessUnbrokenLauncher/package.json`-tiedostossa, ja se julkaistaan vain `dauntless-unbroken`-haarasta.
+`DauntlessUnbrokenLauncher/package.json`-tiedostossa, ja se julkaistaan vain `main`-haarasta.
 Asennetut käynnistimet päivittyvät siihen. Julkaistaksesi nosta tuota versiota. Sitten:
 
-- **Automaattisesti (oletuksena päällä).** Kun `dauntless-unbroken`-haaraan tehty push läpäisee kaikki
+- **Automaattisesti (oletuksena päällä).** Kun `main`-haaraan tehty push läpäisee kaikki
   yllä olevat työt, on yhä haaran uusin commit eikä sen käynnistinversiolla ole vielä
   `launcher-v<versio>`-julkaisua, CI julkaisee samassa ajossa kääntämänsä ja testaamansa
   asennusohjelman työnkulun `.github/workflows/launcher-release.yml` kautta. Näin tapahtuu vain
   repositoriossa `Vvoidddd/dauntless-unbroken`, ei koskaan forkissa. Tauon saat asettamalla repositorion
   muuttujan `LAUNCHER_AUTO_RELEASE` arvoon `false`
   ([Asetukset]({{ config_page.url | relative_url }}#ci-settings)).
-- **Käsin.** Actions > **Launcher release** > **Run workflow** `dauntless-unbroken`-haaralle kääntää
+- **Käsin.** Actions > **Launcher release** > **Run workflow** `main`-haaralle kääntää
   kyseisen commitin ja julkaisee sen version. Tämä toimii myös silloin, kun automaattiset julkaisut on
   pysäytetty. Jo julkaistulla versiolla se vain päivittää itsepäivityskanavan (`launcher-updates`-julkaisun)
   siihen.
@@ -511,7 +510,7 @@ itse. CI ajaa molemmat ja epäonnistuu, jos jokin tiedosto muuttuu.
 `docs/fi/roadmap.md` on käsin kirjoitettu suomenkielinen tiivistelmä, ei generoitu tiedosto.
 
 ```powershell
-Set-Location C:\dr\undaunted
+Set-Location C:\dr\dauntless-unbroken
 node tools/sync-roadmap.js
 node tools/build-llms.js
 git status --short docs
@@ -585,7 +584,7 @@ Käytännössä:
 - **Tietoturvaongelmat** ilmoitetaan GitHubin yksityisellä haavoittuvuusilmoituksella (private
   vulnerability reporting), ei issueina
   ([SECURITY.md]({{ site.github.repository_url }}/blob/main/SECURITY.md)).
-- **Lisenssi.** AGPL-3.0-only, kuten upstream Undauntedissa. Säilytä olemassa olevat tekijänoikeus- ja
+- **Lisenssi.** AGPL-3.0-only. Säilytä olemassa olevat tekijänoikeus- ja
   lisenssimerkinnät.
 
 ---
@@ -599,7 +598,7 @@ Kunkin taulukon polut ovat suhteessa taulukon yläpuolella mainittuun kansioon.
 | Osa-alue | Koodi | Huomiot |
 |---|---|---|
 | Käynnistys, reititys, pyyntöloki | `server.ts`, `app.ts`, `logger.ts`, `middleware/BodyLog.ts` (`LOG_BODIES`: reitit, peittäminen, tila ja kesto, polkukohtainen raja) | `app.ts` liittää jokaisen reitittimen; tuntemattomat reitit kirjataan lokiin, ja niihin vastataan 404. |
-| Ominaisuuskytkimet | `features.ts` | Harmonicin forkin siirron mukana tulleet kytkimet jäsennettyinä yhdessä paikassa (päällä/pois, lukumäärät, vaihtoehdot) sekä käynnistyksen `features:`-rivi. Vanhemmat kytkimet jäsentävät itse. |
+| Ominaisuuskytkimet | `features.ts` | lähdeintegraation toteutuksen siirron mukana tulleet kytkimet jäsennettyinä yhdessä paikassa (päällä/pois, lukumäärät, vaihtoehdot) sekä käynnistyksen `features:`-rivi. Vanhemmat kytkimet jäsentävät itse. |
 | Pelipalvelimen kirjoitukset | `middleware/GameServerOnly.ts` | `RefuseUnlessGameserver` (pelipalvelimen kirjoitusten yhteinen vahti) ja `NoteRelayedAccountMismatch` (kirjaa toisen tilin välitetyn tunnisteen lokiin, ei koskaan torju). |
 | Tietokanta | `db.ts`, `db/schema.ts`, `drizzle/` | Migraatiot ajetaan jokaisessa käynnistyksessä journaalin järjestyksessä; ajetut migraatiot kirjataan tauluun `__drizzle_migrations`. `DB_WAL` otetaan käyttöön tiedostossa `db.ts`. |
 | Mistä pyyntö tuli | `middleware/RequestOrigin.ts` | Julkinen tila: yhdyskäytävän salaisuus, pelaajan osoite, `AUTH_MODE=NONE`-tilan hylkäykset. |
@@ -607,13 +606,13 @@ Kunkin taulukon polut ovat suhteessa taulukon yläpuolella mainittuun kansioon.
 | Tilit, kutsut, käyttäjänimet | `controllers/accounts.ts`, `controllers/login.ts`, `routes/unbrokenapi.ts`, `controllers/unbrokenapi.ts` | `/unbroken/api`-reitit ([HTTP-rajapinta]({{ api_page.url | relative_url }})). |
 | Hahmot ja tallennushistoria | `controllers/character.ts`, `controllers/savehistory.ts`, `routes/character.ts` | Palautukset aiempaan tallennukseen ovat ylläpitäjän reittejä tiedostossa `routes/unbrokenapi.ts`. |
 | Eteneminen | `controllers/progressionmode.ts` (oikea tai stub, `PROGRESSION_MODE`), `controllers/realprogression.ts` (radat, tavoitteet, myönnöt ja niiden uusintavahti, tasojen vahvistukset ja valinnaiset vahvistuksen oikeudet, ylläpitäjän alustus (seed), päivitysilmoitus), `controllers/progressionconfig.ts` (etenemisasetusten ainoa lataaja: mukana tuleva `vendor/progression_config.json`, `PROGRESSION_CONFIG_DIR`, `ACTIVE_HUNT_PASS`), `controllers/progressionrank.ts` (tasojen laskenta), `controllers/progressionevents.ts` (auditointirivit), `controllers/progression.ts` (kohdattu sisältö ja vihjepolut eli breadcrumbs), `routes/progression.ts`, `middleware/RealProgressionOnly.ts` | `routes/progression.ts` vastaa sekä oikean että stub-tilan muodossa ja kirjaa `/progression`-pyynnöt, joihin mikään reitti ei vastaa. Taulut ovat migraatiossa `0011_real_progression.sql`. |
-| Escalation | `controllers/escalationConfig.ts` (kausiluettelo `vendor/escalation/seasons.json`, tarkistetaan latauksessa), `controllers/escalation.ts` (luvut, tallennussäännöt, auditointirivit), `routes/escalation.ts` (tynkä- ja oikeat reitit, `ESCALATION_MODE`) | Siirretty Harmonicin haarasta. Taulut ovat migraatiossa `0014_escalation.sql`. [Escalation]({{ '/fi/findings/escalation.html' | relative_url }}); testit `test/escalation.test.ts`. |
+| Escalation | `controllers/escalationConfig.ts` (kausiluettelo `vendor/escalation/seasons.json`, tarkistetaan latauksessa), `controllers/escalation.ts` (luvut, tallennussäännöt, auditointirivit), `routes/escalation.ts` (tynkä- ja oikeat reitit, `ESCALATION_MODE`) | Siirretty lähdeintegraation haarasta. Taulut ovat migraatiossa `0014_escalation.sql`. [Escalation]({{ '/fi/findings/escalation.html' | relative_url }}); testit `test/escalation.test.ts`. |
 | Hunt Pass, oikeudet (entitlements), bountyt, jäähtymisajat | `routes/system.ts`, `controllers/entitlements.ts`, `controllers/bounties.ts`, `controllers/cooldowns.ts` | Osa oikeaa etenemistä. |
 | Varustukset ja varustuspaikat | `controllers/loadout.ts`, `routes/loadout.ts` | Varustuspaikat ovat olemassa vain tileillä, joilla on oikea eteneminen. |
-| Inventaario, valuutta ja kauppa | `controllers/inventory.ts` (tapahtumat, ylikulutukset, uusintayritykset; `ApplyInventoryTransactionInTx` toimii kutsujan tapahtuman sisällä, `RunInventoryTransaction` käärii sen reitille `POST /inventory`), `routes/inventory.ts`, `controllers/store.ts` (valuuttataulukko ja hahmon valuutat), `controllers/activecharacter.ts` (tilin viimeksi tallennettu hahmo), `controllers/freestore.ts` (ilmainen kauppa: valikoima, tunnisteet, lunastus), `routes/store.ts` | Kauppa on siirretty Harmonicin haarasta, pois päältä ellei `STORE=free`; data tiedostoissa `vendor/store_catalog.json` ja `vendor/store_item_kinds.json`, taulu migraatiossa `0015_store_purchases.sql`. Testit `test/freestore.test.ts`, `test/inventorytx.test.ts`. |
+| Inventaario, valuutta ja kauppa | `controllers/inventory.ts` (tapahtumat, ylikulutukset, uusintayritykset; `ApplyInventoryTransactionInTx` toimii kutsujan tapahtuman sisällä, `RunInventoryTransaction` käärii sen reitille `POST /inventory`), `routes/inventory.ts`, `controllers/store.ts` (valuuttataulukko ja hahmon valuutat), `controllers/activecharacter.ts` (tilin viimeksi tallennettu hahmo), `controllers/freestore.ts` (ilmainen kauppa: valikoima, tunnisteet, lunastus), `routes/store.ts` | Kauppa on siirretty lähdeintegraation haarasta, pois päältä ellei `STORE=free`; data tiedostoissa `vendor/store_catalog.json` ja `vendor/store_item_kinds.json`, taulu migraatiossa `0015_store_purchases.sql`. Testit `test/freestore.test.ts`, `test/inventorytx.test.ts`. |
 | Ryhmät | `controllers/party.ts` (muistissa), `routes/party.ts`, `middleware/PlayerAuth.ts` | Ryhmän metsästys kulkee tiedoston `controllers/matchmaking.ts` kautta; `PartyInvite` on tiedostossa `routes/unbrokenapi.ts`. |
 | Kaverit ja estot | `controllers/friends.ts` (tallennetaan SQLiteen, migraatio `0012_friends_and_blocks.sql`; `AddFriendshipListener` kertoo chat-palvelimelle hyväksytyistä ja päättyneistä kaveruuksista), `routes/friends.ts` (Epic-tyylinen kaveripalvelu, jota peliohjelma kutsuu) | `Friends` on tiedostossa `routes/unbrokenapi.ts`. |
-| Slayer Links | `controllers/slayerlinks.ts` (säännöt ja vastausten muodot ohjelmatiedoston osoitteineen), `routes/slayerlinks.ts` (kahdeksan reittiä, `SLAYER_LINKS`) | Rajapinta Harmonicin haarasta, korjattuna. Taulut migraatiossa `0016_slayer_links.sql`. Testit `test/slayerlinks.test.ts`. |
+| Slayer Links | `controllers/slayerlinks.ts` (säännöt ja vastausten muodot ohjelmatiedoston osoitteineen), `routes/slayerlinks.ts` (kahdeksan reittiä, `SLAYER_LINKS`) | Rajapinta lähdeintegraation haarasta, korjattuna. Taulut migraatiossa `0016_slayer_links.sql`. Testit `test/slayerlinks.test.ts`. |
 | Killat | `controllers/guild.ts` (tallennetaan SQLiteen, migraatio `0013_guilds.sql`; säännöt ja vastausten muodot), `routes/guild.ts` (yksitoista v2-reittiä rekisteröintijärjestyksessä), `middleware/GameServerKeyAuth.ts` (vain pelipalvelimen tekemä perustaminen) | `GuildInvite`, `Guilds` ja `DisbandGuild` ovat tiedostossa `routes/unbrokenapi.ts`. `test/socialclient.ts` mallintaa, miten peliohjelma jäsentää sosiaaliset vastaukset; `test/guildhttp.test.ts` ja `test/socialflow.test.ts` käyttävät sitä. |
 | Chat (XMPP) | `realtime/chat.ts` (WebSocket-kuuntelija, SASL-kirjautuminen pelaajan tunnisteella, istunnot ja niiden rajat, pingit, kuiskaukset; `ReadChatConfig` ja `StartChat`, jota `server.ts` kutsuu vain, kun `CHAT=1`), `realtime/muc.ts` (huoneet: liittymiset, poistumiset, huonerivien jakelu, ryhmä- ja kiltajäsenyyden tarkistukset, 60 sekunnin läpikäynti), `realtime/chatnick.ts` (peliohjelman URL-koodaus ja huoneen nimimerkin säännöt), `realtime/xmpp.ts` (jäsennys, merkkien suojaus, JID:t, tahtirajat, jäljityksen peittäminen), `realtime/presence.ts` (kavereiden paikalla olo asetuksella `CHAT_PRESENCE=1`: kuka kuulee kenestä, välitykset, kaverilistan päivitys ja sääntö, ettei yksikään huoneen ulkopuolinen viesti saavu pelaajalle hänen omalta tililtään) | Jäsenyydet ja estot tulevat funktioista `GetPartyOf` tiedostossa `controllers/party.ts`, `IsGuildMember` tiedostossa `controllers/guild.ts` ja `BlockersAmong` tiedostossa `controllers/friends.ts`. [Tekstichat]({{ '/fi/findings/chat.html' | relative_url }}) kertoo, miksi kukin vastaus on muodoltaan sellainen. Testit: `test/chat.test.ts` (päästä päähän WebSocketin yli), `test/chatmodel.test.ts` ja `test/chatclient.ts` (malli siitä, miten 1.4.4-peliohjelma lukee chattia), `test/chathttp.test.ts` ja `test/chatenv.ts` (nimet oikeiden tilireittien kautta), `test/chatwire.ts` (pelin yhteyden kaltainen raaka asiakas), `test/presence.test.ts` ja `test/chatinvariant.ts` (tarkistaa näiden tiedostojen jokaisen viestin oman tilin sääntöä vasten). |
 | Matchmaking | `controllers/matchmaking.ts` (jonot, ehdokkaiden tila, ryhmät, kutsu deploy-palvelimelle), `routes/matchmaking.ts` | |

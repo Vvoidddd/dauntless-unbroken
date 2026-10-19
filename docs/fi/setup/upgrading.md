@@ -3,7 +3,7 @@ title: Päivitysohjeet
 parent: Asennus
 grand_parent: Dauntless Unbroken suomeksi
 nav_order: 9
-description: "Mitä pelaajille muuttuu, kun päivität jo käytössä olevan Dauntless Unbroken -palvelimen: Harmonicin forkin siirto (Slayer Links päällä; Escalation, kauppa ja paikalla olo rakennettu mutta pois päältä), tekstichat, kaverit, ryhmät ja killat sekä oletuksena päällä oleva oikea eteneminen. Näin pidät vanhat maksimitasot, aloitat alusta tai jatkat tyngällä."
+description: "Mitä pelaajille muuttuu, kun päivität jo käytössä olevan Dauntless Unbroken -palvelimen: lähdeintegraation toteutuksen siirto (Slayer Links päällä; Escalation, kauppa ja paikalla olo rakennettu mutta pois päältä), tekstichat, kaverit, ryhmät ja killat sekä oletuksena päällä oleva oikea eteneminen. Näin pidät vanhat maksimitasot, aloitat alusta tai jatkat tyngällä."
 lang: fi
 ref: setup/upgrading
 locale: fi_FI
@@ -17,7 +17,7 @@ locale: fi_FI
 {% assign social_page = site.pages | where: "path", "fi/findings/social.md" | first %}
 {% assign config_page = site.pages | where: "path", "fi/reference/configuration.md" | first %}
 {% assign chat_page = site.pages | where: "path", "fi/findings/chat.md" | first %}
-{% assign harmonic_page = site.pages | where: "path", "fi/findings/harmonic-fork.md" | first %}
+{% assign integration_page = site.pages | where: "path", "fi/findings/feature-integrations.md" | first %}
 {% assign escalation_page = site.pages | where: "path", "fi/findings/escalation.md" | first %}
 {% assign store_page = site.pages | where: "path", "fi/findings/store.md" | first %}
 {% assign trouble_page = site.pages | where: "path", "fi/setup/troubleshooting.md" | first %}
@@ -35,13 +35,13 @@ mitä pelaajasi näkevät ja mitä voit asialle tehdä. Uusin muutos on ensimmä
 {:toc}
 </details>
 
-## Escalation, kauppa, Slayer Links ja pienemmät korjaukset {#harmonic-port}
+## Escalation, kauppa, Slayer Links ja pienemmät korjaukset {#feature-integrations}
 
-**Syyskuu 2026.** Koskee jokaista palvelinta, joka päivitetään versioon, jossa on Harmonicin
-1.4.4-forkin siirto ([Harmonicin työn siirto]({{ harmonic_page.url | relative_url }})). Tunnistat
+**Syyskuu 2026.** Koskee jokaista palvelinta, joka päivitetään versioon, jossa on lähdeintegraation
+1.4.4-toteutuksen siirto ([lähdeintegraation työn siirto]({{ integration_page.url | relative_url }})). Tunnistat
 sen metagamen käynnistysrivistä, joka alkaa `features:`.
 
-### Mikä muuttuu {#harmonic-port-what-changes}
+### Mikä muuttuu {#feature-integrations-what-changes}
 
 - **Kolme uutta tietokannan siirtoa (migraatiota) ajetaan itsestään ensimmäisellä käynnistyksellä:**
   `0014_escalation`, `0015_store_purchases` ja `0016_slayer_links`. Ne vain lisäävät kuusi taulua
@@ -58,7 +58,7 @@ sen metagamen käynnistysrivistä, joka alkaa `features:`.
 
   | Muutos | Kytkin, jolla sen saa pois |
   |:-------|:---------------------------|
-  | [Slayer Links](#harmonic-port-what-players-see) (My Links -välilehti): kahdeksan uutta reittiä | `SLAYER_LINKS=0` |
+  | [Slayer Links](#feature-integrations-what-players-see) (My Links -välilehti): kahdeksan uutta reittiä | `SLAYER_LINKS=0` |
   | Pelin säännöllinen istunnon tarkistus (`oauth/verify`) nimeää pelaajan oman tilin paikkamerkin sijaan. Jokaisen pelaajan peli kutsuu sitä. | `VERIFY_STUB_ACCOUNT=1` |
   | `/balance` ja `/reconcile` kertovat valuutat, jotka hahmolla on (Ramsit, platina), nollan sijaan | `BALANCE_FROM_INVENTORY=0` |
   | Pelipalvelimen XP-myöntöön, joka toistuu tavu tavulta alle 5 sekunnin kuluttua, vastataan, mutta sitä ei lisätä uudelleen | `PROGRESSION_REPLAY_WINDOW_S=0` |
@@ -85,7 +85,7 @@ sen metagamen käynnistysrivistä, joka alkaa `features:`.
   ei kirjoita yhtään uusista kytkimistä, joten yllä olevat oletukset ovat voimassa, kunnes lisäät rivin
   tiedostoon `metagame.env` (tai `deployserver.env`).
 
-### Mitä pelaajasi näkevät {#harmonic-port-what-players-see}
+### Mitä pelaajasi näkevät {#feature-integrations-what-players-see}
 
 - **Slayer Links** saattaa toimia Social-paneelin My Links -välilehdellä: kutsu kaveri johonkin
   kolmesta paikasta, ja linkki kestää viikon. Peliohjelma saattaa pitää välilehden piilossa; kukaan ei
@@ -97,7 +97,7 @@ sen metagamen käynnistysrivistä, joka alkaa `features:`.
 - Muuta ei muutu, ennen kuin kytket jotain päälle: Escalation näyttää yhä tekaistun maksimin,
   kauppanäkymä saa yhä vanhan virheensä, ja kaikki näkyvät yhä poissa olevina.
 
-### Mitä voit tehdä {#harmonic-port-what-you-can-do}
+### Mitä voit tehdä {#feature-integrations-what-you-can-do}
 
 - Etsi päivityksen jälkeen metagamen lokista `features:`-rivi: se luettelee jokaisen uuden kytkimen
   arvoineen ([Asetukset]({{ config_page.url | relative_url }}#metagame)).
@@ -142,7 +142,7 @@ Kun chat on päällä: Ramsgaten ja metsästysten chat, ryhmächat, kiltachat ja
 käyttäjänimin. Ramsgaten chat on toistaiseksi istuntokohtainen, joten kaksi pelaajaa jakaa sen vain,
 kun he matkustivat Ramsgateen yhdessä ryhmänä. Peli, joka oli jo käynnissä chatin kytkeytyessä
 päälle, yhdistää noin 45 sekunnissa. Paikalla olon näyttäminen (kaverit näkyvät paikalla) tuli
-myöhemmällä päivityksellä, oletuksena pois päältä ([yllä](#harmonic-port)).
+myöhemmällä päivityksellä, oletuksena pois päältä ([yllä](#feature-integrations)).
 
 ### Mitä voit tehdä {#chat-what-you-can-do}
 
@@ -188,7 +188,7 @@ vanhat, väärät vastaukset jäävät voimaan, kunnes peli käynnistetään uud
 näkyvät kohdassa PARTY INVITES, kaverin lisääminen toimii (toinen pelaaja näkee pyynnön seuraavalla
 kirjautumisellaan), ja Guilds-välilehdellä voi perustaa kiltoja ja liittyä niihin. Paikalla olo ja EPIC
 FRIENDS eivät oletuksena vieläkään toimi. Chat tuli myöhemmällä päivityksellä ([Tekstichat](#chat)) ja
-paikalla olo sen jälkeen, oletuksena pois päältä ([yllä](#harmonic-port)).
+paikalla olo sen jälkeen, oletuksena pois päältä ([yllä](#feature-integrations)).
 [Liity kaverina]({{ friends_page.url | relative_url }}#friends-parties-and-guilds) kertoo tämän
 pelaajille.
 
@@ -224,7 +224,7 @@ kokeillaksesi oikeaa etenemistä valituilla tileillä, nyt myös kaikki muut til
 ### Mikä muuttui {#what-changed}
 
 Aiemmin metagame (taustapalvelin, jonka kanssa peli keskustelee) vastasi kaikkiin etenemisen
-(progression) pyyntöihin alkuperäisen Undauntedin tyngällä (stub), ellei asetuksena ollut
+(progression) pyyntöihin alkuperäisen Dauntless Unbroken tyngällä (stub), ellei asetuksena ollut
 `PROGRESSION_MODE=real`:
 
 - jokaisella tilillä näkyi Slayer-taso 50 ja täydet mestaruudet (mastery), eikä mitään pelaajan
@@ -261,7 +261,7 @@ pelaaja yhtä aikaa, ja tynkäaikana pelanneen tilin siirtäminen valetasolta 50
 kohta 2.13). Useamman pelaajan kanssa kannattaa huomata, että pelaajan oma peliohjelma saa nyt
 vastauksen 403, jos se kysyy toisen tilin etenemistä; tynkä vastasi siihen kysyjän omilla tiedoilla.
 Escalation pysyy alkuperäisenä tynkänä kummassakin tilassa, ellet aseta `ESCALATION_MODE=real`
-([yllä](#harmonic-port)).
+([yllä](#feature-integrations)).
 
 ### Mitä pelaajasi näkevät {#what-your-players-will-see}
 

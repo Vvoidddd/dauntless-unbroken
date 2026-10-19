@@ -1,0 +1,8 @@
+---
+layout: null
+permalink: /search.json
+---
+[
+{% assign guides = site.pages | where_exp: "p", "p.lang == 'en'" | where_exp: "p", "p.title != nil" | where_exp: "p", "p.search_exclude != true" %}
+{% for p in guides %}{% if p.title %}{% unless forloop.first %},{% endunless %}{"title":{{ p.title | jsonify }},"url":{{ p.url | relative_url | jsonify }},"description":{{ p.description | default: '' | jsonify }},"text":{{ p.content | markdownify | strip_html | normalize_whitespace | truncate: 10000 | jsonify }}}{% endif %}{% endfor %}
+]

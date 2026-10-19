@@ -100,7 +100,7 @@ Rules that apply to all of them:
 
 ## Feature switches {#feature-switches}
 
-Each switch below changes one behaviour. The fork's own fixes are on by default and each has a way
+Each switch below changes one behaviour. the project's own fixes are on by default and each has a way
 back to upstream's behaviour, for comparisons. Changes that are still unproven, risky or only for
 development are off.
 
@@ -177,7 +177,7 @@ also warns while there are players with no stored progression yet; see the
 [upgrade notes]({{ upgrade_page.url | relative_url }}#real-progression-default). With
 `GATEWAY_SECRET` set it runs the public-mode checks listed under that variable.
 
-After that come two lines for the settings added with the port of Harmonic's fork:
+After that come two lines for the settings added with the port of the source integration's codebase:
 
 ```text
 features: bodyLogPerPath=no-cap escalation=stub escalationStrict=off store=off storeRepeatableTokens=off replayWindow=5s confirmEntitlements=off balanceFromInventory=on slayerLinks=on chatPresence=on verifyStubAccount=off
@@ -198,7 +198,7 @@ could not be loaded: <reason>`, exit code 1), before the database is opened.
 | Name | Default | Values | What it does | Set by |
 |:-----|:--------|:-------|:-------------|:-------|
 | `PORT` | none. Unset: the metagame stops at startup with a port error. Empty: it listens on a random free port. | 1-65535 | TCP port of the HTTP server. A port that is already taken stops the metagame with `Could not listen on ...`. | You (61000 in the host guide); kit: always (61000, 62000 in sandbox, or `-MetagamePort`) |
-| `BIND_HOST` | `127.0.0.1` (also when empty) | one IP address | **Fork only.** The one address the metagame listens on. `127.0.0.1` on one PC and in public mode (behind the gateway); the host's Tailscale address (100.x.y.z) in private mode. Avoid `0.0.0.0`: the metagame would also listen on your LAN. | You; kit: always (`127.0.0.1`, or the Tailscale address in private mode) |
+| `BIND_HOST` | `127.0.0.1` (also when empty) | one IP address | **Server setting.** The one address the metagame listens on. `127.0.0.1` on one PC and in public mode (behind the gateway); the host's Tailscale address (100.x.y.z) in private mode. Avoid `0.0.0.0`: the metagame would also listen on your LAN. | You; kit: always (`127.0.0.1`, or the Tailscale address in private mode) |
 | `NODE_ENV` | unset: development | `production` or anything else | `production`: one JSON object per log line, `AUTH_MODE=NONE` has no effect, and error pages carry no stack traces. Anything else: coloured readable logs. Use `production` on anything other people can reach. | You; kit: always `production` |
 | `AUTH_MODE` | none. Unset or unknown: logins get no answer at all (the game waits), and every route that checks an account key answers 500. | `APIKEY` or `NONE` (exact) | How logins and account keys are checked. `APIKEY`: the game's login carries the player's account key (`UUK_...`), checked against stored SHA-256 hashes; the player gets a 24-hour session token. `NONE`: development only. Any id is accepted as a login and any account id as an API key, admin routes included. `NONE` is ignored when `NODE_ENV=production` (logins then get no answer), refused for anything that came through a proxy, and the metagame will not start with it while `GATEWAY_SECRET` is set. | You (`APIKEY`); kit: always `APIKEY` |
 | `AUTH_SIGNING_PRIVKEY_B64` | none. Unset: the metagame stops at startup. Empty: it starts, but every login fails. | base64 of a PEM RSA private key (PKCS#8) | **Secret: never share, never commit.** Signs the players' session tokens (RS256, valid 24 hours). Whoever has it can sign in as any account. Replacing the key pair only logs everyone out. Back it up encrypted. | You ([Host a server]({{ host_page.url | relative_url }}#metagame) shows how to generate it); kit: kept from the existing file or the backup, otherwise generated once |
@@ -234,9 +234,9 @@ URLs, bodies or account identifiers are retained. See `tools/DASHBOARD.md` for d
 | Name | Default | Values | What it does | Set by |
 |:-----|:--------|:-------|:-------------|:-------|
 | `LOG_LEVEL` | `info` (also when empty) | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent` | Log threshold. | Nobody by default |
-| `LOG_REQUESTS` | on | `0` or anything else | **Fork only.** One line per request: `METHOD /path gs=0` (`gs=1` when the request carried the game-server key). Behind the gateway the line ends with ` via=gateway ip=<player address>`; other forwarded requests get ` via=proxy peer=<address>`. Only the path is logged, never the query string or headers, and token-shaped parts of the path are replaced. `0` turns it off. | Nobody by default |
-| `LOG_BODIES` | off | `1` or anything else | **Fork only.** `1` appends the request bodies of unfinished routes (progression, Hunt Pass, bounties, cooldowns, Escalation, entitlements, loadout unlocks, the store (`/product`, `/token`, `/notification`), balance and `/reconcile`, Slayer Links, matchmaking, party, friends, inventory and account lookups) to `BODY_LOG_FILE`: one JSON object per line, `{t, method, url, gs, body, status, ms}` with the arrival time, method, URL (query string included), whether the game-server key was present, the body cut at 8 KB (64 KB for inventory), the reply's status and the time to answer in milliseconds (`"aborted": true` when the connection closed first). The line is written when the answer is done. Tokens, account keys (`UUK_...`) and other long token-shaped strings are removed from the URL and the body. A development aid: the file records what players send, so keep it private and never turn it on for a public server. | Nobody by default; kit: forced to `0` in public mode, kept in private mode |
-| `BODY_LOG_PER_PATH` | `0`: no cap | whole number | **Fork only.** With `LOG_BODIES=1`: at most this many lines per method and exact path (ids included) in one run of the metagame; the path's last line is followed by `body log: <METHOD path> reached BODY_LOG_PER_PATH=N; no more lines for it in this run`. For a client stuck in a loop. | Nobody by default |
+| `LOG_REQUESTS` | on | `0` or anything else | **Server setting.** One line per request: `METHOD /path gs=0` (`gs=1` when the request carried the game-server key). Behind the gateway the line ends with ` via=gateway ip=<player address>`; other forwarded requests get ` via=proxy peer=<address>`. Only the path is logged, never the query string or headers, and token-shaped parts of the path are replaced. `0` turns it off. | Nobody by default |
+| `LOG_BODIES` | off | `1` or anything else | **Server setting.** `1` appends the request bodies of unfinished routes (progression, Hunt Pass, bounties, cooldowns, Escalation, entitlements, loadout unlocks, the store (`/product`, `/token`, `/notification`), balance and `/reconcile`, Slayer Links, matchmaking, party, friends, inventory and account lookups) to `BODY_LOG_FILE`: one JSON object per line, `{t, method, url, gs, body, status, ms}` with the arrival time, method, URL (query string included), whether the game-server key was present, the body cut at 8 KB (64 KB for inventory), the reply's status and the time to answer in milliseconds (`"aborted": true` when the connection closed first). The line is written when the answer is done. Tokens, account keys (`UUK_...`) and other long token-shaped strings are removed from the URL and the body. A development aid: the file records what players send, so keep it private and never turn it on for a public server. | Nobody by default; kit: forced to `0` in public mode, kept in private mode |
+| `BODY_LOG_PER_PATH` | `0`: no cap | whole number | **Server setting.** With `LOG_BODIES=1`: at most this many lines per method and exact path (ids included) in one run of the metagame; the path's last line is followed by `body log: <METHOD path> reached BODY_LOG_PER_PATH=N; no more lines for it in this run`. For a client stuck in a loop. | Nobody by default |
 | `BODY_LOG_FILE` | `bodies.log` in the working directory | file path | Where `LOG_BODIES` writes. The file is never rotated. `DauntlessUnbrokenMetagame/bodies.log` is not git-ignored: point this outside the repository (for example `C:/dr/data/bodies.log`) and never commit the file. | Kit: always (`<root>/data/logs/bodies.log`) |
 
 ### Server identity {#metagame-identity}
@@ -249,29 +249,29 @@ players from `GET /unbroken/api/ServerStatus` (see [HTTP API]({{ api_page.url | 
 | `SERVER_NAME` | `Dauntless Unbroken` | printable ASCII, cut to 64 characters | The server's name in the status replies, and in the in-game welcome text of `/dauntless-status` (`Welcome to <name>!`, translated into each of the eight languages the reply carries). | Kit: always, from `-ServerName` (default `Dauntless Unbroken`). The installer does not remember it: pass `-ServerName` on every run, or the name goes back to the default. |
 | `SERVER_VERSION` | the version recorded at build time (`dist/build-info.json`), then `package.json`, then `unknown` | printable ASCII, up to 32 characters | Version in the status replies. | Nobody by default |
 | `GIT_COMMIT` | the commit recorded at build time (with `-dirty` if the metagame folder had uncommitted changes), then `unknown` | up to 64 characters of letters, digits and `._+-`; anything else is ignored | The commit the running code came from. | Kit: always (the installed commit); `Update-DauntlessUnbrokenServer.ps1` rewrites it on every update and rollback |
-| `SOURCE_URL` | `https://github.com/Vvoidddd/dauntless-unbroken` | URL, printable ASCII, up to 256 characters | Where the source of the running server is, for the AGPL source offer ([Credits and license]({{ legal_page.url | relative_url }})). If you run modified code for other people, point it at your modified source. | Kit: always the repository URL from `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`, so a hand edit is overwritten on the next installer run; a fork changes it there |
+| `SOURCE_URL` | `https://github.com/Vvoidddd/dauntless-unbroken` | URL, printable ASCII, up to 256 characters | Where the source of the running server is, for the AGPL source offer ([Credits and license]({{ legal_page.url | relative_url }})). If you run modified code for other people, point it at your modified source. | Kit: always the repository URL from `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`, so a hand edit is overwritten on the next installer run; a codebase changes it there |
 | `CONTENT_PORT` | unset or invalid: none reported | 1-65535 | Tells launchers which port the content server (game downloads, news, art) uses. | Kit: always when the content server is installed (61002), removed otherwise |
-| `STATUS_EXTRA` | on | `0` or anything else | **Fork only.** `GET /dauntless-status` adds `name`, `version`, `commit` and `sourceUrl` after the nine fields the game reads. `0` answers the nine fields only, as upstream did. The route answers anyone and never names players. | Nobody by default |
+| `STATUS_EXTRA` | on | `0` or anything else | **Server setting.** `GET /dauntless-status` adds `name`, `version`, `commit` and `sourceUrl` after the nine fields the game reads. `0` answers the nine fields only, as upstream did. The route answers anyone and never names players. | Nobody by default |
 
 ### Progression {#metagame-progression}
 
 | Name | Default | Values | What it does | Set by |
 |:-----|:--------|:-------|:-------------|:-------|
-| `PROGRESSION_MODE` | real for every account (unset, empty or `real`) | `real` or `stub`, any case; any other value (such as `off`, `0` or `false`, which used to mean the stub) logs a warning, counts as `real`, and the startup line then reads `real for every account (PROGRESSION_MODE=<value> is not recognised)` | **Fork only.** Real: every account stores its own Slayer level, weapon and behemoth mastery, objectives, Hunt Pass, entitlements, loadout slots, cooldowns and bounties. `stub`: upstream's fake max ranks for everyone, nothing stored. **Changed default:** before, an unset value meant the stub. Nothing is migrated; read the [upgrade notes]({{ upgrade_page.url | relative_url }}#real-progression-default). | Nobody by default; kit: never written, kept |
+| `PROGRESSION_MODE` | real for every account (unset, empty or `real`) | `real` or `stub`, any case; any other value (such as `off`, `0` or `false`, which used to mean the stub) logs a warning, counts as `real`, and the startup line then reads `real for every account (PROGRESSION_MODE=<value> is not recognised)` | **Server setting.** Real: every account stores its own Slayer level, weapon and behemoth mastery, objectives, Hunt Pass, entitlements, loadout slots, cooldowns and bounties. `stub`: upstream's fake max ranks for everyone, nothing stored. **Changed default:** before, an unset value meant the stub. Nothing is migrated; read the [upgrade notes]({{ upgrade_page.url | relative_url }}#real-progression-default). | Nobody by default; kit: never written, kept |
 | `PROGRESSION_REAL_ACCOUNTS` | none | comma-separated account ids (`UID-...`) | Only with `PROGRESSION_MODE=stub`: these accounts get real progression anyway. Ignored in real mode (the startup line says so when it is set). | Nobody by default; kit: kept |
 | `PROGRESSION_GRANT_CAP` | `5000` (also when not a positive whole number) | positive whole number | The most XP one request may add to one track. More is cut to the cap and noted in the progression audit table. | Nobody by default |
 | `PROGRESSION_CONFIRM` | on | `off` or anything else | `off` makes the rank-confirm route answer 404 again for real-mode accounts, as upstream did. A diagnostic switch; leave it unset. | Nobody by default |
 | `PROGRESSION_ALLOW_DELETE` | off | `1` or anything else | `1` lets game servers reset a progression track (the game sends that only from a debug command). Without it only an admin key can. With it on, any game-server call can wipe a player's track. | Nobody by default |
 | `ENTITLEMENTS_DEFAULT` | `season09b_premium,season_premium_any,season_free_any` when unset | comma-separated entitlement names; empty means none | Entitlements every real-mode account owns. `season09b_premium` is the Elite Hunt Pass. Each default is added to an account once, the first time its entitlements are read; removing a name later does not take it back, and a default an admin revoked stays revoked. | Nobody by default |
-| `PROGRESSION_REPLAY_WINDOW_S` | `5` | whole seconds; `0` turns it off | **Fork only.** The retry guard of `POST /progression/<account>`: a grant whose body is byte for byte the account's last grant, less than this many seconds after it and with no other track write in between, gets the first grant's stored reply and adds nothing (the log says `repeats the grant of N s ago`; an audit row notes it). The game server retries a failed request up to 5 times. Keep the value under 10: the game server sends its queued grants at most once every 10 seconds, and two of those can be identical. If the line shows up in normal play, not right after a network error, set `0`. | Nobody by default |
-| `PROGRESSION_CONFIRM_ENTITLEMENTS` | off | on/off | **Fork only.** On: a Hunt Pass or mastery confirm that raises a rank also grants that rank's **permanent** entitlements from the progression config (for season09b: premium ranks 6, 9, 29 and 50 and free rank 50), with the source `confirm:<track>:<rank>`. Never items, currencies or timed entitlements (those are only noted). Off, because whether the game server grants them itself is not known yet (the in-game test: reach Elite rank 6 by hunt XP and watch for `POST /entitlementv2`). The confirm reply is the same either way. | Nobody by default |
-| `PROGRESSION_CONFIG_DIR` | unset: the bundled `vendor/progression_config.json` | a folder path | **Fork only.** A folder of `.json` files, each a progression path (a Hunt Pass season or a mastery track), a list of paths, or a whole config. A path replaces the bundled one with the same `progression_id`, a new id is added. Checked at startup; a missing folder, a folder without `.json` files, invalid JSON, a path without `progression_id` or `requirements`, ranks out of order, or an id twice stop the metagame. Read once; a change needs a restart. The formats are on [Game settings]({{ gamesettings_page.url | relative_url }}#hunt-pass-seasons). Never edit a season in place while players have progress in it. | Nobody by default |
-| `ACTIVE_HUNT_PASS` | `season09b` | a loaded track id | **Fork only.** The Hunt Pass an account gets when none is stored (`GET /huntpass/<account>`, and the rank math's default). An id that is not a loaded track stops the metagame at startup. | Nobody by default |
-| `BALANCE_FROM_INVENTORY` | on | on/off | **Fork only.** On: `GET /balance` and `POST /reconcile` report, for each `CURRENCY_*` key (and its `id_currency_*` twin), the quantity of that stack held by the account's active character (the one saved last), and keep the old values for currencies it does not hold. Off: the old fixed sheet (Notes from the `users` table, weapon tokens 25, the rest 0). | Nobody by default |
+| `PROGRESSION_REPLAY_WINDOW_S` | `5` | whole seconds; `0` turns it off | **Server setting.** The retry guard of `POST /progression/<account>`: a grant whose body is byte for byte the account's last grant, less than this many seconds after it and with no other track write in between, gets the first grant's stored reply and adds nothing (the log says `repeats the grant of N s ago`; an audit row notes it). The game server retries a failed request up to 5 times. Keep the value under 10: the game server sends its queued grants at most once every 10 seconds, and two of those can be identical. If the line shows up in normal play, not right after a network error, set `0`. | Nobody by default |
+| `PROGRESSION_CONFIRM_ENTITLEMENTS` | off | on/off | **Server setting.** On: a Hunt Pass or mastery confirm that raises a rank also grants that rank's **permanent** entitlements from the progression config (for season09b: premium ranks 6, 9, 29 and 50 and free rank 50), with the source `confirm:<track>:<rank>`. Never items, currencies or timed entitlements (those are only noted). Off, because whether the game server grants them itself is not known yet (the in-game test: reach Elite rank 6 by hunt XP and watch for `POST /entitlementv2`). The confirm reply is the same either way. | Nobody by default |
+| `PROGRESSION_CONFIG_DIR` | unset: the bundled `vendor/progression_config.json` | a folder path | **Server setting.** A folder of `.json` files, each a progression path (a Hunt Pass season or a mastery track), a list of paths, or a whole config. A path replaces the bundled one with the same `progression_id`, a new id is added. Checked at startup; a missing folder, a folder without `.json` files, invalid JSON, a path without `progression_id` or `requirements`, ranks out of order, or an id twice stop the metagame. Read once; a change needs a restart. The formats are on [Game settings]({{ gamesettings_page.url | relative_url }}#hunt-pass-seasons). Never edit a season in place while players have progress in it. | Nobody by default |
+| `ACTIVE_HUNT_PASS` | `season09b` | a loaded track id | **Server setting.** The Hunt Pass an account gets when none is stored (`GET /huntpass/<account>`, and the rank math's default). An id that is not a loaded track stops the metagame at startup. | Nobody by default |
+| `BALANCE_FROM_INVENTORY` | on | on/off | **Server setting.** On: `GET /balance` and `POST /reconcile` report, for each `CURRENCY_*` key (and its `id_currency_*` twin), the quantity of that stack held by the account's active character (the one saved last), and keep the old values for currencies it does not hold. Off: the old fixed sheet (Notes from the `users` table, weapon tokens 25, the rest 0). | Nobody by default |
 
 ### Escalation {#metagame-escalation}
 
-All **fork only**, and read on every request. How Escalation is saved, and what players see, is on
+All **Server setting**, and read on every request. How Escalation is saved, and what players see, is on
 [Escalation]({{ '/findings/escalation.html' | relative_url }}).
 
 | Name | Default | Values | What it does | Set by |
@@ -281,7 +281,7 @@ All **fork only**, and read on every request. How Escalation is saved, and what 
 
 ### Store {#metagame-store}
 
-All **fork only**, and read on every request. How the store works is on
+All **Server setting**, and read on every request. How the store works is on
 [The in-game store]({{ '/findings/store.html' | relative_url }}).
 
 | Name | Default | Values | What it does | Set by |
@@ -297,13 +297,13 @@ All **fork only**, and read on every request. How the store works is on
 | `SAVE_HISTORY_HOURLY` | `48` (also when empty, negative or not a whole number) | whole number of hours, 0 or more (0 turns this tier off) | Beyond those, the last version of each hour is kept for this many hours. | Nobody by default |
 | `SAVE_HISTORY_DAILY` | `30` (also when empty, negative or not a whole number) | whole number of days, 0 or more (0 turns this tier off) | And the last version of each day for this many days. At the defaults that is at most about 3.5 MB per character. | Nobody by default |
 | `INVENTORY_REFUSE_OVERSPEND` | off | `1` or anything else | `1` refuses (409) an inventory transaction that removes more than the player has. Off because a refusal drops the whole transaction, rewards included; meanwhile an overspend is clamped at 0 and logged. | Nobody by default; kit: kept |
-| `INVENTORY_REPORT_REMOVALS` | on | `0` or anything else | **Fork only.** Inventory replies list every stack the transaction touched with its final count (0 for a used-up stack), so the game server sees what was spent. `0` puts back upstream's additions-only reply, which made upgrades free. | Nobody by default |
-| `PATROL_BONUS_DAILY` | `10` (also when empty or not a whole number of at least 1) | whole number, 1 or more | **Fork only.** The daily patrol bonus refill (the game's own is 6) lands the `TOKEN_DAILY_PATROL_BONUS` stack on this many. | Nobody by default |
-| `BOUNTY_TOKENS_DAILY` | `6` (also when empty or not a whole number of at least 1) | whole number, 1 or more | **Fork only.** Bounty tokens a player starts with and gets each day; the grant lands the `TOKEN_BOUNTY_DRAFT` stack on this many. Existing characters are set to both amounts once, on the first start of this version. | Nobody by default |
+| `INVENTORY_REPORT_REMOVALS` | on | `0` or anything else | **Server setting.** Inventory replies list every stack the transaction touched with its final count (0 for a used-up stack), so the game server sees what was spent. `0` puts back upstream's additions-only reply, which made upgrades free. | Nobody by default |
+| `PATROL_BONUS_DAILY` | `10` (also when empty or not a whole number of at least 1) | whole number, 1 or more | **Server setting.** The daily patrol bonus refill (the game's own is 6) lands the `TOKEN_DAILY_PATROL_BONUS` stack on this many. | Nobody by default |
+| `BOUNTY_TOKENS_DAILY` | `6` (also when empty or not a whole number of at least 1) | whole number, 1 or more | **Server setting.** Bounty tokens a player starts with and gets each day; the grant lands the `TOKEN_BOUNTY_DRAFT` stack on this many. Existing characters are set to both amounts once, on the first start of this version. | Nobody by default |
 
 ### Friends, parties and guilds {#metagame-social}
 
-All **fork only**. The switches are read on every request, so a restart with the new value takes
+All **Server setting**. The switches are read on every request, so a restart with the new value takes
 effect at once. [Friends, parties and guilds]({{ '/findings/social.html' | relative_url }}) explains what
 each reply does in the game.
 
@@ -323,7 +323,7 @@ each reply does in the game.
 
 ### Chat {#metagame-chat}
 
-All **fork only**. The game's text chat (roadmap 3.10): a listener inside the metagame for the game's
+All **Server setting**. The game's text chat (roadmap 3.10): a listener inside the metagame for the game's
 XMPP connection, on loopback. In public mode the gateway forwards the game's chat connection to it
 (`GATEWAY_WS_URL`, the same port); on one PC the game connects to it straight. How it works is on
 [Text chat]({{ '/findings/chat.html' | relative_url }}), the messages it answers on
@@ -371,9 +371,9 @@ reason every 10 minutes. Message text, tokens, login payloads and request header
 
 | Name | Default | Values | What it does | Set by |
 |:-----|:--------|:-------|:-------------|:-------|
-| `MISC_ROUTES` | on | `0` or anything else | **Fork only.** Answers routes that were 404 upstream: the friends list and block list, recent players, friend settings, `POST /candidate/player/alive` and `GET /motd/trigger`. `0` puts the 404s back. | Nobody by default |
-| `ACCOUNT_DISPLAY_NAME` | on | `0` or anything else | **Fork only.** Account and party replies carry the real username as `displayName`. `0` puts back upstream's empty `{}`. | Nobody by default |
-| `MATCHMAKING_CANCEL` | off | `1` or anything else | **Fork only, experimental.** `1` answers the client's matchmaking cancel (`DELETE /candidate`, and `DELETE /candidate/leave`). Off because the client sends that cancel right after every queued join, and hunts start only because it gets a 404. | Nobody by default |
+| `MISC_ROUTES` | on | `0` or anything else | **Server setting.** Answers routes that were 404 upstream: the friends list and block list, recent players, friend settings, `POST /candidate/player/alive` and `GET /motd/trigger`. `0` puts the 404s back. | Nobody by default |
+| `ACCOUNT_DISPLAY_NAME` | on | `0` or anything else | **Server setting.** Account and party replies carry the real username as `displayName`. `0` puts back upstream's empty `{}`. | Nobody by default |
+| `MATCHMAKING_CANCEL` | off | `1` or anything else | **Server setting, experimental.** `1` answers the client's matchmaking cancel (`DELETE /candidate`, and `DELETE /candidate/leave`). Off because the client sends that cancel right after every queued join, and hunts start only because it gets a 404. | Nobody by default |
 
 ---
 
@@ -424,15 +424,15 @@ game-server key included.
 | Name | Default | Values | What it does | Set by |
 |:-----|:--------|:-------|:-------------|:-------|
 | `PORT` | none. Unset: it stops at startup with a port error. Empty: it listens on a random port the metagame cannot find. | 1-65535 | HTTP port. Only the metagame on the same machine calls it, through `DEPLOYSERVER_URL`. | You (61001); kit: always (61001, 62001 in sandbox, or `-DeployPort`) |
-| `BIND_HOST` | `127.0.0.1` (also when empty) | one IP address | **Fork only.** Listen address. Keep `127.0.0.1`: there is no authentication, and anyone who reaches the port can start game processes. Both of its routes also refuse any caller that is not loopback or that came through a proxy. | You; kit: always `127.0.0.1` |
+| `BIND_HOST` | `127.0.0.1` (also when empty) | one IP address | **Server setting.** Listen address. Keep `127.0.0.1`: there is no authentication, and anyone who reaches the port can start game processes. Both of its routes also refuse any caller that is not loopback or that came through a proxy. | You; kit: always `127.0.0.1` |
 | `MY_IP` | none. Unset: every launch fails. | IPv4 address as players reach it | The address handed to clients for every game server (Ramsgate, the Dojo, hunts). `127.0.0.1` for play on one PC, the Tailscale address in private mode, the server's public IPv4 in public mode (for example `203.0.113.10`). With `127.0.0.1` on a shared server, a friend's game connects to its own PC. | You; kit: always (public mode: the IPv4 of the public host, which is `-PublicHost`, else the one saved at the last install, else the network adapter's only public IPv4; the Tailscale address in private mode; `127.0.0.1` in sandbox) |
 | `PORT_RANGE_BEGIN` | none. Unset: no hunt ports, every hunt fails. | UDP port | Lowest game-server port. Hunts use `PORT_RANGE_BEGIN` up to `PORT_RANGE_END - 2`: six at a time with 8770-8777. To allow more at once on a hand-built host, lower it and open the extra ports too. | You (8770); kit: always 8770 |
 | `PORT_RANGE_END` | none. Unset: Ramsgate cannot start. | keep `8777` | Ramsgate always runs on this port and the Training Dojo on the one below. The rebuilt DLL identifies the permanent Ramsgate by its map rather than its port. Older pinned DLLs disable the idle watchdog by port, so keep this layout when using them. | You (8777); kit: always 8777 |
 | `GAMESERVER_BINARY_PATH` | none. Unset or wrong: the deploy server stops soon after start (from reading the code). | full path of `Dauntless-Win64-Shipping.exe`, forward slashes | The 1.4.4 game exe started as each game server; `dxgi.dll` and `DauntlessUnbroken.dll` must sit next to it. Whatever file this names is run with the game-server key on its command line, so only administrators may edit the file. | You; kit: always (`<root>/game/Dauntless/Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe`) |
 | `METAGAME_API_KEY` | none. Unset: game servers cannot talk to the metagame. | the game-server key (48 hex characters as generated) | **Secret: never share, never commit.** Passed to every game server as its first command-line argument; the server DLL sends it with every request to the metagame, which stores only its SHA-256. It must match `gameserver.key` and be registered in the metagame's database. Local users can see it in the game servers' command lines. | You ([Host a server]({{ host_page.url | relative_url }}#metagame)); kit: always (kept from the backup, the key file or the old file, otherwise new) |
 | `SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP` | none. Unset: effectively no gap. | seconds; decimals work | Minimum gap between two game-server launches. All launches wait in one queue, so the third hunt requested at the same moment starts about two gaps later. | You (10); kit: 10 when missing or empty, a hand-set value is kept |
-| `ENABLE_DOJO` | on demand | `1` or anything else | **Fork only.** `1` starts the Training Dojo at boot, as upstream did. Anything else: it starts the first time someone is matchmade into it, and it starts again on demand after shutdown. | You (0); kit: 0 when missing, kept otherwise |
-| `PERSISTENT_WORLD_LIVENESS` | on | `0`, or anything else for on | **Fork only.** On: before Ramsgate or the Dojo is handed to a player, the deploy server checks that its process is alive and starts a dead one first, through the one launch the boot and the watchdog also use (never two processes on 8777). The startup line says `Ramsgate and Dojo liveness check before handing them out: on`. `0`: existing records are handed out unchecked; the watchdog restarts Ramsgate within a minute and clears a dead Dojo for the next request. | Nobody by default; kit: kept |
+| `ENABLE_DOJO` | on demand | `1` or anything else | **Server setting.** `1` starts the Training Dojo at boot, as upstream did. Anything else: it starts the first time someone is matchmade into it, and it starts again on demand after shutdown. | You (0); kit: 0 when missing, kept otherwise |
+| `PERSISTENT_WORLD_LIVENESS` | on | `0`, or anything else for on | **Server setting.** On: before Ramsgate or the Dojo is handed to a player, the deploy server checks that its process is alive and starts a dead one first, through the one launch the boot and the watchdog also use (never two processes on 8777). The startup line says `Ramsgate and Dojo liveness check before handing them out: on`. `0`: existing records are handed out unchecked; the watchdog restarts Ramsgate within a minute and clears a dead Dojo for the next request. | Nobody by default; kit: kept |
 | `LOG_LEVEL` | `info` (also when empty) | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent` | Log threshold. At `info` the matchmaking line lists the expected players' account ids; the key is never logged. | Nobody by default; kit: kept |
 | `NODE_ENV` | unset: coloured readable logs | `production` or anything else | `production`: JSON log lines, and no stack traces in error pages. | You; kit: always `production` |
 
@@ -589,7 +589,7 @@ Other rules:
 - Chat: `-Chat On` or `-Chat Off`, else the existing install's `server.json` (`"Chat"`), else On. The
   choice is saved in `server.json`. `Set-Chat.ps1 -On` or `-Off` changes it later, in both
   `metagame.env` and `server.json`. Private mode has no chat yet.
-- The installer writes none of the switches added with the port of Harmonic's fork (`ESCALATION_*`,
+- The installer writes none of the switches added with the port of the source integration's codebase (`ESCALATION_*`,
   `STORE*`, `SLAYER_LINKS`, `CHAT_PRESENCE`, `VERIFY_STUB_ACCOUNT`, `BALANCE_FROM_INVENTORY`,
   `PROGRESSION_REPLAY_WINDOW_S`, `PROGRESSION_CONFIRM_ENTITLEMENTS`, `PROGRESSION_CONFIG_DIR`,
   `ACTIVE_HUNT_PASS`, `BODY_LOG_PER_PATH`, and `PERSISTENT_WORLD_LIVENESS` in `deployserver.env`), so
@@ -654,7 +654,7 @@ build step: the running components get `NODE_ENV=production` from their `.env` f
 ## CI and release settings {#ci-settings}
 
 These are not read by any server component. They are settings of the GitHub repository, read by the
-workflows in `.github/workflows/` ([Developer guide]({{ dev_page.url | relative_url }}#ci)). A fork has
+workflows in `.github/workflows/` ([Developer guide]({{ dev_page.url | relative_url }}#ci)). A codebase has
 its own.
 
 | Name | Kind | Default | Values | What it does | Set by |
@@ -693,11 +693,11 @@ Only the automated tests read these. How to run the tests is in the
 - `EXPERIMENTAL_CHAT` switched on the first chat prototype. Nothing reads it now: the switch is
   [`CHAT`](#metagame-chat), and the metagame warns at startup when it finds the old name without the
   new one.
-- Harmonic's 1.4.4 fork has settings we did not take ([why]({{ '/findings/harmonic-fork.html' | relative_url }})):
+- the source integration's 1.4.4 codebase has settings we did not take ([why]({{ '/findings/feature-integrations.html' | relative_url }})):
   `WIRE_CAPTURE`, `WIRE_CAPTURE_MAX_BODY` and `WIRE_CAPTURE_MAX_PER_PATH` (our `LOG_BODIES` and
   `BODY_LOG_PER_PATH` do that job), `HUNT_PASS_SEASONS_DIR` (ours is `PROGRESSION_CONFIG_DIR`),
   `HUNT_PASS_PREMIUM_MODE`, `XMPP_PORT`, and in the deploy server `ENABLE_WATCHDOG`, `HOST`,
-  `GAMESERVER_LOG_DIR`, `GAMESERVER_LOG_CMDS` and `METAGAME_ADDRESS`; in the fork's DLL, `UNDAUNTED_DIAG_LOG`.
+  `GAMESERVER_LOG_DIR`, `GAMESERVER_LOG_CMDS` and `METAGAME_ADDRESS`.
   Nothing here reads them.
 
 

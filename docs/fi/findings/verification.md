@@ -32,7 +32,7 @@ arkistosta ei ajettu mitään ennen kuin kaikki tarkistukset olivat menneet läp
 | Versio | Mitä saimme | Tulos |
 |:------|:-----------------|:-------|
 | **2.1.1** (viimeinen "Awakening"-versio, UE5, IoStore). Koontiversio 682486, allekirjoitettu 18.12.2024 | RAR5-arkisto, 13,53 GiB, 833 tiedostoa, purettuna 15,52 GB | Aito, täydellinen, puhdas |
-| **1.4.4** (UE4, pak v9). `dauntless_rel-1.4.4_Shipping_2020-10-28`, allekirjoitettu 29.10.2020 | `BaseGame144.zip`, 10,48 GB, 410 tiedostoa (471 zip-merkintää, kun mukaan lasketaan 61 kansiomerkintää). Juuri tämän arkiston alkuperäisen [Undaunted](https://github.com/SyST3MDeV/Undaunted)-projektin käynnistin lataa | Aito, täydellinen, puhdas |
+| **1.4.4** (UE4, pak v9). `dauntless_rel-1.4.4_Shipping_2020-10-28`, allekirjoitettu 29.10.2020 | `BaseGame144.zip`, 10,48 GB, 410 tiedostoa (471 zip-merkintää, kun mukaan lasketaan 61 kansiomerkintää). Juuri tämän arkiston alkuperäisen [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html)-projektin käynnistin lataa | Aito, täydellinen, puhdas |
 
 <details open markdown="block">
   <summary>Sisällys</summary>
@@ -430,7 +430,7 @@ allekirjoitettu, mikä on tavallista harrastusprojektille.
 
 | Tarkistus | `dxgi.dll` | `DauntlessUnbroken.dll` |
 |:------|:-----------|:------------------------------|
-| Koko | 11 264 tavua | 123 392 tavua |
+| Koko | 11 264 tavua | 306 176 tavua |
 | SHA-256 | `9A431D7B…4B0D1F` | `520EC588…0D0933` |
 | Vastaa koodivaraston git-blobia (ei Git LFS -osoitinta) | Kyllä | Kyllä |
 | Pakkaus, overlay, TLS-takaisinkutsut, RWX-osiot | Ei mitään | Ei mitään |

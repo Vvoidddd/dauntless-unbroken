@@ -6,7 +6,7 @@ Windows- ja Linux-sovellus, jonka kaverit asentavat pelatakseen Dauntless Unbrok
 palvelimelle kutsulla, luo tilin, lataa ja tarkistaa Dauntless 1.4.4:n pelitiedostot ylläpitäjän
 omalta palvelimelta, laittaa kaiken valmiiksi ja käynnistää pelin. Kielinä englanti ja suomi.
 
-**Linux:** x86_64-Linuxille julkaistaan AppImage-, deb-, rpm- ja siirrettävät paketit. Windowsin 1.4.4-peliasiakas käynnistyy Protonin tai Winen kautta. Katso [jakelukohtainen Linux-ohje](https://mixutin.github.io/dauntless-unbroken/fi/setup/linux.html) tai [LINUX.md](LINUX.md).
+**Linux:** x86_64-Linuxille julkaistaan AppImage-, deb-, rpm- ja siirrettävät paketit. Windowsin 1.4.4-peliasiakas käynnistyy Protonin tai Winen kautta. Katso [jakelukohtainen Linux-ohje](https://vvoidddd.github.io/dauntless-unbroken/fi/setup/linux.html) tai [LINUX.md](LINUX.md).
 
 **Sovelluksessa tai tässä repositoriossa ei ole pelitiedostoja.** Ne tulevat ylläpitäjän
 sisältöpalvelimelta, ja jokainen tiedosto tarkistetaan käynnistimeen käännettyä listaa vasten
@@ -19,7 +19,7 @@ Palvelin, joka tarjoaa jotain muuta, hylätään.
 
 1. Asenna käynnistin projektin julkaisusta. Windowsissa käytä
    `DauntlessUnbrokenLauncher-Setup.exe`-asennusohjelmaa. Linuxissa valitse jakelullesi sopiva
-   AppImage-, `.deb`-, `.rpm`- tai siirrettävä paketti [Linux-käynnistimen ohjeesta](https://mixutin.github.io/dauntless-unbroken/fi/setup/linux.html). Tarkista lataus saman julkaisun
+   AppImage-, `.deb`-, `.rpm`- tai siirrettävä paketti [Linux-käynnistimen ohjeesta](https://vvoidddd.github.io/dauntless-unbroken/fi/setup/linux.html). Tarkista lataus saman julkaisun
    `SHA256SUMS.txt`-tiedostoa vasten. Windows-asennusohjelmaa ei ole vielä allekirjoitettu, joten
    SmartScreen voi pyytää vahvistusta; jos se estää ohjelman kokonaan, tarkista tiiviste, poista
    tiedoston esto (Ominaisuudet > Poista esto tai `Unblock-File`) ja käynnistä se uudelleen.
@@ -39,8 +39,7 @@ Palvelin, joka tarjoaa jotain muuta, hylätään.
 5. Paina **PELAA**.
 
 Vasemman reunan palkin alaosassa, joka sivulla (myös ennen kuin liityt palvelimelle), GitHub-painike
-avaa tämän repositorion selaimeen, ja **Tekijät** kertoo, ketkä tekivät käynnistimen ja palvelimen,
-mitä avoimen lähdekoodin ohjelmistoja ne käyttävät ja millä lisenssillä.
+avaa tämän repositorion selaimeen, ja **Lisenssit** näyttää ohjelmistojen lisenssitiedot.
 
 ## Kaksi palvelintyyppiä
 
@@ -125,15 +124,15 @@ AA -vaatimusta.
 CI (`.github/workflows/ci.yml`) kääntää ja testaa käynnistimen Windowsissa ja Linuxissa jokaisen
 pushin yhteydessä. Windows-asennusohjelma/ZIP sekä Linuxin AppImage/DEB/RPM/ZIP säilytetään viikon
 ajan. `.github/workflows/launcher-release.yml` julkaisee nämä samat testatut tiedostot
-`dauntless-unbroken`-haarasta GitHub-julkaisuna `launcher-v<versio>`, yhdellä
+`main`-haarasta GitHub-julkaisuna `launcher-v<versio>`, yhdellä
 `SHA256SUMS.txt`-tiedostolla ja käännöstodistuksella (build provenance attestation), ja luo tagin
 käännettyyn committiin. Uusi julkaisu syntyy siis nostamalla versiota:
 
-- oletuksena `dauntless-unbroken`-haaran push, joka läpäisee kaikki tarkistukset ja jonka versiolla ei
+- oletuksena `main`-haaran push, joka läpäisee kaikki tarkistukset ja jonka versiolla ei
   ole vielä `launcher-v<versio>`-julkaisua, julkaisee CI:n kääntämän asennusohjelman. Tauon saat
   asettamalla repositorion muuttujan `LAUNCHER_AUTO_RELEASE` arvoon `false` (Settings > Secrets and
   variables > Actions > Variables);
-- tai aja Actions > **Launcher release** > **Run workflow** `dauntless-unbroken`-haaralle.
+- tai aja Actions > **Launcher release** > **Run workflow** `main`-haaralle.
 
 Julkaisun jälkeen työnkulku siirtää jatkuvan `launcher-updates`-julkaisun uuden Windowsin
 Squirrel-paketin kohdalle; asennetut Windows-käynnistimet tarkistavat sen tunnin välein. Linuxissa
@@ -147,9 +146,8 @@ päivitetään paikallaan.
 
 ## Lisenssi
 
-AGPL-3.0-only. Perustuu gwogin (Gregory Morford) ja muiden tekijöiden dauntless-unbroken-käynnistimeen.
-Epävirallinen faniprojekti, jolla ei ole yhteyttä Phoenix Labsiin tai Epic Gamesiin.
+AGPL-3.0-only. Katso [lähde- ja lisenssitiedot](../NOTICE.md). Epävirallinen yhteisöprojekti, jolla ei ole yhteyttä Phoenix Labsiin tai Epic Gamesiin.
 
 Käynnistimen ja sen kahden DLL:n sisältämien kolmansien osapuolten ohjelmistojen (muun muassa
 MinHook, Electron ja GitHub Octicons -logo) lisenssitekstit tulevat sen mukana tiedostossa
-`THIRD-PARTY-NOTICES.txt`. Tekijät-sivu lukee luettelonsa tiedostosta `src/shared/credits.ts`.
+`THIRD-PARTY-NOTICES.txt`. Lisenssit-näkymä näyttää ohjelmistojen lisenssitiedot.

@@ -40,8 +40,7 @@ launcher (`DauntlessUnbrokenContent/data/dauntless-1.4.4.json`). A server that o
 5. Press **PLAY**.
 
 At the bottom of the left-hand rail, on every page (also before you join a server), the GitHub
-button opens this repository in your browser, and **Credits** lists the people who made the launcher
-and the server, the open-source software they use, and the license.
+button opens this repository in your browser, and **Licenses** provides the bundled software notices.
 
 ## Two kinds of server
 
@@ -110,7 +109,7 @@ npm run collect:linux
 `npm test -- relay` runs only the test files whose name contains "relay". The tests cover invite
 parsing, the relay (pinned certificate, wrong certificate, headers, bodies, streaming, keep-alive,
 WebSocket), downloads (resume, verify, repair) over plain HTTP and pinned TLS, Engine.ini, launch
-arguments, the links the launcher may open, the Credits page's data and the whole public-mode flow
+arguments, the links the launcher may open, the bundled license notices and the whole public-mode flow
 through the controller, and the look: the brand colours and images. They make throwaway self-signed
 certificates in a temp folder.
 
@@ -138,7 +137,7 @@ every listed file, and a tag at the commit that was built. To release, raise the
   `launcher-v<version>` release yet publishes the installer CI built. Set the repository variable
   `LAUNCHER_AUTO_RELEASE` to `false` (Settings > Secrets and variables > Actions > Variables) to pause
   that;
-- or run Actions > **Launcher release** > **Run workflow** on `dauntless-unbroken`.
+- or run Actions > **Launcher release** > **Run workflow** on `main`.
 
 After publishing, the release workflow points the rolling `launcher-updates` release at the new
 Windows Squirrel package; installed Windows launchers check it every hour. Linux users update through
@@ -151,9 +150,7 @@ brings the Windows update feed up to it. Keep GitHub's immutable releases settin
 
 ## License
 
-AGPL-3.0-only. Based on the Undaunted launcher by gwog (Gregory Morford) and contributors. An
-unofficial fan project, not affiliated with or endorsed by Phoenix Labs or Epic Games.
+AGPL-3.0-only. See [source and license notices](../NOTICE.md). This is an unofficial community project, not affiliated with or endorsed by Phoenix Labs or Epic Games.
 
 The license texts of the third-party software in the launcher and its two DLLs (among them MinHook,
-Electron and the GitHub Octicons mark) ship with it in `THIRD-PARTY-NOTICES.txt`. The Credits page
-reads its list from `src/shared/credits.ts`.
+Electron and the GitHub Octicons mark) ship with it in `THIRD-PARTY-NOTICES.txt`. The Licenses screen provides the bundled notices.

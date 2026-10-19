@@ -6,7 +6,7 @@ Changed those17catalog grant kinds to instanced. Added a regression buying/repla
 
 Production repair selected only parts backed by redeemed purchase receipts, re-read inventories within one immediate SQLite transaction, preserved existing instances and all currency, removed invalid part stacks and inserted missing deterministic instances. Recorded inventorylog entries and wrote before/after backups. Repeating repair does nothing; fixture also verifies an unpaid stack is untouched and existing instance is not duplicated. Converted23parts for22characters.
 
-Catalog backup: C:/DauntlessRevived/backups/trials-catalog-20261018-011230.json.
-Inventory backup: C:/DauntlessRevived/backups/trials-instance-repair-1792282374135.json.
-Repair script staged at C:/DauntlessRevived/staging/shop-prices-20261017/Repair-Trials.cjs.
+Catalog backup: C:/DauntlessUnbroken/backups/trials-catalog-20261018-011230.json.
+Inventory backup: C:/DauntlessUnbroken/backups/trials-instance-repair-1792282374135.json.
+Repair script staged at C:/DauntlessUnbroken/staging/shop-prices-20261017/Repair-Trials.cjs.
 Restarted only metagame to load corrected catalog; hunt processes were not restarted. Actual client equip verification remains pending after reconnect.

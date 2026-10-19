@@ -1,3 +1,10 @@
+---
+title: Game downloads
+description: "Configure verified HTTPS game downloads from the owner-operated R2 catalog."
+lang: en
+ref: r2-downloads
+---
+
 # Player downloads from R2
 
 Dauntless Unbroken uses the existing owner-operated R2 game catalog at

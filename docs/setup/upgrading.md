@@ -2,7 +2,7 @@
 title: Upgrade notes
 parent: Setup
 nav_order: 9
-description: "What changes for players when you update an existing Dauntless Unbroken server: the port of Harmonic's fork (Slayer Links on; Escalation, the store and online status built but off), text chat, friends, parties and guilds, and real progression on by default. How to keep old max ranks, start fresh, or stay on the stub."
+description: "What changes for players when you update an existing Dauntless Unbroken server: the port of the source integration's codebase (Slayer Links on; Escalation, the store and online status built but off), text chat, friends, parties and guilds, and real progression on by default. How to keep old max ranks, start fresh, or stay on the stub."
 lang: en
 ref: setup/upgrading
 ---
@@ -15,7 +15,7 @@ ref: setup/upgrading
 {% assign social_page = site.pages | where: "path", "findings/social.md" | first %}
 {% assign config_page = site.pages | where: "path", "reference/configuration.md" | first %}
 {% assign chat_page = site.pages | where: "path", "findings/chat.md" | first %}
-{% assign harmonic_page = site.pages | where: "path", "findings/harmonic-fork.md" | first %}
+{% assign integration_page = site.pages | where: "path", "findings/feature-integrations.md" | first %}
 {% assign escalation_page = site.pages | where: "path", "findings/escalation.md" | first %}
 {% assign store_page = site.pages | where: "path", "findings/store.md" | first %}
 {% assign trouble_page = site.pages | where: "path", "setup/troubleshooting.md" | first %}
@@ -33,13 +33,13 @@ your players will see, and what you can do about it. The newest change is first.
 {:toc}
 </details>
 
-## Escalation, the store, Slayer Links and smaller fixes {#harmonic-port}
+## Escalation, the store, Slayer Links and smaller fixes {#feature-integrations}
 
-**September 2026.** Applies to every server updated to the version with the port of Harmonic's 1.4.4
-fork ([The Harmonic port]({{ harmonic_page.url | relative_url }})). You can tell it by the metagame's
+**September 2026.** Applies to every server updated to the version with the port of the source integration's 1.4.4
+codebase ([Feature integrations]({{ integration_page.url | relative_url }})). You can tell it by the metagame's
 start line that begins `features:`.
 
-### What changes {#harmonic-port-what-changes}
+### What changes {#feature-integrations-what-changes}
 
 - **Three new migrations run by themselves at the first start:** `0014_escalation`,
   `0015_store_purchases` and `0016_slayer_links`. They only add six tables (`escalationprogression`,
@@ -53,7 +53,7 @@ start line that begins `features:`.
 
   | Change | Switch to turn it off |
   |:-------|:----------------------|
-  | [Slayer Links](#harmonic-port-what-players-see) (the My Links tab): eight new routes | `SLAYER_LINKS=0` |
+  | [Slayer Links](#feature-integrations-what-players-see) (the My Links tab): eight new routes | `SLAYER_LINKS=0` |
   | The game's regular session check (`oauth/verify`) names the player's own account instead of a placeholder. Every player's game calls it. | `VERIFY_STUB_ACCOUNT=1` |
   | `/balance` and `/reconcile` report the currencies the character holds (Rams, platinum) instead of 0 | `BALANCE_FROM_INVENTORY=0` |
   | A game server's XP grant repeated byte for byte less than 5 seconds later is answered, not added again | `PROGRESSION_REPLAY_WINDOW_S=0` |
@@ -78,7 +78,7 @@ start line that begins `features:`.
   updated credits). The server DLL is unchanged. The server kit writes none of the new switches, so the
   defaults above apply until you add a line to `metagame.env` (or `deployserver.env`).
 
-### What your players will see {#harmonic-port-what-players-see}
+### What your players will see {#feature-integrations-what-players-see}
 
 - **Slayer Links** may work in the Social panel's My Links tab: invite a friend into one of three slots,
   and the link runs for a week. The client may keep that tab hidden; nobody has tried it in game yet.
@@ -88,7 +88,7 @@ start line that begins `features:`.
 - Nothing else until you switch something on: Escalation still shows the fake maximum, the store screen
   still gets its old error, and everyone still shows as offline.
 
-### What you can do {#harmonic-port-what-you-can-do}
+### What you can do {#feature-integrations-what-you-can-do}
 
 - After the update, look for the `features:` line in the metagame's log: it lists every new switch
   with its value ([Configuration]({{ config_page.url | relative_url }}#metagame)).
@@ -129,7 +129,7 @@ start line that begins `features:`.
 With chat on: Ramsgate and hunt chat, party chat, guild chat and whispers, all with usernames. Ramsgate
 chat is per session for now, so two players share it only when they travelled to Ramsgate together as
 a party. A game that was already running when chat went on connects within about 45 s. Online status
-(friends showing as online) came with a later update, off by default ([above](#harmonic-port)).
+(friends showing as online) came with a later update, off by default ([above](#feature-integrations)).
 
 ### What you can do {#chat-what-you-can-do}
 
@@ -172,7 +172,7 @@ info and the first mapping it got for each player for the whole session, so the 
 stay until the game restarts. After that: party invites appear under PARTY INVITES, Add Friends
 works (the other player sees the request at their next login), and the Guilds tab can create and
 join guilds. Online status and EPIC FRIENDS still do not work by default. Chat came with a later
-update ([Text chat](#chat)), and online status after that, off by default ([above](#harmonic-port)).
+update ([Text chat](#chat)), and online status after that, off by default ([above](#feature-integrations)).
 [Join as a friend]({{ friends_page.url | relative_url }}#friends-parties-and-guilds) explains it to
 players.
 
@@ -205,7 +205,7 @@ split.
 
 ### What changed
 
-Before, the metagame answered every progression request with upstream Undaunted's stub unless
+Before, the metagame answered every progression request with the earlier implementation's stub unless
 `PROGRESSION_MODE=real` was set:
 
 - every account showed Slayer level 50 and maxed mastery, and nothing a player earned was stored;
@@ -238,7 +238,7 @@ once, and moving an account that already played under the stub's fake level 50 d
 (roadmap item 2.13). With several players, note that a player's own client now gets 403 when it
 asks for another account's progression, where the stub answered with the asking player's own data.
 Escalation stays upstream's stub in both modes unless you set `ESCALATION_MODE=real`
-([above](#harmonic-port)).
+([above](#feature-integrations)).
 
 ### What your players will see
 

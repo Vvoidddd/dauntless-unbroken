@@ -1,5 +1,6 @@
 ---
 title: Dauntless Unbroken
+description: "Dauntless Unbrokenin pelaajan ja palvelimen ylläpitäjän opas."
 nav_order: 1
 permalink: /fi/
 lang: fi

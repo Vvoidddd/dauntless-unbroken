@@ -2,7 +2,7 @@
 title: Escalation
 parent: Findings
 nav_order: 12
-description: "How Dauntless 1.4.4 saves Escalation progress, and the real Escalation saves we built from Harmonic's fork: the season registry read from the client, the rules every save must pass and the ones that only warn, the old stub, and what players see when it is switched on."
+description: "How Dauntless 1.4.4 saves Escalation progress, and the real Escalation saves we built from the source integration's codebase: the season registry read from the client, the rules every save must pass and the ones that only warn, the old stub, and what players see when it is switched on."
 lang: en
 ref: findings/escalation
 ---
@@ -12,7 +12,7 @@ ref: findings/escalation
 {% assign files_page = site.pages | where: "path", "reference/files.md" | first %}
 {% assign game_page = site.pages | where: "path", "reference/game-settings.md" | first %}
 {% assign contract_page = site.pages | where: "path", "findings/backend-contract.md" | first %}
-{% assign harmonic_page = site.pages | where: "path", "findings/harmonic-fork.md" | first %}
+{% assign integration_page = site.pages | where: "path", "findings/feature-integrations.md" | first %}
 {% assign trouble_page = site.pages | where: "path", "setup/troubleshooting.md" | first %}
 
 # Escalation in 1.4.4
@@ -29,10 +29,10 @@ saved, exactly as before. With `ESCALATION_MODE=real`, players in real progressi
 Escalation level, talents and rewards. Switching it on is the owner's decision after an in-game test,
 because every player then starts again from level 0 (see [Switching it on](#switching-it-on)).
 
-The season registry, the save rules and their tests come from **Harmonic's** Dauntless 1.4.4 fork
-([github.com/Harmonicrain/Undaunted](https://github.com/Harmonicrain/Undaunted), commit `895f7c7`).
+The season registry, the save rules and their tests come from **the source integration's** Dauntless 1.4.4 codebase
+([source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html), commit `895f7c7`).
 We adapted them to our audit log and made the less certain rules warn instead of refuse; details on
-[The Harmonic port]({{ harmonic_page.url | relative_url }}).
+[Feature integrations]({{ integration_page.url | relative_url }}).
 
 <details open markdown="block">
   <summary>Contents</summary>
@@ -75,7 +75,7 @@ The payload, and the body of a save, is one season:
 
 - `escalation_level` is the level reached (0 to 25), and `next_level_xp` the XP gathered towards the
   next one.
-- **The game server does the arithmetic** (S, Harmonic's reading of the native code): it adds the XP,
+- **The game server does the arithmetic** (S, the source integration's reading of the native code): it adds the XP,
   raises the level, lets the player spend points and hands out the rewards itself, then posts the
   whole season. The backend only keeps the last good snapshot and refuses one that no real play could
   produce, or that would erase newer progress.
@@ -89,7 +89,7 @@ The payload, and the body of a save, is one season:
 
 `DauntlessUnbrokenMetagame/src/vendor/escalation/seasons.json` lists every season the 1.4.4 client has,
 exported read-only from the client's own Escalation progression table and the talent table each
-season names (by Harmonic, from build CL239827). The metagame checks the file when it starts, and a
+season names (by the source integration, from build CL239827). The metagame checks the file when it starts, and a
 malformed one stops the start.
 
 | Season | Name | Saved |
@@ -197,7 +197,7 @@ registry file on [Game settings]({{ game_page.url | relative_url }}#escalation-s
 
 ## Tests {#tests}
 
-`DauntlessUnbrokenMetagame/test/escalation.test.ts` holds 27 cases: Harmonic's 17 (the registry, reads, the
+`DauntlessUnbrokenMetagame/test/escalation.test.ts` holds 27 cases: the source integration's 17 (the registry, reads, the
 version rules, the hard and soft rules, the stub guard), adapted to our answers (a foreign read is 403,
 a replay is an audited 200, a relayed token of another account is logged and accepted, the soft rules
 answer 409 only with `ESCALATION_STRICT=1`, the strict XP case reaches level 25 before its XP grows), a

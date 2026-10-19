@@ -85,7 +85,7 @@ but not built yet is marked as such. The other side of this setup is
 | Metagame (`DauntlessUnbrokenMetagame`: Node, Express, SQLite) | TCP 61000 | Every player's client, every game server, and you as admin |
 | Deploy server (`DauntlessUnbrokenDeployServer`) | TCP 61001, loopback only | Only the metagame on the same PC. **It has no authentication.** |
 | Ramsgate server | UDP 8777 (`PORT_RANGE_END`) | Players. Always running. If it dies, the deploy server starts it again when a player travels there, or its watchdog does within a minute. |
-| Training Dojo | UDP 8776 | Players. Our fork starts it on first use; `ENABLE_DOJO=1` restores upstream's always-on behaviour. |
+| Training Dojo | UDP 8776 | Players. our implementation starts it on first use; `ENABLE_DOJO=1` restores upstream's always-on behaviour. |
 | Hunt servers | UDP 8770-8775 | Players. One per group of up to 4. Each exits after 50 seconds in total with nobody connected. |
 
 The game servers are further instances of the same 1.4.4 client executable. The deploy server starts
@@ -183,7 +183,7 @@ Three settings point at `127.0.0.1` today and have to change:
 |:--------|:-----|:----------|:----|
 | `MY_IP` | `DauntlessUnbrokenDeployServer/.env` | `<host 100.x address>` | The only host address the deploy server hands out for Ramsgate, the Dojo and hunts, via the matchmaking result. With `127.0.0.1`, a friend's client would travel to its own PC. |
 | `QOS_TARGET_URL` | `DauntlessUnbrokenMetagame/.env` | `http://<host 100.x address>:61000/QoS` | `/candidate/regions` returns this URL as the region to ping. With `127.0.0.1`, friends ping their own localhost. We have not tested what the client does when that ping fails. |
-| `BIND_HOST` | `DauntlessUnbrokenMetagame/.env` | `<host 100.x address>` | The address the metagame listens on. Our fork defaults to `127.0.0.1`; upstream listened on every interface. |
+| `BIND_HOST` | `DauntlessUnbrokenMetagame/.env` | `<host 100.x address>` | The address the metagame listens on. our implementation defaults to `127.0.0.1`; upstream listened on every interface. |
 | `BIND_HOST` | `DauntlessUnbrokenDeployServer/.env` | stays `127.0.0.1` | No authentication. |
 | `DEPLOYSERVER_URL` | `DauntlessUnbrokenMetagame/.env` | stays `127.0.0.1:61001` | The metagame reaches the deploy server locally. |
 
@@ -211,13 +211,13 @@ Three settings point at `127.0.0.1` today and have to change:
    where you expect. A server that cannot reach the metagame cannot load or save characters.
 
 Because of this, **Tailscale must be connected before the metagame starts.** If the address does not
-exist yet, our fork exits with `Could not listen on <address>:61000`. Upstream announced success anyway
+exist yet, our implementation exits with `Could not listen on <address>:61000`. Upstream announced success anyway
 and then quit silently.
 
 Do not use `BIND_HOST=0.0.0.0` to sidestep this. The metagame would then listen on your LAN as well,
 and only the firewall would stand between LAN devices and an unauthenticated registration endpoint.
 
-Planned in the fork:
+Planned in the project:
 
 - Let `BIND_HOST` take a list (`127.0.0.1,<100.x>`), so local traffic stays on loopback and the
   `Game.ini` rewrite is no longer needed.
@@ -345,7 +345,7 @@ answers. The ones used most for running a group:
 The friend launcher has no admin screen. Make admin calls directly, as in the examples on this page,
 or with the kit's scripts on a kit server.
 
-### Progression (fork only) {#progression}
+### Progression (Server setting) {#progression}
 
 Real progression is on by default: every account keeps its own Slayer level, mastery and Hunt Pass
 (`PROGRESSION_MODE`, see [Host a server]({{ host_page.url | relative_url }}#metagame)). Two admin routes
@@ -360,7 +360,7 @@ A server that already had players before real progression became the default sta
 level 1. The [upgrade notes]({{ upgrade_page.url | relative_url }}) explain the choice and include a
 small script for both routes.
 
-### Social fallbacks on the host (fork only) {#social}
+### Social fallbacks on the host (Server setting) {#social}
 
 Friends, parties and guilds work in the game itself; see
 [Join as a friend]({{ friends_page.url | relative_url }}#friends-parties-and-guilds). These five routes
@@ -519,7 +519,6 @@ gets 409 `username_taken`.
 
 ## Capacity
 
-> For rented hosting, see our clearly-labelled [EU Gamehost partner recommendations]({{ "/setup/hosting-partner.html" | relative_url }}).
 > The plan mapping there uses the measurements below rather than provider marketing labels.
 
 Measured on our host, an 8-core desktop with 32 GB of RAM, running the 1.4.4 stack:
@@ -528,7 +527,7 @@ Measured on our host, an 8-core desktop with 32 GB of RAM, running the 1.4.4 sta
 |:--------|----:|----:|:------|
 | Ramsgate server | 1.1 GB | ~0.2 core | Always running. |
 | Hunt server | ~0.9 GB | not measured under combat | Measured on the tutorial hunt. One per group of up to 4. |
-| Training Dojo | ~0.9 GB | ~0.2 core | Only while in use, in our fork. |
+| Training Dojo | ~0.9 GB | ~0.2 core | Only while in use, in our implementation. |
 | Host's own client at Cinematic | ~1.9 GB | ~2.5 cores | Only if you also play on the host. Working set; its committed (private) memory was about 3.7 GB. |
 | Metagame and deploy server (Node) | ~130 MB together | small | |
 
@@ -630,7 +629,7 @@ default settings) and item and progression logs that only grow. Every table is d
 [Files and data]({{ files_page.url | relative_url }}#the-database).
 
 **The metagame runs any pending database migrations on every start, and takes no backup first.** Always
-back up before updating the fork or pulling upstream changes.
+back up before updating the project or pulling upstream changes.
 
 **What our host does.** A hidden scheduled task backs the database up every hour and keeps the newest
 48 copies plus the newest copy of each of the last 30 days. `stack.ps1` also takes a backup before

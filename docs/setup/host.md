@@ -21,7 +21,7 @@ ref: setup/host
 {: .no_toc }
 
 This is how we run Dauntless Unbroken on one Windows PC. It uses the genuine **Dauntless 1.4.4** client
-(October 2020, UE4, pak v9), Undaunted's server DLL, and our fork of Undaunted's metagame and deploy
+(October 2020, UE4, pak v9), the native integration's server DLL, and our implementation of the native integration's metagame and deploy
 server. Everything on this page stays on `127.0.0.1`. Letting friends connect is a separate step,
 covered in [Run it for a group]({{ admin_page.url | relative_url }}).
 
@@ -63,17 +63,15 @@ with a client-only build. That was wrong, and that page explains why.
 
 ## 1. Requirements {#requirements}
 
-> **Renting a server?** EU Gamehost is a partnered and recommended hosting provider for this project.
-> See the [EU Gamehost plan guide]({{ "/setup/hosting-partner.html" | relative_url }}) for clearly labelled partner content, plan examples and our capacity rationale.
 
 | | What we use | Notes |
 |---|---|---|
 | OS | Windows 10 22H2 (build 19045) | Windows 11 should work. We have not tested it. |
 | Node.js | v24.19.0 (npm 11.17.0) | `better-sqlite3` is a native module tied to the Node version. Don't upgrade Node while people are playing. |
-| Git | 2.55 for Windows | Needed for the fork. See the path notes in step 4. |
+| Git | 2.55 for Windows | Needed for the project. See the path notes in step 4. |
 | PowerShell | Windows PowerShell 5.1 (built in) | Every command on this page is written for 5.1. |
 | VC++ runtime | Microsoft Visual C++ 2015-2022, x64 | `DauntlessUnbroken.dll` imports `MSVCP140.dll` and `VCRUNTIME140_1.dll`. Our PC already had it. |
-| Disk | About 12 GB | Game 10.9 GB (412 files once the DLLs are in), fork with `node_modules` about 0.3 GB, and a small database. Extracting from an archive needs roughly the same space again, temporarily. |
+| Disk | About 12 GB | Game 10.9 GB (412 files once the DLLs are in), codebase with `node_modules` about 0.3 GB, and a small database. Extracting from an archive needs roughly the same space again, temporarily. |
 | RAM | 32 GB on our host | See the measurements below. 16 GB is probably enough for one player plus servers. We have not tested that. |
 | GPU | Any DirectX 11 card for the client | Game servers run with `-nullrhi` and use no GPU. |
 
@@ -107,7 +105,7 @@ The file ends with a space and a line break, so compare trimmed text:
 `(Get-Content C:\D144\Dauntless\Version.txt).Trim()`. The trailing `239827` is the build changelist.
 It comes back as `TARGET_CHANGELIST` in step 9.
 
-**b. The exe hash.** Every offset in Undaunted's DLL is compiled for this exact file:
+**b. The exe hash.** Every offset in the native integration's DLL is compiled for this exact file:
 
 ```powershell
 (Get-FileHash "C:\D144\Dauntless\Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe").Hash
@@ -173,8 +171,8 @@ Windows and the program opt in to long paths. Most of the tools around this proj
 
 - The game's own tree is not the problem. Its longest file path is 102 characters below the install
   root. We have never seen the game itself fail because of path length.
-- The tools around it did fail. `git clone` of Undaunted into a deeply nested working folder broke
-  with `Filename too long` and then `fatal: '$GIT_DIR' too big`. The fork has about 4,300 tracked
+- The tools around it did fail. `git clone` of Dauntless Unbroken into a deeply nested working folder broke
+  with `Filename too long` and then `fatal: '$GIT_DIR' too big`. the project has about 4,300 tracked
   files, 4,148 of them in the generated Dumper-7 SDK, and paths inside the repository run up to 94
   characters. The MSVC build of the server DLL will need the same headroom.
 - A root of a few characters keeps everything far inside the limit. It also keeps command lines and
@@ -189,27 +187,27 @@ Launch only `Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe`. We have never 
 
 ---
 
-## 4. Get the fork onto a short path {#fork}
+## 4. Get the project onto a short path {#codebase}
 
-The fork lives at `C:\dr\undaunted`, branch `dauntless-unbroken`. Runtime data (the SQLite database,
+the project lives at `C:\dr\dauntless-unbroken`, branch `main`. Runtime data (the SQLite database,
 keys, logs, pid files) goes in `C:\dr\data`, outside the repository.
 
 ```powershell
 New-Item -ItemType Directory -Force C:\dr, C:\dr\data | Out-Null
-git -c core.longpaths=true clone <URL of this repository> C:\dr\undaunted
-git -C C:\dr\undaunted config core.longpaths true
-git -C C:\dr\undaunted checkout dauntless-unbroken
-git -C C:\dr\undaunted remote add upstream https://github.com/SyST3MDeV/Undaunted.git   # optional, to follow upstream
+git -c core.longpaths=true clone <URL of this repository> C:\dr\dauntless-unbroken
+git -C C:\dr\dauntless-unbroken config core.longpaths true
+git -C C:\dr\dauntless-unbroken checkout main
+git -C C:\dr\dauntless-unbroken remote add upstream https://vvoidddd.github.io/dauntless-unbroken/legal.html   # optional, to follow upstream
 ```
 
-The repository contains six projects (the `Undaunted*` folders), plus the Windows server kit, the
+The repository contains six projects (the `DauntlessUnbroken*` folders), plus the Windows server kit, the
 friend kit and tools. On the host we use:
 
 - `DauntlessUnbrokenMetagame`: the backend.
 - `DauntlessUnbrokenDeployServer`: the game-server supervisor.
 - The two prebuilt DLLs kept in `DauntlessUnbrokenLauncher/assets/`.
 
-The Electron app in `DauntlessUnbrokenLauncher/src` is this fork's friend launcher: players use it to join a
+The Electron app in `DauntlessUnbrokenLauncher/src` is this project's friend launcher: players use it to join a
 server from an invite, and it downloads the game from the host's own content server. The host setup
 on this page doesn't need it. The C++ source of the server DLL is in `DauntlessUnbrokenInternalServer`. Every
 folder, and what builds where, is listed on [Files and data]({{ files_page.url | relative_url }}).
@@ -221,7 +219,7 @@ the game-server key.
 
 ## 5. Place the two DLLs, checking the pinned hashes {#dlls}
 
-Undaunted ships two prebuilt DLLs:
+Dauntless Unbroken ships two prebuilt DLLs:
 
 - `dxgi.dll` is a proxy. Windows loads it from the game folder instead of the system `dxgi.dll`. It
   loads the real `System32\dxgi.dll`, forwards `CreateDXGIFactory`, `CreateDXGIFactory1` and
@@ -232,11 +230,11 @@ Undaunted ships two prebuilt DLLs:
 Copy them only after their hashes match:
 
 ```powershell
-$A = "C:\dr\undaunted\DauntlessUnbrokenLauncher\assets"
+$A = "C:\dr\dauntless-unbroken\DauntlessUnbrokenLauncher\assets"
 $W = "C:\D144\Dauntless\Archon\Binaries\Win64"
 $pin = @{
   "dxgi.dll"                    = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"  # 11,264 bytes
-  "DauntlessUnbroken.dll" = "520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933"  # 123,392 bytes
+  "DauntlessUnbroken.dll" = "6CE7E0EA3EFF8C6841EA81C67A0EB177D84223AF844F15C6679EF0827143BE8D"  # 306,176 bytes
 }
 foreach ($f in $pin.Keys) {
   if ((Get-FileHash "$A\$f").Hash -ne $pin[$f]) { throw "$f does not match its pinned hash - stop here" }
@@ -257,7 +255,7 @@ Things to know before you rely on them:
   shows it does only what is listed above. The imports of `DauntlessUnbroken.dll` and every
   hard-coded game address in it match the published source or its generated SDK, and it has no
   networking, registry, process-creation or file-write imports of its own. The source of `dxgi.dll`
-  is not in the Undaunted repository and, as far as we know, has not been published. Building the
+  is not in the Dauntless Unbroken repository and, as far as we know, has not been published. Building the
   server DLL from source and writing our own `dxgi` proxy are on the
   [roadmap]({{ roadmap_page.url | relative_url }}).
 - In client mode the DLL opens a console window and enables an in-game console on **F2**.
@@ -376,7 +374,7 @@ client. Friends connecting from another PC don't need it.
 
 ```powershell
 param([string]$Metagame = "127.0.0.1:61000",
-      [string]$Source = "C:\dr\undaunted\DauntlessUnbrokenInternalServer\dllmain.cpp",
+      [string]$Source = "C:\dr\dauntless-unbroken\DauntlessUnbrokenInternalServer\dllmain.cpp",
       [string]$Out = "$env:LOCALAPPDATA\Archon\Saved\Config\WindowsClient\Game.ini")
 # Every endpoint the client-mode DLL rewrites: {L"Key", L"http://" + Globals::MetagameAddress [+ L"/path"]}
 $re = '^\s*\{L"([A-Za-z0-9_]+)", L"http://" \+ Globals::MetagameAddress(?: \+ L"([^"]*)")?\},?'
@@ -447,7 +445,7 @@ A server-side version of the endpoint hook would remove the need for this file. 
 **Install and build.** `dist/` is git-ignored, so you always build it yourself:
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 npm ci --no-audit --no-fund
 npm run build
 Test-Path node_modules\better-sqlite3\build\Release\better_sqlite3.node   # must be True
@@ -472,7 +470,7 @@ MATCHMAKING_MODE=DEPLOYSERVER
 DEPLOYSERVER_URL=127.0.0.1:61001
 REGISTRATION_MODE=OPEN
 NODE_ENV=production
-"@ | Set-Content C:\dr\undaunted\DauntlessUnbrokenMetagame\.env -Encoding ascii
+"@ | Set-Content C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame\.env -Encoding ascii
 ```
 
 **Generate the token-signing keys** and append them without printing them. Use `Add-Content -Encoding
@@ -480,14 +478,14 @@ ascii`, not `>>`: by default, `>>` in Windows PowerShell 5.1 writes UTF-16, whic
 a `.env` file.
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 node -e "const c=require('crypto');const k=c.generateKeyPairSync('rsa',{modulusLength:2048,privateKeyEncoding:{type:'pkcs8',format:'pem'},publicKeyEncoding:{type:'spki',format:'pem'}});console.log('AUTH_SIGNING_PRIVKEY_B64='+Buffer.from(k.privateKey).toString('base64'));console.log('AUTH_SIGNING_PUBKEY_B64='+Buffer.from(k.publicKey).toString('base64'))" | Add-Content .env -Encoding ascii
 ```
 
 | Key | Meaning |
 |---|---|
 | `PORT` | Metagame HTTP port. We use **61000**. See the port note below. |
-| `BIND_HOST` | **Fork only.** Address to listen on. Defaults to `127.0.0.1`. Upstream listened on every interface, which with `REGISTRATION_MODE=OPEN` let anyone who could reach the PC create accounts. Change it only when you follow [Run it for a group]({{ admin_page.url | relative_url }}). |
+| `BIND_HOST` | **Server setting.** Address to listen on. Defaults to `127.0.0.1`. Upstream listened on every interface, which with `REGISTRATION_MODE=OPEN` let anyone who could reach the PC create accounts. Change it only when you follow [Run it for a group]({{ admin_page.url | relative_url }}). |
 | `AUTH_MODE` | `APIKEY`: players log in with a per-account key. `NONE` takes whatever the client sends as the user id. It is honoured only outside production; with `NODE_ENV=production` the login request then gets no answer at all and the game waits. Never use it. |
 | `AUTH_SIGNING_PRIVKEY_B64`, `AUTH_SIGNING_PUBKEY_B64` | RSA key pair, PEM, base64. Signs the 24-hour RS256 session tokens. Generate your own; never reuse anyone else's. |
 | `DB_FILENAME` | SQLite file. Use forward slashes. `C:\dr\data` must exist. |
@@ -496,11 +494,11 @@ node -e "const c=require('crypto');const k=c.generateKeyPairSync('rsa',{modulusL
 | `MATCHMAKING_MODE`, `DEPLOYSERVER_URL` | `DEPLOYSERVER` with host:port and no scheme: hand matchmaking to the deploy server. |
 | `REGISTRATION_MODE` | `OPEN`, `INVITECODE` or `NONE`. `OPEN` is fine while the metagame listens on loopback only. Switch to `INVITECODE` in this file before anyone else can reach it. Changing it through the admin API lasts only until the next restart. |
 | `NODE_ENV` | `production`. The logs are then plain JSON lines. |
-| `LOG_REQUESTS` | **Fork only**, optional. Every request is logged as `METHOD /path gs=0/1` unless this is `0`. Behind the public-mode gateway the line ends with ` via=gateway ip=<player address>`. It is our main diagnostic. |
-| `PROGRESSION_MODE` | **Fork only**, optional. Unset (the default) or `real`: every account keeps its own Slayer level, mastery, Hunt Pass (with the Elite pass for everyone), loadout slots, cooldowns and bounties. `stub`: upstream's fake max ranks, nothing stored. Any other value is logged and treated as real. Updating a server that already has players? Read the [upgrade notes]({{ upgrade_page.url | relative_url }}) first. |
-| `PROGRESSION_REAL_ACCOUNTS` | **Fork only**, optional. Only with `PROGRESSION_MODE=stub`: comma-separated account ids that get real progression anyway. |
+| `LOG_REQUESTS` | **Server setting**, optional. Every request is logged as `METHOD /path gs=0/1` unless this is `0`. Behind the public-mode gateway the line ends with ` via=gateway ip=<player address>`. It is our main diagnostic. |
+| `PROGRESSION_MODE` | **Server setting**, optional. Unset (the default) or `real`: every account keeps its own Slayer level, mastery, Hunt Pass (with the Elite pass for everyone), loadout slots, cooldowns and bounties. `stub`: upstream's fake max ranks, nothing stored. Any other value is logged and treated as real. Updating a server that already has players? Read the [upgrade notes]({{ upgrade_page.url | relative_url }}) first. |
+| `PROGRESSION_REAL_ACCOUNTS` | **Server setting**, optional. Only with `PROGRESSION_MODE=stub`: comma-separated account ids that get real progression anyway. |
 
-**Other optional switches (fork only).** Leave them out to get the default. Every variable, with
+**Other optional switches (Server setting).** Leave them out to get the default. Every variable, with
 what an unset value means and who sets it, is on [Configuration]({{ config_page.url | relative_url }}#metagame).
 
 | Key | Default | What it does |
@@ -526,7 +524,7 @@ Get-NetTCPConnection -LocalPort 61000,61001 -State Listen -ErrorAction SilentlyC
   ForEach-Object { "{0}:{1} is taken by {2}" -f $_.LocalAddress, $_.LocalPort, (Get-Process -Id $_.OwningProcess).ProcessName }
 ```
 
-No output means both ports are free. Our fork now exits with an error if it can't bind, instead of
+No output means both ports are free. our implementation now exits with an error if it can't bind, instead of
 announcing success. See [Troubleshooting]({{ trouble_page.url | relative_url }}#port-60000-is-taken-and-the-metagame-says-clear-skies-anyway).
 
 **First start.** Always start it from its own folder, because the database migrations are found through
@@ -534,7 +532,7 @@ a relative path (`./src/drizzle`). The first start creates the database and runs
 
 ```powershell
 $meta = @{ FilePath = "node"; ArgumentList = "--env-file=.env", "dist/server.js"
-           WorkingDirectory = "C:\dr\undaunted\DauntlessUnbrokenMetagame"; PassThru = $true; WindowStyle = "Hidden"
+           WorkingDirectory = "C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame"; PassThru = $true; WindowStyle = "Hidden"
            RedirectStandardOutput = "C:\dr\data\metagame.log"; RedirectStandardError = "C:\dr\data\metagame.err" }
 $p = Start-Process @meta; Set-Content C:\dr\data\metagame.pid $p.Id
 Start-Sleep 5
@@ -558,7 +556,7 @@ the `x-dauntless-unbroken-gameserver-apikey` header. The metagame stores only a 
 into a queue table, and the metagame hashes and registers it at the next start:
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 $key = node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 Set-Content C:\dr\data\gameserver.key -Value $key -Encoding ascii -NoNewline
 node -e "new (require('better-sqlite3'))(process.argv[1]).prepare('INSERT INTO gameserverapikeystoregister(key) VALUES (?)').run(process.argv[2])" C:/dr/data/dauntless-unbroken.db $key
@@ -586,7 +584,7 @@ We use Node's `fetch` with a timeout here, not `Invoke-RestMethod` (see
 `better-sqlite3` resolves, and replace `YourName`:
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 node -e "(async () => { const name = process.argv[1]; const base = 'http://127.0.0.1:61000/unbroken/api'; const r = await fetch(base + '/Register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Username: name }), signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error('Register returned HTTP ' + r.status); const { UUK } = await r.json(); require('fs').writeFileSync('C:/dr/data/owner.key', UUK); const info = await (await fetch(base + '/GetUserInfo', { headers: { 'x-dauntless-unbroken-user-api-key': UUK }, signal: AbortSignal.timeout(15000) })).json(); new (require('better-sqlite3'))('C:/dr/data/dauntless-unbroken.db').prepare('UPDATE users SET isAdmin = 1 WHERE userId = ?').run(info.UserId); console.log('created ' + name + ' as admin; key saved to C:/dr/data/owner.key (not shown)'); })().catch(e => { console.error(e.message); process.exit(1); })" YourName
 ```
 
@@ -607,7 +605,7 @@ Notes:
 ## 11. Deploy server {#deploy-server}
 
 ```powershell
-Set-Location C:\dr\undaunted\DauntlessUnbrokenDeployServer
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenDeployServer
 npm ci --no-audit --no-fund
 npm run build
 $key = (Get-Content C:\dr\data\gameserver.key -Raw).Trim()
@@ -629,13 +627,13 @@ $key = $null
 | Key | Meaning |
 |---|---|
 | `PORT` | 61001. Only the metagame on the same PC talks to it. |
-| `BIND_HOST` | **Fork only.** Defaults to `127.0.0.1`. Keep it there. The deploy server has no authentication: whoever can call it starts game processes on your PC. As a second check it answers 403 to any caller that is not on this PC. |
+| `BIND_HOST` | **Server setting.** Defaults to `127.0.0.1`. Keep it there. The deploy server has no authentication: whoever can call it starts game processes on your PC. As a second check it answers 403 to any caller that is not on this PC. |
 | `MY_IP` | The address handed to clients for game servers. `127.0.0.1` for local play. |
 | `PORT_RANGE_BEGIN`, `PORT_RANGE_END` | UDP ports for game servers. Ramsgate always takes `END` (8777) and the Dojo `END-1` (8776). Hunts use the rest (8770-8775, so six at a time). |
 | `GAMESERVER_BINARY_PATH` | The 1.4.4 exe, forward slashes. |
 | `METAGAME_API_KEY` | The game-server key from step 9. |
 | `SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP` | Gap between server launches. |
-| `ENABLE_DOJO` | **Fork only.** `0` starts the Training Dojo the first time someone enters it. `1` restores upstream behaviour (start it at boot). |
+| `ENABLE_DOJO` | **Server setting.** `0` starts the Training Dojo the first time someone enters it. `1` restores upstream behaviour (start it at boot). |
 
 Keep the port layout. The server DLL disables its idle shutdown for any port **8776 or higher**. A hunt
 server exits after 50 seconds in total with nobody connected, and only below 8776. To allow more
@@ -645,7 +643,7 @@ Start it:
 
 ```powershell
 $dep = @{ FilePath = "node"; ArgumentList = "--env-file=.env", "dist/server.js"
-          WorkingDirectory = "C:\dr\undaunted\DauntlessUnbrokenDeployServer"; PassThru = $true; WindowStyle = "Hidden"
+          WorkingDirectory = "C:\dr\dauntless-unbroken\DauntlessUnbrokenDeployServer"; PassThru = $true; WindowStyle = "Hidden"
           RedirectStandardOutput = "C:\dr\data\deploy.log"; RedirectStandardError = "C:\dr\data\deploy.err" }
 $p = Start-Process @dep; Set-Content C:\dr\data\deploy.pid $p.Id
 ```
@@ -814,7 +812,7 @@ What the arguments mean:
 - `-AUTH_TYPE=exchangecode` with `-AUTH_PASSWORD=<account key>` makes the game post the key to
   `POST /account/api/oauth/token` as an exchange code. The metagame checks it and returns a 24-hour
   token.
-- The `...lol` values are placeholders. Undaunted's launcher passes exactly these. No Epic account is
+- The `...lol` values are placeholders. the native integration's launcher passes exactly these. No Epic account is
   involved, because 1.4.4 predates Epic Online Services.
 - Traffic is plain HTTP, and the key is visible in the process command line to programs running as
   you. On loopback that is fine. Over a network, use a VPN ([Run it for a group]({{ admin_page.url | relative_url }})).
@@ -905,8 +903,8 @@ Once steps 1-12 are done, this is the whole routine.
 | 1 | Close heavy programs. If you use WSL, run `wsl --shutdown`. | Several GB of RAM free |
 | 2 | Make sure nothing old is running: no `node` on 61000/61001, no `-server` game processes. | Step 12, commands 1 and 4 show nothing |
 | 3 | `Game.ini` is intact. | Step 8 health check: `167 / 0 / 0` |
-| 4 | Start the metagame from `C:\dr\undaunted\DauntlessUnbrokenMetagame` (`Start-Process @meta`, step 9). | Log: `Dauntless Unbroken metagame on 127.0.0.1:61000` |
-| 5 | Start the deploy server from `C:\dr\undaunted\DauntlessUnbrokenDeployServer` (`Start-Process @dep`, step 11). | Log: `Dauntless Unbroken deploy server on port 61001` |
+| 4 | Start the metagame from `C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame` (`Start-Process @meta`, step 9). | Log: `Dauntless Unbroken metagame on 127.0.0.1:61000` |
+| 5 | Start the deploy server from `C:\dr\dauntless-unbroken\DauntlessUnbrokenDeployServer` (`Start-Process @dep`, step 11). | Log: `Dauntless Unbroken deploy server on port 61001` |
 | 6 | Wait for Ramsgate. | A server console window opens; UDP 8777 bound by `Dauntless-Win64-Shipping` |
 | 7 | `powershell -NoProfile -ExecutionPolicy Bypass -File C:\dr\tools\play.ps1` | Metagame log shows `POST /account/api/oauth/token`, then `POST /login` |
 | 8 | Play. Don't close any console window. | `gs=1` lines appear when a server loads you |

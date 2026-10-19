@@ -13,7 +13,7 @@ ref: findings/chat
 {% assign social_page = site.pages | where: "path", "findings/social.md" | first %}
 {% assign trouble_page = site.pages | where: "path", "setup/troubleshooting.md" | first %}
 {% assign winserver_page = site.pages | where: "path", "setup/windows-server.md" | first %}
-{% assign harmonic_page = site.pages | where: "path", "findings/harmonic-fork.md" | first %}
+{% assign integration_page = site.pages | where: "path", "findings/feature-integrations.md" | first %}
 
 # Text chat in 1.4.4
 {: .no_toc }
@@ -40,8 +40,8 @@ this page explains, and his code is what the server grew from.
 
 **Update (30 September 2026): friends' online status is built into the chat server, on by default**
 (`CHAT_PRESENCE=1`, together with `CHAT=1`): [Friends' online status](#presence). The idea of a
-presence service comes from **Harmonic's** 1.4.4 fork; the code is our own and shares nothing with the fork's
-(see [The Harmonic port]({{ harmonic_page.url | relative_url }}#social)).
+presence service comes from **the source integration's** 1.4.4 codebase; the code is our own and shares nothing with the project's
+(see [Feature integrations]({{ integration_page.url | relative_url }}#social)).
 
 <details open markdown="block">
   <summary>Contents</summary>

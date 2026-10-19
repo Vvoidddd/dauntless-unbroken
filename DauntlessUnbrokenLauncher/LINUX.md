@@ -6,8 +6,8 @@ No game files are included in the Linux packages. The launcher downloads or veri
 
 Full distro-by-distro instructions are on the project site:
 
-- [Linux launcher guide (English)](https://mixutin.github.io/dauntless-unbroken/setup/linux.html)
-- [Linux-käynnistimen ohje (suomeksi)](https://mixutin.github.io/dauntless-unbroken/fi/setup/linux.html)
+- [Linux launcher guide (English)](https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html)
+- [Linux-käynnistimen ohje (suomeksi)](https://vvoidddd.github.io/dauntless-unbroken/fi/setup/linux.html)
 
 ## Downloads
 

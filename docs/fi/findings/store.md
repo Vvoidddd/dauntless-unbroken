@@ -6,7 +6,7 @@ nav_order: 11
 lang: fi
 ref: findings/store
 locale: fi_FI
-description: "Miten Dauntless 1.4.4 -peliohjelman kauppa ostaa tavaran, luettuna ohjelmatiedostosta, ja Harmonicin forkin pohjalta rakennettu ilmainen kauppamme: neljä reittiä ja ostotunniste, valikoima ja sen välilehdet, pinottavat ja yksilölliset tavarat, kuka hahmo ostoksen saa ja asetukset."
+description: "Miten Dauntless 1.4.4 -peliohjelman kauppa ostaa tavaran, luettuna ohjelmatiedostosta, ja lähdeintegraation toteutuksen pohjalta rakennettu ilmainen kauppamme: neljä reittiä ja ostotunniste, valikoima ja sen välilehdet, pinottavat ja yksilölliset tavarat, kuka hahmo ostoksen saa ja asetukset."
 ---
 
 {% assign api_page = site.pages | where: "path", "fi/reference/api.md" | first %}
@@ -14,7 +14,7 @@ description: "Miten Dauntless 1.4.4 -peliohjelman kauppa ostaa tavaran, luettuna
 {% assign files_page = site.pages | where: "path", "fi/reference/files.md" | first %}
 {% assign game_page = site.pages | where: "path", "fi/reference/game-settings.md" | first %}
 {% assign contract_page = site.pages | where: "path", "fi/findings/backend-contract.md" | first %}
-{% assign harmonic_page = site.pages | where: "path", "fi/findings/harmonic-fork.md" | first %}
+{% assign integration_page = site.pages | where: "path", "fi/findings/feature-integrations.md" | first %}
 {% assign roadmap_page = site.pages | where: "path", "fi/roadmap.md" | first %}
 {% assign admin_page = site.pages | where: "path", "fi/setup/admin.md" | first %}
 
@@ -32,10 +32,10 @@ ilmaisena vai saako se hinnat pelin omassa valuutassa (tiekartan kohta 3.7), sek
 omalla palvelimellamme. Kun `STORE=off`, kauppanäkymä saa saman virheen kuin ennenkin.
 
 Valikoima, kaksivaiheinen ostotunniste, välilehtien järjestys ja luettelo siitä, miten kukin tavara
-annetaan, ovat peräisin **Harmonicin** Dauntless 1.4.4 -forkista
-([github.com/Harmonicrain/Undaunted](https://github.com/Harmonicrain/Undaunted), muutos `895f7c7`),
+annetaan, ovat peräisin **lähdeintegraation** Dauntless 1.4.4 -toteutuksesta
+([source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html), muutos `895f7c7`),
 jossa hän kokeili kauppaa pelissä. Rakensimme reitit omien tavara-, oikeus- ja lokikoodiemme päälle.
-Mitä otimme ja mitä muutimme, kerrotaan sivulla [Harmonicin työn siirto]({{ harmonic_page.url | relative_url }}).
+Mitä otimme ja mitä muutimme, kerrotaan sivulla [lähdeintegraation työn siirto]({{ integration_page.url | relative_url }}).
 
 <details open markdown="block">
   <summary>Sisältö</summary>
@@ -50,7 +50,7 @@ Mitä otimme ja mitä muutimme, kerrotaan sivulla [Harmonicin työn siirto]({{ h
 |:-------|:------|
 | **B** | 1.4.4-ohjelmatiedosto (`Dauntless-Win64-Shipping.exe`): merkkijonot ja konekielinen koodi. Osoitteet ovat muistiosoitteita, joiden perusosoite on `0x140000000`. |
 | **K** | Päätepisteiden taulukko tiedostossa `DauntlessUnbrokenInternalServer/dllmain.cpp` sekä peliohjelman omat datataulukot. |
-| **O** | Harmonic näki tämän pelissä omalla forkillaan (yksi peliohjelma), ei vielä meidän palvelimellamme. |
+| **O** | the source integration näki tämän pelissä omalla forkillaan (yksi peliohjelma), ei vielä meidän palvelimellamme. |
 | **S** | Vahva päätelmä: yksi ketjun lenkki on jäljittämättä. |
 | **G** | Oma suunnitteluratkaisumme, kun peliohjelma ei ratkaise asiaa. |
 | **C** | Oma koodimme ja testimme. |
@@ -75,9 +75,9 @@ tarvinnut muuttaa.
   tarjouksen hintakentistä; muu valuutta torjutaan vastauksella 400).
 - Tarjouksen hintakentät ovat **litteitä**: `platinumPrice`, `platinumSalePrice`, `cellDustPrice`,
   `prestigePrice`, `event01Price`, `steelMarksPrice` ja `gildedMarksPrice` (B, kenttien nimet
-  1.4.4-ohjelmatiedostossa, Harmonicin lukemina). Myöhempien versioiden `prices: [{currencyId, price}]`
+  1.4.4-ohjelmatiedostossa, lähdeintegraation lukemina). Myöhempien versioiden `prices: [{currencyId, price}]`
   -taulukolle 1.4.4:ssä ei ole lukijaa, joten sellaisella tarjouksella ei ole hintaa, jonka peliohjelma
-  tunnistaisi, ja se jätetään pois (S, Harmonicin muistiinpanoista: kauppa jää tyhjäksi).
+  tunnistaisi, ja se jätetään pois (S, lähdeintegraation muistiinpanoista: kauppa jää tyhjäksi).
 - `remaining` kertoo peliohjelmalle, voiko tarjouksen vielä ostaa. Lähetämme 0, kun hahmolla on jo
   jokainen tarjouksen tavara ja tilillä jokainen oikeus (entitlement), jonka tarjous antaa.
 
@@ -97,9 +97,9 @@ metagame hakee tarjouksen joka kerta sen tunnuksella.
 | `season09b_rank` | 0 | Hunt Passin tasohypyt. Vastaus on tyhjä: tasohyppy olisi etenemisen myöntö eikä tavara (katso alta). |
 | `loadout_slots`, `fountain_daily_free_bundle` | 0 | Tunnisteita, joita 1.4.4-peliohjelma pyytää; niiden alla ei myydä mitään. |
 
-Nämä viisi ovat tunnisteet, joita Harmonic näki 1.4.4-peliohjelman pyytävän (O). Muu tunniste saa
+Nämä viisi ovat tunnisteet, joita the source integration näki 1.4.4-peliohjelman pyytävän (O). Muu tunniste saa
 tyhjän listan ja varoitusrivin lokiin. Jokaisen tarjouksen `platinumPrice` on 0. Muutama asia
-valikoimasta, Harmonicin työn pohjalta:
+valikoimasta, lähdeintegraation työn pohjalta:
 
 - **Kaupan välilehdet.** Jokaisella tarjouksella on tunnisteen `webstore` lisäksi luokkatunnisteita
   (`skin_armour`, `feature`, `social_emote`, `personality_fabric` ja niin edelleen). Kaupan
@@ -128,14 +128,14 @@ Tavara tulee tavaraluetteloon (inventaario) jommallakummalla tavalla: **pinona**
 määrä) tai **yksilönä** (tavara, jolla on oma yksilötunnuksensa). Peliohjelman tavaraluettelo
 ratkaisee, kumpi, kunkin tavaran pinottavuusmerkinnän kautta, ja väärä laji jättää tavaran
 näkymättömäksi tai rikkoo tavaraluettelon. `DauntlessUnbrokenMetagame/src/vendor/store_item_kinds.json` kirjaa
-merkinnän kaikille 211 kaupan tavaralle (95 pinottavaa, 116 yksilöllistä), Harmonicin peliohjelman
+merkinnän kaikille 211 kaupan tavaralle (95 pinottavaa, 116 yksilöllistä), lähdeintegraation peliohjelman
 tavaraluettelosta lukemana. Nimen alkuun perustuva sääntö menisi yksittäisissä tavaroissa pieleen:
 useimmat aseiden ulkoasut ja muutama saapumisanimaatio ovat yksilöllisiä, kun taas muutama kangas ja
 lyhty on pinottava.
 
 - **Pinottavan panssarin nähtiin toimivan pelissä** (O). Kauppa myy panssaria vain siellä, missä se on
   pinottavaa.
-- **Yksilöllisiä tavaroita ei ole todistettu pelissä**, ei edes Harmonicin forkissa. Yksilötunnus on
+- **Yksilöllisiä tavaroita ei ole todistettu pelissä**, ei edes lähdeintegraation forkissa. Yksilötunnus on
   `sha256(<tunnisteen tiiviste>:<tavaran tunnus>)` 32 heksamerkkiin lyhennettynä, joten toistettu
   vahvistus nimeää saman yksilön. Pelitestissä ostetaan yksi yksilöllinen aseen ulkoasu ja katsotaan,
   että se näkyy ja sen voi ottaa käyttöön uudelleenkirjautumisen jälkeen.
@@ -154,7 +154,7 @@ tallennettuja versioita ei ole, ratkaisee myöhempi `lastModifiedDate` ja sitten
 hahmoa, saa tunnisteesta vastauksen 409, ja vahvistus hylätään (403), jos tunnisteen hahmo ei enää
 kuulu tilille.
 
-Harmonicin versio hylkäsi tilit, joilla on useampi hahmo. Ennen kuin `STORE=free` otetaan käyttöön
+lähdeintegraation versio hylkäsi tilit, joilla on useampi hahmo. Ennen kuin `STORE=free` otetaan käyttöön
 oikeille pelaajille, ylläpitäjä laskee hahmojen määrän tiliä kohden elävästä tietokannasta (vain lukeva
 kysely on sivulla [Palvelin ryhmälle]({{ admin_page.url | relative_url }}#switching-features-on));
 sitä, monellako tilillä on useampi hahmo, ei ole vielä laskettu.
@@ -195,7 +195,7 @@ pelkkä pelipalvelimen avain saa 403. Ostot voi jäljittää (`inventorylog.call
 
 | Pois jätetty | Miksi |
 |:-------------|:------|
-| Harmonicin `season09b_10_ranks`-tarjous (kymmenen Hunt Pass -tasoa) | Se antoi `CURRENCY_PRESTIGE`-valuuttaa, jota hänen oma kauppakoodinsa ei pystynyt myymään (ei myöntölajia: 409). Oikea tasohyppy on etenemisen myöntö tasosääntöjen kautta, ei tavara. |
+| lähdeintegraation `season09b_10_ranks`-tarjous (kymmenen Hunt Pass -tasoa) | Se antoi `CURRENCY_PRESTIGE`-valuuttaa, jota hänen oma kauppakoodinsa ei pystynyt myymään (ei myöntölajia: 409). Oikea tasohyppy on etenemisen myöntö tasosääntöjen kautta, ei tavara. |
 | Hinnat | Jokainen tarjous on ilmainen, kunnes ylläpitäjä päättää toisin (3.7). Koodi hylkää tarjouksen, jonka `platinumPrice` ei ole 0. |
 | Palkkiotehtävien tunnisteiden paketti, oletuksena | `bundle_currency_bounty_small` antaa 20 `TOKEN_BOUNTY_DRAFT_PREMIUM`-tunnistetta (premium-palkkiotehtävien tunniste, joka säilyy seuraavaan kauteen), ja sen voi ostaa kuinka monta kertaa tahansa: rajattomasti ilmaisia premium-palkkiotehtäviä. Se on listalla vain, kun `STORE_REPEATABLE_TOKENS=1`, ja siitä päättää ylläpitäjä. Tunniste, joka annettiin asetuksen ollessa päällä, hylätään (409), kun asetus on pois. |
 | Trials-, tapahtuma- ja prestige-kaupat, kennopölyn vaihto, varustesarjapaikkojen ostot | Sama palvelu pyöritti niitä; niille ei ole vielä rakennettu mitään (3.7, 3.9). |

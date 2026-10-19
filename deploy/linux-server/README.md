@@ -84,7 +84,7 @@ the game tree you pass with `--game-dir`.
 
 ## Public firewall
 
-The allowlist helper owns only the nftables table `inet dauntless_revived`. It keeps UDP
+The allowlist helper owns only the nftables table `inet dauntless_unbroken`. It keeps UDP
 8770-8777 closed except for currently authenticated player IPs. The TLS gateway listens on TCP 443.
 
 If another firewall manager (UFW, firewalld, a cloud firewall) also filters the host, it must permit

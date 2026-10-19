@@ -2,7 +2,7 @@
 title: How multiplayer works
 parent: Findings
 nav_order: 6
-description: "How Undaunted runs multiplayer on the client-only Dauntless 1.4.4 build: an injected DLL turns extra client copies into game servers for Ramsgate and hunts."
+description: "How Dauntless Unbroken runs multiplayer on the client-only Dauntless 1.4.4 build: an injected DLL turns extra client copies into game servers for Ramsgate and hunts."
 lang: en
 ref: findings/multiplayer
 ---
@@ -14,10 +14,10 @@ ref: findings/multiplayer
 {: .no_toc }
 
 The Dauntless executable is a client-only build. On its own it cannot host a game. Even so,
-[Undaunted](https://github.com/SyST3MDeV/Undaunted) runs a shared Ramsgate and multi-player hunts on
+[source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html) runs a shared Ramsgate and multi-player hunts on
 the genuine **1.4.4** client. It does this by loading a DLL into extra copies of the same exe, which
 turns each copy into a game server. This page explains why that works and how the pieces fit
-together. Everything here about Undaunted's code applies to **1.4.4 only**. For the evidence that
+together. Everything here about the native integration's code applies to **1.4.4 only**. For the evidence that
 the build is client-only, see [Client internals]({{ ci_page.url | relative_url }}).
 
 > **Correction.** After disassembling the 2.1.1 client, we once wrote that multiplayer was
@@ -49,7 +49,7 @@ most of what a server needs once it is one.
 | Control-message handling (Hello, Login, Join) in `UWorld::NotifyControlMessage` | Intact | 2.1.1: `0x1453e5d40`, with a full `NMT_*` jump table |
 | Game-mode login (`PreLogin`, `PostLogin`, spawning the player) | Intact | `AArchonGameMode::PostLogin` at `0x14B7460` |
 | Actor channels and `ReplicateActor` | Intact | `CreateChannelByName` `0x3449E10`, `ReplicateActor` `0x327E860` |
-| The engine's own server replication loop | Not used by Undaunted | Its `ServerReplicateActors_*` helper names are absent from both exes. We read this as stripped too, but missing names are weak evidence (**not proven**). |
+| The engine's own server replication loop | Not used by Dauntless Unbroken | Its `ServerReplicateActors_*` helper names are absent from both exes. We read this as stripped too, but missing names are weak evidence (**not proven**). |
 
 So the missing parts are the call that opens a listening net driver, the net-mode answer, the two
 global flags and, as far as we can tell, the server replication loop. Everything else is compiled
@@ -57,7 +57,7 @@ in, but the stock client never calls it.
 
 ---
 
-## Undaunted's design
+## the native integration's design
 
 | Component | Language | Role |
 |---|---|---|
@@ -80,7 +80,7 @@ in, but the stock client never calls it.
   The launcher's hash check is the only guard. Loaded into any other exe, the DLL would write into
   the wrong code. The 1.4.4 exe it targets has SHA-256
   `d3d41e614908d2befd518b27046d9822d6130ef12ba3504babbdb786bef9cff4`, the value pinned in
-  Undaunted's launcher. None of the offsets match 2.1.1.
+  the native integration's launcher. None of the offsets match 2.1.1.
 
 ### One DLL, two modes
 
@@ -149,7 +149,7 @@ Other server-side hooks:
 **How a server talks to the backend.** Server mode adds an `x-dauntless-unbroken-gameserver-apikey` header to
 every HTTP request the process makes. The metagame accepts that header, and if the request also
 carries a player's bearer token, it attributes the request to that player. Server mode does **not**
-redirect any endpoint URLs, and the upstream code does not show how Undaunted's servers reach the
+redirect any endpoint URLs, and the upstream code does not show how the native integration's servers reach the
 metagame. On our host, the server processes run under the same Windows account as the client. They
 read the same user `Game.ini`, which has quoted overrides for all 167 endpoint keys pointing at the
 metagame. See [Client internals]({{ ci_page.url | relative_url }}) for why the quotes are
@@ -197,13 +197,13 @@ The player's client loads the same DLL. In client mode, the first argument is th
 
 The deploy server is a small Express app. Upstream has a single endpoint,
 `POST /api/matchmaker/handle-matchmaking-for-player`, which has **no authentication**, and listens on
-all interfaces. Our fork binds it, and the metagame, to `127.0.0.1` by default. It adds a second,
+all interfaces. our implementation binds it, and the metagame, to `127.0.0.1` by default. It adds a second,
 read-only route, `GET /gameservers`, which lists the running game servers for the metagame's
 `ServerStatus`. Both routes are still unauthenticated, and both answer 403 to any caller that is not
 on loopback or that came through a proxy. [HTTP API]({{ api_page.url | relative_url }}#deploy-server)
 has the details.
 
-| Instance | Upstream | Our fork |
+| Instance | Upstream | our implementation |
 |---|---|---|
 | Ramsgate | One shared, persistent process on `PORT_RANGE_END`, started at boot | Same, and started again when a player travels there while it is dead |
 | Training Dojo | One persistent process on `PORT_RANGE_END - 1`, started at boot | Started the first time someone is matchmade into it. `ENABLE_DOJO=1` restores the upstream behaviour. |
@@ -219,7 +219,7 @@ has the details.
 - **Supervision.** Once a minute, a watchdog checks each process with `process.kill(pid, 0)`. If the
   Ramsgate or Dojo process has disappeared, it starts a new one. It never kills anything, because
   hunt servers shut themselves down.
-- **A dead Ramsgate on demand (our fork, 23 September 2026, from Harmonic's fork).** Before it hands
+- **A dead Ramsgate on demand (our implementation, 23 September 2026, from the source integration's codebase).** Before it hands
   out Ramsgate or the Dojo (a `CITY` trip, the Dojo, or the fallback to Ramsgate), the deploy server
   checks the same way that the process is still alive, and starts a dead one first
   (`PERSISTENT_WORLD_LIVENESS`, on by default; `0` leaves it to the watchdog, as before). Before, a
@@ -236,10 +236,10 @@ has the details.
   500 `{"error": "no_game_server"}`, and the metagame answers the players' status polls with `FAILED`.
 - **The reply.** The deploy server returns `{host, port}` as soon as it has spawned the process. It
   does not wait for the server to be ready. A new server only starts listening about three seconds
-  after its world exists. Harmonic's fork waits for the game's UDP port first; we left that out for
+  after its world exists. the source integration's codebase waits for the game's UDP port first; we left that out for
   now, because it would hold the player's travel request open for the whole server boot, the client's
   time limit for that request is unknown, and a 60-second deadline could kill a Ramsgate that boots
-  slowly (roadmap 4.6). The fork's game-server log files were left out too: the server DLL gives the engine a
+  slowly (roadmap 4.6). the project's game-server log files were left out too: the server DLL gives the engine a
   fixed command line and redirects its output, so the files would stay nearly empty.
 
 Our port layout on the host:
@@ -250,7 +250,7 @@ Our port layout on the host:
 | Deploy server | TCP `127.0.0.1:61001` |
 | Game servers | UDP 8770–8777. Ramsgate on 8777, Dojo on 8776, hunts on 8770–8775. |
 
-We moved the metagame off Undaunted's development default of 60000 because another application on
+We moved the metagame off the native integration's development default of 60000 because another application on
 our host already uses that port.
 
 ---
@@ -274,12 +274,12 @@ client                     metagame                      deploy server          
   |== UDP: Hello / Login / Join (stock engine handshake) ============================>|
 ```
 
-- **The status reply.** Undaunted's `/candidate/status` returns `MATCHING` until the server is
+- **The status reply.** the native integration's `/candidate/status` returns `MATCHING` until the server is
   known, then `IN_PROGRESS` with `serverInfo {buildId, gameSessionId, host, port}`. It asks the
-  client to poll every 10 seconds (`candidateStatusPeriodMillis: 10000`). Our fork answers `FAILED`
+  client to poll every 10 seconds (`candidateStatusPeriodMillis: 10000`). our implementation answers `FAILED`
   (with `statusReason: null` and no `serverInfo`) when the deploy server could not give a server: a
   500 or 503, a reply without a host, a quoted port, a body that is not JSON or a dropped connection,
-  each tested on the Ramsgate, tutorial and queued-hunt paths (the failure cases come from Harmonic's
+  each tested on the Ramsgate, tutorial and queued-hunt paths (the failure cases come from the source integration's
   tests). Upstream sent the group to host `""` and port 0 instead.
 - **Grouping.** Hunts that need matchmaking are grouped by player hunt id. A group is sent to the
   deploy server when it reaches 4 players, or 20 seconds after the last player joined. The
@@ -301,7 +301,7 @@ client                     metagame                      deploy server          
   - The client builds its travel URL as
     `%s:%d?ticket=%s?gameSessionId=%s?EncryptionToken=%s`, with `?` between every option.
 
-  We have not re-derived these rules for 1.4.4, though Undaunted's replies fit them.
+  We have not re-derived these rules for 1.4.4, though the native integration's replies fit them.
 
 ---
 
@@ -335,12 +335,12 @@ make the client host, and that real multiplayer would need a server build Phoeni
 
 The evidence was right. The conclusion was not. We treated "the stock code path cannot reach this
 code" as "this code cannot run". What changed our minds was the report that other people were
-matchmaking into Ramsgate with the same files. Undaunted shows the core of what is needed on 1.4.4:
+matchmaking into Ramsgate with the same files. Dauntless Unbroken shows the core of what is needed on 1.4.4:
 one patched call, five byte patches, one net-mode hook, a direct call into the intact `InitListen`,
 a fix for the net driver's notify pointer, and a hand-written replication loop. Its other hooks
 cover the command line, the boot map and gameplay details.
 
-We have not tried the same on 2.1.1. None of Undaunted's offsets carry over. The equivalent 2.1.1
+We have not tried the same on 2.1.1. None of the native integration's offsets carry over. The equivalent 2.1.1
 functions we found (the `Listen` stub at `0x140bfde50`, `GetNetMode` at `0x1453e4ef0`, the
 `GIsClient` write at `0x140c0f683`, `InitListen` at `0x140c6d200`) suggest the same approach would
 apply there. That is **unverified**.
@@ -355,5 +355,5 @@ apply there. That is **unverified**.
   from source.
 - **Double ability activation.** The server's RPC hook activates an ability directly and then also
   calls the original RPC. Whether that activates abilities twice is untested.
-- **Four players.** Normal and 4-player hunts are reported working in Undaunted's history, but we
+- **Four players.** Normal and 4-player hunts are reported working in the native integration's history, but we
   have only run the tutorial hunt and Ramsgate ourselves.

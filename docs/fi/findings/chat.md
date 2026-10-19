@@ -15,7 +15,7 @@ description: "Miten Dauntless 1.4.4 käyttää tekstichattia palvelimemme kanssa
 {% assign social_page = site.pages | where: "path", "fi/findings/social.md" | first %}
 {% assign trouble_page = site.pages | where: "path", "fi/setup/troubleshooting.md" | first %}
 {% assign winserver_page = site.pages | where: "path", "fi/setup/windows-server.md" | first %}
-{% assign harmonic_page = site.pages | where: "path", "fi/findings/harmonic-fork.md" | first %}
+{% assign integration_page = site.pages | where: "path", "fi/findings/feature-integrations.md" | first %}
 
 # Tekstichat versiossa 1.4.4
 {: .no_toc }
@@ -43,8 +43,8 @@ havaintonsa, ja palvelin on kasvanut hänen koodistaan.
 
 **Päivitys 30.9.2026: kavereiden paikalla olo on rakennettu chat-palvelimeen, oletuksena päällä**
 (`CHAT_PRESENCE=1` yhdessä asetuksen `CHAT=1` kanssa): [Kavereiden paikalla olo](#presence).
-Läsnäolopalvelun idea on **Harmonicin** 1.4.4-haarasta; koodi on omaamme eikä jaa mitään hänen
-koodistaan (katso [Harmonicin työn siirto]({{ harmonic_page.url | relative_url }}#social)).
+Läsnäolopalvelun idea on **lähdeintegraation** 1.4.4-haarasta; koodi on omaamme eikä jaa mitään hänen
+koodistaan (katso [lähdeintegraation työn siirto]({{ integration_page.url | relative_url }}#social)).
 
 <details open markdown="block">
   <summary>Sisältö</summary>

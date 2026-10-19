@@ -72,7 +72,6 @@ Windowsin deploy-palvelimen prosessirajapintaa ei muutettu. Linuxissa
 
 ## Vaatimukset
 
-> **Hostattu Linux:** EU Gamehost on projektin kumppani. [Hosting-kumppanin opas]({{ "/fi/setup/hosting-partner.html" | relative_url }}) sisältää pakettiesimerkkejä; varmista ennen tilausta tarvitsemasi käyttöjärjestelmä ja virtualisointi.
 
 - x86_64 Linux + glibc
 - Node.js **20.19+** (22 tai 24 suositeltu)
@@ -121,7 +120,7 @@ Julkisessa tilassa:
 - metagame/content/deploy ovat sen takana;
 - UDP 8770-8777 on kiinni kaikilta paitsi kirjautuneiden pelaajien osoitteilta.
 
-Allowlist omistaa oman nftables-taulun `inet dauntless_revived`.
+Allowlist omistaa oman nftables-taulun `inet dauntless_unbroken`.
 
 ## Proton tai Wine
 
@@ -219,7 +218,7 @@ config-kansiot.
 käytössä.
 
 **Gateway toimii mutta metsästys ei:** tarkista palveluntarjoajan palomuuri ja nftables-taulu
-`dauntless_revived`.
+`dauntless_unbroken`.
 
 **Ramsgate käynnistyy jatkuvasti uudelleen:** tarkista `journalctl -u dauntless-deploy` ja
 Proton/Wine-lokit ennen pelitiedostojen muuttamista.

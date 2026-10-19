@@ -412,7 +412,7 @@ ohjeen mukaan ennen kuin jätät sen päälle; rivin poistaminen kytkee sen taas
 
 ### Muut ominaisuudet, jotka kytketään tiedostossa `metagame.env` {#other-switches}
 
-Paketti ei kirjoita yhtään Harmonicin forkin siirron mukana tulleista kytkimistä, joten paketin
+Paketti ei kirjoita yhtään lähdeintegraation toteutuksen siirron mukana tulleista kytkimistä, joten paketin
 palvelimella ne ovat oletusarvoissaan: Slayer Links päällä; Escalation (`ESCALATION_MODE`), kauppa
 (`STORE`) ja kavereiden paikalla olo pois. Muuttaaksesi jotakin lisää rivi tiedostoon
 `C:\DauntlessUnbroken\data\config\metagame.env` (deploy-palvelimelle `deployserver.env`)

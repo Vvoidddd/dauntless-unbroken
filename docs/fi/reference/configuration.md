@@ -108,7 +108,7 @@ Säännöt, jotka koskevat kaikkia osia:
 
 ## Ominaisuuskytkimet {#feature-switches}
 
-Jokainen alla oleva kytkin muuttaa yhtä toimintoa. Forkin omat korjaukset ovat oletuksena päällä, ja
+Jokainen alla oleva kytkin muuttaa yhtä toimintoa. toteutuksen omat korjaukset ovat oletuksena päällä, ja
 jokaisesta pääsee vertailuja varten takaisin alkuperäisen projektin toimintaan. Muutokset, jotka ovat
 vielä todistamattomia, riskialttiita tai vain kehitystä varten, ovat pois päältä.
 
@@ -188,7 +188,7 @@ etenemistä; katso [päivitysohjeet]({{ upgrade_page.url | relative_url }}#real-
 Kun `GATEWAY_SECRET` on asetettu, se tekee julkisen tilan tarkistukset, jotka on lueteltu kyseisen
 muuttujan kohdalla.
 
-Sen jälkeen tulee kaksi riviä Harmonicin forkin siirron mukana tulleista asetuksista:
+Sen jälkeen tulee kaksi riviä lähdeintegraation toteutuksen siirron mukana tulleista asetuksista:
 
 ```text
 features: bodyLogPerPath=no-cap escalation=stub escalationStrict=off store=off storeRepeatableTokens=off replayWindow=5s confirmEntitlements=off balanceFromInventory=on slayerLinks=on chatPresence=on verifyStubAccount=off
@@ -263,7 +263,7 @@ rekisteröityneet pelaajat osoitteesta `GET /unbroken/api/ServerStatus` (katso
 | `SERVER_NAME` | `Dauntless Unbroken` | tulostettavia ASCII-merkkejä, katkaistaan 64 merkkiin | Palvelimen nimi tilavastauksissa sekä `/dauntless-status`-vastauksen pelissä näkyvässä tervetulotekstissä (`Welcome to <nimi>!`, käännettynä jokaiselle vastauksen kahdeksasta kielestä). | Paketti: aina, parametrista `-ServerName` (oletus `Dauntless Unbroken`). Asennusohjelma ei muista sitä: anna `-ServerName` joka ajokerralla, tai nimi palaa oletukseksi. |
 | `SERVER_VERSION` | käännöksen aikana kirjattu versio (`dist/build-info.json`), sitten `package.json`, sitten `unknown` | tulostettavia ASCII-merkkejä, enintään 32 merkkiä | Versio tilavastauksissa. | Oletuksena ei kukaan |
 | `GIT_COMMIT` | käännöksen aikana kirjattu commit (perässä `-dirty`, jos metagamen kansiossa oli committoimattomia muutoksia), sitten `unknown` | enintään 64 merkkiä: kirjaimia, numeroita ja merkkejä `._+-`; muunlainen arvo ohitetaan | Commit, josta käynnissä oleva koodi on peräisin. | Paketti: aina (asennettu commit); `Update-DauntlessUnbrokenServer.ps1` kirjoittaa sen uudelleen jokaisessa päivityksessä ja palautuksessa |
-| `SOURCE_URL` | `https://github.com/Vvoidddd/dauntless-unbroken` | URL, tulostettavia ASCII-merkkejä, enintään 256 merkkiä | Missä käynnissä olevan palvelimen lähdekoodi on, AGPL-lisenssin lähdekooditarjousta varten ([Kiitokset ja lisenssi]({{ legal_page.url | relative_url }})). Jos ajat muokattua koodia muille, osoita se muokattuun lähdekoodiisi. | Paketti: aina repositorion osoite tiedostosta `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`, joten käsin tehty muutos kirjoitetaan yli seuraavalla asennuskerralla; fork muuttaa osoitteen siellä |
+| `SOURCE_URL` | `https://github.com/Vvoidddd/dauntless-unbroken` | URL, tulostettavia ASCII-merkkejä, enintään 256 merkkiä | Missä käynnissä olevan palvelimen lähdekoodi on, AGPL-lisenssin lähdekooditarjousta varten ([Kiitokset ja lisenssi]({{ legal_page.url | relative_url }})). Jos ajat muokattua koodia muille, osoita se muokattuun lähdekoodiisi. | Paketti: aina repositorion osoite tiedostosta `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`, joten käsin tehty muutos kirjoitetaan yli seuraavalla asennuskerralla; codebase muuttaa osoitteen siellä |
 | `CONTENT_PORT` | puuttuu tai virheellinen: porttia ei ilmoiteta | 1-65535 | Kertoo käynnistimille, mitä porttia sisältöpalvelin (pelin lataukset, uutiset, kuvat) käyttää. | Paketti: aina, kun sisältöpalvelin on asennettu (61002), muuten poistetaan |
 | `STATUS_EXTRA` | päällä | `0` tai mikä tahansa muu | **Vain forkissa.** `GET /dauntless-status` lisää kentät `name`, `version`, `commit` ja `sourceUrl` niiden yhdeksän kentän perään, jotka peli lukee. `0` vastaa pelkillä yhdeksällä kentällä, kuten alkuperäinen projekti. Reitti vastaa kenelle tahansa eikä koskaan nimeä pelaajia. | Oletuksena ei kukaan |
 
@@ -595,7 +595,7 @@ Muut säännöt:
   On. Valinta tallennetaan tiedostoon `server.json`. `Set-Chat.ps1 -On` tai `-Off` muuttaa sitä
   myöhemmin sekä tiedostossa `metagame.env` että `server.json`. Yksityisessä tilassa chattia ei vielä
   ole.
-- Asennusohjelma ei kirjoita yhtään Harmonicin forkin siirron mukana tullutta kytkintä
+- Asennusohjelma ei kirjoita yhtään lähdeintegraation toteutuksen siirron mukana tullutta kytkintä
   (`ESCALATION_*`, `STORE*`, `SLAYER_LINKS`, `CHAT_PRESENCE`, `VERIFY_STUB_ACCOUNT`,
   `BALANCE_FROM_INVENTORY`, `PROGRESSION_REPLAY_WINDOW_S`, `PROGRESSION_CONFIRM_ENTITLEMENTS`,
   `PROGRESSION_CONFIG_DIR`, `ACTIVE_HUNT_PASS`, `BODY_LOG_PER_PATH` sekä `PERSISTENT_WORLD_LIVENESS`
@@ -704,13 +704,13 @@ Vain automaattiset testit lukevat näitä. Testien ajamisesta kerrotaan sivulla
 - `EXPERIMENTAL_CHAT` kytki päälle ensimmäisen chat-kokeiluversion. Mikään ei lue sitä enää: kytkin on
   [`CHAT`](#metagame-chat), ja metagame varoittaa käynnistyessään, jos se löytää vanhan nimen ilman
   uutta.
-- Harmonicin 1.4.4-haarassa on asetuksia, joita emme ottaneet
-  ([miksi]({{ '/fi/findings/harmonic-fork.html' | relative_url }})): `WIRE_CAPTURE`,
+- lähdeintegraation 1.4.4-haarassa on asetuksia, joita emme ottaneet
+  ([miksi]({{ '/fi/findings/feature-integrations.html' | relative_url }})): `WIRE_CAPTURE`,
   `WIRE_CAPTURE_MAX_BODY` ja `WIRE_CAPTURE_MAX_PER_PATH` (meidän `LOG_BODIES` ja `BODY_LOG_PER_PATH`
   hoitavat saman), `HUNT_PASS_SEASONS_DIR` (meillä `PROGRESSION_CONFIG_DIR`),
   `HUNT_PASS_PREMIUM_MODE`, `XMPP_PORT` sekä deploy-palvelimessa `ENABLE_WATCHDOG`, `HOST`,
   `GAMESERVER_LOG_DIR`, `GAMESERVER_LOG_CMDS` ja `METAGAME_ADDRESS`; hänen DLL:ssään
-  `UNDAUNTED_DIAG_LOG`. Mikään täällä ei lue niitä.
+  older diagnostic variables. Mikään täällä ei lue niitä.
 
 
 Julkisen metsästysjonon ryhmittely kestää enintään 5 sekuntia ensimmäisestä liittymisestä

@@ -15,5 +15,5 @@ See LICENSE.txt and DauntlessUnbrokenLauncher/THIRD-PARTY-NOTICES.txt for the ap
 
 The new purple launcher artwork and emblem were generated for Dauntless
 Unbroken using OpenAI image generation. The launcher layout and editable
-wordmark belong to this fork; upstream artwork remains attributed in the
+wordmark belong to this project; upstream artwork remains attributed in the
 repository's history.

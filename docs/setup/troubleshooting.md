@@ -37,7 +37,7 @@ setup itself is in [Host a server]({{ host_page.url | relative_url }}). Unless a
 
 | Source | What it tells you |
 |---|---|
-| `C:\dr\data\metagame.log` | One JSON line per event. The fork logs every request as `METHOD /path gs=0` (client) or `gs=1` (game server). This is the main instrument: how far did the client get, and what did it ask for last? |
+| `C:\dr\data\metagame.log` | One JSON line per event. the project logs every request as `METHOD /path gs=0` (client) or `gs=1` (game server). This is the main instrument: how far did the client get, and what did it ask for last? |
 | `C:\dr\data\deploy.log` | Matchmaking requests, `Running Gameserver Watchdog!` every 60 s, `Cleaning up Gameserver on port N` when a server exits. |
 | Game-server console windows | Opened by the server DLL; they show the server's own output. Ramsgate's and the Dojo's are visible. Hunt servers are started with their window hidden. |
 | Client console window | Opened by the DLL in client mode and kept hidden. To see it, turn on Settings > Launcher > Troubleshooting > "Show the log window" in the launcher (it sets `DR_SHOW_CONSOLE=1` for the game). **With it on, if no console window appears when the client starts, the DLLs are not loaded.** |
@@ -83,7 +83,7 @@ forever. The request log stayed empty.
   `DEPLOYSERVER_URL` in the metagame `.env` and `PORT` in the deploy server's `.env`. Then
   **regenerate** `Game.ini` with `make-gameini.ps1 -Metagame 127.0.0.1:61000`
   ([Host a server, step 8]({{ host_page.url | relative_url }}#game-ini)).
-- Our fork's metagame and deploy server now treat a failed bind as fatal and exit with code 1:
+- our implementation's metagame and deploy server now treat a failed bind as fatal and exit with code 1:
 
   ```
   Could not listen on 127.0.0.1:60000: listen EADDRINUSE: address already in use 127.0.0.1:60000
@@ -127,7 +127,7 @@ also update the database through `better-sqlite3` (see
 
 ## git: "Filename too long" and "'$GIT_DIR' too big" {#git-filename-too-long}
 
-**Symptom.** Cloning Undaunted into a deeply nested working folder printed
+**Symptom.** Cloning Dauntless Unbroken into a deeply nested working folder printed
 `error: unable to create file ...: Filename too long`, even for files like
 `.git/hooks/fsmonitor-watchman.sample`. It then ended with:
 
@@ -145,8 +145,8 @@ repository location itself being too long.
 **Fix.** Clone to a short path and keep `core.longpaths` set for the files inside:
 
 ```powershell
-git -c core.longpaths=true clone <URL of this repository> C:\dr\undaunted
-git -C C:\dr\undaunted config core.longpaths true
+git -c core.longpaths=true clone <URL of this repository> C:\dr\dauntless-unbroken
+git -C C:\dr\dauntless-unbroken config core.longpaths true
 ```
 
 We didn't enable Windows' system-wide long-path setting. The short path made it unnecessary. The
@@ -314,7 +314,7 @@ Get-MpThreatDetection -ErrorAction SilentlyContinue | Where-Object { $_.InitialD
   mark.
 
 The lasting fix is to build `DauntlessUnbroken.dll` from source and replace `dxgi.dll` with our
-own small proxy. The source of `dxgi.dll` is not in the Undaunted repository and, as far as we know,
+own small proxy. The source of `dxgi.dll` is not in the Dauntless Unbroken repository and, as far as we know,
 has not been published. Both are on the [roadmap]({{ roadmap_page.url | relative_url }}).
 
 ---
@@ -342,7 +342,7 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 Check the native module:
 
 ```powershell
-Test-Path C:\dr\undaunted\DauntlessUnbrokenMetagame\node_modules\better-sqlite3\build\Release\better_sqlite3.node
+Test-Path C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame\node_modules\better-sqlite3\build\Release\better_sqlite3.node
 ```
 
 **If that prints `False`,** the metagame can't open its database. Review and approve only that
@@ -410,11 +410,11 @@ From our own metagame log (1.4.4, one player, one evening of tutorial, Ramsgate 
 |---|---|---|
 | `Unstubbed route POST /loadout/<account>/<character>/unlock/3` | 40+ | Upstream has no handler for unlocking a loadout slot. The game server (`gs=1`) sends it in bursts of retries, several within a few seconds, then again minutes later. Harmless. Handled since real progression became the default (roadmap 2.4); a low-level account sends none, so you only see this line with `PROGRESSION_MODE=stub`. |
 | `Failed to update characterId ... due to conflict` | 14x | The client and the game server both save the character, with version numbers, and reject each other's writes. Each time, the side whose write was rejected (sometimes the client, sometimes the game server) re-read the character and wrote again within about a second, so the last write reached the database. Not yet proven lossless when both change the same value at once; on the roadmap. |
-| `Unstubbed route GET /friends/api/public/friends/<account>` and `.../blocklist/<account>` | 2x each | There was no friends list then; the game showed "0 ONLINE FRIENDS". The fork now answers both routes (everyone still shows as offline). `MISC_ROUTES=0` puts the 404 back. |
-| `Unstubbed route GET /account127.0.0.1:61000` | 2x | One URL that the client assembles from the DLL's address override is missing a `/`: the metagame's address is pasted straight after `/account` (Harmonic's fork found the same and answers it with account data). The request carries no credentials. The metagame answers 404; nothing visible breaks. The real fix belongs in the server DLL (roadmap 4.6). |
+| `Unstubbed route GET /friends/api/public/friends/<account>` and `.../blocklist/<account>` | 2x each | There was no friends list then; the game showed "0 ONLINE FRIENDS". the project now answers both routes (everyone still shows as offline). `MISC_ROUTES=0` puts the 404 back. |
+| `Unstubbed route GET /account127.0.0.1:61000` | 2x | One URL that the client assembles from the DLL's address override is missing a `/`: the metagame's address is pasted straight after `/account` (the source integration's codebase found the same and answers it with account data). The request carries no credentials. The metagame answers 404; nothing visible breaks. The real fix belongs in the server DLL (roadmap 4.6). |
 | `Game server on port 877x (pid ...) exited with code 0` (deploy log) | after every hunt | A game server ended normally. Any other code, or `on <signal>`, is a warning worth a look. |
 | `Unhandled progression request <METHOD> <path> from a game server` | rare | The game sent a progression request no route answers (it still gets 404). Note the path: it may be a route we have not built yet. |
-| `Unstubbed route POST /candidate/player/alive`, `DELETE /candidate` | a few | Matchmaking-queue housekeeping. The fork now answers `POST /candidate/player/alive` (`MISC_ROUTES=0` puts the 404 back). `DELETE /candidate` still gets a 404 on purpose: the client sends it right after every queued join, and hunts start only because it fails. `MATCHMAKING_CANCEL=1` turns a handler on, as an experiment. |
+| `Unstubbed route POST /candidate/player/alive`, `DELETE /candidate` | a few | Matchmaking-queue housekeeping. the project now answers `POST /candidate/player/alive` (`MISC_ROUTES=0` puts the 404 back). `DELETE /candidate` still gets a 404 on purpose: the client sends it right after every queued join, and hunts start only because it fails. `MATCHMAKING_CANCEL=1` turns a handler on, as an experiment. |
 | `Unauthenticated POST to /heartbeat which needs metagame auth!` | once | An early telemetry heartbeat sent during login, before the session is set up. Later heartbeats are authenticated. |
 | `Running Gameserver Watchdog!` (deploy log) | every 60 s | Normal. |
 | `Cleaning up Gameserver on port 8775` (deploy log) | when a hunt ends | The hunt server exited and its port went back to the pool. |
@@ -423,7 +423,7 @@ From our own metagame log (1.4.4, one player, one evening of tutorial, Ramsgate 
 
 ## Log lines of Escalation, the store, Slayer Links and the deploy server {#log-lines-of-the-port}
 
-These came with the port of Harmonic's fork ([The Harmonic port]({{ '/findings/harmonic-fork.html' | relative_url }})).
+These came with the port of the source integration's codebase ([The the source integration port]({{ '/findings/feature-integrations.html' | relative_url }})).
 Metagame lines unless marked.
 
 **At every start**

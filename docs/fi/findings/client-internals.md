@@ -46,7 +46,7 @@ versiosta **1.4.4**. Jokaisessa osiossa kerrotaan, mitä versiota se koskee.
 
 **Osoitteet.** Versiolle 2.1.1 annamme virtuaaliosoitteet (VA), kun ohjelman perusosoite (image
 base) on `0x140000000`. Versiolle 1.4.4 annamme RVA-osoitteet (suhteelliset osoitteet) samaan
-tapaan kuin Undauntedin lähdekoodi. Kun RVA:han lisää `0x140000000`, saa VA:n.
+tapaan kuin Dauntless Unbroken lähdekoodi. Kun RVA:han lisää `0x140000000`, saa VA:n.
 
 ---
 
@@ -126,7 +126,7 @@ Vain aloituskohdat poistettiin. Niiden alla oleva kerros on ehjä:
 Aluksi tulkitsimme tämän niin, että koodi on "käännetty mukaan, mutta sinne ei pääse, joten
 isännöinti on mahdotonta". **Se oli väärin.** Tavallinen koodipolku ei koskaan päädy näihin
 funktioihin, mutta ohjelmaan lisätty koodi pääsee.
-[Näin moninpeli toimii]({{ mp_page.url | relative_url }}) kertoo, miten Undaunted tekee sen
+[Näin moninpeli toimii]({{ mp_page.url | relative_url }}) kertoo, miten Dauntless Unbroken tekee sen
 versiossa 1.4.4.
 
 ---
@@ -148,10 +148,10 @@ versiossa 1.4.4.
 - Käynnistä `Dauntless-Win64-Shipping.exe` suoraan. `start_protected_game.exe` on EasyAntiCheatin
   (huijauksenestojärjestelmän) käynnistäjä. Kun käynnistät shipping-ohjelman suoraan, EasyAntiCheat
   ei käynnisty ollenkaan. Versiossa 2.1.1 asennus pysyy silloin muuttamattomana ja sen
-  allekirjoitukset kelvollisina. Versiossa 1.4.4 Undaunted lisää kaksi DLL-tiedostoa kansioon
+  allekirjoitukset kelvollisina. Versiossa 1.4.4 Dauntless Unbroken lisää kaksi DLL-tiedostoa kansioon
   `Archon\Binaries\Win64`, mutta itse ohjelmatiedosto pysyy tavu tavulta samana (sen käynnistin
   tarkistaa tiivisteen eli hashin).
-- Versiossa 1.4.4 Undauntedin käynnistin antaa `-EpicPortal`-valitsimen yhdessä muiden
+- Versiossa 1.4.4 Dauntless Unbroken käynnistin antaa `-EpicPortal`-valitsimen yhdessä muiden
   Epic-valitsimien paikkamerkkiarvojen kanssa. Peli toimii paikkamerkeillä, joten mikään tällä
   polulla ei tarkista niitä:
 
@@ -180,7 +180,7 @@ toimii niin kuin disassembly näyttää, valitsimet kuten `-server`, `-nothreadt
 `-noheartbeatthread`, `-UseStandaloneDedicatedServer`, `-NoEpicPortal`, `-q` ja `-EngineINI=`
 poistetaan, ennen kuin mikään koodi lukee niitä. Pidä siis jokaista 2.1.1-havaintoa, joka riippuu
 tällaisesta valitsimesta, vahvistamattomana, ja käytä mieluummin ini-asetusta, jos sellainen on
-olemassa. Undauntedin palvelin-DLL lukee versiossa 1.4.4 omat argumenttinsa Win32:n
+olemassa. Dauntless Unbroken palvelin-DLL lukee versiossa 1.4.4 omat argumenttinsa Win32:n
 `GetCommandLineW`-funktiolla ja antaa pelimoottorille kiinteän komentorivin koukun (hook) avulla,
 joka on asetettu `FCommandLine::Get`-funktioon (katso
 [Näin moninpeli toimii]({{ mp_page.url | relative_url }})).
@@ -244,16 +244,16 @@ Mikä tahansa muu arvo epäonnistuu viestillä
   `epicgames.com`-palvelimia.
 - Arvoja `accountportal` ja `persistentauth` ei ole tässä versiossa. Se tuntee arvot
   `exchangecode`, `password` ja `developer`.
-- **Käytämme Undauntedin tapaa:**
-  `-AUTH_TYPE=exchangecode -AUTH_LOGIN=unused -AUTH_PASSWORD=<account key>`. Undauntedin asiakas-DLL
-  ohjaa jokaisen MCP-osion `Domain`- ja `Protocol`-arvot metagameen (Undauntedin taustapalvelimeen).
+- **Käytämme Dauntless Unbroken tapaa:**
+  `-AUTH_TYPE=exchangecode -AUTH_LOGIN=unused -AUTH_PASSWORD=<account key>`. Dauntless Unbroken asiakas-DLL
+  ohjaa jokaisen MCP-osion `Domain`- ja `Protocol`-arvot metagameen (Dauntless Unbroken taustapalvelimeen).
   Metagamen `POST /account/api/oauth/token` tulkitsee vaihtokoodin pelaajan tiliavaimeksi ja
   palauttaa allekirjoitetun tunnisteen. Asiakas lähettää sen jälkeen tuon tunnisteen
   bearer-tunnisteena jokaisessa pyynnössä. Epic-tiliä ei tarvita lainkaan. Pidä tiliavainta yhtä
   salaisena kuin salasanaa.
 - Valitsimen `-AUTH_TYPE=password` pitäisi lähettää sähköposti ja salasana Phoenixin
   `/game/login`-osoitteeseen. Emme ole **testanneet** tätä, koska käytämme vaihtokoodipolkua.
-  Undauntedin metagamessa ei ole `/game/login`-käsittelijää, joten tämä reitti vaatisi ensin työtä
+  Dauntless Unbroken metagamessa ei ole `/game/login`-käsittelijää, joten tämä reitti vaatisi ensin työtä
   taustapalvelun puolella.
 
 ---
@@ -268,7 +268,7 @@ Konsoli tarkoittaa pelin sisäistä tekstikomentoikkunaa, jota kehittäjät käy
   `ManualAutoCompleteList`-riviä huijauskomennoille. Ne ovat jäänneitä. Mikään ei lue niitä.
 - **Kummassakaan versiossa** ei ole `-ExecCmds`-valitsinta, joten konsolikomentoja ei voi antaa
   komentorivilläkään.
-- **1.4.4:** Undauntedin asiakas-DLL luo itse `UConsole`-olion ja sitoo sen **F2**-näppäimeen. Se
+- **1.4.4:** Dauntless Unbroken asiakas-DLL luo itse `UConsole`-olion ja sitoo sen **F2**-näppäimeen. Se
   viittaa siihen, ettei tavallinen käännös luo konsolia lainkaan. Emme ole tarkistaneet, mitä
   komentoja se hyväksyy.
 
@@ -287,7 +287,7 @@ Konsoli tarkoittaa pelin sisäistä tekstikomentoikkunaa, jota kehittäjät käy
 - Käyttäjän `Engine.ini`-tiedoston `[Core.Log]` luetaan (`0x142f22e80`). Valitsinta `-LogCmds=`
   **ei** jäsennetä. Se esiintyy vain ohjetekstissä.
 - Versiosta 1.4.4 emme ole tarkistaneet, onko ohjelmatiedostossa tiedostoon kirjoittava lokikohde.
-  Undauntedin DLL tulostaa omat viestinsä konsoli-ikkunaan.
+  Dauntless Unbroken DLL tulostaa omat viestinsä konsoli-ikkunaan.
 
 ### HTTPEventLog lähettää vain Warning-tason ja vakavammat rivit (2.1.1) {#httpeventlog-ships-only-warning-and-above-211}
 
@@ -332,7 +332,7 @@ konsolia ei ollut, asiakasohjelman oma telemetria oli luotettavin tapamme nähd�
   - **`state`**: tallensimme arvon `menu` kirjautumiskartalla ja arvon `city` Ramsgatessa.
     Merkkijonot `menu`, `city`, `island` ja `lobby` ovat merkkijonotaulukossa heti kenttien nimien
     jälkeen. Tulkitsemme ne neljäksi mahdolliseksi arvoksi (**todennäköistä, ei todistettu**).
-  - Versiossa 1.4.4 Undauntedin metagame (`POST /heartbeat`) käyttää `map`-kenttää pelaajien
+  - Versiossa 1.4.4 Dauntless Unbroken metagame (`POST /heartbeat`) käyttää `map`-kenttää pelaajien
     aktiivisuuden kirjaamiseen.
 - **Analytiikkatapahtumat** (2.1.1) lähetetään erissä osoitteeseen
   `telemetry-ingest-prod.steelyard.ca/event?id=prod`, enintään 100 tapahtumaa pyyntöä kohden ja

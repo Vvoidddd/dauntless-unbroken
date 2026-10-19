@@ -17,7 +17,7 @@ description: "Miten Dauntless 1.4.4 hoitaa kaverit, ryhmät, killat ja Slayer Li
 {% assign awakening_page = site.pages | where: "path", "fi/findings/awakening-2-1-1.md" | first %}
 {% assign friends_page = site.pages | where: "path", "fi/setup/friends.md" | first %}
 {% assign chat_page = site.pages | where: "path", "fi/findings/chat.md" | first %}
-{% assign harmonic_page = site.pages | where: "path", "fi/findings/harmonic-fork.md" | first %}
+{% assign integration_page = site.pages | where: "path", "fi/findings/feature-integrations.md" | first %}
 
 # Kaverit, ryhmät ja killat versiossa 1.4.4
 {: .no_toc }
@@ -35,8 +35,8 @@ pelaajan testi vuokratulla palvelimella vahvistaa tai korjaa ne; [Näin se tarki
 luettelee sen vaiheet ja odotetut lokirivit. Myös tekstichat on rakennettu, ja sillä on oma sivunsa:
 [Tekstichat]({{ chat_page.url | relative_url }}).
 
-**Päivitys 23.9.2026, Harmonicin 1.4.4-forkin siirrosta
-([Harmonicin työn siirto]({{ harmonic_page.url | relative_url }})), rakennettu ja testattu ilman peliä,
+**Päivitys 23.9.2026, lähdeintegraation 1.4.4-toteutuksen siirrosta
+([lähdeintegraation työn siirto]({{ integration_page.url | relative_url }})), rakennettu ja testattu ilman peliä,
 ei vielä palvelimella:** [Slayer Links](#slayer-links) (oletuksena päällä), kavereiden paikalla olo
 chat-palvelimen sisällä (oletuksena pois, [Tekstichat]({{ chat_page.url | relative_url }}#presence)),
 [kahdesti saapuva ryhmäkutsun hyväksyntä](#a-repeated-accept) onnistuu nyt, ja peliohjelman
@@ -283,7 +283,7 @@ peliohjelmalle). Esto poistaa kahden pelaajan väliset odottavat kutsut.
 ### Kahdesti saapuva hyväksyntä {#a-repeated-accept}
 
 Hyväksyntä voi saapua kahdesti: peliohjelma yrittää uudelleen pyyntöä, jonka vastaus katosi, ja
-Harmonicin haara salli sen (G sille, kuinka usein näin käy versiossa 1.4.4). 23.9.2026 alkaen pyyntö
+lähdeintegraation haara salli sen (G sille, kuinka usein näin käy versiossa 1.4.4). 23.9.2026 alkaen pyyntö
 `PUT /party/invite/accept/<tunnus>`, joka ei vastaa mitään voimassa olevaa kutsua, saa silti vastauksen
 **200 ja kutsujan ryhmän** (saman rungon kuin ryhmäkysely), kun kutsuja on jo vähintään kahden hengen
 ryhmässä ja tunnus on tuon ryhmän tunnus tai sen toisen jäsenen tunnus (esimerkiksi kutsun lähettäjän).
@@ -482,7 +482,7 @@ kolme linkkipaikkaa. Pelaaja kutsuu kaverin johonkin paikkaan, kaveri hyväksyy 
 paikkaansa, ja linkki kestää 168 tuntia.
 
 **Tilanne 23.9.2026: rakennettu ja testattu ilman peliä, oletuksena päällä (`SLAYER_LINKS`), ei vielä
-kokeiltu pelissä.** Rajapinnan kuvaus on Harmonicin haarasta, jossa oli ensimmäinen toimiva versio;
+kokeiltu pelissä.** Rajapinnan kuvaus on lähdeintegraation haarasta, jossa oli ensimmäinen toimiva versio;
 tarkistimme jokaisen reitin ja rungon ohjelmatiedostoa vasten ja korjasimme viisi kohtaa (alla).
 22.9.2026 reittiluettelossa ei näkynyt yhtään Slayer Link -kutsua (L), joten peliohjelma saattaa pitää
 välilehden piilossa (`ULinkedSlayersFeature`); jos se ei koskaan kutsu näitä reittejä, pelaajille ei
@@ -550,7 +550,7 @@ ohjelmatiedostossa (B): peliohjelma ei koskaan lähetä niitä.
   linkit tallennetaan SQLiteen (tietokantamuutos `0016_slayer_links`, taulut `slayerlinkinvites` ja
   `slayerlinks`; katso [Tiedostot ja data]({{ files_page.url | relative_url }})).
 
-### Mitä korjasimme Harmonicin versiosta {#slayer-link-corrections}
+### Mitä korjasimme lähdeintegraation versiosta {#slayer-link-corrections}
 
 | Hänen haaransa | Peliohjelma (B) |
 |:---------------|:----------------|
@@ -616,7 +616,7 @@ Korjauksia testataan HTTP:n yli oikeaa metagamea vastaan peliohjelman omilla run
   lähteminen ja lakkauttaminen (reittien järjestys mukaan lukien), mitä esto, hylkäys ja alennettu,
   erotettu tai lähtenyt upseeri tekevät avoimille kutsuille, uudelleenkäynnistys, oikeudet ja
   `GUILDS=0`. Jokainen vastaus tarkistetaan tarkkana JSONina ja mallin kautta.
-- **Slayer Links** (`test/slayerlinks.test.ts`, kirjoitettu uudelleen Harmonicin testistä peliohjelman
+- **Slayer Links** (`test/slayerlinks.test.ts`, kirjoitettu uudelleen lähdeintegraation testistä peliohjelman
   täsmällisillä poluilla ja rungoilla): jokainen reitti avaimineen, kutsulistan kumpikin suunta,
   hyväksyntä valittuun tai ensimmäiseen vapaaseen paikkaan, hylkäys ja peruutus `account_id`-kentällä,
   kutsujen poiston kumpikin merkitys, linkin poisto kummaltakin pelaajalta, kolme paikkaa numeroilla 1–3

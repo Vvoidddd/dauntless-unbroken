@@ -78,5 +78,4 @@ reads, with its default. Copy it to `.env` and fill in what you need; the
   their example; use your own folders.
 - Example addresses come from the ranges reserved for documentation (`203.0.113.x`,
   `198.51.100.x`), and `100.x.y.z` stands for a Tailscale address.
-- "Upstream" means [Undaunted](https://github.com/SyST3MDeV/Undaunted), the project this fork is based
-  on. On the Configuration page, **Fork only** marks settings that upstream does not have.
+- **Server setting** identifies a configurable server behavior; consult the component's current `.env.example` for defaults.

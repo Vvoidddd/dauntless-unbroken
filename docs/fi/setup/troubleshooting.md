@@ -44,7 +44,7 @@ Portti on numeroitu ”ovi”, jonka kautta ohjelmat ottavat yhteyttä toisiinsa
 
 | Lähde | Mitä se kertoo |
 |---|---|
-| `C:\dr\data\metagame.log` | Yksi JSON-rivi tapahtumaa kohden. Fork kirjaa jokaisen pyynnön muodossa `METHOD /path gs=0` (peliohjelma) tai `gs=1` (pelipalvelin). Tämä on tärkein mittarimme: kuinka pitkälle peliohjelma pääsi, ja mitä se pyysi viimeksi? |
+| `C:\dr\data\metagame.log` | Yksi JSON-rivi tapahtumaa kohden. codebase kirjaa jokaisen pyynnön muodossa `METHOD /path gs=0` (peliohjelma) tai `gs=1` (pelipalvelin). Tämä on tärkein mittarimme: kuinka pitkälle peliohjelma pääsi, ja mitä se pyysi viimeksi? |
 | `C:\dr\data\deploy.log` | Matchmaking-pyynnöt, `Running Gameserver Watchdog!` 60 sekunnin välein ja `Cleaning up Gameserver on port N`, kun palvelin sulkeutuu. |
 | Pelipalvelinten konsoli-ikkunat | Palvelin-DLL:n avaamia; ne näyttävät palvelimen oman tulosteen. Ramsgaten ja Dojon ikkunat näkyvät. Metsästyspalvelimet käynnistetään ikkuna piilotettuna. |
 | Peliohjelman konsoli-ikkuna | DLL avaa sen client-tilassa ja pitää sen piilossa. Näet sen, kun otat käynnistimessä käyttöön Asetukset > Käynnistin > Vianmääritys > "Näytä lokiruutu" (se antaa pelille `DR_SHOW_CONSOLE=1`). **Kun asetus on käytössä ja konsoli-ikkunaa ei ilmesty peliohjelman käynnistyessä, DLL-tiedostot eivät ole latautuneet.** |
@@ -138,7 +138,7 @@ yhden rivin komento voi myös päivittää tietokantaa `better-sqlite3`-kirjasto
 
 ## git: ”Filename too long” ja ”'$GIT_DIR' too big” {#git-filename-too-long}
 
-**Oire.** Kun kloonasimme (kopioimme) Undauntedin syvällä sisäkkäisissä kansioissa olevaan
+**Oire.** Kun kloonasimme (kopioimme) Dauntless Unbroken syvällä sisäkkäisissä kansioissa olevaan
 työkansioon, git tulosti `error: unable to create file ...: Filename too long`, jopa tiedostoille kuten
 `.git/hooks/fsmonitor-watchman.sample`. Sitten se päättyi näin:
 
@@ -157,8 +157,8 @@ itse repositorion sijainnin polku on liian pitkä.
 varten:
 
 ```powershell
-git -c core.longpaths=true clone <URL of this repository> C:\dr\undaunted
-git -C C:\dr\undaunted config core.longpaths true
+git -c core.longpaths=true clone <URL of this repository> C:\dr\dauntless-unbroken
+git -C C:\dr\dauntless-unbroken config core.longpaths true
 ```
 
 Emme ottaneet käyttöön Windowsin koko järjestelmän pitkien polkujen asetusta. Lyhyt polku teki siitä
@@ -339,7 +339,7 @@ Get-MpThreatDetection -ErrorAction SilentlyContinue | Where-Object { $_.InitialD
   DLL-tiedostolle poistaa tuon merkinnän.
 
 Pysyvä korjaus on kääntää `DauntlessUnbroken.dll` lähdekoodista ja korvata `dxgi.dll` omalla
-pienellä välittäjällämme. `dxgi.dll`-tiedoston lähdekoodi ei ole Undauntedin repositoriossa, eikä sitä
+pienellä välittäjällämme. `dxgi.dll`-tiedoston lähdekoodi ei ole Dauntless Unbroken repositoriossa, eikä sitä
 tietääksemme ole julkaistu. Molemmat ovat [tiekartalla]({{ roadmap_page.url | relative_url }}).
 
 ---
@@ -367,7 +367,7 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 Tarkista natiivimoduuli:
 
 ```powershell
-Test-Path C:\dr\undaunted\DauntlessUnbrokenMetagame\node_modules\better-sqlite3\build\Release\better_sqlite3.node
+Test-Path C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame\node_modules\better-sqlite3\build\Release\better_sqlite3.node
 ```
 
 **Jos tämä tulostaa `False`,** metagame ei voi avata tietokantaansa. Tarkista ja hyväksy vain se
@@ -439,11 +439,11 @@ Omasta metagamen lokistamme (1.4.4, yksi pelaaja, yksi ilta opetusjaksoa, Ramsga
 |---|---|---|
 | `Unstubbed route POST /loadout/<account>/<character>/unlock/3` | yli 40 kertaa | Alkuperäisessä projektissa ei ole käsittelijää varustepaikan avaamiselle. Pelipalvelin (`gs=1`) lähettää sen uusintayritysten ryöppyinä, useita muutaman sekunnin sisällä ja sitten taas minuuttien päästä. Vaaraton. Käsitellään siitä lähtien, kun oikeasta etenemisestä tuli oletus (tiekartan kohta 2.4); matalan tason tili ei lähetä sitä lainkaan, joten näet rivin vain asetuksella `PROGRESSION_MODE=stub`. |
 | `Failed to update characterId ... due to conflict` | 14 kertaa | Peliohjelma ja pelipalvelin tallentavat kumpikin hahmon versionumeroiden kanssa ja hylkäävät toistensa kirjoitukset. Joka kerta se osapuoli, jonka kirjoitus hylättiin (joskus peliohjelma, joskus pelipalvelin), luki hahmon uudelleen ja kirjoitti uudestaan noin sekunnin sisällä, joten viimeinen kirjoitus päätyi tietokantaan. Ei vielä todistettu häviöttömäksi tilanteessa, jossa molemmat muuttavat samaa arvoa samanaikaisesti; tiekartalla. |
-| `Unstubbed route GET /friends/api/public/friends/<account>` ja `.../blocklist/<account>` | 2 kertaa kumpikin | Kaverilistaa ei silloin ollut; peli näytti ”0 ONLINE FRIENDS”. Fork vastaa nyt molempiin reitteihin (kaikki näkyvät yhä offline-tilassa). `MISC_ROUTES=0` palauttaa 404:n. |
-| `Unstubbed route GET /account127.0.0.1:61000` | 2 kertaa | Yhdestä osoitteesta, jonka peliohjelma kokoaa DLL:n osoiteohituksesta, puuttuu `/`: metagamen osoite liimataan suoraan `/account`-osan perään (Harmonicin haara huomasi saman ja vastaa siihen tilitiedoilla). Pyynnössä ei ole tunnistetietoja. Metagame vastaa 404; mitään näkyvää ei hajoa. Oikea korjaus kuuluu palvelin-DLL:ään (tiekartan kohta 4.6). |
+| `Unstubbed route GET /friends/api/public/friends/<account>` ja `.../blocklist/<account>` | 2 kertaa kumpikin | Kaverilistaa ei silloin ollut; peli näytti ”0 ONLINE FRIENDS”. codebase vastaa nyt molempiin reitteihin (kaikki näkyvät yhä offline-tilassa). `MISC_ROUTES=0` palauttaa 404:n. |
+| `Unstubbed route GET /account127.0.0.1:61000` | 2 kertaa | Yhdestä osoitteesta, jonka peliohjelma kokoaa DLL:n osoiteohituksesta, puuttuu `/`: metagamen osoite liimataan suoraan `/account`-osan perään (lähdeintegraation haara huomasi saman ja vastaa siihen tilitiedoilla). Pyynnössä ei ole tunnistetietoja. Metagame vastaa 404; mitään näkyvää ei hajoa. Oikea korjaus kuuluu palvelin-DLL:ään (tiekartan kohta 4.6). |
 | `Game server on port 877x (pid ...) exited with code 0` (deploy-loki) | jokaisen metsästyksen jälkeen | Pelipalvelin päättyi normaalisti. Mikä tahansa muu koodi tai `on <signaali>` on varoitus, joka kannattaa katsoa. |
 | `Unhandled progression request <METHOD> <polku> from a game server` | harvoin | Peli lähetti etenemispyynnön, johon mikään reitti ei vastaa (se saa silti 404). Kirjaa polku ylös: se voi olla reitti, jota emme ole vielä rakentaneet. |
-| `Unstubbed route POST /candidate/player/alive`, `DELETE /candidate` | muutaman kerran | Matchmaking-jonon ylläpitokutsuja. Fork vastaa nyt kutsuun `POST /candidate/player/alive` (`MISC_ROUTES=0` palauttaa 404:n). `DELETE /candidate` saa yhä tarkoituksella 404:n: peliohjelma lähettää sen heti jokaisen jonoon liittymisen jälkeen, ja metsästykset alkavat vain siksi, että se epäonnistuu. `MATCHMAKING_CANCEL=1` ottaa käsittelijän käyttöön kokeiluna. |
+| `Unstubbed route POST /candidate/player/alive`, `DELETE /candidate` | muutaman kerran | Matchmaking-jonon ylläpitokutsuja. codebase vastaa nyt kutsuun `POST /candidate/player/alive` (`MISC_ROUTES=0` palauttaa 404:n). `DELETE /candidate` saa yhä tarkoituksella 404:n: peliohjelma lähettää sen heti jokaisen jonoon liittymisen jälkeen, ja metsästykset alkavat vain siksi, että se epäonnistuu. `MATCHMAKING_CANCEL=1` ottaa käsittelijän käyttöön kokeiluna. |
 | `Unauthenticated POST to /heartbeat which needs metagame auth!` | kerran | Varhainen telemetrian elonmerkki (heartbeat), joka lähetetään kirjautumisen aikana ennen kuin istunto on valmis. Myöhemmät elonmerkit on tunnistettu. |
 | `Running Gameserver Watchdog!` (deploy-loki) | 60 sekunnin välein | Normaalia. |
 | `Cleaning up Gameserver on port 8775` (deploy-loki) | kun metsästys päättyy | Metsästyspalvelin sulkeutui, ja sen portti palasi vapaiden porttien joukkoon. |
@@ -452,8 +452,8 @@ Omasta metagamen lokistamme (1.4.4, yksi pelaaja, yksi ilta opetusjaksoa, Ramsga
 
 ## Escalationin, kaupan, Slayer Linksin ja deploy-palvelimen lokirivit {#log-lines-of-the-port}
 
-Nämä tulivat Harmonicin forkin siirron mukana
-([Harmonicin työn siirto]({{ '/fi/findings/harmonic-fork.html' | relative_url }})). Rivit ovat
+Nämä tulivat lähdeintegraation toteutuksen siirron mukana
+([lähdeintegraation työn siirto]({{ '/fi/findings/feature-integrations.html' | relative_url }})). Rivit ovat
 metagamen lokista, ellei toisin mainita.
 
 **Jokaisella käynnistyksellä**

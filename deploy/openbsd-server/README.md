@@ -119,7 +119,7 @@ to it, so the `_dauntless` account never needs privilege to bind a low port.
 
 Public mode creates:
 
-- table `<dauntless_revived_players>`;
+- table `<dauntless_unbroken_players>`;
 - TCP 443 redirect to loopback 61443;
 - UDP 8770-8777 redirect only for IPs in the dynamic player table;
 - source NAT toward the Linux worker;

@@ -28,7 +28,7 @@ you represent the project.
 
 ## Enforcement
 
-The maintainer, [mixutin](https://github.com/mixutin), moderates with the tools available on GitHub
+The maintainer, [Vvoidddd](https://github.com/Vvoidddd), moderates with the tools available on GitHub
 and Discord: removing or hiding content, locking or closing threads, and blocking or banning accounts.
 Most problems end with a friendly note. Serious or repeated ones end with a block or ban.
 
@@ -51,6 +51,6 @@ roskaviestit ja tahallinen keskustelun sotkeminen.
 
 **Missä tämä pätee.** GitHubin lisäksi myös virallisessa [Dauntless Unbroken Discordissa](https://discord.gg/ZJRprHzsgu).
 
-**Valvonta.** Ylläpitäjä (mixutin) voi poistaa tai piilottaa sisältöä, lukita keskusteluja sekä
+**Valvonta.** Ylläpitäjä (Vvoidddd) voi poistaa tai piilottaa sisältöä, lukita keskusteluja sekä
 estää käyttäjiä GitHubissa tai Discordissa. Käytä kyseisen palvelun ilmoitus- ja moderointitoimintoja;
 GitHubissa viestin **⋯**-valikosta löytyy **Report content**.

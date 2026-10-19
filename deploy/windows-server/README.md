@@ -18,7 +18,7 @@ of every script: `docs/reference/scripts.md` (on the site: Reference > Scripts a
 | `Receive-Upload.ps1` | the server | The server side of the chunked upload. |
 | `DauntlessUnbrokenServer.Common.ps1`, `DauntlessUnbrokenServer.Performance.ps1`, `lib\*.js` | both | Shared helpers: pins, invites, pinned HTTPS, database and key tools; the performance sampler. |
 
-The kit writes none of the metagame's feature switches from the port of Harmonic's fork (Escalation,
+The kit writes none of the metagame's feature switches from the port of the source integration's codebase (Escalation,
 the store, Slayer Links, friends' online status and the rest), so they run at their defaults; a line you
 add to `data\config\metagame.env` is kept across re-runs and updates. Which line does what:
 `docs/setup/admin.md`, "Switching features on".
