@@ -490,13 +490,13 @@ sovittamisen.
 Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 npm ci --no-audit --no-fund
 npm run build
-Test-Path node_modules\better-sqlite3\build\Release\better_sqlite3.node   # must be True
+node -e "const d=require('better-sqlite3')(':memory:'); console.log(d.pragma('quick_check',{simple:true})); d.close()"   # tulosteen pitää olla ok
 ```
 
 npm 11 tulostaa rivejä `npm warn allow-scripts` paketeista `esbuild` ja `better-sqlite3`. Meidän
 käännöksemme toimi silti. Katso
 [Vianetsintä]({{ trouble_page.url | relative_url }}#npm-allow-scripts-warnings), jos viimeinen rivi
-tulostaa `False`.
+ei tulosta `ok`. SQLite 13 sisältää Node-API-binäärit, joten `build/Release`-kansion puuttuminen on normaalia.
 
 **Kirjoita `.env`.** Nämä ovat arvot, joilla ajamme. Mikään niistä ei ole salainen;
 allekirjoitusavaimet lisätään seuraavassa vaiheessa.

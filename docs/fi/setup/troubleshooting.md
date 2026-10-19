@@ -367,21 +367,21 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 Tarkista natiivimoduuli:
 
 ```powershell
-Test-Path C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame\node_modules\better-sqlite3\build\Release\better_sqlite3.node
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
+node -e "const d=require('better-sqlite3')(':memory:'); console.log(d.pragma('quick_check',{simple:true})); d.close()"
 ```
 
-**Jos tämä tulostaa `False`,** metagame ei voi avata tietokantaansa. Tarkista ja hyväksy vain se
-paketti, kuten npm ehdottaa, ja asenna sitten uudelleen:
+Tulosteen pitää olla `ok`. SQLite 13 sisältää Node-API-binäärit, joten vanhaa
+`build/Release/better_sqlite3.node`-polkua ei tarvita tuetuilla alustoilla. Jos tarkistus epäonnistuu,
+käytä Node.js 24:ää ja vähintään npm 11.19:ää sekä asenna lukitut riippuvuudet uudelleen:
 
 ```powershell
-npm approve-scripts better-sqlite3
 npm ci --no-audit --no-fund
 ```
 
-Paketin asennusskripti lataa valmiiksi käännetyn tiedoston (`prebuild-install`) tai, jos se ei
-onnistu, kääntää sellaisen itse (`node-gyp`, joka tarvitsee Visual Studion C++-käännöstyökalut). Emme
-ole itse tarvinneet tätä vaihetta. Natiivimoduuli on sidottu Node-versioon, joten aja `npm ci`
-uudelleen jokaisen Node-päivityksen jälkeen.
+SQLite 12:ta käyttävä komponentti lataa ABI-kohtaisen binäärin tai kääntää sen C++-työkaluilla.
+Hyväksy vain kyseisen paketin asennusskripti, jos npm estää sen. Aja `npm ci` Node-päivityksen
+jälkeen ja toista tarkistus: pelkkä tiedoston olemassaolo ei varmista ABI-yhteensopivuutta.
 
 ---
 

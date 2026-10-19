@@ -448,12 +448,12 @@ A server-side version of the endpoint hook would remove the need for this file. 
 Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
 npm ci --no-audit --no-fund
 npm run build
-Test-Path node_modules\better-sqlite3\build\Release\better_sqlite3.node   # must be True
+node -e "const d=require('better-sqlite3')(':memory:'); console.log(d.pragma('quick_check',{simple:true})); d.close()"   # must print ok
 ```
 
 npm 11 prints `npm warn allow-scripts` lines for `esbuild` and `better-sqlite3`. Our build worked
-anyway. See [Troubleshooting]({{ trouble_page.url | relative_url }}#npm-allow-scripts-warnings) if the last line prints
-`False`.
+anyway. SQLite 13 uses bundled Node-API binaries, so a missing `build/Release` folder is normal.
+See [Troubleshooting]({{ trouble_page.url | relative_url }}#npm-allow-scripts-warnings) if the probe does not print `ok`.
 
 **Write `.env`.** These are the values we run with. None of them is secret; the signing keys are
 appended in the next step.

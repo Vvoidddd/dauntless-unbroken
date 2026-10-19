@@ -1037,8 +1037,12 @@ function Build-DRApp {
             $cd = $script:DRComponents[$c]
             if ($cd.Dir -eq $pkg -and -not (Test-Path -LiteralPath (Join-Path $dir $cd.Script))) { Stop-DR "the build of $pkg has no $($cd.Script) ($($cd.Label))" }
         }
-        if ($pkg -in 'DauntlessUnbrokenMetagame', 'DauntlessUnbrokenDeployServer' -and -not (Test-Path -LiteralPath (Join-Path $dir 'node_modules\better-sqlite3\build\Release\better_sqlite3.node'))) {
-            Stop-DR "better-sqlite3 has no native module in $pkg (see $($Paths.Logs)\install\npm-ci-$pkg.err.log)"
+        if ($pkg -in 'DauntlessUnbrokenMetagame', 'DauntlessUnbrokenDeployServer') {
+            # SQLite 13 bundles Node-API prebuilds instead of build\Release. Check
+            # the actual host binding, including its ABI, without touching player data.
+            $probe = "const d=require('better-sqlite3')(':memory:');if(d.pragma('quick_check',{simple:true})!=='ok')throw Error('SQLite native check failed');d.close();"
+            $code = Invoke-DRNative -FilePath $NodeExe -Arguments @('-e', $probe) -WorkingDirectory $dir -Environment $envs -LogBase (Join-Path $Paths.Logs "install\native-check-$pkg")
+            if ($code -ne 0) { Show-DRLogTail (Join-Path $Paths.Logs "install\native-check-$pkg"); Stop-DR "better-sqlite3 cannot open an in-memory database in $pkg" }
         }
         Write-DROk "$pkg built"
         $built += $pkg

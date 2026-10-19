@@ -342,20 +342,21 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 Check the native module:
 
 ```powershell
-Test-Path C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame\node_modules\better-sqlite3\build\Release\better_sqlite3.node
+Set-Location C:\dr\dauntless-unbroken\DauntlessUnbrokenMetagame
+node -e "const d=require('better-sqlite3')(':memory:'); console.log(d.pragma('quick_check',{simple:true})); d.close()"
 ```
 
-**If that prints `False`,** the metagame can't open its database. Review and approve only that
-package, as npm suggests, then reinstall:
+The probe should print `ok`. SQLite 13 bundles Node-API binaries; it no longer needs the old
+`build/Release/better_sqlite3.node` path on supported platforms. If the probe fails, use Node.js 24
+and npm 11.19 or newer, then reinstall the locked dependencies:
 
 ```powershell
-npm approve-scripts better-sqlite3
 npm ci --no-audit --no-fund
 ```
 
-Its install script downloads a prebuilt binary (`prebuild-install`) or, failing that, compiles one
-(`node-gyp`, which needs the Visual Studio C++ build tools). We haven't needed this step ourselves.
-The native module is tied to the Node version, so run `npm ci` again after any Node upgrade.
+For a component still using SQLite 12, its install script downloads an ABI-specific binary or
+compiles one using the C++ build tools. Approve only that package's install script if npm blocks it.
+Run `npm ci` again after a Node upgrade and repeat the probe; a file's presence alone does not verify ABI compatibility.
 
 ---
 

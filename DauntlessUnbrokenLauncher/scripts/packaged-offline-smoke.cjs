@@ -31,12 +31,12 @@ async function waitFor(check, timeout = 30000) {
 async function main() {
     for (const file of ["local-service-runner.cjs", "dr-db.js", "backup-policy.cjs", "game-endpoints.json",
         "metagame/dist/server.js", "deploy/dist/server.js",
-        "metagame/node_modules/better-sqlite3/build/Release/better_sqlite3.node",
-        "deploy/node_modules/better-sqlite3/build/Release/better_sqlite3.node"]) {
+        "metagame/node_modules/better-sqlite3/package.json",
+        "deploy/node_modules/better-sqlite3/package.json"]) {
         await fs.access(path.join(runtime, file));
     }
     for (const file of ["dxgi.dll", "DauntlessUnbroken.dll", "icon.png", "THIRD-PARTY-NOTICES.txt", "client-mods", "app.asar"]) await fs.access(path.join(resources, file));
-    console.log("Physical packaged runtime, both native addons and existing resources verified");
+    console.log("Packaged runtime and resources verified; native bindings will be checked during service startup");
     assert.equal(listeners(), "", "Required local ports were occupied before this test");
     const root = restoredProfile ? path.dirname(restoredProfile) : await fs.mkdtemp(path.join(os.tmpdir(), "dr-packaged-offline-"));
     // Only the disposable profile handed off by portable-save-smoke may be removed here.
