@@ -67,7 +67,7 @@ with a client-only build. That was wrong, and that page explains why.
 | | What we use | Notes |
 |---|---|---|
 | OS | Windows 10 22H2 (build 19045) | Windows 11 should work. We have not tested it. |
-| Node.js | v24.19.0 (npm 11.17.0) | `better-sqlite3` is a native module tied to the Node version. Don't upgrade Node while people are playing. |
+| Node.js | v24.21.0 (npm 11.19.0) | `better-sqlite3` is a native module tied to the Node version. Don't upgrade Node while people are playing. |
 | Git | 2.55 for Windows | Needed for the project. See the path notes in step 4. |
 | PowerShell | Windows PowerShell 5.1 (built in) | Every command on this page is written for 5.1. |
 | VC++ runtime | Microsoft Visual C++ 2015-2022, x64 | `DauntlessUnbroken.dll` imports `MSVCP140.dll` and `VCRUNTIME140_1.dll`. Our PC already had it. |

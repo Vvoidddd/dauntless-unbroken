@@ -18,14 +18,14 @@ const listenerScript = 'Get-NetTCPConnection -State Listen -ErrorAction Silently
 function listeners() {
     return execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", listenerScript], { encoding: "utf8", windowsHide: true }).trim();
 }
-async function waitFor(check, timeout = 30000) {
+async function waitFor(check, timeout = 30000, label = "condition") {
     const deadline = Date.now() + timeout;
     while (Date.now() < deadline) {
         const result = await check();
         if (result) return result;
         await delay(200);
     }
-    throw new Error("Smoke check timed out");
+    throw new Error("Smoke check timed out: " + label);
 }
 
 async function main() {
@@ -92,7 +92,7 @@ async function main() {
             if (data.error || data.result.exceptionDetails) throw new Error("Renderer smoke expression failed");
             return data.result.result.value;
         };
-        await waitFor(async () => evaluate('typeof window.launcher === "object"'));
+        await waitFor(async () => evaluate('typeof window.launcher === "object"'), 30000, "launcher preload API");
         await fs.access(path.join(profile, "logs", "launcher.log"));
         const snapshot = await evaluate("window.launcher.getSnapshot()");
         assert.equal(snapshot.settings.showConsole, false, "Fresh profiles must not enable client consoles");
@@ -104,7 +104,9 @@ async function main() {
         for (let cycle = 0; cycle < 2; cycle++) {
             // A second launch uses the same profile, including DPAPI storage and DB.
             // The empty game install deliberately stops at real game validation.
+            console.log(`Cycle ${cycle + 1}: starting offline services`);
             const result = await evaluate("window.launcher.startOffline()");
+            console.log(`Cycle ${cycle + 1}: offline action returned ${result.error?.code ?? "ok"}`);
             if (result.error?.code === "offline_insufficient_memory") {
                 assert.equal(await evaluate("window.smokePhases.at(-1)"), "error");
                 assert.ok(!(await evaluate("window.smokePhases")).includes("starting-metagame"));
@@ -113,7 +115,7 @@ async function main() {
                 assert.deepEqual(await evaluate("window.launcher.stopOffline()"), { ok: true });
                 console.log("Packaged memory preflight rejected before starting services; full runtime smoke blocked by available RAM");
                 socket.send(JSON.stringify({ id: ++nextId, method: "Runtime.evaluate", params: { expression: "window.close()" } }));
-                await waitFor(() => childExited, 15000);
+                await waitFor(() => childExited, 15000, "launcher exit");
                 assert.equal(exitCode, 0);
                 successful = true;
                 process.exitCode = 2;
@@ -133,7 +135,7 @@ async function main() {
                 assert.ok(encryptedKey.equals(await fs.readFile(keyFile)), "Stable offline key slot must be reused");
             }
             // Allow owned local services to finish releasing their listeners before checking cleanup.
-            const active = await waitFor(() => { const value = listeners(); return value === "" ? { value } : false; }, 5000).then(result => result.value);
+            const active = await waitFor(() => { const value = listeners(); if (value !== "") console.log("Waiting for local service ports:", value); return value === "" ? { value } : false; }, 5000, "local service ports released").then(result => result.value);
             assert.equal(active, "", "Game validation failure must release the owned local stack");
             assert.ok(!active.includes("0.0.0.0"));
             const secrets = await fs.readFile(secretsFile, "utf8");
@@ -168,7 +170,7 @@ async function main() {
                 child.stdout.on("data", data => { capturedOutput += data; });
                 const restartedPort = await waitFor(async () => {
                     try { return Number((await fs.readFile(path.join(profile, "DevToolsActivePort"), "utf8")).split("\n")[0]); } catch { return false; }
-                });
+                }, 30000, "restarted launcher debugging port");
                 const restartedPage = await waitFor(async () => (await (await fetch(`http://127.0.0.1:${restartedPort}/json/list`)).json()).find(page => page.type === "page" && page.url.startsWith("file:")));
                 socket = new WebSocket(restartedPage.webSocketDebuggerUrl);
                 await new Promise((resolve, reject) => { socket.addEventListener("open", resolve, { once: true }); socket.addEventListener("error", reject, { once: true }); });

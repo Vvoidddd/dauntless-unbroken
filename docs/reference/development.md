@@ -43,7 +43,7 @@ in [Ports and network]({{ ports_page.url | relative_url }}).
 | What | Version | Needed for |
 |---|---|---|
 | Windows | 10 or 11, 64-bit | The launcher, the server kit, its tests and the game run only on Windows. |
-| Node.js and npm | Node 24 with npm 11. The server kit installs exactly Node 24.19.0. (The launcher's `package.json` also accepts Node 20.19 or newer; use 24 anyway.) | Every package. `better-sqlite3` (metagame and deploy server) is a native module built for one Node version: run `npm ci` again in those two folders after you change Node ([Troubleshooting]({{ trouble_page.url | relative_url }}#npm-allow-scripts-warnings)). |
+| Node.js and npm | Node 24 with npm 11. The server kit installs exactly Node 24.21.0. (The launcher's `package.json` also accepts Node 22.17 or newer; use 24 anyway.) | Every package. `better-sqlite3` (metagame and deploy server) is a native module built for one Node version: run `npm ci` again in those two folders after you change Node ([Troubleshooting]({{ trouble_page.url | relative_url }}#npm-allow-scripts-warnings)). |
 | Git | A current Git for Windows, with `core.longpaths` on | Cloning, and `Test-DeployRemote.ps1`, which packs the checkout with `git archive`. Without Git a metagame build still works, but records its commit as `unknown`. |
 | Windows PowerShell | 5.1, built into Windows | The server kit and its tests. The kit is written for 5.1. |
 | Visual Studio 2022 | C++ desktop tools (toolset v143), x64 | Only to build the server DLL from source ([below](#server-dll)). |

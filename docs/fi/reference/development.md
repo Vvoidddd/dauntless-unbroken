@@ -46,7 +46,7 @@ jokainen portti sivulla [Portit ja verkko]({{ ports_page.url | relative_url }}).
 | Mitä | Versio | Mihin tarvitaan |
 |---|---|---|
 | Windows | 10 tai 11, 64-bittinen | Käynnistin, palvelinpaketti, sen testit ja peli toimivat vain Windowsissa. |
-| Node.js ja npm | Node 24 ja npm 11. Palvelinpaketti asentaa täsmälleen Noden 24.19.0. (Käynnistimen `package.json` hyväksyy myös Noden 20.19 tai uudemman; käytä silti versiota 24.) | Jokainen paketti. `better-sqlite3` (metagame ja deploy-palvelin) on natiivimoduuli, joka käännetään yhdelle Node-versiolle: aja `npm ci` uudelleen näissä kahdessa kansiossa aina, kun vaihdat Noden versiota ([Vianetsintä]({{ trouble_page.url | relative_url }}#npm-allow-scripts-warnings)). |
+| Node.js ja npm | Node 24 ja npm 11. Palvelinpaketti asentaa täsmälleen Noden 24.21.0. (Käynnistimen `package.json` hyväksyy myös Noden 22.17 tai uudemman; käytä silti versiota 24.) | Jokainen paketti. `better-sqlite3` (metagame ja deploy-palvelin) on natiivimoduuli, joka käännetään yhdelle Node-versiolle: aja `npm ci` uudelleen näissä kahdessa kansiossa aina, kun vaihdat Noden versiota ([Vianetsintä]({{ trouble_page.url | relative_url }}#npm-allow-scripts-warnings)). |
 | Git | Ajantasainen Git for Windows, `core.longpaths` päällä | Kloonaus sekä `Test-DeployRemote.ps1`, joka pakkaa kloonin komennolla `git archive`. Ilman Gitiä metagamen käännös onnistuu silti, mutta sen commitiksi kirjataan `unknown`. |
 | Windows PowerShell | 5.1, sisältyy Windowsiin | Palvelinpaketti ja sen testit. Paketti on kirjoitettu versiolle 5.1. |
 | Visual Studio 2022 | C++-työpöytäkehityksen työkalut (toolset v143), x64 | Vain palvelin-DLL:n kääntämiseen lähdekoodista ([alla](#server-dll)). |

@@ -746,7 +746,7 @@ asennuskohtaisesti, nimiä ei.
 | `Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe` | `D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-game-manifest.js`, `DauntlessUnbrokenLauncher/src/main/constants.ts`, sisältöluettelo |
 | `dxgi.dll` | `f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-friend-kit.ps1`, `DauntlessUnbrokenLauncher/src/main/constants.ts` |
 | `DauntlessUnbroken.dll` | `6CE7E0EA3EFF8C6841EA81C67A0EB177D84223AF844F15C6679EF0827143BE8D` | samat tiedostot kuin `dxgi.dll`:llä |
-| Node.js 24.19.0 MSI (`node-v24.19.0-x64.msi`) | `F0F66C2A80C08A30A5AB5179EE9EA9E45F9B46289436A8CC87FF833B852DB351` | vain paketissa; sen on vastattava myös nodejs.org:n `SHASUMS256.txt`-tiedostoa |
+| Node.js 24.21.0 MSI (`node-v24.21.0-x64.msi`) | `BB0EAEE134F9357F22AEA915EE793343E627AEFC1E66488164BAC6915BCE2CAC` | vain paketissa; sen on vastattava myös nodejs.org:n `SHASUMS256.txt`-tiedostoa |
 | Tailscale 1.102.4 MSI (yksityinen tila) | `80EB007E39DFEBE17299FA1A09C79A8E1D934F76E0246C0817EBE3AF675B7EF6` | vain paketissa; sen on vastattava myös julkaistua `.sha256`-tiedostoa |
 
 Koontiversion merkkijono on `dauntless_rel-1.4.4_Shipping_2020-10-28_20-11-15_239827`:
@@ -1092,8 +1092,8 @@ käyttövirhettä ja `1` mitä tahansa muuta virhettä.
 | `npm test [-- <suodatin>]` | `node scripts/run-tests.mjs` | Kääntää testit kansioon `.test-build\` ja ajaa ne tiedosto kerrallaan. Suodattimen kanssa vain ne testitiedostot, joiden nimessä suodatin esiintyy. |
 | `npm run icon [-- --check]` | `node scripts/make-icon.mjs` | Kopioi käynnistimen kuvakkeet (`assets/icon.ico`, `assets/icon.png`) ja sen ikkunassa näkyvät logo- ja tunnuskuvat (`src/renderer/brand/`) kansiosta `brand/`, jossa `python3 brand/build.py` tekee ne. Valitsimella `--check` se vain vertaa ja päättyy koodiin 1, jos jokin kopio puuttuu tai on vanhentunut; yksikkötestit ajavat sen. |
 
-Käynnistin tarvitsee Node.js:n version 20.19 tai uudemman (`engines` sen `package.json`-tiedostossa).
-Palvelinpaketti asentaa palvelimelle Node.js:n version 24.19.0.
+Käynnistin tarvitsee Node.js:n version 22.17 tai uudemman (`engines` sen `package.json`-tiedostossa).
+Palvelinpaketti asentaa palvelimelle Node.js:n version 24.21.0.
 
 ### Muut npm-pakettien skriptit {#other-package-scripts}
 

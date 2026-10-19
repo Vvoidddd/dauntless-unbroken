@@ -21,10 +21,10 @@ $script:DRPinned = @{
         'DauntlessUnbroken.dll' = '6ce7e0ea3eff8c6841ea81c67a0eb177d84223af844f15c6679ef0827143be8d'
     }
     # Node.js LTS: the version the fork is developed and tested on. better-sqlite3 is a native
-    # module built for this Node major version. SHA-256 from nodejs.org/dist/v24.19.0/SHASUMS256.txt;
+    # module built for this Node major version. SHA-256 from nodejs.org/dist/v24.21.0/SHASUMS256.txt;
     # the installer also re-reads that file and requires both to agree.
-    NodeVersion     = '24.19.0'
-    NodeMsiSha256   = 'F0F66C2A80C08A30A5AB5179EE9EA9E45F9B46289436A8CC87FF833B852DB351'
+    NodeVersion     = '24.21.0'
+    NodeMsiSha256   = 'BB0EAEE134F9357F22AEA915EE793343E627AEFC1E66488164BAC6915BCE2CAC'
     # Tailscale (private mode only): official MSI from pkgs.tailscale.com; SHA-256 from the .sha256
     # file next to it.
     TailscaleVersion   = '1.102.4'

@@ -75,7 +75,7 @@ pelkkä peliohjelma. Se oli väärin, ja tuo sivu kertoo miksi.
 | | Mitä käytämme | Huomiot |
 |---|---|---|
 | Käyttöjärjestelmä | Windows 10 22H2 (koontiversio 19045) | Windows 11:n pitäisi toimia. Emme ole testanneet sitä. |
-| Node.js | v24.19.0 (npm 11.17.0) | `better-sqlite3` on natiivimoduuli, joka on sidottu Node-versioon. Älä päivitä Nodea, kun ihmiset pelaavat. |
+| Node.js | v24.21.0 (npm 11.19.0) | `better-sqlite3` on natiivimoduuli, joka on sidottu Node-versioon. Älä päivitä Nodea, kun ihmiset pelaavat. |
 | Git | 2.55 for Windows | Tarvitaan forkia varten. Katso polkuhuomiot vaiheessa 4. |
 | PowerShell | Windows PowerShell 5.1 (Windowsin mukana) | Jokainen tämän sivun komento on kirjoitettu versiolle 5.1. |
 | VC++-ajonaikaiset kirjastot | Microsoft Visual C++ 2015-2022, x64 | `DauntlessUnbroken.dll` tarvitsee tiedostot `MSVCP140.dll` ja `VCRUNTIME140_1.dll`. Meidän koneessamme ne olivat jo valmiina. |

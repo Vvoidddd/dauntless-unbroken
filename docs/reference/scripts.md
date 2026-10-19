@@ -717,7 +717,7 @@ install; the names cannot.
 | `Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe` | `D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-game-manifest.js`, `DauntlessUnbrokenLauncher/src/main/constants.ts`, the content manifest |
 | `dxgi.dll` | `f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-friend-kit.ps1`, `DauntlessUnbrokenLauncher/src/main/constants.ts` |
 | `DauntlessUnbroken.dll` | `6CE7E0EA3EFF8C6841EA81C67A0EB177D84223AF844F15C6679EF0827143BE8D` | the same files as `dxgi.dll` |
-| Node.js 24.19.0 MSI (`node-v24.19.0-x64.msi`) | `F0F66C2A80C08A30A5AB5179EE9EA9E45F9B46289436A8CC87FF833B852DB351` | only the kit; it must also match nodejs.org's `SHASUMS256.txt` |
+| Node.js 24.21.0 MSI (`node-v24.21.0-x64.msi`) | `BB0EAEE134F9357F22AEA915EE793343E627AEFC1E66488164BAC6915BCE2CAC` | only the kit; it must also match nodejs.org's `SHASUMS256.txt` |
 | Tailscale 1.102.4 MSI (private mode) | `80EB007E39DFEBE17299FA1A09C79A8E1D934F76E0246C0817EBE3AF675B7EF6` | only the kit; it must also match the published `.sha256` file |
 
 The build string is `dauntless_rel-1.4.4_Shipping_2020-10-28_20-11-15_239827`: the installer
@@ -1047,8 +1047,8 @@ failure.
 | `npm test [-- <filter>]` | `node scripts/run-tests.mjs` | Compiles the tests into `.test-build\` and runs them one file at a time. With a filter, only test files whose name contains it. |
 | `npm run icon [-- --check]` | `node scripts/make-icon.mjs` | Copies the launcher's icons (`assets/icon.ico`, `assets/icon.png`) and the logo and emblem images its window shows (`src/renderer/brand/`) from `brand/`, where `python3 brand/build.py` makes them. With `--check` it only compares, and exits with 1 if a copy is missing or out of date; the unit tests run that. |
 
-The launcher needs Node.js 20.19 or newer (`engines` in its `package.json`). The server kit installs
-Node.js 24.19.0 on a server.
+The launcher needs Node.js 22.17 or newer (`engines` in its `package.json`). The server kit installs
+Node.js 24.21.0 on a server.
 
 ### Other package scripts
 
