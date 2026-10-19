@@ -470,7 +470,7 @@ jobs:
       - name: The built site has its main pages
         run: |
           for page in index.html fi/index.html setup/index.html setup/linux.html setup/windows-server.html setup/linux-server.html setup/openbsd-server.html fi/setup/index.html fi/setup/linux.html fi/setup/linux-server.html fi/setup/openbsd-server.html roadmap.html 404.html \
-                      llms.txt llms-full.txt sitemap.xml assets/css/just-the-docs-default.css assets/js/search-data.json; do
+                      server.html reference/index.html legal.html llms.txt llms-full.txt sitemap.xml search.json assets/unbroken-docs.css assets/unbroken-docs.js; do
             test -s "_site/$page" || { echo "::error::_site/$page is missing"; exit 1; }
           done
           echo "site built: $(find _site -type f | wc -l) files"
