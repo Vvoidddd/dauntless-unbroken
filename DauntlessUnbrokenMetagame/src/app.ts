@@ -77,7 +77,7 @@ app.use("/", partyRouter);
 app.use("/", slayerLinksRouter);
 app.use("/", progressionRouter);
 app.use("/", loadoutRouter);
-app.use("/unbroken/api", unbrokenApiRouter); // Everything that I/we add to help manage undaunted that doesn't belong to the game proper belongs here
+app.use("/unbroken/api", unbrokenApiRouter); // Dauntless Unbroken management routes, separate from the retail game's API.
 
 app.use((req, res) => {
     logger.warn(`Unstubbed route ${req.method} ${req.path}`)
