@@ -65,7 +65,7 @@ import { applyGameConfig } from "./engineini";
 import { locateExistingGame } from "./game-folder";
 import { buildLaunchArgs, describeLaunch, GameProcess, gameLocale, type LaunchRuntime, type SpawnFn } from "./launch";
 import { createRelayOwnerCheck } from "./relay-owner";
-import { backupFileText, KeyStore, KeyStoreError, serverId, type Encryptor, type KeySlot } from "./keystore";
+import { backupFileText, saveDesktopKey, KeyStore, KeyStoreError, serverId, type Encryptor, type KeySlot } from "./keystore";
 import { SettingsStore, type StoredServer, type StoredSettings } from "./settings";
 import { freeBytes, missingVcRuntime } from "./system";
 import { fixedLinkUrl, isAllowedExternalUrl } from "./links";
@@ -85,6 +85,8 @@ export interface Platform {
   collectDeviceSignals?: () => Promise<import('./device-signals').DeviceSignals>;
   userDataDir: string;
   documentsDir?: string;
+  desktopDir?: string;
+  findExistingGames?(): Promise<string[]>;
   resourcesDir: string;
   runtimeFilesExist?: (file: string) => boolean;
   offlineFreeMemory?(): number;
@@ -182,6 +184,9 @@ export class Controller {
   // a forgotten or different server. See fetchStatus().
   private statusGen = 0;
   private busy = false;
+  private discovering = false;
+  private detectedDirs: string[] = [];
+  private desktopBackups = new Map<string, string>();
   private install: InstallInfo = { present: 0, missing: [], partFiles: 0, dllsOk: false };
   private freeSpace: number | null = null;
   private task: TaskProgress | null = null;
@@ -278,8 +283,14 @@ export class Controller {
     if (this.p.offlineSave) await this.withBusy(() => this.p.offlineSave!.recover());
     await this.refreshKeyFlag();
     await this.inspectInstall();
+    this.discovering = !!this.p.findExistingGames && this.install.present === 0 && this.install.partFiles === 0;
     this.publish();
     if (this.s.server) void this.connect();
+    if (this.discovering) {
+      try { this.detectedDirs = await this.p.findExistingGames!(); }
+      catch { log.warn("Game folder discovery unavailable; use Browse"); }
+      finally { this.discovering = false; this.publish(); }
+    }
   }
 
   private computePhase(): Phase {
@@ -323,11 +334,14 @@ export class Controller {
       account: {
         username: sid ? this.s.usernames[sid] ?? null : null,
         hasKey: this.hasKey && !this.keyRejected,
+        desktopBackupPath: sid && this.hasKey && !this.keyRejected ? this.desktopBackups.get(sid) : undefined,
         offerBackup: sid !== null && this.hasKey && !this.keyRejected && this.s.backupOffered[sid] !== true,
       },
       install: {
         dir: this.installDir,
         defaultDir: this.p.defaultInstallDir,
+        discovering: this.discovering,
+        detectedDirs: this.detectedDirs.slice(),
         installed: this.phase === "ready" || this.phase === "running",
         missingFiles: this.install.missing.length,
         verified: this.s.verifiedDir === this.installDir,
@@ -601,6 +615,7 @@ export class Controller {
     const info = await fetchUserInfo(ep, key);
     if (info.ok) {
       this.keyRejected = false;
+      await this.backupToDesktop(slot, key, info.info.username);
       if (this.s.usernames[sid] !== info.info.username) {
         await this.settings.update((s) => {
           s.usernames[sid] = info.info.username;
@@ -791,6 +806,7 @@ export class Controller {
         s.usernames[sid] = username as string;
         delete s.backupOffered[sid];
       });
+      await this.backupToDesktop(slot, res.key, username as string);
       this.hasKey = true;
       this.keyRejected = false;
       this.statusGen++;
@@ -851,10 +867,28 @@ export class Controller {
     this.hasKey = true;
     this.keyRejected = false;
     this.statusGen++;
+    await this.backupToDesktop(slot, key, info.info.username);
     log.info(`using an existing key for ${info.info.username}`);
     await this.inspectInstall();
     await this.pollStatus();
     return OK;
+  }
+
+  private async backupToDesktop(slot: KeySlot, key: string, username: string): Promise<void> {
+    const sv = this.s.server;
+    if (!this.p.desktopDir || !sv) return;
+    const sid = serverId(slot.host, slot.port, slot.mode);
+    if (this.sid() !== sid || sv.fp !== slot.fp) return;
+    try {
+      const file = await saveDesktopKey(this.p.desktopDir, { key, username, serverName: sv.name,
+        host: slot.host, port: slot.port, fingerprint: slot.fp, date: new Date() });
+      this.desktopBackups.set(sid, file);
+      if (!this.s.backupOffered[sid]) await this.settings.update(s => { s.backupOffered[sid] = true; });
+    } catch {
+      this.desktopBackups.delete(sid);
+      log.warn("Automatic Desktop account key save unavailable; use Save key backup");
+      await this.settings.update(s => { delete s.backupOffered[sid]; });
+    }
   }
 
   async saveKeyBackup(): Promise<ActionResult> {
@@ -948,13 +982,13 @@ export class Controller {
   }
 
   async chooseInstallDir(): Promise<ActionResult> {
-    if (this.task || this.busy || this.game.running) return err("busy");
+    if (this.discovering || this.task || this.busy || this.game.running) return err("busy");
     const picked = await this.p.chooseFolder("install", this.installDir);
     if (!picked) return err("cancelled");
     // A folder that already holds the game (BaseGame144, its Dauntless folder, or Archon or Win64
     // inside it) is used as that game: no second copy is downloaded next to it.
     const existing = await locateExistingGame(picked, this.hostPlatform);
-    if (this.task || this.busy || this.game.running) return err("busy");
+    if (this.discovering || this.task || this.busy || this.game.running) return err("busy");
     // A game found there whose root is too long is refused, not given a second copy in a subfolder
     // (which would be longer still).
     if (!existing.ok && existing.reason === "too_long") return this.fail("folder_invalid");
@@ -975,13 +1009,14 @@ export class Controller {
     await this.settings.update((s) => {
       s.installDir = dir === this.p.defaultInstallDir ? null : dir;
     });
+    this.detectedDirs = [];
     await this.inspectInstall();
     this.publish();
     return OK;
   }
 
   async useExistingGameFolder(): Promise<ActionResult> {
-    if (this.task || this.busy || this.game.running) return err("busy");
+    if (this.discovering || this.task || this.busy || this.game.running) return err("busy");
     const picked = await this.p.chooseFolder("existing", this.installDir);
     if (!picked) return err("cancelled");
     return this.useExistingGamePath(picked);
@@ -991,15 +1026,16 @@ export class Controller {
   // is used where it is: Repair checks every file against the manifest, fetches only what is missing
   // or different, and installs the pinned DLLs.
   async useExistingGamePath(input: string): Promise<ActionResult> {
-    if (this.task || this.busy || this.game.running) return err("busy");
+    if (this.discovering || this.task || this.busy || this.game.running) return err("busy");
     const found = await locateExistingGame(input, this.hostPlatform);
     // Unlike the folder dialog, a pasted path leaves the window usable while the folder is looked at.
-    if (this.task || this.busy || this.game.running) return err("busy");
+    if (this.discovering || this.task || this.busy || this.game.running) return err("busy");
     if (!found.ok) return this.fail(found.reason === "not_found" ? "game_folder_not_found" : "folder_invalid");
     await this.settings.update((s) => {
       s.installDir = found.root;
       s.verifiedDir = null;
     });
+    this.detectedDirs = [];
     await this.inspectInstall();
     return this.repair();
   }
@@ -1011,7 +1047,14 @@ export class Controller {
 
   // ------------------------------------------------------------------ install / repair
 
+  dismissDetectedGames(): void {
+    if (this.discovering || this.busy || this.task || this.game.running) return;
+    this.detectedDirs = [];
+    this.publish();
+  }
+
   startInstall(): Promise<ActionResult> {
+    if (this.discovering || this.detectedDirs.length) return Promise.resolve(err("busy"));
     return this.runTask("install");
   }
 

@@ -39,6 +39,8 @@ export function primaryButton(s: Snapshot, form: FormState): PrimaryButton {
         disabled: busy || !form.usernameValid || s.status?.registration === "NONE",
       };
     case "install": {
+      if (s.install.discovering) return { labelKey: "install_searching", action: "none", disabled: true };
+      if (s.install.detectedDirs?.length) return { labelKey: "install_found", action: "none", disabled: true };
       const lowSpace = s.install.freeBytes !== null && s.install.freeBytes < s.install.requiredBytes;
       return { labelKey: "btn_install", action: "install", disabled: busy || !s.install.contentAvailable || lowSpace };
     }

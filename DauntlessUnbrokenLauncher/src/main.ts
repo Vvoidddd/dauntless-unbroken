@@ -26,6 +26,7 @@ import {
 } from "./main/linux-dependencies";
 import { findLinuxUpdate, installLinuxUpdate, type LinuxUpdate } from "./main/linux-updater";
 import { findTailscale } from "./main/system";
+import { discoverExistingGames, fixedGameDrives } from "./main/game-discovery";
 import { describeError, log, logToFile } from "./main/log";
 import { boundedString, externalTarget, isTrustedPageUrl, relayPortOverride, settingsPatch } from "./main/ipc-validate";
 import { INVITE_SCHEME, parseInvite } from "./shared/invite";
@@ -394,6 +395,7 @@ function registerIpc(c: Controller): void {
   handle(IPC.saveKeyBackup, () => c.saveKeyBackup());
   handle(IPC.dismissBackupOffer, () => c.dismissBackupOffer());
   handle(IPC.chooseInstallDir, () => c.chooseInstallDir());
+  handle(IPC.dismissDetectedGames, () => c.dismissDetectedGames());
   handle(IPC.useExistingGameFolder, () => c.useExistingGameFolder());
   handle(IPC.useExistingGamePath, (_e, value) => {
     const s = boundedString(value, 260);
@@ -468,6 +470,17 @@ function makePlatform(): Platform {
   return {
     userDataDir: app.getPath("userData"),
     documentsDir: app.getPath("documents"),
+    desktopDir: app.getPath("desktop"),
+    findExistingGames: async () => {
+      const home = app.getPath("home");
+      const drives = await fixedGameDrives();
+      return discoverExistingGames([defaultInstallDir, localAppData, app.getPath("desktop"), app.getPath("downloads"),
+        app.getPath("documents"), path.join(home, "Games"),
+        ...(process.platform === "win32" ? [process.env.ProgramFiles, process.env["ProgramFiles(x86)"], ...drives,
+          ...drives.flatMap(d => [path.join(d, "Games"), path.join(d, "Epic Games"), path.join(d, "SteamLibrary", "steamapps", "common")])]
+          : [path.join(home, ".local/share/Steam/steamapps/common"), path.join(home, ".steam/steam/steamapps/common")])
+      ].filter((s): s is string => !!s));
+    },
     resourcesDir: resourcesDir(),
     defaultInstallDir,
     hostPlatform: process.platform,

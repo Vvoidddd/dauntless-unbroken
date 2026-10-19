@@ -1,5 +1,15 @@
 # Player downloads from R2
 
+Dauntless Unbroken uses the existing owner-operated R2 game catalog at
+`https://downloads.epcr.lol/dauntless-1.4.4/`. The launcher checks common local install folders
+before offering a download. Found files stay untouched until the player confirms the displayed
+folder; full file verification then downloads only missing or different files.
+
+Account keys are saved automatically to the player's Desktop after registration or a successful
+key import/login. Each realm and rotated key gets a separate file. The copy is readable for recovery,
+so keep it private. If Desktop access fails, the encrypted local key remains usable and manual export
+is offered. The existing certificate-bound Documents recovery copy is retained.
+
 Upload only the files listed in `DauntlessUnbrokenContent/data/dauntless-1.4.4.json`, preserving their relative paths under a versioned prefix. Verify local SHA-256 values before uploading and run `rclone check` afterward. Do not upload server kits, configuration, databases or logs. Bucket-scoped R2 credentials may require `--s3-no-check-bucket` with `rclone copyto`; the destination bucket must already exist.
 
 After the custom domain serves the verified files over HTTPS, set the content service environment:

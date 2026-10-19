@@ -167,3 +167,25 @@ export function backupFileText(opts: {
     "",
   ].join("\r\n");
 }
+
+// A Desktop copy is intentionally readable for recovery. Never replace another file or follow a link.
+export async function saveDesktopKey(desktop: string, opts: Parameters<typeof backupFileText>[0]): Promise<string> {
+  const name = (opts.username ?? "Account").replace(/[^\p{L}\p{N}_-]/gu, "_").slice(0, 40) || "Account";
+  const id = createHash("sha256").update(`${opts.host}:${opts.port}\n${opts.fingerprint ?? "-"}\n${opts.key}`).digest("hex").slice(0, 16);
+  const file = path.join(desktop, `Dauntless Unbroken key - ${name} - ${id}.txt`);
+  const text = backupFileText(opts);
+  let handle;
+  try { handle = await fsp.open(file, "wx", 0o600); }
+  catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
+    const st = await fsp.lstat(file);
+    if (!st.isFile() || st.size > 8192) throw new Error("Desktop key file collision");
+    const old = await fsp.readFile(file, "utf8");
+    if (!old.split(/\r?\n/).includes(`Key: ${opts.key}`)) throw new Error("Desktop key file collision");
+    return file;
+  }
+  try { await handle.writeFile(text, "utf8"); await handle.sync(); }
+  catch (e) { await handle.close(); await fsp.unlink(file).catch(() => undefined); throw e; }
+  await handle.close();
+  return file;
+}

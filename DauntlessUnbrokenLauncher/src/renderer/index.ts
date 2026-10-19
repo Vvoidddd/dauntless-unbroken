@@ -604,6 +604,14 @@ function playRegister(snap: Snapshot): HTMLElement[] {
 }
 
 function playInstall(snap: Snapshot): HTMLElement[] {
+  if (snap.install.discovering) return [eyebrow(snap), ...heading(t("install_searching"), "")];
+  if (snap.install.detectedDirs?.length) return [eyebrow(snap), ...heading(t("install_found"), t("install_confirm")),
+    ...snap.install.detectedDirs.map((dir, i) => card("card-accent",
+      h("p", { class: "card-text selectable" }, secret(dir, `detected-${i}`)),
+      h("p", { class: "small-print" }, t("install_existing_note")),
+      button(t("install_existing_use"), () => void api.useExistingGamePath(dir), { cls: "btn-primary", icon: "check", disabled: snap.busy }))),
+    card("", button(t("install_fresh"), () => void api.dismissDetectedGames(), { icon: "folder", disabled: snap.busy })),
+    existingGameCard(snap)];
   const name = serverName();
   const pub = snap.server?.mode === "public";
   const low = snap.install.freeBytes !== null && snap.install.freeBytes < snap.install.requiredBytes;
@@ -691,6 +699,8 @@ function playReady(snap: Snapshot): HTMLElement[] {
       ),
     );
   }
+  if (snap.account.desktopBackupPath) out.push(card("", h("p", { class: "card-text" },
+    t("backup_desktop", { path: snap.settings.streamerMode ? "••••••" : snap.account.desktopBackupPath }))));
   const vc = vcWarning(snap);
   if (vc) out.push(vc);
   const teaser = newsTeaser();
@@ -836,6 +846,8 @@ function actionHint(snap: Snapshot): string {
     case "register":
       return t("hint_register");
     case "install":
+      if (snap.install.discovering) return t("install_searching");
+      if (snap.install.detectedDirs?.length) return t("install_confirm");
       return t("hint_install", { size: formatBytes(snap.install.totalBytes, state.lang) });
     case "update":
       return t("hint_update");

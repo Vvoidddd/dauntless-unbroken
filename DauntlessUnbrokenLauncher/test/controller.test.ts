@@ -103,7 +103,7 @@ interface Harness {
 
 // userDataDir: reuse another harness's settings and keys (the launcher opened again).
 // chooseFolder: what the folder dialog answers (default: cancelled).
-function harness(relayPort = RELAY_PORT, userDataDir?: string, chooseFolder: Platform["chooseFolder"] = async () => null, startOfflineStack?: Platform["startOfflineStack"], onChild?: (child: EventEmitter) => void, documentsDir?: string, offlineFreeMemory?: () => number, offlineSave?: OfflineSaveRuntime,): Harness {
+function harness(relayPort = RELAY_PORT, userDataDir?: string, chooseFolder: Platform["chooseFolder"] = async () => null, startOfflineStack?: Platform["startOfflineStack"], onChild?: (child: EventEmitter) => void, documentsDir?: string, offlineFreeMemory?: () => number, offlineSave?: OfflineSaveRuntime, extra: Partial<Platform> = {}): Harness {
   let snap: Snapshot | null = null;
   const spawns: Harness["spawns"] = [];
   const offlineStatuses: OfflineStatus[] = [];
@@ -156,6 +156,7 @@ function harness(relayPort = RELAY_PORT, userDataDir?: string, chooseFolder: Pla
     offlineSave,
 
     spawn: fakeSpawn,
+    ...extra,
   };
   const c = new Controller(p);
   return { c, last: () => snap ?? c.snapshot(), spawns, child: () => child, configDir, installDir, userData, offlineStatuses, };
@@ -1301,6 +1302,62 @@ test("a key the server refuses is not sent with ServerStatus again", async () =>
   } finally {
     await hx.c.shutdown();
   }
+});
+
+test("discovered installs stay untouched until confirmation, and downloads wait for the decision", async () => {
+  const { game } = existingGame();
+  let finish!: (dirs: string[]) => void;
+  const hx = harness(RELAY_PORT, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+    { findExistingGames: () => new Promise(resolve => { finish = resolve; }) });
+  try {
+    const init = hx.c.init();
+    await waitUntil(() => hx.last().install.discovering === true);
+    assert.deepEqual(await hx.c.startInstall(), { ok: false, error: { code: "busy" } });
+    finish([game]);
+    await init;
+    assert.deepEqual(hx.last().install.detectedDirs, [game]);
+    assert.equal(hx.last().install.dir, hx.installDir);
+    assert.ok(!existsSync(path.join(game, "Archon/Binaries/Win64/DauntlessUnbroken.dll")));
+    meta.opts.validCodes!.add("DISCOVERY-CODE");
+    await hx.c.submitInvite(invite(cert.fingerprint, "DISCOVERY-CODE"));
+    await hx.c.register("DetectedSlayer");
+    assert.deepEqual(await hx.c.startInstall(), { ok: false, error: { code: "busy" } });
+    const before = gatewayRequests.length;
+    assert.deepEqual(await hx.c.useExistingGamePath(game), { ok: true });
+    assert.equal(hx.last().install.dir, game);
+    assert.equal(hx.last().phase, "ready");
+    assert.deepEqual(hx.last().install.detectedDirs, []);
+    assert.ok(!gatewayRequests.slice(before).some(r => r.startsWith("GET /content/v1/files/")));
+  } finally { await hx.c.shutdown(); }
+});
+
+test("Desktop key save happens on registration and import, while failure keeps login and manual export available", async () => {
+  const desktop = temp("unbroken-desktop-ctl-");
+  const hx = harness(RELAY_PORT, undefined, undefined, undefined, undefined, undefined, undefined, undefined, { desktopDir: desktop });
+  let backup = "";
+  try {
+    await hx.c.init();
+    meta.opts.validCodes!.add("DESKTOP-CODE");
+    await hx.c.submitInvite(invite(cert.fingerprint, "DESKTOP-CODE"));
+    const result = await hx.c.register("DesktopSlayer");
+    assert.equal(result.ok, true);
+    backup = readFileSync(hx.last().account.desktopBackupPath!, "utf8");
+    assert.match(backup, /Username: DesktopSlayer/);
+    assert.equal(hx.last().account.offerBackup, false);
+    assert.ok(!JSON.stringify(hx.last()).includes(backup.match(/Key: (\S+)/)![1]));
+  } finally { await hx.c.shutdown(); }
+  const blocked = path.join(temp("unbroken-blocked-"), "file");
+  writeFileSync(blocked, "not a directory");
+  const hy = harness(RELAY_PORT, undefined, undefined, undefined, undefined, undefined, undefined, undefined, { desktopDir: blocked });
+  try {
+    await hy.c.init();
+    await hy.c.submitInvite(invite(cert.fingerprint));
+    assert.deepEqual(await hy.c.useExistingKey(backup), { ok: true });
+    assert.equal(hy.last().account.hasKey, true);
+    assert.equal(hy.last().account.desktopBackupPath, undefined);
+    assert.equal(hy.last().account.offerBackup, true);
+    assert.ok(!JSON.stringify(hy.last()).includes(backup.match(/Key: (\S+)/)![1]));
+  } finally { await hy.c.shutdown(); }
 });
 
 test("private mode: the key goes with ServerStatus over plain HTTP to the invite's own host only", async () => {

@@ -6,7 +6,7 @@ The Windows and Linux app friends install to play on a Dauntless Unbroken server
 invite, creates the account, downloads and checks the Dauntless 1.4.4 game files from the host's
 own server, sets everything up and starts the game. English and Finnish.
 
-**Linux:** native launcher packages are available for x86_64; the Windows 1.4.4 game client runs through Proton or Wine. See the [distro-by-distro Linux guide](https://mixutin.github.io/dauntless-unbroken/setup/linux.html) or [LINUX.md](LINUX.md).
+**Linux:** native launcher packages are available for x86_64; the Windows 1.4.4 game client runs through Proton or Wine. See the [distro-by-distro Linux guide](https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html) or [LINUX.md](LINUX.md).
 
 **No game files are in this app or in this repository.** They come from the host's content server,
 and every file is checked against the list of 410 files, sizes and SHA-256 hashes compiled into the
@@ -24,9 +24,13 @@ launcher (`DauntlessUnbrokenContent/data/dauntless-1.4.4.json`). A server that o
    file (right-click > Properties > Unblock, or `Unblock-File`) and run it again. Code-signing is
    roadmap item 4.16.
 2. Open the invite link your host sent you, or paste it on the Play page and press **JOIN**.
-3. Pick a username and press **REGISTER**. Save a backup of your key when the launcher offers it.
-4. Press **INSTALL** (about 11 GB). You can pause, close the launcher and continue later. If you
-   already have Dauntless 1.4.4, choose **I already have the game files** instead and paste the path
+3. Pick a username and press **REGISTER**. The launcher saves your key automatically to your Desktop,
+   including when you import an existing key. Keep that file private. If the Desktop is unavailable,
+   the launcher keeps its encrypted local key and offers **Save key backup**.
+4. The launcher first checks common game locations. If it finds Dauntless 1.4.4, it shows the folder
+   and asks you to confirm before verifying or changing it. Choose a different folder to download
+   a separate copy. If nothing is found, press **INSTALL** (about 11 GB); downloads resume later.
+   For an unusual install location, choose **I already have the game files** instead and paste the path
    of your `BaseGame144` folder (or the `Dauntless` folder inside it), or browse to it. The launcher
    uses the game where it is: it checks every file against its pinned manifest, replaces any file
    that differs from 1.4.4, and puts its own `dxgi.dll` and `DauntlessUnbroken.dll` in

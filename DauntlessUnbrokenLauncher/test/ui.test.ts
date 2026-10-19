@@ -190,6 +190,10 @@ test("the big button in every phase", () => {
   assert.equal(primaryButton(snap({ phase: "register" }), form).disabled, true);
   const install = snap({ phase: "install" });
   assert.equal(primaryButton(install, form).action, "install");
+  assert.deepEqual(primaryButton({ ...install, install: { ...install.install, discovering: true } }, form),
+    { labelKey: "install_searching", action: "none", disabled: true });
+  assert.deepEqual(primaryButton({ ...install, install: { ...install.install, detectedDirs: ["C:/Games/Dauntless"] } }, form),
+    { labelKey: "install_found", action: "none", disabled: true });
   assert.equal(primaryButton({ ...install, install: { ...install.install, contentAvailable: false } }, form).disabled, true);
   assert.equal(primaryButton({ ...install, install: { ...install.install, freeBytes: 10 } }, form).disabled, true);
   const task = { kind: "download" as const, paused: false, totalBytes: 10, doneBytes: 1, filesTotal: 1, filesDone: 0, bytesPerSecond: 1, etaSeconds: 9, currentFile: null };

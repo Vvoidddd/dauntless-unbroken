@@ -186,10 +186,13 @@ export interface Snapshot {
     username: string | null;
     hasKey: boolean;
     offerBackup: boolean;
+    desktopBackupPath?: string;
   };
   install: {
     dir: string;
     defaultDir: string;
+    discovering?: boolean;
+    detectedDirs?: string[];
     installed: boolean; // every file present with the right size, and the DLLs in place
     missingFiles: number;
     verified: boolean; // this folder's files were fully checked or downloaded by the launcher
@@ -267,6 +270,7 @@ export const IPC = {
   chooseInstallDir: "dr:choose-install-dir",
   useExistingGameFolder: "dr:use-existing-game-folder",
   useExistingGamePath: "dr:use-existing-game-path",
+  dismissDetectedGames: "dr:dismiss-detected-games",
   startInstall: "dr:start-install",
   pauseTask: "dr:pause-task",
   resumeTask: "dr:resume-task",
