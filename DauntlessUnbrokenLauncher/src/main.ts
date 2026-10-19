@@ -7,6 +7,7 @@
 import { app, autoUpdater, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, protocol, safeStorage, screen, session, shell, type IpcMainInvokeEvent } from "electron";
 import path from "node:path";
 import { freemem } from "node:os";
+import { DISCORD_APPLICATION_ID, DiscordPresence, discordActivity } from "./main/discord-presence";
 import { PortableOfflineSave } from "./main/offline-save";
 import { electronSaveDatabase } from "./main/offline-save-runtime";
 import { offlineLayout } from "./main/offline-layout";
@@ -68,6 +69,8 @@ const RENDERER_INDEX_URL = pathToFileURL(RENDERER_INDEX).toString();
 const CSP =
   "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' dr-art: data:; font-src 'self'; " +
   "connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'";
+const discordPresence = new DiscordPresence(DISCORD_APPLICATION_ID);
+const presenceStarted = Math.floor(Date.now() / 1_000);
 let mainWindow: BrowserWindow | null = null;
 let controller: Controller | null = null;
 let pendingInviteLink: string | null = null;
@@ -531,9 +534,15 @@ function makePlatform(): Platform {
     openPath: async (dir) => {
       await shell.openPath(dir);
     },
-    emitSnapshot: (s) => send(IPC.snapshot, s),
+    emitSnapshot: (s) => {
+      send(IPC.snapshot, s);
+      discordPresence.update(discordActivity(s, controller?.offlineStatus() ?? { phase: "stopped" }, presenceStarted));
+    },
     emitProgress: (p) => send(IPC.progress, p),
-    emitOfflineStatus: (s) => send(IPC.offlineStatusChanged, s),
+    emitOfflineStatus: (s) => {
+      send(IPC.offlineStatusChanged, s);
+      if (controller) discordPresence.update(discordActivity(controller.snapshot(), s, presenceStarted));
+    },
     findTailscale: () => findTailscale(process.env, existsSync, process.platform),
     findRunningClients: () => findRunningClients(process.platform),
     startOfflineStack: localStack ? (onPhase) => startLocalOfflineStack(onPhase) : undefined,
@@ -558,6 +567,7 @@ function makePlatform(): Platform {
     installUpdate: () => {
       if (app.isPackaged && process.platform === "win32") {
         quitting = true;
+        discordPresence.stop();
         autoUpdater.quitAndInstall();
       } else if (app.isPackaged && process.platform === "linux" && linuxUpdate) {
         void installLinuxUpdate(linuxUpdate).then(() => { quitting = true; app.quit(); }).catch((e) => log.error(`update: Linux install failed: ${describeError(e)}`));
@@ -657,9 +667,11 @@ if (!started) {
 
     app.on("before-quit", () => {
       quitting = true;
+      discordPresence.stop();
     });
 
     app.on("window-all-closed", () => {
+      discordPresence.stop();
       const c = controller;
       const stack = localStack;
       controller = null;

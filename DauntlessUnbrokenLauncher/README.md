@@ -16,6 +16,20 @@ launcher (`DauntlessUnbrokenContent/data/dauntless-1.4.4.json`). A server that o
 
 The launcher uses a compact navigation dock, header account controls and a dedicated launch area. Sora and Manrope fonts are bundled locally; the purple palette and aether background are unchanged. Setup checkpoints and download progress adapt to the current task without measuring the layout on every status update.
 
+## Discord activity
+
+With the Discord desktop app open, the launcher shows **Playing Dauntless Unbroken** with the
+Unbroken icon, elapsed launcher time, and your launcher, download, queue, or online/offline play
+status. Discord's activity-sharing settings must also allow activity to be displayed.
+
+Turn it off under **Settings → Launcher → Discord Rich Presence**. Streamer mode hides it too.
+Activity clears when the launcher closes. Account keys, player names, server addresses, and invite
+codes are never included. Discord is optional; closing it does not affect downloading or playing.
+
+The integration uses local Discord IPC and public application ID `1561808870995664918`; no Discord
+token is required or bundled. Updates are coalesced to at most once every 15 seconds, with a
+30-second reconnect delay when Discord is unavailable.
+
 ## For friends
 
 1. Install a launcher package from the project's release. On Windows use

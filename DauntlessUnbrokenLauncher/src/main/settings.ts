@@ -26,6 +26,7 @@ export interface StoredSettings {
   graphics: GraphicsPreset;
   exposure: ExposureMode;
   windowed: boolean;
+  discordPresence: boolean;
   streamerMode: boolean; // hide addresses, fingerprints, paths and player names on screen
   language: Language;
   gameLanguage: GameLanguage;
@@ -44,6 +45,7 @@ export function defaultSettings(language: Language): StoredSettings {
     graphics: DEFAULT_GRAPHICS,
     exposure: "game",
     windowed: false,
+    discordPresence: true,
     streamerMode: false,
     language,
     gameLanguage: "auto",
@@ -115,6 +117,7 @@ export function sanitizeSettings(raw: unknown, language: Language, platform: Nod
   if (GRAPHICS_PRESETS.includes(raw.graphics as GraphicsPreset)) s.graphics = raw.graphics as GraphicsPreset;
   if (EXPOSURE_MODES.includes(raw.exposure as ExposureMode)) s.exposure = raw.exposure as ExposureMode;
   s.windowed = raw.windowed === true;
+  s.discordPresence = raw.discordPresence !== false;
   s.streamerMode = raw.streamerMode === true;
   s.showConsole = raw.showConsole === true;
   if (raw.huntRegion === 'aus') s.huntRegion = 'us'; // Migrate the retired region once when loading old settings.
