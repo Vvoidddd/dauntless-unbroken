@@ -25,9 +25,9 @@ URL: https://mixutin.github.io/dauntless-unbroken/
 ## Choose your path
 
 <div class="ub-cards">
-  <a class="ub-card" href="https://mixutin.github.io/dauntless-unbroken/setup/"><span class="ub-step">01 / PLAY</span><h3>Get into the game</h3><p>Install the launcher, connect with a server invite and keep your account key safe.</p><span class="ub-card-link">Player setup →</span></a>
-  <a class="ub-card" href="https://mixutin.github.io/dauntless-unbroken/setup/windows-server.html"><span class="ub-step">02 / HOST</span><h3>Run your own realm</h3><p>Deploy the Windows server kit, configure access and operate the game services.</p><span class="ub-card-link">Server setup →</span></a>
-  <a class="ub-card" href="https://mixutin.github.io/dauntless-unbroken/reference/"><span class="ub-step">03 / UNDERSTAND</span><h3>Know what runs where</h3><p>Read the service architecture, configuration and account/progression reference.</p><span class="ub-card-link">Technical reference →</span></a>
+  <a class="ub-card" href="https://mixutin.github.io/dauntless-unbroken/setup/"><span class="ub-step">01 / PLAY</span><span class="ub-card-title">Get into the game</span><p>Install the launcher, connect with a server invite and keep your account key safe.</p><span class="ub-card-link">Player setup →</span></a>
+  <a class="ub-card" href="https://mixutin.github.io/dauntless-unbroken/setup/windows-server.html"><span class="ub-step">02 / HOST</span><span class="ub-card-title">Run your own realm</span><p>Deploy the Windows server kit, configure access and operate the game services.</p><span class="ub-card-link">Server setup →</span></a>
+  <a class="ub-card" href="https://mixutin.github.io/dauntless-unbroken/reference/"><span class="ub-step">03 / UNDERSTAND</span><span class="ub-card-title">Know what runs where</span><p>Read the service architecture, configuration and account/progression reference.</p><span class="ub-card-link">Technical reference →</span></a>
 </div>
 
 ## What is included

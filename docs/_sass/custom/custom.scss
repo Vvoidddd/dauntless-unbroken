@@ -328,7 +328,7 @@ blockquote {
 .ub-cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; margin: 22px 0; }
 a.ub-card { display: flex; flex-direction: column; border: 1px solid $dr-deep; border-radius: 14px; padding: 24px 20px; background: $dr-navy; text-decoration: none; transition: border-color .15s, transform .15s; }
 a.ub-card:hover { border-color: $dr-ice; transform: translateY(-3px); }
-.ub-card h3 { color: $dr-frost; font-size: 19px; line-height: 1.25; margin: 15px 0 10px; }
+.ub-card-title { display: block; font-weight: 700; color: $dr-frost; font-size: 19px; line-height: 1.25; margin: 15px 0 10px; }
 .ub-card p { color: $dr-steel; font-size: 13px; margin: 0 0 22px; }
 .ub-card-link { margin-top: auto; font-size: 12px; color: $dr-ice; }
 .ub-note { border-left: 3px solid $dr-ice; padding: 18px 22px; border-radius: 0 10px 10px 0; background: $dr-navy; color: $dr-steel; font-size: 13px; margin: 28px 0; }
