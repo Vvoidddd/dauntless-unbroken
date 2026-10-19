@@ -1236,7 +1236,7 @@ try {
                 Write-DROk "owner account '$OwnerName' created as admin; key saved to $($P.OwnerKey) (not shown)"
             }
         } finally {
-            [void](Invoke-KitScript 'Stack.ps1' @('stop', '-Root', $Root, '-NoBackup', '-Direct'))
+            [void](Invoke-KitScript 'Stack.ps1' @('stop', '-Root', $Root, '-Only', 'metagame', '-NoBackup', '-Direct'))
         }
     }
 
