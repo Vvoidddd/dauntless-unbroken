@@ -27,6 +27,7 @@ import {
 import { findLinuxUpdate, installLinuxUpdate, type LinuxUpdate } from "./main/linux-updater";
 import { findTailscale } from "./main/system";
 import { discoverExistingGames, fixedGameDrives } from "./main/game-discovery";
+import { createUpdateCheck, UPDATE_POLL_MS } from "./main/update-check";
 import { describeError, log, logToFile } from "./main/log";
 import { boundedString, externalTarget, isTrustedPageUrl, relayPortOverride, settingsPatch } from "./main/ipc-validate";
 import { INVITE_SCHEME, parseInvite } from "./shared/invite";
@@ -602,27 +603,50 @@ if (!started) {
       createWindow();
       await controller.init();
 
-      if (app.isPackaged && process.platform === "linux") {
-        const check = async () => {
-          try {
+      if (app.isPackaged && (process.platform === "linux" || process.platform === "win32")) {
+        let updateReady = false;
+        let windowsUpdaterInitialized = false;
+        const check = createUpdateCheck(async () => {
+          if (process.platform === "linux") {
             linuxUpdate = await findLinuxUpdate();
-            if (linuxUpdate) controller?.setUpdateReady();
-          } catch (e) {
-            log.warn(`update: Linux check failed: ${describeError(e)}`);
+            if (linuxUpdate) { updateReady = true; controller?.setUpdateReady(); }
+            return;
           }
-        };
-        void check();
-        setInterval(() => void check(), 60 * 60 * 1000).unref();
-      }
-
-      if (app.isPackaged && process.platform === "win32") {
-        updateElectronApp({
-          updateSource: { type: UpdateSourceType.StaticStorage, baseUrl: UPDATE_FEED_URL },
-          updateInterval: "1 hour",
-          notifyUser: true,
-          onNotifyUser: () => controller?.setUpdateReady(),
-          logger: { log: (m) => log.info(`update: ${m}`), info: (m) => log.info(`update: ${m}`), warn: (m) => log.warn(`update: ${m}`), error: (m) => log.error(`update: ${m}`) },
-        });
+          await new Promise<void>((resolve, reject) => {
+            const cleanup = () => {
+              autoUpdater.off("update-not-available", done);
+              autoUpdater.off("update-downloaded", done);
+              autoUpdater.off("error", failed);
+            };
+            const done = () => { cleanup(); resolve(); };
+            const failed = (error: Error) => { cleanup(); reject(error); };
+            autoUpdater.once("update-not-available", done);
+            autoUpdater.once("update-downloaded", done);
+            autoUpdater.once("error", failed);
+            try {
+              if (windowsUpdaterInitialized) {
+                autoUpdater.checkForUpdates();
+              } else {
+                // Reuse the existing feed/notification setup, but own the scheduling so
+                // checks cannot start a package download while the game is running.
+                const updater = updateElectronApp({
+                  updateSource: { type: UpdateSourceType.StaticStorage, baseUrl: UPDATE_FEED_URL },
+                  updateInterval: "5 minutes",
+                  notifyUser: true,
+                  onNotifyUser: () => { updateReady = true; controller?.setUpdateReady(); },
+                  logger: { log: (m) => log.info(`update: ${m}`), info: (m) => log.info(`update: ${m}`), warn: (m) => log.warn(`update: ${m}`), error: (m) => log.error(`update: ${m}`) },
+                });
+                updater.stopUpdates();
+                windowsUpdaterInitialized = true;
+              }
+            } catch (error) { cleanup(); reject(error); }
+          });
+        }, () => !controller || updateReady || controller.gameRunning || controller.relayActive
+          || controller.offlineGameActive || controller.snapshot().task !== null);
+        const poll = () => void check().catch(error => log.warn(`update: check failed: ${describeError(error)}`));
+        poll();
+        setInterval(poll, UPDATE_POLL_MS).unref();
+        app.on("browser-window-focus", poll);
       }
     }).catch((error) => {
       log.error(`launcher startup failed: ${describeError(error)}`);

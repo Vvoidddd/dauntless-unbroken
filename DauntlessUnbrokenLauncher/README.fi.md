@@ -135,7 +135,7 @@ käännettyyn committiin. Uusi julkaisu syntyy siis nostamalla versiota:
 - tai aja Actions > **Launcher release** > **Run workflow** `main`-haaralle.
 
 Julkaisun jälkeen työnkulku siirtää jatkuvan `launcher-updates`-julkaisun uuden Windowsin
-Squirrel-paketin kohdalle; asennetut Windows-käynnistimet tarkistavat sen tunnin välein. Linuxissa
+Squirrel-paketin kohdalle. Versio 1.0.4+ tarkistaa päivitykset käynnistyessä, viiden minuutin välein ja ikkunaan palatessa (enintään kerran minuutissa). Tarkistukset odottavat pelin tai tiedostotehtävän päättymistä. Linuxissa
 päivitetään pakettimuodon kautta tai lataamalla uudempi julkaisu. Versio julkaistaan vain, jos se on
 uudempi kuin kaikki aiemmat, eikä julkaistua versiota koskaan korvata. Esiversio (kuten
 `0.2.0-beta.1`) julkaistaan GitHubin esijulkaisuna, eikä se koskaan päädy `launcher-updates`-julkaisuun.

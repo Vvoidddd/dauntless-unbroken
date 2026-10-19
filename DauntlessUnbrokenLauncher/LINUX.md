@@ -133,7 +133,7 @@ Keep the launcher open while the game runs.
 
 ## Updates and limitations
 
-The Linux launcher now checks the latest stable GitHub launcher release at startup and every hour. When an update is available, the existing update banner appears. AppImage installs replace and relaunch themselves; .deb and .rpm installs download the matching package and request administrator approval through PolicyKit before handing the update to the system package manager. Prereleases are not offered automatically.
+The Linux launcher checks the latest stable GitHub launcher release at startup, every five minutes while idle, and when its window regains focus (at most once per minute). Checks pause during gameplay and game-file tasks, and metadata requests time out after ten seconds. When an update is available, the existing update banner appears. AppImage installs replace and relaunch themselves; .deb and .rpm installs download the matching package and request administrator approval through PolicyKit before handing the update to the system package manager. Prereleases are not offered automatically.
 
 Windows continues to use the existing Squirrel self-update feed.
 

@@ -15,6 +15,7 @@ function newer(a: string, b: string): boolean {
 
 export async function findLinuxUpdate(): Promise<LinuxUpdate | null> {
   const response = await fetch("https://api.github.com/repos/Vvoidddd/dauntless-unbroken/releases/latest", {
+    signal: AbortSignal.timeout(10_000),
     headers: { Accept: "application/vnd.github+json", "User-Agent": `DauntlessUnbrokenLauncher/${app.getVersion()}` },
   });
   if (!response.ok) throw new Error(`GitHub returned ${response.status}`);
