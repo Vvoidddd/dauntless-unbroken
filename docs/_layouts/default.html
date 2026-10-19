@@ -3,44 +3,49 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#15101f">
+  <meta name="theme-color" content="#f7f5fb">
   {% seo %}
   <link rel="icon" href="{{ '/assets/favicon.ico' | relative_url }}">
-  <link rel="stylesheet" href="{{ '/assets/unbroken-docs.css' | relative_url }}">
-  <script src="{{ '/assets/unbroken-docs.js' | relative_url }}" defer></script>
+  <link rel="stylesheet" href="{{ '/assets/unbroken-docs.css' | relative_url }}?v={{ site.time | date: '%s' }}">
+  <script src="{{ '/assets/unbroken-docs.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
 </head>
 <body data-search-index="{{ '/search.json' | relative_url }}">
   <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="site-header">
-    <a class="brand" href="{{ '/' | relative_url }}" aria-label="Dauntless Unbroken documentation home">
-      <img src="{{ '/assets/icon-192.png' | relative_url }}" alt="" width="38" height="38">
-      <span>DAUNTLESS <strong>UNBROKEN</strong><small>THE FIELD GUIDE</small></span>
-    </a>
-    <nav aria-label="Main navigation">
-      <a href="{{ '/setup/' | relative_url }}">Play</a>
-      <a href="{{ '/server.html' | relative_url }}">Run a server</a>
-      <a href="{{ '/reference/' | relative_url }}">Reference</a>
-    </nav>
-    <a class="header-download" href="https://github.com/Vvoidddd/dauntless-unbroken/releases/latest">Get the launcher <span aria-hidden="true">↗</span></a>
+    <div class="header-inner">
+      <a class="brand" href="{{ '/' | relative_url }}" aria-label="Dauntless Unbroken documentation home">
+        <img src="{{ '/assets/icon-192.png' | relative_url }}" alt="" width="36" height="36">
+        <span>DAUNTLESS <strong>UNBROKEN</strong></span>
+      </a>
+      <div class="header-actions">
+        <details class="guide-menu">
+          <summary>Guides <span aria-hidden="true">⌄</span></summary>
+          <nav aria-label="Guides">
+            <a href="{{ '/setup/' | relative_url }}"><strong>Start playing</strong><small>Install, sign in and join</small></a>
+            <a href="{{ '/server.html' | relative_url }}"><strong>Run a server</strong><small>Architecture and operations</small></a>
+            <a href="{{ '/reference/' | relative_url }}"><strong>Reference</strong><small>Settings, ports and API</small></a>
+          </nav>
+        </details>
+        <a class="header-download" href="https://github.com/Vvoidddd/dauntless-unbroken/releases/latest">Get the launcher <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
   </header>
-  <div class="site-shell">
-    <aside class="guide-tools" aria-label="Documentation tools">
-      <label for="guide-search">Find an answer</label>
-      <input id="guide-search" type="search" placeholder="Search the guide…" autocomplete="off" aria-controls="search-results">
-      <p id="search-status" class="search-status" role="status"></p>
+  <section class="search-strip" aria-label="Search documentation">
+    <div class="search-inner">
+      <label for="guide-search">Search the docs</label>
+      <input id="guide-search" type="search" placeholder="Game files, account keys, server setup…" autocomplete="off" aria-controls="search-results">
+      <p id="search-status" role="status"></p>
       <div id="search-results" hidden></div>
-      <div id="page-outline"><span class="aside-label">ON THIS PAGE</span><nav aria-label="On this page"></nav></div>
-      <div class="aside-help"><span class="aside-label">NEED A HAND?</span><a href="{{ '/setup/troubleshooting.html' | relative_url }}">Troubleshooting →</a><a href="https://github.com/Vvoidddd/dauntless-unbroken/issues">Report an issue ↗</a></div>
-    </aside>
-    <main id="main-content" class="guide-content{% if page.ref == 'index' %} is-home{% endif %}">
-      {% unless page.ref == 'index' %}<div class="page-kicker">DAUNTLESS UNBROKEN / DOCUMENTATION</div>{% endunless %}
-      {{ content }}
-      <footer class="page-footer">
-        <span>Dauntless Unbroken · Community-run · AGPL-3.0-only</span>
-        <div><a href="https://github.com/Vvoidddd/dauntless-unbroken">Source</a><a href="{{ '/legal.html' | relative_url }}">Legal &amp; licenses</a><a href="#main-content">Back to top ↑</a></div>
-        <small>Not affiliated with Phoenix Labs or Epic Games. No hosting provider partnerships.</small>
-      </footer>
-    </main>
-  </div>
+    </div>
+  </section>
+  <main id="main-content" class="guide-content{% if page.ref == 'index' %} is-home{% endif %}">
+    {% unless page.ref == 'index' %}<div class="page-kicker"><a href="{{ '/' | relative_url }}">Documentation</a><span aria-hidden="true">/</span>{{ page.title }}</div>{% endunless %}
+    {{ content }}
+  </main>
+  <footer class="site-footer">
+    <div><a class="footer-name" href="{{ '/' | relative_url }}">Dauntless Unbroken</a><span>Community-run. Built for the hunt.</span></div>
+    <nav aria-label="Footer"><a href="{{ '/setup/troubleshooting.html' | relative_url }}">Get help</a><a href="https://github.com/Vvoidddd/dauntless-unbroken">GitHub</a><a href="{{ '/legal.html' | relative_url }}">Legal &amp; licenses</a></nav>
+    <small>AGPL-3.0-only · Not affiliated with Phoenix Labs or Epic Games.</small>
+  </footer>
 </body>
 </html>

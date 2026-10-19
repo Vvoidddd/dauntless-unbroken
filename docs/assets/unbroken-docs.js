@@ -8,13 +8,18 @@ document.querySelectorAll("main table").forEach(table => {
   wrapper.setAttribute("aria-label", "Scrollable reference table");
   table.before(wrapper); wrapper.append(table);
 });
-const outline = document.querySelector("#page-outline nav");
-document.querySelectorAll("main h2[id]").forEach(heading => {
-  const link = document.createElement("a"); link.href = "#" + heading.id; link.textContent = heading.textContent;
-  outline?.append(link);
+document.querySelectorAll("main details").forEach(details => {
+  if (details.querySelector("#markdown-toc")) details.open = false;
 });
-document.querySelectorAll(".site-header nav a").forEach(link => {
-  if (new URL(link.href).pathname === location.pathname) link.setAttribute("aria-current", "page");
+const menu = document.querySelector(".guide-menu");
+document.addEventListener("click", event => {
+  if (menu && !menu.contains(event.target)) menu.open = false;
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && menu?.open) {
+    menu.open = false;
+    menu.querySelector("summary").focus();
+  }
 });
 const input = document.querySelector("#guide-search");
 const results = document.querySelector("#search-results");
@@ -28,7 +33,6 @@ input?.addEventListener("input", () => {
   timer = setTimeout(async () => {
     const query = input.value.trim().toLocaleLowerCase();
     results.replaceChildren(); results.hidden = !query;
-    document.querySelector("#page-outline").hidden = !!query;
     if (query.length < 2) { status.textContent = query ? "Type at least two characters." : ""; return; }
     status.textContent = "Searching…";
     try {
@@ -47,7 +51,7 @@ input?.addEventListener("input", () => {
       status.textContent = matches.length ? matches.length + " matching guides" : "No match. Try a shorter term.";
     } catch {
       index = undefined;
-      if (request === generation) status.textContent = "Search is unavailable. Use Play, Run a server or Reference above.";
+      if (request === generation) status.textContent = "Search is unavailable. Open Guides above to browse the documentation.";
     }
   }, 180);
 });

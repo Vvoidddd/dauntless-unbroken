@@ -11,7 +11,7 @@
 
 ## Start here
 
-- [Home](https://vvoidddd.github.io/dauntless-unbroken/): The field guide to playing, hosting and maintaining Dauntless Unbroken.
+- [Home](https://vvoidddd.github.io/dauntless-unbroken/): Your guide to playing Dauntless Unbroken, setting up a server and finding the answers you need.
 - [FAQ](https://vvoidddd.github.io/dauntless-unbroken/faq.html): Can you still play Dauntless? Is there a private server? Short answers about Dauntless Unbroken: versions, Epic accounts, joining, hosting, legality and Linux.
 
 ## Setup
