@@ -369,18 +369,18 @@ const en = {
   nav_credits: "Licenses",
   credits_title: "Licenses",
   credits_intro: "Open-source software and license notices.",
-  credits_project_text: "This fork of Undaunted: the server kit, this launcher, the fixes and the docs.",
-  credits_patrons_title: "Patreons",
-  credits_patrons_text: "Thank you to the people supporting ongoing development and community costs. Patreon support is optional and never provides gameplay advantages.",
-  credits_role_patron: "Patreon supporter",
-  credits_upstream_text: "Dauntless Unbroken is a modified version of Undaunted. Multiplayer Ramsgate and hunts on 1.4.4 are Undaunted's achievement.",
-  credits_role_maintainer: "Maintainer",
-  credits_role_creator: "Creator",
-  credits_role_contributor: "Contributor",
-  credits_github_handle: "GitHub: {handle}",
-  credits_all_contributors: "All contributors on GitHub",
-  credits_upstream_source: "Undaunted on GitHub",
-  credits_upstream_contributors: "Undaunted's contributors on GitHub",
+
+
+
+
+
+
+
+
+
+
+
+
   credits_software: "Open-source software",
   credits_software_text: "The launcher and the server DLL it ships are built with these. Their full license texts ship with the launcher in THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "No license file",
@@ -910,18 +910,18 @@ const fi: Record<StringKey, string> = {
   nav_credits: "Lisenssit",
   credits_title: "Lisenssit",
   credits_intro: "Open-source software and license notices.",
-  credits_project_text: "Tämä Undauntedin haara: palvelinpaketti, tämä käynnistin, korjaukset ja ohjeet.",
-  credits_patrons_title: "Patreon-tukijat",
-  credits_patrons_text: "Kiitos kaikille, jotka tukevat kehitystä ja yhteisön kuluja Patreonissa. Patreon-tuki on vapaaehtoista eikä anna pelillisiä etuja.",
-  credits_role_patron: "Patreon-tukija",
-  credits_upstream_text: "Dauntless Unbroken on muokattu versio Undauntedista. Moninpeli Ramsgatessa ja metsästykset versiossa 1.4.4 ovat Undauntedin saavutus.",
-  credits_role_maintainer: "Ylläpitäjä",
-  credits_role_creator: "Luoja",
-  credits_role_contributor: "Osallistuja",
-  credits_github_handle: "GitHub: {handle}",
-  credits_all_contributors: "Kaikki osallistujat GitHubissa",
-  credits_upstream_source: "Undaunted GitHubissa",
-  credits_upstream_contributors: "Undauntedin osallistujat GitHubissa",
+
+
+
+
+
+
+
+
+
+
+
+
   credits_software: "Avoimen lähdekoodin ohjelmistot",
   credits_software_text: "Käynnistin ja sen mukana tuleva palvelin-DLL on tehty näiden avulla. Niiden lisenssitekstit kokonaisuudessaan tulevat käynnistimen mukana tiedostossa THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Ei lisenssitiedostoa",
@@ -1447,18 +1447,18 @@ const es: Record<StringKey, string> = {
   nav_credits: "Lizenzen",
   credits_title: "Lizenzen",
   credits_intro: "Open-source software and license notices.",
-  credits_project_text: "Esta bifurcación de Undaunted: el kit de servidor, este launcher, las correcciones y la documentación.",
-  credits_patrons_title: "Mecenas de Patreon",
-  credits_patrons_text: "Gracias a quienes apoyan el desarrollo continuo y los gastos de la comunidad. El apoyo en Patreon es opcional y nunca da ventajas en el juego.",
-  credits_role_patron: "Mecenas en Patreon",
-  credits_upstream_text: "Dauntless Unbroken es una versión modificada de Undaunted. Ramsgate multijugador y las cacerías en la 1.4.4 son un logro de Undaunted.",
-  credits_role_maintainer: "Mantenedor",
-  credits_role_creator: "Creador",
-  credits_role_contributor: "Colaborador",
-  credits_github_handle: "GitHub: {handle}",
-  credits_all_contributors: "Todos los colaboradores en GitHub",
-  credits_upstream_source: "Undaunted en GitHub",
-  credits_upstream_contributors: "Colaboradores de Undaunted en GitHub",
+
+
+
+
+
+
+
+
+
+
+
+
   credits_software: "Software de código abierto",
   credits_software_text: "El launcher y la DLL de servidor que incluye están hechos con esto. Los textos completos de sus licencias vienen con el launcher en THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Sin archivo de licencia",
@@ -1675,7 +1675,7 @@ const de: Record<StringKey, string> = {
   partner_capacity_title: "Einen Tarif wählen",
   partner_capacity: "Unser gemessener RAM-Bedarf: Ramsgate ≈ 1,1 GB, jeder Jagdserver ≈ 0,9 GB, Trainings-Dojo ≈ 0,9 GB und die Node-Steuerungsebene ≈ 130 MB. Mit allen Standard-Jagdports aktiv und einem Client auf dem Host liegt unsere Schätzung bei geringer Last bei etwa 9,5 GB.",
   partner_capacity_note: "Für den kompletten Standard-Stack beginne mit GAME 3 (12 GB) oder größer. GAME 1/2 eignen sich eher für Tests, die Steuerungsebene oder bewusst verkleinerte Installationen. Eine Spielerzahl ist nicht garantiert; die CPU-Last im Kampf bei vielen Spielern wird noch gemessen.",
-  logo_alt: "Dauntless-Revived-Logo",
+  logo_alt: "Dauntless-Unbroken-Logo",
   tile_sub: "Spiel 1.4.4",
   rail_not_joined: "Noch keinem Server beigetreten",
   rail_signed_in_as: "Angemeldet als",
@@ -1745,8 +1745,8 @@ const de: Record<StringKey, string> = {
   connect_check_ts_on: "Tailscale läuft und du bist angemeldet.",
   connect_check_share: "Du hast die Freigabe des Hosts angenommen.",
   connect_check_server: "Der Server des Hosts läuft (frag nach).",
-  connect_bad_title: "Das ist kein Dauntless-Revived-Server",
-  connect_bad_text: "Unter {host}:{port} hat etwas geantwortet, aber nicht wie ein Dauntless-Revived-Server. Prüfe die Einladung mit deinem Host.",
+  connect_bad_title: "Das ist kein Dauntless-Unbroken-Server",
+  connect_bad_text: "Unter {host}:{port} hat etwas geantwortet, aber nicht wie ein Dauntless-Unbroken-Server. Prüfe die Einladung mit deinem Host.",
   connect_last_checked: "Zuletzt geprüft {time}",
   connect_use_other: "Andere Einladung verwenden",
   reg_title: "Wähle deinen Namen",
@@ -1935,18 +1935,18 @@ const de: Record<StringKey, string> = {
   nav_credits: "Licencias",
   credits_title: "Licencias",
   credits_intro: "Open-source software and license notices.",
-  credits_project_text: "Dieser Fork von Undaunted: das Server-Kit, dieser Launcher, die Fehlerbehebungen und die Dokumentation.",
-  credits_patrons_title: "Patreons",
-  credits_patrons_text: "Danke an alle, die die laufende Entwicklung und die Kosten der Community unterstützen. Unterstützung über Patreon ist freiwillig und bringt nie Vorteile im Spiel.",
-  credits_role_patron: "Patreon-Unterstützer",
-  credits_upstream_text: "Dauntless Unbroken ist eine veränderte Version von Undaunted. Mehrspieler-Ramsgate und Jagden auf 1.4.4 sind die Leistung von Undaunted.",
-  credits_role_maintainer: "Maintainer",
-  credits_role_creator: "Schöpfer",
-  credits_role_contributor: "Mitwirkender",
-  credits_github_handle: "GitHub: {handle}",
-  credits_all_contributors: "Alle Mitwirkenden auf GitHub",
-  credits_upstream_source: "Undaunted auf GitHub",
-  credits_upstream_contributors: "Mitwirkende von Undaunted auf GitHub",
+
+
+
+
+
+
+
+
+
+
+
+
   credits_software: "Open-Source-Software",
   credits_software_text: "Der Launcher und die mitgelieferte Server-DLL werden damit gebaut. Ihre vollständigen Lizenztexte liegen dem Launcher in THIRD-PARTY-NOTICES.txt bei.",
   credits_no_license: "Keine Lizenzdatei",
@@ -2402,18 +2402,18 @@ const fr: Record<StringKey, string> = {
   nav_credits: "Licences",
   credits_title: "Licences",
   credits_intro: "Open-source software and license notices.",
-  credits_project_text: "Ce fork d'Undaunted : le kit serveur, ce launcher, les correctifs et la documentation.",
-  credits_patrons_title: "Patreons",
-  credits_patrons_text: "Merci aux personnes qui soutiennent le développement continu et les frais de la communauté. Le soutien sur Patreon est facultatif et ne donne jamais d'avantage en jeu.",
-  credits_role_patron: "Soutien Patreon",
-  credits_upstream_text: "Dauntless Unbroken est une version modifiée d'Undaunted. Ramsgate en multijoueur et les chasses sur la 1.4.4 sont l'œuvre d'Undaunted.",
-  credits_role_maintainer: "Mainteneur",
-  credits_role_creator: "Créateur",
-  credits_role_contributor: "Contributeur",
-  credits_github_handle: "GitHub : {handle}",
-  credits_all_contributors: "Tous les contributeurs sur GitHub",
-  credits_upstream_source: "Undaunted sur GitHub",
-  credits_upstream_contributors: "Les contributeurs d'Undaunted sur GitHub",
+
+
+
+
+
+
+
+
+
+
+
+
   credits_software: "Logiciels open source",
   credits_software_text: "Le launcher et la DLL serveur qu'il fournit sont construits avec ceux-ci. Leurs textes de licence complets sont fournis avec le launcher dans THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Pas de fichier de licence",
@@ -2869,18 +2869,18 @@ const it: Record<StringKey, string> = {
   nav_credits: "Licenze",
   credits_title: "Licenze",
   credits_intro: "Open-source software and license notices.",
-  credits_project_text: "Questo fork di Undaunted: il kit del server, questo launcher, le correzioni e la documentazione.",
-  credits_patrons_title: "Patreon",
-  credits_patrons_text: "Grazie a chi sostiene lo sviluppo continuo e i costi della community. Il supporto su Patreon è facoltativo e non dà mai vantaggi nel gioco.",
-  credits_role_patron: "Sostenitore su Patreon",
-  credits_upstream_text: "Dauntless Unbroken è una versione modificata di Undaunted. Ramsgate in multigiocatore e le cacce sulla 1.4.4 sono merito di Undaunted.",
-  credits_role_maintainer: "Manutentore",
-  credits_role_creator: "Creatore",
-  credits_role_contributor: "Collaboratore",
-  credits_github_handle: "GitHub: {handle}",
-  credits_all_contributors: "Tutti i collaboratori su GitHub",
-  credits_upstream_source: "Undaunted su GitHub",
-  credits_upstream_contributors: "I collaboratori di Undaunted su GitHub",
+
+
+
+
+
+
+
+
+
+
+
+
   credits_software: "Software open source",
   credits_software_text: "Il launcher e la DLL del server che include sono costruiti con questi. I testi completi delle licenze sono inclusi nel launcher in THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Nessun file di licenza",
@@ -3336,18 +3336,18 @@ const ja: Record<StringKey, string> = {
   nav_credits: "ライセンス",
   credits_title: "ライセンス",
   credits_intro: "Open-source software and license notices.",
-  credits_project_text: "Undaunted のこのフォーク：サーバーキット、このランチャー、修正、ドキュメント。",
-  credits_patrons_title: "Patreon 支援者",
-  credits_patrons_text: "継続的な開発とコミュニティの費用を支えてくださる方々に感謝します。Patreon での支援は任意で、ゲーム内で有利になることは一切ありません。",
-  credits_role_patron: "Patreon 支援者",
-  credits_upstream_text: "Dauntless Unbroken は Undaunted の改変版です。1.4.4 でのマルチプレイの Ramsgate と狩りは Undaunted の成果です。",
-  credits_role_maintainer: "メンテナー",
-  credits_role_creator: "作者",
-  credits_role_contributor: "貢献者",
-  credits_github_handle: "GitHub：{handle}",
-  credits_all_contributors: "GitHub のすべての貢献者",
-  credits_upstream_source: "GitHub の Undaunted",
-  credits_upstream_contributors: "GitHub の Undaunted の貢献者",
+
+
+
+
+
+
+
+
+
+
+
+
   credits_software: "オープンソースソフトウェア",
   credits_software_text: "ランチャーと同梱のサーバー DLL は、これらを使って作られています。ライセンスの全文はランチャーに THIRD-PARTY-NOTICES.txt として同梱されています。",
   credits_no_license: "ライセンスファイルなし",
@@ -3803,18 +3803,18 @@ const pt: Record<StringKey, string> = {
   nav_credits: "Licenças",
   credits_title: "Licenças",
   credits_intro: "Open-source software and license notices.",
-  credits_project_text: "Este fork do Undaunted: o kit de servidor, este launcher, as correções e a documentação.",
-  credits_patrons_title: "Apoiadores no Patreon",
-  credits_patrons_text: "Obrigado a quem apoia o desenvolvimento contínuo e os custos da comunidade. O apoio no Patreon é opcional e nunca dá vantagens no jogo.",
-  credits_role_patron: "Apoiador no Patreon",
-  credits_upstream_text: "O Dauntless Unbroken é uma versão modificada do Undaunted. O Ramsgate multijogador e as caçadas na 1.4.4 são conquista do Undaunted.",
-  credits_role_maintainer: "Mantenedor",
-  credits_role_creator: "Criador",
-  credits_role_contributor: "Colaborador",
-  credits_github_handle: "GitHub: {handle}",
-  credits_all_contributors: "Todos os colaboradores no GitHub",
-  credits_upstream_source: "Undaunted no GitHub",
-  credits_upstream_contributors: "Colaboradores do Undaunted no GitHub",
+
+
+
+
+
+
+
+
+
+
+
+
   credits_software: "Software de código aberto",
   credits_software_text: "O launcher e a DLL de servidor que ele traz são feitos com estes. Os textos completos das licenças vêm com o launcher em THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Sem arquivo de licença",
@@ -4270,18 +4270,18 @@ const ru: Record<StringKey, string> = {
   nav_credits: "Лицензии",
   credits_title: "Лицензии",
   credits_intro: "Open-source software and license notices.",
-  credits_project_text: "Этот форк Undaunted: серверный комплект, этот лаунчер, исправления и документация.",
-  credits_patrons_title: "Patreon",
-  credits_patrons_text: "Спасибо всем, кто поддерживает разработку и расходы сообщества. Поддержка на Patreon добровольная и никогда не даёт преимуществ в игре.",
-  credits_role_patron: "Поддержка на Patreon",
-  credits_upstream_text: "Dauntless Unbroken - изменённая версия Undaunted. Многопользовательский Ramsgate и охоты на 1.4.4 - заслуга Undaunted.",
-  credits_role_maintainer: "Сопровождающий",
-  credits_role_creator: "Создатель",
-  credits_role_contributor: "Участник",
-  credits_github_handle: "GitHub: {handle}",
-  credits_all_contributors: "Все участники на GitHub",
-  credits_upstream_source: "Undaunted на GitHub",
-  credits_upstream_contributors: "Участники Undaunted на GitHub",
+
+
+
+
+
+
+
+
+
+
+
+
   credits_software: "Открытое ПО",
   credits_software_text: "Лаунчер и поставляемая с ним серверная DLL собраны с их помощью. Полные тексты лицензий поставляются с лаунчером в файле THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Нет файла лицензии",
