@@ -1,5 +1,22 @@
 "use strict";
 // Small progressive enhancements. The documentation remains readable without JavaScript.
+const themeToggle = document.querySelector(".theme-toggle");
+if (themeToggle) {
+  const updateThemeToggle = () => {
+    const dark = document.documentElement.dataset.theme !== "light";
+    themeToggle.setAttribute("aria-pressed", String(dark));
+    themeToggle.textContent = dark ? "Dark mode" : "Light mode";
+    document.querySelector('meta[name="theme-color"]').content = dark ? "#100d17" : "#f7f5fb";
+  };
+  updateThemeToggle();
+  themeToggle.hidden = false;
+  themeToggle.addEventListener("click", () => {
+    const theme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("unbroken-docs-theme", theme); } catch {}
+    updateThemeToggle();
+  });
+}
 document.querySelectorAll("main table").forEach(table => {
   const wrapper = document.createElement("div");
   wrapper.className = "table-scroll";
