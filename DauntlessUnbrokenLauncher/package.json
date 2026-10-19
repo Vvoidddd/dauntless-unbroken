@@ -35,17 +35,6 @@
     "name": "Vvoidddd",
     "url": "https://github.com/Vvoidddd"
   },
-  "contributors": [
-    {
-      "name": "mixutin, author of Dauntless Revived",
-      "url": "https://github.com/mixutin"
-    },
-    {
-      "name": "Gregory Morford (gwog), author of the upstream Undaunted launcher",
-      "email": "realsystemdev@gmail.com",
-      "url": "https://github.com/SyST3MDeV/Undaunted"
-    }
-  ],
   "license": "AGPL-3.0-only",
   "engines": {
     "node": ">=20.19"
