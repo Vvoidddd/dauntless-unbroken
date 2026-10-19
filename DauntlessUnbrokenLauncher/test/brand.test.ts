@@ -168,7 +168,11 @@ test("the icons and in-app images are current copies of brand/", () => {
 test("the page's images are local brand files and the wordmark remains readable text", () => {
   const sources = [...HTML.matchAll(/\b(?:src|href|srcset)="([^"]+)"/g)].flatMap((m) => m[1].split(",").map((s) => s.trim().split(/\s+/)[0]));
   const images = sources.filter((s) => /\.(png|jpe?g|webp|svg|gif)$/i.test(s));
-  assert.ok(images.length >= 6, `only ${images.length} images found; the scan is broken`);
+  assert.deepEqual([...new Set(images)].sort(), [
+    "./src/renderer/brand/emblem-32.png",
+    "./src/renderer/brand/emblem-512.png",
+    "./src/renderer/brand/emblem-64.png",
+  ], "only the bundled title-bar emblem and brand crest should be referenced");
   for (const src of images) assert.match(src, /^\.\/src\/renderer\/brand\/[a-z0-9@-]+\.png$/, `${src} is not a local brand image`);
   assert.doesNotMatch(HTML, /(?:src|href)="(?:https?:)?\/\//i, "nothing is loaded from another host");
   assert.match(HTML, /<div class="wordmark"><span>DAUNTLESS<\/span><strong>UNBROKEN<\/strong><\/div>/);
