@@ -523,3 +523,16 @@ DualSense connected. Modified for Dauntless Revived: the button icons have the s
 a thin dark rim and a new size; the DualSense picture is placed on the Controls screen's layout
 with its label boxes and group lines. PlayStation and DualSense are trademarks of Sony Interactive
 Entertainment; this project is not affiliated with or endorsed by Sony.
+
+------------------------------------------------------------------------------
+13. Bundled launcher fonts
+------------------------------------------------------------------------------
+
+Sora and Manrope are distributed under the SIL Open Font License 1.1.
+The complete copyright and license notices are included in resources/font-licenses/
+(Sora-OFL.txt and Manrope-OFL.txt) in packaged launchers, and assets/font-licenses/
+in the source. The variable fonts are bundled locally; no font CDN is contacted.
+
+Sources:
+https://github.com/google/fonts/tree/main/ofl/sora
+https://github.com/google/fonts/tree/main/ofl/manrope

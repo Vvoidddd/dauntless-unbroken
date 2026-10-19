@@ -13,7 +13,7 @@ import path from "node:path";
 const ROOT = path.resolve(__dirname, "..", "..");
 const BRAND = path.resolve(ROOT, "..", "brand");
 const CSS_FILE = path.join(ROOT, "src", "renderer", "styles.css");
-const CSS = readFileSync(CSS_FILE, "utf8").replace(/\r\n/g, "\n");
+const CSS = [CSS_FILE, path.join(ROOT, "src", "renderer", "unbroken-theme.css")].map(file => readFileSync(file, "utf8").replace(/\r\n/g, "\n")).join("\n");
 const HTML = readFileSync(path.join(ROOT, "index.html"), "utf8");
 
 type Token = "ink" | "navy" | "deep" | "azure" | "ice" | "glow" | "steel" | "frost";

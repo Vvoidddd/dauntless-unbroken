@@ -15,10 +15,12 @@
   <body>
     <div class="app" id="app">
       <header class="titlebar">
-        <div class="titlebar-brand">
-          <img class="titlebar-emblem" src="./src/renderer/brand/emblem-32.png" srcset="./src/renderer/brand/emblem-32.png 1x, ./src/renderer/brand/emblem-64.png 2x" width="20" height="20" alt="" draggable="false" />
-          <span class="titlebar-title" data-i18n="app_title">Dauntless Unbroken Launcher</span>
+        <div class="game-tile" id="game-tile">
+          <img class="brand-crest" src="./src/renderer/brand/emblem-64.png" width="56" height="56" alt="" draggable="false" />
+          <div class="wordmark"><span>DAUNTLESS</span><strong>UNBROKEN</strong></div>
+          <div class="tile-version" data-i18n="tile_sub">Game 1.4.4</div>
         </div>
+        <div class="header-account"><div class="account-chip" id="account-chip"></div></div>
         <div class="titlebar-controls">
           <button type="button" class="win-btn" id="win-min" data-i18n-aria="window_minimize"></button>
           <button type="button" class="win-btn" id="win-max" data-i18n-aria="window_maximize"></button>
@@ -28,13 +30,7 @@
 
       <div class="shell">
         <nav class="rail" id="rail" data-i18n-aria="nav_label">
-          <div class="game-tile" id="game-tile">
-            <img class="brand-crest" src="./src/renderer/brand/emblem-64.png" width="56" height="56" alt="" draggable="false" />
-            <div class="wordmark"><span>DAUNTLESS</span><strong>UNBROKEN</strong></div>
-            <div class="tile-version" data-i18n="tile_sub">Game 1.4.4</div>
-          </div>
           <ul class="nav" id="nav"></ul>
-          <div class="rail-account"><div class="account-chip" id="account-chip"></div></div>
         </nav>
 
         <div class="world">
@@ -130,6 +126,10 @@
       </div>
 
       <div class="community-bar">
+            <div class="titlebar-brand">
+              <img class="titlebar-emblem" src="./src/renderer/brand/emblem-32.png" srcset="./src/renderer/brand/emblem-32.png 1x, ./src/renderer/brand/emblem-64.png 2x" width="20" height="20" alt="" draggable="false" />
+              <span class="titlebar-title" data-i18n="app_title">Dauntless Unbroken Launcher</span>
+            </div>
             
             <button type="button" class="social-button" id="patreon-btn">
               <span class="social-icon social-icon-patreon" aria-hidden="true"></span>

@@ -774,7 +774,7 @@ function renderPlay(): void {
         parts = playRunning(snap);
         break;
     }
-    return [h("div", { class: "play-content" }, ...parts)];
+    return [h("div", { class: "play-content" }, ...(snap.phase === "ready" || snap.phase === "running" ? [] : [renderSteps(snap)]), ...parts)];
   });
 }
 
@@ -824,7 +824,6 @@ function renderSteps(snap: Snapshot): HTMLElement {
   const items: HTMLElement[] = [];
   keys.forEach((k, i) => {
     const cls = i < current || snap.phase === "running" ? "done" : i === current ? "current" : "";
-    if (i > 0) items.push(h("li", { class: `step-line ${i <= current ? "done" : ""}`, "aria-hidden": "true" }));
     items.push(
       h(
         "li",
@@ -834,7 +833,7 @@ function renderSteps(snap: Snapshot): HTMLElement {
       ),
     );
   });
-  return h("ol", { class: "steps", "aria-label": t("steps_label") }, ...items);
+  return h("ol", { class: "setup-track", "aria-label": t("steps_label") }, ...items);
 }
 
 function actionHint(snap: Snapshot): string {
@@ -898,19 +897,9 @@ function renderActionBar(): void {
     const v = taskView(task, state.lang);
     announce(v.indeterminate ? t(v.titleKey) : `${t(v.titleKey)}: ${Math.floor(v.percent / 10) * 10} %`);
   } else {
-    renderRegion(info, JSON.stringify([state.lang, snap.phase, snap.connect.checking, snap.connect.problem, snap.install.totalBytes]), () => [renderSteps(snap), h("div", { class: "action-hint" }, actionHint(snap))]);
-    fitSteps();
+    renderRegion(info, JSON.stringify([state.lang, snap.phase, snap.connect.checking, snap.connect.problem, snap.install.totalBytes]), () => [h("div", { class: "launch-readiness" }, h("span", { class: "launch-status-icon", "aria-hidden": "true" }, icon(snap.phase === "ready" || snap.phase === "running" ? "check" : "play")), h("span", { class: "action-hint" }, actionHint(snap)))]);
     announce(actionHint(snap));
   }
-}
-
-// Longer languages (German, French, Russian...) can make the step labels wider than the space beside
-// the big button: then only the current step keeps its label, as on a narrow window.
-function fitSteps(): void {
-  const steps = document.querySelector<HTMLElement>("#action-info .steps");
-  if (!steps) return;
-  steps.classList.remove("compact");
-  if (steps.scrollWidth > steps.clientWidth) steps.classList.add("compact");
 }
 
 // The action bar's screen reader announcements: what to do next, and download milestones (every
@@ -1745,9 +1734,6 @@ function setView(v: View): void {
   if (v === "news") state.newsSeen = true;
   for (const view of VIEWS) $(`#view-${view}`).hidden = view !== v;
   $("#actionbar").hidden = false;
-  // The Server page shows everything the side panel shows, in full: no need for both. The Credits
-  // The Mods page has long content and gets the room too.
-  $(".world").classList.toggle("no-panel", v === "server" || v === "credits" || v === "mods");
   renderAll();
   if (changed && !reducedMotion.matches) {
     const selected = $(`#view-${v}`);
@@ -1792,6 +1778,7 @@ function applyStaticI18n(): void {
 }
 
 function renderAll(): void {
+  $(".world").classList.toggle("no-panel", state.view !== "play" || state.offlineView || !state.snap?.account.hasKey);
   applyStaticI18n();
   updateInviteFeedback();
   updateUsernameFeedback();
@@ -2112,7 +2099,6 @@ function onSnapshot(snap: Snapshot): void {
 }
 
 function initChrome(): void {
-  window.addEventListener("resize", fitSteps);
   const min = $("#win-min");
   const max = $("#win-max");
   const close = $("#win-close");

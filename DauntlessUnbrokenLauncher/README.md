@@ -12,7 +12,9 @@ own server, sets everything up and starts the game. English and Finnish.
 and every file is checked against the list of 410 files, sizes and SHA-256 hashes compiled into the
 launcher (`DauntlessUnbrokenContent/data/dauntless-1.4.4.json`). A server that offers anything else is refused.
 
-**Community:** [Join the Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu) for help, players and project updates. The launcher also keeps a Discord button in its sidebar.
+**Community:** [Join the Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu) for help, players and project updates.
+
+The launcher uses a compact navigation dock, header account controls and a dedicated launch area. Sora and Manrope fonts are bundled locally; the purple palette and aether background are unchanged. Setup checkpoints and download progress adapt to the current task without measuring the layout on every status update.
 
 ## For friends
 
@@ -39,7 +41,7 @@ launcher (`DauntlessUnbrokenContent/data/dauntless-1.4.4.json`). A server that o
    uses it.
 5. Press **PLAY**.
 
-At the bottom of the left-hand rail, on every page (also before you join a server), the GitHub
+In the footer, on every page (also before you join a server), the GitHub
 button opens this repository in your browser, and **Licenses** provides the bundled software notices.
 
 ## Two kinds of server
