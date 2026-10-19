@@ -30,7 +30,7 @@ test('fresh allocator counts repair missing performance samples and include all 
  assert.equal(f.rows.length,5);assert.equal(f.rows[0].hunts,4);assert.equal(f.totals.hunts,8);
  assert.deepEqual(f.rows[0].capacity,capacity);assert.equal(f.rows[0].huntSampleAt,at);
  assert.equal(f.rows[0].diskFreeGB,12);assert.equal(f.rows[0].hostUptimeSeconds,100);
- assert.equal(f.rows[2].name,'Server #3 · US (NA)');assert.equal(f.rows[4].name,'Server #5 · EU overflow');
+ assert.equal(f.rows[2].name,'Server #3 · US (NA)');assert.equal(f.rows[4].name,'Server #5 · EU #2');
 });
 test('stale or invalid capacity falls back to timestamped process data, never becomes zero',()=>{
  const capacity={running:4,pending:0,limit:10};

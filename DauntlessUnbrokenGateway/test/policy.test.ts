@@ -4,6 +4,11 @@ import { CanonicalPath, CheckPath, Classify, HasBearer } from "../src/policy";
 import { IsPublicRoute, DauntlessUnbrokenApiRoutes } from "./helpers";
 
 describe("the /unbroken/api routes", () => {
+    it('passes only launcher admission join, own status and cancellation verbs',()=>{
+        for(const method of ['GET','POST','DELETE']) assert.equal(Classify(method,'/unbroken/api/Admission',{},false).action,'proxy');
+        for(const method of ['PUT','PATCH','HEAD']) assert.equal(Classify(method,'/unbroken/api/Admission',{},false).action,'reject');
+        assert.equal(Classify('POST','/unbroken/api/Admission/other-user',{},false).action,'reject');
+    });
     it("allows only POST device checks; upstream still decides authentication and bans", () => {
         assert.equal(Classify("POST", "/unbroken/api/DeviceSignals", {}, false).action,"proxy");
         for(const method of ["GET","HEAD","PUT","DELETE"]){

@@ -51,6 +51,8 @@ type MatchmakingQueueData = {
 };
 
 export type MatchmakingResult = {
+    GameMode?: string,
+    LauncherAdmission?: boolean,
     Region?: HuntRegion,
 
     Ready: boolean,
@@ -87,6 +89,64 @@ let MatchmakingResultMap: Map<string, MatchmakingResult> = new Map<string, Match
 const PlayerQueueMap = new Map<string, MatchmakingQueueData>();
 // The server each player was last told to travel to (the status poll's IN_PROGRESS)
 const LastSentMap = new Map<string, { Host: string, Port: number, HuntId: string, SessionId?: string, At: number }>();
+const LauncherAdmissions = new Map<string, string>();
+
+// This is the same candidate the retail client joins, not a second seat/queue.
+export async function JoinLauncherAdmission(playerId: string) {
+    await HandlePlayerMatchmaking('CITY', '', '', playerId);
+    const entry = MatchmakingResultMap.get(playerId);
+    if (entry) {LauncherAdmissions.set(playerId, entry.CandidateId);entry.LauncherAdmission=true;}
+    return LauncherQueueStatus(playerId);
+}
+
+export async function PollLauncherAdmission(playerId: string) {
+    const entry = MatchmakingResultMap.get(playerId);
+    if (!entry || LauncherAdmissions.get(playerId) !== entry.CandidateId || entry.FirstSentAt !== undefined) LauncherAdmissions.delete(playerId);
+    // Only renew launcher-owned admission waits. Watching a hunt must not keep a
+    // disconnected game/party alive or issue travel bookkeeping on its behalf.
+    if (entry && LauncherAdmissions.get(playerId) === entry.CandidateId && entry.FirstSentAt === undefined)
+        await CheckAndUpdateQueueStatus(playerId);
+    return LauncherQueueStatus(playerId);
+}
+
+export function CancelLauncherAdmission(playerId: string) {
+    const entry = MatchmakingResultMap.get(playerId);
+    if (entry && LauncherAdmissions.get(playerId) === entry.CandidateId && entry.FirstSentAt === undefined)
+        LeaveCandidate(playerId);
+    LauncherAdmissions.delete(playerId);
+}
+
+export function LauncherQueueStatus(playerId: string) {
+    const entry = MatchmakingResultMap.get(playerId);
+    if (!entry || entry.Failed) return {state: entry?.Failed ? 'failed' : 'idle'};
+    const kind = entry.GameMode === 'CITY' ? 'ramsgate' : 'hunt';
+    if (entry.Ready) return {state:'ready', kind};
+    const region = entry.Region ?? PlayerRegion(GetPartyOf(playerId)?.LeaderId ?? playerId);
+    const groups = new Map<string, {at:number, players:Set<string>}>();
+    let own = '';
+    for (const [id, candidate] of MatchmakingResultMap) {
+        if (candidate.Ready || candidate.Failed) continue;
+        const candidateKind = candidate.GameMode === 'CITY' ? 'ramsgate' : 'hunt';
+        if (candidateKind !== kind || (candidate.Region ?? PlayerRegion(GetPartyOf(id)?.LeaderId ?? id)) !== region) continue;
+        if (candidate.LaunchDeadline === undefined && !MatchmakingRoster.queueMemberActive(id, candidate.CandidateId)) continue;
+        const queue = PlayerQueueMap.get(id);
+        const key = queue?.CandidateIds.values().next().value ?? candidate.CandidateId;
+        const group = groups.get(key) ?? {at:candidate.QueuedAt ?? PartyNow(), players:new Set<string>()};
+        group.at = Math.min(group.at, candidate.QueuedAt ?? PartyNow());
+        group.players.add(id);
+        groups.set(key, group);
+        if (id === playerId) own = key;
+    }
+    let position = 1, total = 0;
+    const ordered = [...groups.entries()].sort((a,b)=>a[1].at-b[1].at);
+    for (const [key, group] of ordered) {
+        if (key === own) position = total + 1;
+        total += group.players.size;
+    }
+    if (!own) return {state:'idle'};
+    const full = CapacityWaits.has(entry.CandidateId) || PlayerQueueMap.get(playerId)?.CapacityDeadline !== undefined;
+    return {state:'waiting', kind, full, position, total, groupSize:groups.get(own)!.players.size};
+}
 // A native session belongs to this allocation, never to a mutable host:port slot.
 // Legacy deploy replies have no safe shared-session identity.
 export function GameSessionForCandidate(entry: MatchmakingResult) {
@@ -176,7 +236,7 @@ function FailCandidate(candidateId: string, reason: string) {
 
 function AllocationExpired(entry: MatchmakingResult) {
     const at = entry.PartyCandidate ? entry.AllocatedAt : entry.FirstSentAt ?? entry.AllocatedAt;
-    const lifetime = entry.PartyCandidate ? LAST_CANDIDATE_REJOIN_MS : SOLO_REJOIN_WINDOW_MS;
+    const lifetime = entry.PartyCandidate ? LAST_CANDIDATE_REJOIN_MS : entry.LauncherAdmission && entry.FirstSentAt === undefined ? 180000 : SOLO_REJOIN_WINDOW_MS;
     return at !== undefined && PartyNow() - at >= lifetime;
 }
 
@@ -859,6 +919,8 @@ async function StartPartyCandidate(TheParty: Party, GameMode: string, HuntId: st
         LeaveWaitingQueues(Member, "their party's hunt takes them");
 
         StoreEntry(Member, {
+            GameMode,
+            Region,
             Ready: false,
             CandidateId: CandidateId,
             HuntId: HuntId,
@@ -1149,9 +1211,12 @@ async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, H
             // Keep the saved personal preference intact for when they leave.
             const WorldParty = (GameMode === 'CITY' || GameMode === 'SHARED') ? GetPartyOf(PlayerId) : undefined;
             const Region = PlayerRegion(WorldParty?.LeaderId ?? PlayerId);
-            const key = JSON.stringify([GameMode, GameArgs ?? '', HuntId ?? '', Region]);
+            // CITY payloads differ between launcher/login/return-to-city, but
+            // all must reuse their existing seat. Preserve the client's huntId.
+            const key = JSON.stringify([GameMode, GameMode === 'CITY' ? '' : GameArgs ?? '', GameMode === 'CITY' ? '' : HuntId ?? '', Region]);
             const previous = MatchmakingResultMap.get(PlayerId);
             if (previous?.DirectKey === key && !previous.Failed) {
+                if (GameMode === 'CITY' && HuntId) previous.HuntId = HuntId;
                 MatchmakingRoster.touchCandidate(PlayerId, previous.CandidateId);
                 if (!previous.Ready && (previous.LaunchDeadline !== undefined || CapacityWaits.has(previous.CandidateId))) return true;
                 if (previous.Ready) {
@@ -1161,6 +1226,7 @@ async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, H
                 }
             }
             const Entry: MatchmakingResult = {
+                GameMode,
                 Ready: false,
                 CandidateId: crypto.randomUUID(),
                 HuntId: HuntId,
@@ -1220,6 +1286,7 @@ async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, H
 
 // Tests only
 export function ResetMatchmakingForTests(){
+    LauncherAdmissions.clear();
     MatchmakingRoster.reset();
     HealthCache = undefined;
     HealthRequest = undefined;

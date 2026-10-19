@@ -43,6 +43,8 @@ let meta: FakeMetagame;
 let content: FakeContentServer;
 let gatewayRequests: string[] = [];
 let deviceBlocked = false;
+let admissionResponse: {state:string;kind?:string;full?:boolean;position?:number;total?:number} | null = null;
+let admissionCancels = 0;
 const files = makeFiles();
 const manifest: GameManifest = (() => {
   const r = validateManifest(manifestFor(files), TEST_BUILD, false);
@@ -65,6 +67,11 @@ before(async () => {
   content = new FakeContentServer({ key: "unused", files });
   gateway = https.createServer({ cert: cert.certPem, key: cert.keyPem }, (req, res) => {
     gatewayRequests.push(`${req.method} ${req.url}`);
+    if (req.url === '/unbroken/api/Admission' && admissionResponse) {
+      req.resume();
+      if(req.method==='DELETE'){admissionCancels++;res.writeHead(204).end();return;}
+      res.writeHead(200,{'content-type':'application/json'});res.end(JSON.stringify(admissionResponse));return;
+    }
     if (req.url === '/unbroken/api/DeviceSignals' && deviceBlocked) {
       req.resume(); res.writeHead(403, {'content-type':'application/json'});
       res.end(JSON.stringify({error:'device_banned',reason:'Test restriction'})); return;
@@ -161,6 +168,34 @@ function harness(relayPort = RELAY_PORT, userDataDir?: string, chooseFolder: Pla
   const c = new Controller(p);
   return { c, last: () => snap ?? c.snapshot(), spawns, child: () => child, configDir, installDir, userData, offlineStatuses, };
 }
+
+test('full servers hold PLAY without spawning, show position, cancel, and admit when ready',async()=>{
+  const hx=harness();
+  meta.opts.validCodes?.add('QUEUE-CODE');
+  await hx.c.init();await hx.c.submitInvite(invite(cert.fingerprint,'QUEUE-CODE'));
+  await hx.c.register('Queue_Test');await hx.c.startInstall();
+  const waitFor=async(check:()=>boolean)=>{const until=Date.now()+3000;while(!check()&&Date.now()<until)await new Promise(r=>setTimeout(r,10));assert.ok(check());};
+  try{
+    admissionResponse={state:'waiting',kind:'ramsgate',full:true,position:3,total:7};
+    const play=hx.c.play();
+    await waitFor(()=>hx.last().queue?.state==='waiting');
+    assert.equal(hx.spawns.length,0);assert.equal(hx.c.relayActive,false);
+    assert.deepEqual(hx.last().queue,admissionResponse);
+    hx.c.cancelQueue();
+    assert.deepEqual(await play,{ok:false,error:{code:'cancelled'}});
+    assert.equal(admissionCancels,1);assert.equal(hx.spawns.length,0);
+    const retry=hx.c.play();
+    await waitFor(()=>hx.last().queue?.state==='waiting');
+    admissionResponse={state:'ready',kind:'ramsgate'};
+    assert.deepEqual(await retry,{ok:true});assert.equal(hx.spawns.length,1);
+    admissionResponse={state:'waiting',kind:'hunt',full:true,position:2,total:5};
+    await hx.c.pollStatus();
+    assert.equal(hx.last().queue?.kind,'hunt');assert.equal(hx.last().queue?.position,2);
+    hx.child()!.emit('exit',0);
+    await new Promise(r=>setTimeout(r,60));assert.equal(hx.last().queue,null);
+  }finally{admissionResponse=null;await hx.c.shutdown();}
+});
+
 
 function invite(fp: string, code = "ABCD-EFGH-JKLM"): string {
   return formatInvite({ mode: "public", host: "127.0.0.1", port: GATEWAY_PORT, fp, code, name: "Friday Hunts", share: null });

@@ -50,6 +50,16 @@ export async function HandleMatchmakingRequest(GameMode: string, GameArgs: strin
     if (process.env.HUNT_WORKER === '1' && GameMode !== 'ISLAND' && !(GameMode === 'CITY' && process.env.WORKER_RAMSGATE === '1') && !(GameMode === 'SHARED' && process.env.WORKER_DOJO === '1')) throw new Error('Hunt worker does not accept this world');
     const body = {GameMode, GameArgs, HuntId, ExpectedPlayers};
     return Regions.launch(body, Region, async () => {
+        if (GameMode === 'CITY' && CityPoolEnabled() && process.env.HUNT_WORKER !== '1') {
+            try {return await GetRamsgateConnectionDetails(ExpectedPlayers?.length ?? 1);}
+            catch(error) {
+                if(!(error instanceof CapacityUnavailable))throw error;
+                const url=OverflowUrl();
+                const connection=url && await RemoteLaunch(url,body);
+                if(connection)return connection;
+                throw error;
+            }
+        }
         if (GameMode === 'CITY' && !CityPoolEnabled() && process.env.CITY_OVERFLOW === '1') {
             const url = OverflowUrl();
             if (!url) throw new Error('City overflow needs the worker tunnel');

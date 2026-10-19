@@ -408,6 +408,7 @@ function registerIpc(c: Controller): void {
   handle(IPC.cancelTask, () => c.cancelTask());
   handle(IPC.repair, () => c.repair());
   handle(IPC.play, () => c.play());
+  handle(IPC.cancelQueue, () => c.cancelQueue());
   handle(IPC.startOffline, (_e, username) => {
     if (username === undefined) return c.startOffline();
     const s = boundedString(username, 32);

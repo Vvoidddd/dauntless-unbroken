@@ -1,6 +1,6 @@
 import http from 'node:http';
 import os from 'node:os';
-import { statfs } from 'node:fs/promises';
+import { statfs, readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
@@ -17,7 +17,7 @@ export function processSample(current, previous, cores) {
     netOutKbit:seconds>0 ? Math.max(0,(current.sentBytes-previous.sentBytes)*8/1000/seconds) : null};
 }
 
-export async function startWorkerHealth({port=61111,root=process.cwd(),allowlistSecret,fetcher=fetch,collect}={}) {
+export async function startWorkerHealth({port=61111,root=process.cwd(),allowlistSecret,fetcher=fetch,collect,storageOnly=false}={}) {
   const gather=collect || (async()=> {
     const {stdout}=await exec(`${process.env.SystemRoot || 'C:/Windows'}/System32/WindowsPowerShell/v1.0/powershell.exe`,
       ['-NoProfile','-NonInteractive','-File',fileURLToPath(new URL('./worker-processes.ps1',import.meta.url))],{windowsHide:true,timeout:20000,maxBuffer:65536});
@@ -32,8 +32,8 @@ export async function startWorkerHealth({port=61111,root=process.cwd(),allowlist
     if(busy)return; busy=true;
     try {
       const [deploy,allowlist,backend,disk]=await Promise.all([
-        probe('http://127.0.0.1:61001/gameservers'),
-        probe('http://127.0.0.1:61005/status',{'x-allowlist-secret':allowlistSecret || ''}),
+        storageOnly ? null : probe('http://127.0.0.1:61001/gameservers'),
+        storageOnly ? null : probe('http://127.0.0.1:61005/status',{'x-allowlist-secret':allowlistSecret || ''}),
         probe('http://127.0.0.1:61000/dauntless-status'), statfs(root).catch(()=>null)]);
       const now=cpuTimes(), elapsed=now.total-prior.total;
       sample={at:new Date().toISOString(),cpu:elapsed>0 ? 100*(1-(now.idle-prior.idle)/elapsed):null,
@@ -45,6 +45,11 @@ export async function startWorkerHealth({port=61111,root=process.cwd(),allowlist
         firewall:allowlist ? {enabled:allowlist.lastApply?.enabled ?? false,ok:allowlist.lastApply?.ok ?? null,addresses:allowlist.entries?.length ?? 0,pending:allowlist.pending,ports:allowlist.ports}:null,
         hunts:Array.isArray(deploy?.servers) ? deploy.servers.map(s=>({id:s.id,port:s.port,kind:s.kind,map:s.map,huntId:s.huntId,expectedPlayers:s.expectedPlayers?.length ?? 0,startedAt:s.startedAt})):[],
         processes:processInfo,monitorMemoryMB:process.memoryUsage().rss/1048576};
+      if(storageOnly){
+        const last=await readFile(resolve(root,'backups/last-success.json'),'utf8').then(JSON.parse).catch(()=>null);
+        sample.backup={verified:last?.verified===true,at:typeof last?.at==='string'?last.at:null};
+        sample.role='key-bot-storage';
+      }
       prior=now;
     }finally{busy=false;}
   }
@@ -64,5 +69,5 @@ export async function startWorkerHealth({port=61111,root=process.cwd(),allowlist
   return server;
 }
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  startWorkerHealth({root:process.env.WORKER_ROOT || process.cwd(),allowlistSecret:process.env.ALLOWLIST_SECRET}).then(()=>console.log('Worker health ready')).catch(()=>{console.error('Worker health startup failed');process.exitCode=1;});
+  startWorkerHealth({root:process.env.WORKER_ROOT || process.cwd(),allowlistSecret:process.env.ALLOWLIST_SECRET,storageOnly:process.env.WORKER_STORAGE_ONLY==='1'}).then(()=>console.log('Worker health ready')).catch(()=>{console.error('Worker health startup failed');process.exitCode=1;});
 }

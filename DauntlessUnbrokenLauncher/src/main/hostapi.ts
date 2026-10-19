@@ -13,6 +13,17 @@ import { isPrivateModeHost } from "../shared/invite";
 
 const KEY_HEADER = "x-dauntless-unbroken-user-api-key";
 
+export async function launcherAdmission(ep:Endpoint,key:string,method:'GET'|'POST'|'DELETE'='GET'):Promise<NonNullable<import('../shared/types').Snapshot['queue']>|null> {
+  const res=await request(ep,'/unbroken/api/Admission',{method,headers:statusHeaders(ep,key),timeoutMs:10000,maxBytes:4096});
+  // Older private servers have no admission endpoint.
+  if(res.status===404 || method==='DELETE' && res.status===204)return null;
+  if(res.status!==200)throw new Error(`Admission returned ${res.status}`);
+  const b=parseJsonBody(res);
+  if(!isObject(b) || !['idle','waiting','ready','failed'].includes(String(b.state)))throw new Error('Invalid admission response');
+  if(b.state==='waiting' && (!['ramsgate','hunt'].includes(String(b.kind)) || typeof b.full!=='boolean' || !Number.isSafeInteger(b.position) || !Number.isSafeInteger(b.total) || Number(b.position)<1 || Number(b.position)>Number(b.total)))throw new Error('Invalid queue position');
+  return b as NonNullable<import('../shared/types').Snapshot['queue']>;
+}
+
 // Reported identifiers are an optional launcher check, not hardware attestation.
 export async function checkDeviceSignals(ep: Endpoint,key:string,signals:import('./device-signals').DeviceSignals):Promise<{ok:true}|{ok:false,error:'account_banned'|'server_error'|'rate_limited',detail?:string}>{
   try {

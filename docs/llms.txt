@@ -60,6 +60,7 @@
 - [Tools](https://vvoidddd.github.io/dauntless-unbroken/tools.html): Three small Python scripts behind our Dauntless analysis: xref.py for PE string cross-references, utocdir.py for IoStore, pak9.py for pak v9, plus libooz.
 - [Credits and license](https://vvoidddd.github.io/dauntless-unbroken/legal.html): Software licenses, source notices and distribution requirements for Dauntless Unbroken.
 - [Feature integrations](https://vvoidddd.github.io/dauntless-unbroken/findings/feature-integrations.html): Progression, shop, social and world-lifecycle systems in Unbroken.
+- [Fleet admission and database storage](https://vvoidddd.github.io/dauntless-unbroken/operations/fleet-admission-backups.html): Two EU game hosts, UK key distribution and verified database copies.
 - [Game downloads](https://vvoidddd.github.io/dauntless-unbroken/r2-downloads.html): Configure verified HTTPS game downloads from the owner-operated R2 catalog.
 - [Run a server](https://vvoidddd.github.io/dauntless-unbroken/server.html): How the Unbroken services, networking, database, hunt lifecycle and operator tools fit together.
 - [Source code on GitHub](https://github.com/Vvoidddd/dauntless-unbroken): Dauntless Unbroken source, AGPL-3.0-only, on branch main.

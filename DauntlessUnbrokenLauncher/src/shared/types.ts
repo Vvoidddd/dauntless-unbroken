@@ -172,6 +172,7 @@ export interface Settings {
 }
 
 export interface Snapshot {
+  queue?: {state:'idle'|'waiting'|'ready'|'failed'; kind?:'ramsgate'|'hunt'; full?:boolean; position?:number; total?:number; groupSize?:number} | null;
   phase: Phase;
   busy: boolean;
   server: ServerInfo | null;
@@ -277,6 +278,7 @@ export const IPC = {
   cancelTask: "dr:cancel-task",
   repair: "dr:repair",
   play: "dr:play",
+  cancelQueue: "dr:cancel-queue",
   startOffline: "dr:start-offline",
   stopOffline: "dr:stop-offline",
   offlineStatus: "dr:offline-status",

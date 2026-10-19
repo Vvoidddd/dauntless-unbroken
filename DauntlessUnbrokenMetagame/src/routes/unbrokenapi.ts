@@ -36,6 +36,21 @@ import { eq, sql } from 'drizzle-orm';
 
 export const unbrokenApiRouter = Router();
 
+import {JoinLauncherAdmission, PollLauncherAdmission, CancelLauncherAdmission} from '../controllers/matchmaking';
+const AdmissionRateLimit=rateLimit({keyGenerator:req=>'admission:'+((req as any).DauntlessUnbrokenUserInfo.UserId),windowMs:60000,limit:40,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'rate_limited'}});
+unbrokenApiRouter.post('/Admission', HasDauntlessUnbrokenUserApiKey, AdmissionRateLimit, async (req:any,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    res.json(await JoinLauncherAdmission(req.DauntlessUnbrokenUserInfo.UserId));
+});
+unbrokenApiRouter.get('/Admission', HasDauntlessUnbrokenUserApiKey, AdmissionRateLimit, async (req:any,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    res.json(await PollLauncherAdmission(req.DauntlessUnbrokenUserInfo.UserId));
+});
+unbrokenApiRouter.delete('/Admission', HasDauntlessUnbrokenUserApiKey, AdmissionRateLimit, (req:any,res)=>{
+    CancelLauncherAdmission(req.DauntlessUnbrokenUserInfo.UserId);
+    res.status(204).end();
+});
+
 const DeviceSignalRateLimit=rateLimit({keyGenerator:req=>'device:'+((req as any).DauntlessUnbrokenUserInfo.UserId),windowMs:60000,limit:10,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'rate_limited'}});
 unbrokenApiRouter.post('/DeviceSignals',HasDauntlessUnbrokenUserApiKey,DeviceSignalRateLimit,(req:any,res)=>{
     res.setHeader('Cache-Control','no-store');

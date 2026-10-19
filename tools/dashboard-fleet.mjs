@@ -19,12 +19,12 @@ export function fleetSummary(main, worker, mainError = null, now = Date.now(), a
     ramUsedMB:online ? finite(sample.ramUsedMB) : null,ramTotalMB:online ? finite(sample.ramTotalMB) : null,hunts:online ? hunts : null,
     capacity:online ? validCapacity(sample,now) : null,capacitySampleAt:sample?.capacitySampleAt ?? null,
     diskFreeGB:online ? finite(sample.diskFreeGB) : null,hostUptimeSeconds:online ? finite(sample.hostUptimeSeconds) : null});
-  const rows = [row('Server #1 · EU',mainOnline,main,mainHunts,mainCapacity ? main.capacitySampleAt : perf?.at ?? null)];
-  for (const [name,node] of [['Server #2 · Key bot',worker],['Server #3 · US (NA)',aus],['Server #4 · Germany',germany],['Server #5 · EU overflow',eu2]]) {
+  const rows = [row('Server #1 · EU #1',mainOnline,main,mainHunts,mainCapacity ? main.capacitySampleAt : perf?.at ?? null)];
+  for (const [name,node] of [['Server #2 · UK key bot & backup storage',worker],['Server #3 · US (NA)',aus],['Server #4 · Germany',germany],['Server #5 · EU #2',eu2]]) {
     if(!node?.configured)continue;
     const online = node.online && !!node.sample && fresh(node.sample.at,30000,now);
     const capacity=online ? validCapacity(node.sample,now) : null;
-    const hunts=capacity?.running ?? (node.sample?.services?.deploy !== false && Array.isArray(node.sample?.hunts) ? node.sample.hunts.filter(h=>!['city','dojo'].includes(h.kind)).length : name==='Server #2 · Key bot' ? 0 : null);
+    const hunts=capacity?.running ?? (node.sample?.role==='key-bot-storage' ? 0 : node.sample?.services?.deploy !== false && Array.isArray(node.sample?.hunts) ? node.sample.hunts.filter(h=>!['city','dojo'].includes(h.kind)).length : name.startsWith('Server #2') ? 0 : null);
     rows.push(row(name,online,node.sample,hunts,capacity ? node.sample.capacitySampleAt : node.sample?.at ?? null));
   }
   const sum = field => rows.every(r=>r[field] !== null) ? rows.reduce((n,r)=>n+r[field],0) : null;

@@ -32,7 +32,7 @@ export interface HttpResponse {
 }
 
 export interface RequestOptions {
-  method?: "GET" | "POST" | "HEAD";
+  method?: "GET" | "POST" | "HEAD" | "DELETE";
   headers?: Record<string, string>;
   body?: string;
   timeoutMs: number;

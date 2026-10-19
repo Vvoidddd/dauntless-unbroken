@@ -17,7 +17,7 @@ export function payload(sample, now = Date.now(), fleet = null) {
     {name:'🌐 Fleet availability',value:fleet?`${fleet.online} / ${fleet.servers} hosts reporting`:'Monitoring unavailable',inline:true},
     {name:'⚔️ Active hunts',value:Number.isInteger(fleet?.hunts)?String(fleet.hunts):fleet?`${fleet.knownHunts} reported · partial`:'Unknown',inline:true}
   ];
-  const names={1:'EU',2:'Key bot',3:'US (NA)',4:'Germany',5:'EU overflow'};
+  const names={1:'EU #1',2:'UK · Key bot & backup storage',3:'US (NA)',4:'Germany',5:'EU #2'};
   for(const r of fleet?.rows ?? []){
     const name=`Server #${r.id} · ${names[r.id] ?? 'Worker'}`;
     const age=Number.isFinite(r.at)?`Host sample <t:${Math.floor(r.at/1000)}:R>`:'No host sample';
@@ -38,11 +38,11 @@ export function payload(sample, now = Date.now(), fleet = null) {
   } else {
     fields.push({name:'Shared backend',value:'🟠 Check unavailable · player count and uptime unknown'});
   }
-  fields.push({name:'Region guide',value:'Choose EU, Germany or US (NA) in launcher Settings. EU has an additional overflow worker. Parties follow their leader across regions. CPU/count headroom is not a queue-time estimate; memory and server readiness also affect launches.'});
+  fields.push({name:'Realm guide',value:'Two EU game hosts share accounts and progression. The UK host runs the key bot and database backup storage only. Full servers use a first-come queue; the launcher shows your place. CPU/count headroom is not a queue-time estimate; memory and readiness also affect launches.'});
   fields.push({name:'📥 Launcher · Cloudflare downloads',value:'[Latest launcher / release notes](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest). Game downloads use Cloudflare with resume support and file verification.'});
   fields.push({name:'Last checked',value:`<t:${at}:F> (<t:${at}:R>)`});
   return {allowed_mentions:{parse:[]},embeds:[{title:'Dauntless Unbroken · Live realm status',
-    description:online?'Shared accounts and progression across **EU, Germany and US (NA)**.':'The shared backend check failed. Please check again shortly.',
+    description:online?'Shared accounts and progression across **two EU game hosts**, with separate **UK key bot and backup storage**.':'The shared backend check failed. Please check again shortly.',
     color:online&&fleet?.servers>0&&fleet.online===fleet.servers?0x35bc84:0xe1a349,fields,
     footer:{text:'Host health and backend activity, not player ping or proof of hunt completion. Stale readings are unknown.'}}]};
 }

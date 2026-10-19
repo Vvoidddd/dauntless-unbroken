@@ -129,6 +129,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $dest 'dauntless-unbroken.db'))) {
     exit 0
 }
 $all = Get-DRBackupFolders $P.Backups
+@{verified=$true;at=[DateTime]::UtcNow.ToString('o')} | ConvertTo-Json -Compress | Set-Content -LiteralPath (Join-Path $dest 'completed.json') -Encoding UTF8
 $keep = @{}
 $all | Select-Object -First $Hourly | ForEach-Object { $keep[$_.Name] = $true }
 $all | Group-Object { $_.Name.Substring(0, 10) } | Sort-Object Name -Descending | Select-Object -First $Daily |

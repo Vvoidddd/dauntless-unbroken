@@ -870,6 +870,14 @@ function renderActionBar(): void {
     return;
   }
   renderPlayMenu();
+  if (snap.queue?.state === 'waiting') {
+    const q=snap.queue;
+    const message=`${q.full ? 'Servers are full. ' : ''}Waiting for ${q.kind === 'hunt' ? 'a hunt' : 'Ramsgate'} · You are ${q.position} in line out of ${q.total} players waiting.`;
+    primary.disabled=true;primary.textContent='Queued';primary.setAttribute('data-action','none');
+    renderRegion(info,JSON.stringify(q),()=>[h('div',{class:'launch-readiness',role:'status'},h('span',{class:'action-hint'},message),...(!snap.game.running?[button('Leave queue',()=>void api.cancelQueue(),{fk:'cancel-queue'})]:[]))]);
+    announce(message);
+    return;
+  }
   if (state.offlineView) {
     const active = offlineActive();
     primary.textContent = t(active ? "off_btn" : "off_btn_play");

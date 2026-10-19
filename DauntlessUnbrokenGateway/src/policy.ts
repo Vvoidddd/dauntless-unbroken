@@ -23,6 +23,7 @@ export const PUBLIC_UNBROKEN_API: ReadonlyMap<string, readonly string[]> = new M
     ["getuserinfo", ["GET", "HEAD"]],
     ["serverstatus", ["GET", "HEAD"]],
     ["huntregion", ["GET", "HEAD", "POST"]],
+    ["admission", ["GET", "POST", "DELETE"]],
     ["devicesignals", ["POST"]],
     ["registrationstatus", ["GET", "HEAD"]],
 ]);

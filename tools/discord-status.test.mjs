@@ -84,7 +84,7 @@ test('five-host fleet is accepted and names remain stable when a host is omitted
  const fleet=await read(rows);
  assert.equal(fleet.online,5);assert.equal(fleet.hunts,10);
  const body=JSON.stringify(payload({players:4,uptime:30,ms:1},Date.now(),fleet));
- assert.ok(body.includes('Server #5 · EU overflow'));assert.ok(!body.includes('private'));
+ assert.ok(body.includes('Server #5 · EU #2'));assert.ok(!body.includes('private'));
  const partial=await read([rows[0],rows[2],rows[4]]);
  assert.deepEqual(partial.rows.map(r=>r.id),[1,3,5]);
  assert.ok(JSON.stringify(payload(null,Date.now(),partial)).includes('Server #3 · US (NA)'));

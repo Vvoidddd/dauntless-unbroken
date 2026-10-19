@@ -46,6 +46,7 @@ import type {
 import { EXPOSURE_MODES, GAME_LANGUAGES, GRAPHICS_PRESETS, LANGUAGES } from "../shared/types";
 import type { Endpoint } from "./http";
 import {
+  launcherAdmission,
   fetchBrandingImage,
   fetchBrandingIndex,
   fetchContentManifest,
@@ -161,6 +162,9 @@ export class Controller {
   private readonly offlineKeys: KeyStore;
   private readonly game: GameProcess;
   private endPlayingSession: (()=>Promise<void>) | null = null;
+  private admissionAbort: AbortController | null = null;
+  private queue: Snapshot['queue'] = null;
+  private queuePollBusy = false;
   private offlineSession: OfflineStackSession | null = null;
   private offlineStarting = false;
   private offlineCancelRequested = false;
@@ -216,6 +220,7 @@ export class Controller {
     this.game.onChange((running, code) => {
       log.info(running ? "game started" : `game exited (code ${code ?? "none"})`);
       if (!running) {
+        this.queue = null;
         const end=this.endPlayingSession; this.endPlayingSession=null;
         if(end) void end().catch(()=>{});
         if (code !== null && code !== 0) this.lastError = {code:'launch_failed',detail:gameExitDetail(code)};
@@ -355,6 +360,7 @@ export class Controller {
         contentAvailable: this.contentEndpoint() !== null,
       },
       task: this.task,
+      queue: this.queue,
       game: { running: this.game.running, relayPort: this.relay?.port ?? null },
       settings: { graphics: this.s.graphics, exposure: this.s.exposure, windowed: this.s.windowed, language: this.s.language, gameLanguage: this.s.gameLanguage, streamerMode: this.s.streamerMode, showConsole: this.s.showConsole, ...(this.s.huntRegion ? {huntRegion:this.s.huntRegion} : {}) },
       app: { version: this.p.appVersion, packaged: this.p.packaged, updateReady: this.updateReady },
@@ -655,6 +661,18 @@ export class Controller {
     const { res, stale } = await this.fetchStatus(ep);
     // Overtaken: drop it; the next poll asks again under the new state.
     if (stale) return;
+    if (this.game.running && !this.offlineSession && !this.queuePollBusy) {
+      this.queuePollBusy = true;
+      try {
+        const slot=this.slot();
+        const key=slot && await this.keys.load(slot).catch(()=>null);
+        if(key) {
+          const queue=await launcherAdmission(ep,key);
+          if(this.game.running && ep.host===this.endpoint()?.host) this.queue=queue;
+        }
+      } catch { this.queue=null; }
+      finally { this.queuePollBusy=false; }
+    }
     if (res.kind === "ok") {
       this.status = res.status;
       this.statusUnsupported = false;
@@ -1503,6 +1521,9 @@ export class Controller {
       const installReady = await this.prepareGameInstall();
       if (!installReady.ok) return installReady;
 
+      const admission = await this.waitForAdmission(ep,key);
+      if (!admission.ok) return admission;
+
       // Where the game connects. Public mode: the local relay, started before the game.
       let gameHost = sv.host;
       let gamePort = sv.port;
@@ -1546,6 +1567,36 @@ export class Controller {
     if (others.length > 0) return this.fail("already_running");
 
     return OK;
+  }
+
+  cancelQueue(): void { this.admissionAbort?.abort(); }
+
+  private async waitForAdmission(ep:Endpoint,key:string):Promise<ActionResult> {
+    const controller=new AbortController();
+    this.admissionAbort=controller;
+    let admitted=false;
+    try {
+      let queue=await launcherAdmission(ep,key,'POST');
+      for (;;) {
+        if(controller.signal.aborted || this.shuttingDown)return err('cancelled');
+        this.queue=queue;this.publish();
+        if(queue===null || queue.state==='ready') {admitted=true;return OK;}
+        if(queue.state!=='waiting')return this.fail('server_error','Admission failed. Please try again.');
+        // Abortable, bounded polling; never blocks the renderer or starts the game while full.
+        await new Promise<void>(resolve=>{
+          const done=()=>{clearTimeout(timer);controller.signal.removeEventListener('abort',done);resolve();};
+          const timer=setTimeout(done,5000);
+          controller.signal.addEventListener('abort',done,{once:true});
+          if(controller.signal.aborted)done();
+        });
+        if(controller.signal.aborted)continue;
+        queue=await launcherAdmission(ep,key);
+      }
+    } catch { return this.fail('server_unreachable','Queue connection lost. Retry to reconnect.'); }
+    finally {
+      this.admissionAbort=null;this.queue=null;this.publish();
+      if(!admitted)await launcherAdmission(ep,key,'DELETE').catch(()=>{});
+    }
   }
 
   private async prepareGameInstall(): Promise<ActionResult> {
@@ -1727,6 +1778,7 @@ export class Controller {
 
   async shutdown(): Promise<void> {
     this.shuttingDown = true;
+    this.cancelQueue();
     await this.saveTask?.catch(() => undefined);
     this.setStatusPolling(false);
     this.job?.cancel();

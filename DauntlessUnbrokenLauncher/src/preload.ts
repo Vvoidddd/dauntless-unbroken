@@ -42,6 +42,7 @@ const api = {
   cancelTask: (): Promise<void> => ipcRenderer.invoke(IPC.cancelTask),
   repair: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.repair),
   play: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.play),
+  cancelQueue: (): Promise<void> => ipcRenderer.invoke(IPC.cancelQueue),
   startOffline: (username?: string): Promise<ActionResult> => ipcRenderer.invoke(IPC.startOffline, username === undefined ? undefined : String(username),),
   stopOffline: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.stopOffline),
   offlineStatus: (): Promise<OfflineStatus> => ipcRenderer.invoke(IPC.offlineStatus),

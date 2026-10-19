@@ -1,5 +1,5 @@
 (() => {
-  let key = '', busy = false, lastSample = null, lastWorker = null, lastAus = null, lastGermany = null, accountPage = [], accountOffset = 0, nextOffset = null, accountsBusy = false;
+  let key = '', busy = false, lastSample = null, lastWorker = null, lastAus = null, lastGermany = null, lastEu2 = null, accountPage = [], accountOffset = 0, nextOffset = null, accountsBusy = false;
   const el = id => document.getElementById(id);
   const number = (n, suffix = '') => Number.isFinite(n) ? `${n.toFixed(1)}${suffix}` : '—';
   const duration = seconds => Number.isFinite(seconds) && seconds >= 0 ? `${Math.floor(seconds / 86400)}d ${Math.floor(seconds / 3600) % 24}h ${Math.floor(seconds / 60) % 60}m` : '—';
@@ -46,7 +46,7 @@
     if(hero){
       hero.classList.add('ops-hero');
       hero.querySelector('h2').textContent='Your realm. At a glance.';
-      hero.querySelector('p').textContent='EU · Germany · US (NA). Shared accounts and progression across the realm.';
+      hero.querySelector('p').textContent='Two EU game hosts · UK key bot and backup storage. Shared accounts and progression.';
     }
     const charts=Array.from(overview.children).find(node=>node.classList.contains('grid')&&node.querySelector('canvas'));
     if(charts&&hero){charts.classList.add('ops-charts');hero.after(charts);}
@@ -132,7 +132,7 @@
   function renderWorker(worker, prefix='worker') {
     // Fleet rows may include hosts without a dedicated detail panel.
     if (!document.getElementById(prefix+'Connection')) return;
-    if(prefix==='worker')lastWorker=worker;else if(prefix==='aus')lastAus=worker;else lastGermany=worker;
+    if(prefix==='worker')lastWorker=worker;else if(prefix==='aus')lastAus=worker;else if(prefix==='eu2')lastEu2=worker;else lastGermany=worker;
     const el=id=>document.getElementById(id.replace(/^worker/,prefix));
     const s=worker?.sample;
     el('workerConnection').textContent=!worker?.configured?'Not configured':worker.online?(worker.status==='delayed'?'Monitoring delayed · last sample retained':'Connected'):'Monitoring unavailable';
@@ -144,9 +144,9 @@
     el('workerDisk').textContent=`Disk free ${number(s.diskFreeGB)} GB`;
     el('workerHunts').textContent=s.hunts.filter(h=>!['city','dojo'].includes(h.kind)).length;
     el('workerUptime').textContent=`Host uptime ${duration(s.hostUptimeSeconds)}`;
-    table(prefix+'Services',[['Worker monitor',worker.online?'Up':'Unavailable'],['Hunt deployment',s.services.deploy?'Up':'Unavailable'],['Shared backend connection',s.services.backend?'Up':'Unavailable'],['Player allowlist',s.services.allowlist?'Up':'Unavailable']]);
+    table(prefix+'Services',[['Worker monitor',worker.online?'Up':'Unavailable'],['Hunt deployment',s.role==='key-bot-storage'?'Not hosted':s.services.deploy?'Up':'Unavailable'],['Shared backend connection',s.services.backend?'Up':'Unavailable'],['Player allowlist',s.role==='key-bot-storage'?'Not hosted':s.services.allowlist?'Up':'Unavailable']]);
     const f=s.firewall;
-    el('workerFirewall').textContent=f?`UDP ${f.ports} · ${f.addresses} authenticated addresses · Firewall ${f.ok===false?'update failed':f.enabled?'open for allowed players':'closed'}${f.pending?' · update pending':''}`:'Firewall state unavailable';
+    el('workerFirewall').textContent=f?`UDP ${f.ports} · ${f.addresses} authenticated addresses · Firewall ${f.ok===false?'update failed':f.enabled?'open for allowed players':'closed'}${f.pending?' · update pending':''}`:s.role==='key-bot-storage'?`Backup: ${s.backup?.verified?'verified':'not verified'} · ${s.backup?.at ? new Date(s.backup.at).toLocaleString():'no successful copy'}`:'Firewall state unavailable';
     for(const id of ['CpuChart','RamChart'])graph(prefix+id,(worker.history||[]).map(row=>({...row,[prefix+id]:row['worker'+id]})));
     const p=s.processes;
     el('workerProcessFreshness').textContent=p?`${Date.now()-Date.parse(p.at)>150000?'STALE — ':''}Process sample: ${new Date(p.at).toLocaleString()}`:'Waiting for process sample';
@@ -169,6 +169,8 @@
       renderWorker(result.worker);
       renderWorker(result.aus,'aus');
       renderWorker(result.germany,'germany');
+      renderWorker(result.eu2,'eu2');
+      for(const name of ['worker','aus','germany','eu2']) {const tab=document.querySelector?.(`[data-view="${name}"]`);if(tab)tab.hidden=!result[name]?.configured;}
       el('login').hidden = true; el('data').hidden = false;
       el('invites').hidden = !result.invitesEnabled;
       el('invitesUnavailable').hidden = result.invitesEnabled;
@@ -217,6 +219,7 @@
     if (button.dataset.view === 'worker' && lastWorker) renderWorker(lastWorker);
     if (button.dataset.view === 'aus' && lastAus) renderWorker(lastAus,'aus');
     if (button.dataset.view === 'germany' && lastGermany) renderWorker(lastGermany,'germany');
+    if (button.dataset.view === 'eu2' && lastEu2) renderWorker(lastEu2,'eu2');
   };
   function showAccounts() {
     const query = el('accountSearch').value.trim().toLowerCase();
