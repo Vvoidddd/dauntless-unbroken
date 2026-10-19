@@ -27,7 +27,7 @@ export async function fastestRegion(probes:RegionProbe[], measure=tcpLatency):Pr
 }
 export async function chooseClosestRegion(ep:Endpoint,key:string):Promise<Region|undefined> {
     try {
-        const response=await request(ep,'/undaunted/api/HuntRegion',{
+        const response=await request(ep,'/unbroken/api/HuntRegion',{
             headers:{'x-dauntless-unbroken-user-api-key':key},timeoutMs:5000,maxBytes:8192
         });
         if(response.status!==200)return undefined;

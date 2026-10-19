@@ -73,7 +73,7 @@ them are named `dauntless-unbroken-*` (for example `dauntless-unbroken-metagame`
 
 | Folder | What it holds | Build output (git-ignored) |
 |:-------|:--------------|:---------------------------|
-| `DauntlessUnbrokenMetagame/` | The backend the game talks to (TypeScript, Express): accounts, saves, progression, matchmaking, parties, friends, guilds, the `/undaunted/api` admin API and the game's text chat (`src/realtime/`, an XMPP listener in the same process, on when `CHAT=1`). `src/db/schema.ts` defines the database, `src/drizzle/` holds its migrations, `src/vendor/` the game's `progression_config.json`, the generated `hunt_titles.json`, and the data from Harmonic's 1.4.4 fork: `escalation/seasons.json` (the Escalation season registry), `store_catalog.json` (the free store's offers) and `store_item_kinds.json` (how each store item is granted). `test/data/store_art_skus.json` lists the store SKU ids with a 2:1 tile image, for a test. The build copies `src/vendor/` to `dist/vendor/`. `scripts/` has `write-build-info.js` and `make-hunt-titles.js`. | `dist/` (with `dist/build-info.json`), `build/` (tests), `node_modules/` |
+| `DauntlessUnbrokenMetagame/` | The backend the game talks to (TypeScript, Express): accounts, saves, progression, matchmaking, parties, friends, guilds, the `/unbroken/api` admin API and the game's text chat (`src/realtime/`, an XMPP listener in the same process, on when `CHAT=1`). `src/db/schema.ts` defines the database, `src/drizzle/` holds its migrations, `src/vendor/` the game's `progression_config.json`, the generated `hunt_titles.json`, and the data from Harmonic's 1.4.4 fork: `escalation/seasons.json` (the Escalation season registry), `store_catalog.json` (the free store's offers) and `store_item_kinds.json` (how each store item is granted). `test/data/store_art_skus.json` lists the store SKU ids with a 2:1 tile image, for a test. The build copies `src/vendor/` to `dist/vendor/`. `scripts/` has `write-build-info.js` and `make-hunt-titles.js`. | `dist/` (with `dist/build-info.json`), `build/` (tests), `node_modules/` |
 | `DauntlessUnbrokenDeployServer/` | Starts and supervises the game-server processes (Ramsgate, the Training Dojo, hunts). `src/vendor/` holds the hunt tables. | `dist/`, `build/` |
 | `DauntlessUnbrokenGateway/` | Public mode only: the TLS gateway (`dist/server.js`) and the allowlist helper (`dist/allowlist/server.js`). `tools/make-cert.js` makes the gateway certificate. | `dist/`, `build/` |
 | `DauntlessUnbrokenContent/` | The content server: game files, news and the art pack for registered launchers. `data/dauntless-1.4.4.json` is the game manifest (410 files) that the launcher also compiles in. | `dist/`, `build/` |
@@ -422,7 +422,7 @@ These are **lost when the metagame restarts**:
   guild's invite, and the party invite limits (20 per sender in 10 minutes, the 2-minute pause after a
   decline);
 - who is online and where (a player counts as online for 90 seconds after their game's last heartbeat);
-- a registration mode changed through `POST /undaunted/api/RegistrationStatus`: after a restart the
+- a registration mode changed through `POST /unbroken/api/RegistrationStatus`: after a restart the
   `REGISTRATION_MODE` from the settings file applies again;
 - short caches (the server status, the build info).
 

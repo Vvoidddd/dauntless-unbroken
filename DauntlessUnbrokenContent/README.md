@@ -56,7 +56,7 @@ manifest compiled into it; the server only promises to send the bytes on the hos
   manifest, and the file opened is always built from the manifest's own path. The DLLs, logs or
   anything else in the game folder are never served.
 - **Only registered accounts.** Every file request carries the account key. The server asks the
-  metagame (`GET /undaunted/api/GetUserInfo`) and caches the answer for 5 minutes (refused keys
+  metagame (`GET /unbroken/api/GetUserInfo`) and caches the answer for 5 minutes (refused keys
   for 30 seconds), keyed by the key's SHA-256. The key itself is never stored or logged. An invite
   code alone can register an account, but can't download.
 - **Only over Tailscale.** `BIND_HOST` accepts loopback and Tailscale addresses (100.64.0.0/10,

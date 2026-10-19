@@ -21,7 +21,7 @@ export function IsDirectLoopbackRequest(req: { socket?: { remoteAddress?: string
     return IsLoopbackAddress(req.socket?.remoteAddress) && !PROXY_HEADERS.some((Header) => req.headers[Header] !== undefined);
 }
 
-// The running game servers, read-only, for the metagame's /undaunted/api/ServerStatus:
+// The running game servers, read-only, for the metagame's /unbroken/api/ServerStatus:
 // {servers: [{id, port, kind, map, gameMode, behemoth, huntId, matchmakerHuntId,
 // expectedPlayers, maxPlayers, startedAt}]}. The list holds account ids, so it is for
 // the metagame on this machine only: the deploy server binds loopback, and this route

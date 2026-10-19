@@ -81,7 +81,7 @@ function PortIsFree(Port: number): Promise<boolean> {
 
 function StartMock(): Promise<http.Server> {
     const Server = http.createServer((req, res) => {
-        if(req.method === "GET" && req.url === "/undaunted/api/GetUserInfo" && req.headers["x-dauntless-unbroken-user-api-key"] === FAKE_KEY){
+        if(req.method === "GET" && req.url === "/unbroken/api/GetUserInfo" && req.headers["x-dauntless-unbroken-user-api-key"] === FAKE_KEY){
             MockCalls.good++;
             res.setHeader("Content-Type", "application/json");
             res.end(JSON.stringify(ACCOUNT));

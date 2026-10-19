@@ -7,7 +7,7 @@ import partnerLogo from "./brand/eugamehost-partner.png";
 import newsBadge from "./brand/news-badge.svg";
 import { buildScene } from "./scene";
 import { isStringKey, translate, type StringKey } from "../shared/i18n";
-import { localized, PATRONS, PROJECT_PEOPLE, SOFTWARE, UPSTREAM_PEOPLE, type CreditPerson, type CreditRole } from "../shared/credits";
+import { localized, SOFTWARE } from "../shared/credits";
 import { parseInvite } from "../shared/invite";
 import { checkUsername, extractAccountKey } from "../shared/username";
 import { exposureKey, graphicsKey, primaryButton, shortFile, stepIndex, taskView, updateReason, whereKey } from "../shared/ui-model";
@@ -1636,63 +1636,6 @@ function renderSettings(): void {
 
 // ------------------------------------------------------------------ credits page
 
-const ROLE_KEY: Record<CreditRole, StringKey> = {
-  maintainer: "credits_role_maintainer",
-  creator: "credits_role_creator",
-  contributor: "credits_role_contributor",
-};
-
-function creditPeople(people: readonly CreditPerson[]): HTMLElement {
-  return h(
-    "ul",
-    { class: "credit-list" },
-    ...people.map((p) =>
-      h(
-        "li",
-        { class: "credit" },
-        h("span", { class: `credit-avatar role-${p.role}`, "aria-hidden": "true" }, Array.from(p.name)[0]?.toUpperCase() ?? "?"),
-        h(
-          "div",
-          { class: "credit-text" },
-          h(
-            "div",
-            { class: "credit-head" },
-            h("span", { class: "credit-name" }, p.name),
-            h("span", { class: `badge credit-role role-${p.role}` }, t(ROLE_KEY[p.role])),
-            p.github !== p.name ? h("span", { class: "credit-handle" }, t("credits_github_handle", { handle: p.github })) : null,
-          ),
-          h("p", { class: "credit-note" }, localized(p.note, state.lang)),
-        ),
-      ),
-    ),
-  );
-}
-
-function creditPatrons(): HTMLElement {
-  return h(
-    "ul",
-    { class: "credit-list" },
-    ...PATRONS.map((p) =>
-      h(
-        "li",
-        { class: "credit" },
-        h("span", { class: "credit-avatar role-patron", "aria-hidden": "true" }, Array.from(p.name)[0]?.toUpperCase() ?? "?"),
-        h(
-          "div",
-          { class: "credit-text" },
-          h(
-            "div",
-            { class: "credit-head" },
-            h("span", { class: "credit-name" }, p.name),
-            h("span", { class: "badge credit-role role-patron" }, t("credits_role_patron")),
-          ),
-          h("p", { class: "credit-note" }, localized(p.note, state.lang)),
-        ),
-      ),
-    ),
-  );
-}
-
 function creditSoftware(): HTMLElement {
   return h(
     "ul",
@@ -1715,52 +1658,18 @@ function creditSoftware(): HTMLElement {
 }
 
 function renderCredits(): void {
-  const container = $("#view-credits");
-  renderRegion(container, JSON.stringify([state.lang]), () => [
-    h(
-      "div",
-      { class: "page credits-page" },
+  renderRegion($("#view-credits"), JSON.stringify([state.lang]), () => [
+    h("div", { class: "page credits-page" },
       h("h1", { class: "page-title", id: "credits-title" }, t("credits_title")),
       h("p", { class: "page-sub" }, t("credits_intro")),
-      card(
-        "settings-section",
-        h("h2", { class: "card-title" }, "Dauntless Unbroken"),
-        h("p", { class: "card-text" }, t("credits_project_text")),
-        creditPeople(PROJECT_PEOPLE),
-        h("div", { class: "card-row" }, linkButton(t("credits_all_contributors"), () => open("project_contributors"), { icon: "external", fk: "cr-contributors" })),
-      ),
-      card(
-        "settings-section",
-        h("h2", { class: "card-title" }, t("credits_patrons_title")),
-        h("p", { class: "card-text" }, t("credits_patrons_text")),
-        creditPatrons(),
-      ),
-      card(
-        "settings-section",
-        h("h2", { class: "card-title" }, "Undaunted"),
-        h("p", { class: "card-text" }, t("credits_upstream_text")),
-        creditPeople(UPSTREAM_PEOPLE),
-        h(
-          "div",
-          { class: "card-row" },
-          linkButton(t("credits_upstream_source"), () => open("upstream_source"), { icon: "external", fk: "cr-upstream" }),
-          linkButton(t("credits_upstream_contributors"), () => open("upstream_contributors"), { icon: "external", fk: "cr-upstream-contributors" }),
-        ),
-      ),
-      card("settings-section", h("h2", { class: "card-title" }, t("credits_software")), h("p", { class: "card-text" }, t("credits_software_text")), creditSoftware()),
-      card(
-        "settings-section",
+      card("settings-section", h("h2", { class: "card-title" }, t("credits_software")), creditSoftware()),
+      card("settings-section",
         h("h2", { class: "card-title" }, t("credits_license_title")),
         h("p", { class: "card-text" }, t("credits_license_text")),
-        h(
-          "div",
-          { class: "card-row" },
+        h("div", { class: "card-row" },
           linkButton(t("github_link"), () => open("project_source"), { icon: "external", fk: "cr-source" }),
-          linkButton(t("about_license_link"), () => open("project_license"), { icon: "external", fk: "cr-license" }),
-        ),
-        h("p", { class: "small-print" }, t("credits_phoenix")),
-      ),
-    ),
+          linkButton(t("about_license_link"), () => open("project_license"), { icon: "external", fk: "cr-license" })),
+        h("p", { class: "small-print" }, t("credits_phoenix"))))
   ]);
 }
 

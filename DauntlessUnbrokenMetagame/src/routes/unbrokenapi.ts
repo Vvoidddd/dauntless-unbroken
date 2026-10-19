@@ -636,7 +636,7 @@ unbrokenApiRouter.post("/PartyInvite", HasDauntlessUnbrokenUserApiKey, (req: any
 
     const Result = InviteToParty(From.UserId, To.UserId, undefined);
 
-    logger.info(`party: /undaunted/api/PartyInvite by key of ${req.DauntlessUnbrokenUserInfo.UserId}: from=${From.UserId} to=${To.UserId} -> ${Result.Status}`);
+    logger.info(`party: /unbroken/api/PartyInvite by key of ${req.DauntlessUnbrokenUserInfo.UserId}: from=${From.UserId} to=${To.UserId} -> ${Result.Status}`);
 
     if(Result.Status !== 200){
         res.status(Result.Status);
@@ -724,7 +724,7 @@ unbrokenApiRouter.post("/GuildInvite", HasDauntlessUnbrokenUserApiKey, (req: any
 
     const Result = InviteToGuild(From.UserId, To.UserId);
 
-    logger.info(`guild: /undaunted/api/GuildInvite by key of ${req.DauntlessUnbrokenUserInfo.UserId}: from=${From.UserId} to=${To.UserId} -> ${Result.Status}`);
+    logger.info(`guild: /unbroken/api/GuildInvite by key of ${req.DauntlessUnbrokenUserInfo.UserId}: from=${From.UserId} to=${To.UserId} -> ${Result.Status}`);
 
     if(Result.Status !== 200){
         const Body = Result.Body as { code?: string, message?: string };

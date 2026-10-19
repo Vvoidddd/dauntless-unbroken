@@ -34,7 +34,7 @@ The deploy server (61001) is never reachable through the gateway: no route leads
 
 The request target goes upstream unchanged: method, path, query and headers (minus the ones below).
 Request and response bodies are streamed. That includes the account key header
-`x-dauntless-unbroken-user-api-key`: the launcher sends it with `GET /undaunted/api/ServerStatus`, and the
+`x-dauntless-unbroken-user-api-key`: the launcher sends it with `GET /unbroken/api/ServerStatus`, and the
 metagame lists who is online only for a valid key (anyone else gets the same answer with no players
 and no servers, `"limited": true`). Like every header, the key is never logged.
 
@@ -43,7 +43,7 @@ and no servers, `"limited": true`). Like every header, the key is never logged.
 | Answer | When |
 |---|---|
 | `403 {"error":"forbidden"}` | the request carries an `x-dauntless-unbroken-gameserver-apikey` header, whatever its value, on any route (game servers run on the server itself and talk to the metagame directly) |
-| `403 {"error":"forbidden"}` | any `/undaunted/api/*` route except `POST Register`, `GET GetUserInfo`, `GET ServerStatus` and `GET RegistrationStatus` (and `HEAD` of those three). Most of the rest are admin routes: invites, renames, rollbacks, entitlements, JWTs for any account, `POST RegistrationStatus`. The account-key routes `PublicOnlineStats`, `PartyInvite` and `Friends` are blocked as well (they are used on the server itself), and so is `UsernameAvailable`; `Register` answers `409 username_taken` instead |
+| `403 {"error":"forbidden"}` | any `/unbroken/api/*` route except `POST Register`, `GET GetUserInfo`, `GET ServerStatus` and `GET RegistrationStatus` (and `HEAD` of those three). Most of the rest are admin routes: invites, renames, rollbacks, entitlements, JWTs for any account, `POST RegistrationStatus`. The account-key routes `PublicOnlineStats`, `PartyInvite` and `Friends` are blocked as well (they are used on the server itself), and so is `UsernameAvailable`; `Register` answers `409 username_taken` instead |
 | `400 {"error":"bad_path"}` | `.` or `..` segments, backslashes, control characters or whitespace, percent-encoded `/` `\` `.` or NUL, or broken percent-encoding. The 1.4.4 client never sends any of these (checked against every path in the metagame logs) |
 | `400 {"error":"bad_request"}` | a request target that is not a plain path (`http://host/...`, `*`), or an upgrade that is not a WebSocket `GET` |
 | `405 {"error":"method_not_allowed"}` | methods other than GET, HEAD, POST, PUT, DELETE, PATCH, OPTIONS |
@@ -56,7 +56,7 @@ The admin-route check is at least as lenient as Express's own routing: it matche
 letter case, trailing or repeated slashes and percent-encoding. The tests read every route from
 `DauntlessUnbrokenMetagame/src/routes/unbrokenapi.ts` and try each one through the gateway, so a route
 added there later is covered automatically: it is blocked unless it is added to
-`PUBLIC_UNDAUNTED_API` in `src/policy.ts`.
+`PUBLIC_UNBROKEN_API` in `src/policy.ts`.
 
 ### Headers it sets
 
@@ -116,15 +116,15 @@ against one bucket. `burst` is the bucket size and `per minute` is the refill ra
 | average | 0.23-0.48 per second |
 | steady state | `POST /party` and `GET /party/invites` every 10 s, `POST /heartbeat` every 20 s |
 | `POST /account/api/oauth/token` | 2 per 60 s, 4 per 10 min |
-| `POST /undaunted/api/Register` | 1 per 10 min |
-| `GET /undaunted/api/GetUserInfo` | 3 per 60 s |
+| `POST /unbroken/api/Register` | 1 per 10 min |
+| `GET /unbroken/api/GetUserInfo` | 3 per 60 s |
 | launcher downloads | 410 files, 4 at a time, one request per file (plus Range resumes) |
 
 | Bucket | Requests | burst, per minute | Why |
 |---|---|---|---|
 | general | everything not below | 300, 180 | at least 4 times every measured peak: 300 in 1 s (vs 120), 330 in 10 s (vs 212), 480 in 60 s (vs 392), 2,100 in 10 min (vs 1,424). That leaves room for a few players behind one home connection |
 | content | `/content/*` | 600, 600 | a whole 410-file download without waiting |
-| register | `POST /undaunted/api/Register` | 5, 0.2 (one per 5 min) | 4 times the observed rate; typos and taken names included |
+| register | `POST /unbroken/api/Register` | 5, 0.2 (one per 5 min) | 4 times the observed rate; typos and taken names included |
 | token | `POST /account/api/oauth/token` | 10, 1 | 8 in 60 s and 16 in 10 min are 4 times the observed peaks |
 | ws | WebSocket upgrades (the game's chat connection) | 20, 12 | the game reconnects its chat at most every 15-45 s after a failure; its own bucket, so chat reconnects can never use up the general one the game's HTTP traffic needs |
 | connect | new TCP connections (each costs a TLS handshake) | 200, 300 | the relay keeps connections alive; this only stops floods |

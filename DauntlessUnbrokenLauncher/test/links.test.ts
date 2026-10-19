@@ -37,8 +37,8 @@ const EXPECTED: Record<FixedTarget, string> = {
   eugamehost_game3: "https://www.eugamehost.com/clients/cart.php?a=add&pid=240&promocode=SIGNUP6MONTH&skipconfig=1",
   eugamehost_game5: "https://www.eugamehost.com/clients/cart.php?a=add&pid=242&promocode=SIGNUP6MONTH&skipconfig=1",
   eugamehost_5800x: "https://www.eugamehost.com/clients/cart.php?a=add&pid=500",
-  discord: "https://discord.gg/dauntlessrevived",
-  patreon: "https://patreon.com/DauntlessRevived",
+  discord: "https://github.com/Vvoidddd/dauntless-unbroken/discussions",
+  patreon: "https://github.com/Vvoidddd/dauntless-unbroken",
 };
 
 // A Record, so the compiler fails this file when a link name is added without a test here.
@@ -92,7 +92,7 @@ const BAD_URLS = [
   "https://GITHUB.COM/Vvoidddd/dauntless-unbroken",
   "HTTPS://github.com/Vvoidddd/dauntless-unbroken",
   "https://github.com/MIXUTIN/DAUNTLESS-UNBROKEN",
-  "https://github.com/syst3mdev/undaunted",
+  "https://github.com/syst3mdev/unbroken",
   "https://github.com:443/Vvoidddd/dauntless-unbroken",
   "https://github.com:8443/Vvoidddd/dauntless-unbroken",
   "https://github.com./Vvoidddd/dauntless-unbroken",

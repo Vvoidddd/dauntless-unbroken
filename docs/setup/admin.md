@@ -103,7 +103,7 @@ Port forwarding would put all of the following on the public internet:
   `exchange_code` to `/account/api/oauth/token`. The launcher and admin API send it in the
   `x-dauntless-unbroken-user-api-key` header. What comes back is a 24-hour RS256 bearer token that gives full
   access to that player's data.
-- `POST /undaunted/api/Register` needs no authentication, and nothing in the metagame limits request
+- `POST /unbroken/api/Register` needs no authentication, and nothing in the metagame limits request
   rates.
 - The deploy server has no authentication at all. It listens on loopback and answers 403 to callers
   on other machines, and those two checks are all that stop others from making your PC start game
@@ -172,7 +172,7 @@ New-NetFirewallRule -DisplayName "Dauntless Unbroken - game servers (Tailscale)"
   private networks (file sharing, for example) also apply to share recipients. Setting it to `Public`
   avoids that. We have not checked whether Tailscale resets the category on reconnect (unverified).
 - Test from a friend's PC with
-  `Invoke-RestMethod http://<host address>:61000/undaunted/api/RegistrationStatus`. The same request
+  `Invoke-RestMethod http://<host address>:61000/unbroken/api/RegistrationStatus`. The same request
   from another device on your home LAN should fail.
 
 ## Switch the addresses to Tailscale
@@ -260,7 +260,7 @@ Two `.env` settings in the metagame decide who can get in:
   Never use it with friends.
 - `REGISTRATION_MODE`:
 
-| Mode | `POST /undaunted/api/Register` |
+| Mode | `POST /unbroken/api/Register` |
 |:-----|:-------------------------------|
 | `NONE` | Always refused (400). |
 | `INVITECODE` | Needs a valid code. A wrong or used-up code gets 401. |
@@ -286,13 +286,13 @@ $M = "100.x.y.z:61000"    # wherever the metagame listens
 $h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 
 # new single-use code, made by the server (XXXX-XXXX-XXXX)
-$code = (Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/CreateInvite" -Headers $h `
+$code = (Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/CreateInvite" -Headers $h `
   -ContentType "application/json" -Body (@{ uses = 1 } | ConvertTo-Json) -TimeoutSec 10).code
 $code        # send this to one friend, privately
 
 # list, and revoke
-(Invoke-RestMethod -Uri "http://$M/undaunted/api/InviteCodes" -Headers $h -TimeoutSec 10).InviteCodes
-Invoke-RestMethod -Method Delete -Uri "http://$M/undaunted/api/InviteCode/$code" -Headers $h -TimeoutSec 10
+(Invoke-RestMethod -Uri "http://$M/unbroken/api/InviteCodes" -Headers $h -TimeoutSec 10).InviteCodes
+Invoke-RestMethod -Method Delete -Uri "http://$M/unbroken/api/InviteCode/$code" -Headers $h -TimeoutSec 10
 ```
 
 - `CreateInvite` makes three groups of four characters from Crockford's base32 alphabet (60 random
@@ -315,7 +315,7 @@ key, so keep it on the host.
 
 ## The admin API {#admin-api}
 
-All routes live under `/undaunted/api` on the metagame port. "Admin" means the
+All routes live under `/unbroken/api` on the metagame port. "Admin" means the
 `x-dauntless-unbroken-user-api-key` header must belong to a user with `isAdmin`. A missing or unknown key gets
 401; a valid key that is not an admin gets 403. **An admin call that carries a proxy header gets 403**
 before the key is even checked, so admin calls work only directly against the metagame: on the host,
@@ -383,16 +383,16 @@ $h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key 
 $json = @{ ContentType = "application/json"; Headers = $h; TimeoutSec = 10 }
 
 # invite a friend to your party, send a friend request, invite to your guild
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/PartyInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/Friends" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/GuildInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/PartyInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/Friends" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/GuildInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
 
 # as an admin, for another player: Friend2 invites Friend to Friend2's party
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/PartyInvite" @json -Body (@{ Username = "Friend"; From = "Friend2" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/PartyInvite" @json -Body (@{ Username = "Friend"; From = "Friend2" } | ConvertTo-Json)
 
 # list the guilds, and remove one
-Invoke-RestMethod -Uri "http://$M/undaunted/api/Guilds" -Headers $h -TimeoutSec 10
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/DisbandGuild" @json -Body (@{ Guild = "SomeGuild" } | ConvertTo-Json)
+Invoke-RestMethod -Uri "http://$M/unbroken/api/Guilds" -Headers $h -TimeoutSec 10
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/DisbandGuild" @json -Body (@{ Guild = "SomeGuild" } | ConvertTo-Json)
 ```
 
 A refusal is a 4xx with `{ "error", "message" }`. `Invoke-RestMethod` throws on it; the message is in
@@ -423,7 +423,7 @@ Renaming does exist (`RenameUser`, see [Usernames](#usernames)).
   `DauntlessUnbrokenMetagame` folder, so that `require` finds `better-sqlite3`:
 
   ```js
-  // node rekey.js <UserId>   (take the UserId from GET /undaunted/api/GetAllUsers)
+  // node rekey.js <UserId>   (take the UserId from GET /unbroken/api/GetAllUsers)
   const crypto = require("crypto");
   const fs = require("fs");
   const Database = require("better-sqlite3");
@@ -492,10 +492,10 @@ On a hand-built host, run it from your `DauntlessUnbrokenMetagame` folder with y
   account (there is no unique index), and before the invite code is used up, so a rejected name does
   not burn a code.
 - Accounts made before these rules keep their names, even ones that break them.
-- `GET /undaunted/api/UsernameAvailable?Username=<name>` checks a name without registering. The
+- `GET /unbroken/api/UsernameAvailable?Username=<name>` checks a name without registering. The
   public gateway does not pass it, so it works only on the host or over the tailnet.
 - On a player's first login the metagame creates their character and names it after the username.
-  The admin route `POST /undaunted/api/RenameUser` therefore renames the account and its characters
+  The admin route `POST /unbroken/api/RenameUser` therefore renames the account and its characters
   together. The player sees the new name after logging in again. Whether other players' nameplates
   update without a relog is unverified.
 - There is no rename inside the game: `/account/api/public/account` reports
@@ -510,7 +510,7 @@ To rename, with `$M` and `$h` set as in [Making invite codes](#making-invite-cod
 
 ```powershell
 $body = @{ Username = "OldName"; NewUsername = "New_Name" } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/RenameUser" -Headers $h `
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/RenameUser" -Headers $h `
   -ContentType "application/json" -Body $body -TimeoutSec 10
 ```
 

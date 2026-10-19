@@ -26,7 +26,7 @@ $Pinned = @{
   "zip"                          = "556B9A648A5E5E7E11B6F8DD3D80FF8E88FCEB0D3448297AAF47CE7BF756BC6D"
   "Dauntless-Win64-Shipping.exe" = "D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4"
   "dxgi.dll"                     = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
-  "DauntlessUnbroken.dll"  = "21df88216d012b10b37ee054ebd446d20c70f3ba341f53e6392053559e0db47c"
+  "DauntlessUnbroken.dll"  = "6ce7e0ea3eff8c6841ea81c67a0eb177d84223af844f15c6679ef0827143be8d"
 }
 $Dir = Join-Path $env:APPDATA "DauntlessUnbroken"
 $KeyFile = Join-Path $Dir "account.key"
@@ -181,7 +181,7 @@ if (Test-Path -LiteralPath $KeyFile) {
   if (-not $Invite) { $Invite = (Read-Host "Invite code from the host").Trim() }
   $body = @{ Username = $Username; InviteCode = $Invite } | ConvertTo-Json
   try {
-    $r = Invoke-RestMethod -Method Post -Uri "http://$Backend/undaunted/api/Register" -ContentType "application/json" -Body $body -TimeoutSec 20
+    $r = Invoke-RestMethod -Method Post -Uri "http://$Backend/unbroken/api/Register" -ContentType "application/json" -Body $body -TimeoutSec 20
   } catch {
     $code = $null
     if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
@@ -201,7 +201,7 @@ if (Test-Path -LiteralPath $KeyFile) {
 # 5. Check that the key works, without ever printing it.
 $key = (Get-Content -LiteralPath $KeyFile -Raw).Trim()
 try {
-  $me = Invoke-RestMethod -Uri "http://$Backend/undaunted/api/GetUserInfo" -Headers @{ "x-dauntless-unbroken-user-api-key" = $key } -TimeoutSec 20
+  $me = Invoke-RestMethod -Uri "http://$Backend/unbroken/api/GetUserInfo" -Headers @{ "x-dauntless-unbroken-user-api-key" = $key } -TimeoutSec 20
 } catch { Fail "The server did not accept your key. Ask the host." }
 Ok "logged in as '$($me.name)'"
 

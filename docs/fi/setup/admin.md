@@ -70,7 +70,7 @@ koneellesi) toisi kaiken seuraavan julkiseen internetiin:
   `exchange_code`-kenttänä osoitteeseen `/account/api/oauth/token`. Käynnistin ja ylläpitorajapinta
   lähettävät sen `x-dauntless-unbroken-user-api-key`-otsakkeessa. Takaisin tulee 24 tuntia voimassa oleva
   RS256-bearer-tunniste, joka antaa täyden pääsyn kyseisen pelaajan tietoihin.
-- `POST /undaunted/api/Register` ei vaadi tunnistautumista, eikä mikään metagamessa rajoita pyyntöjen
+- `POST /unbroken/api/Register` ei vaadi tunnistautumista, eikä mikään metagamessa rajoita pyyntöjen
   määrää.
 - Deploy-palvelimessa ei ole tunnistautumista lainkaan. Se kuuntelee vain loopbackissa ja vastaa 403
   muilta koneilta tuleville kutsujille, ja vain nämä kaksi tarkistusta estävät muita saamasta koneesi
@@ -143,7 +143,7 @@ New-NetFirewallRule -DisplayName "Dauntless Unbroken - game servers (Tailscale)"
   Asetus `Public` välttää tämän. Emme ole tarkistaneet, palauttaako Tailscale luokan, kun se
   muodostaa yhteyden uudelleen (varmistamatta).
 - Testaa kaverin koneelta komennolla
-  `Invoke-RestMethod http://<host address>:61000/undaunted/api/RegistrationStatus`. Saman pyynnön
+  `Invoke-RestMethod http://<host address>:61000/unbroken/api/RegistrationStatus`. Saman pyynnön
   pitäisi epäonnistua, kun sen tekee kotiverkkosi (lähiverkon) toiselta laitteelta.
 
 ## Vaihda osoitteet Tailscaleen {#switch-the-addresses-to-tailscale}
@@ -237,7 +237,7 @@ Kaksi metagamen `.env`-asetusta ratkaisee, kuka pääsee sisään:
   kanssa.
 - `REGISTRATION_MODE`:
 
-| Tila | `POST /undaunted/api/Register` |
+| Tila | `POST /unbroken/api/Register` |
 |:-----|:-------------------------------|
 | `NONE` | Aina hylätty (400). |
 | `INVITECODE` | Vaatii kelvollisen koodin. Väärä tai jo käytetty koodi saa vastauksen 401. |
@@ -265,13 +265,13 @@ $M = "100.x.y.z:61000"    # wherever the metagame listens
 $h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 
 # new single-use code, made by the server (XXXX-XXXX-XXXX)
-$code = (Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/CreateInvite" -Headers $h `
+$code = (Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/CreateInvite" -Headers $h `
   -ContentType "application/json" -Body (@{ uses = 1 } | ConvertTo-Json) -TimeoutSec 10).code
 $code        # send this to one friend, privately
 
 # list, and revoke
-(Invoke-RestMethod -Uri "http://$M/undaunted/api/InviteCodes" -Headers $h -TimeoutSec 10).InviteCodes
-Invoke-RestMethod -Method Delete -Uri "http://$M/undaunted/api/InviteCode/$code" -Headers $h -TimeoutSec 10
+(Invoke-RestMethod -Uri "http://$M/unbroken/api/InviteCodes" -Headers $h -TimeoutSec 10).InviteCodes
+Invoke-RestMethod -Method Delete -Uri "http://$M/unbroken/api/InviteCode/$code" -Headers $h -TimeoutSec 10
 ```
 
 - `CreateInvite` tekee kolme neljän merkin ryhmää Crockfordin base32-aakkostosta (60 satunnaista
@@ -298,7 +298,7 @@ avain on yksinkertaisesti kyseisen käyttäjän tiliavain, joten pidä se palvel
 
 ## Ylläpitorajapinta {#admin-api}
 
-Kaikki reitit ovat metagamen portissa polun `/undaunted/api` alla. ”Ylläpitäjä” tarkoittaa, että
+Kaikki reitit ovat metagamen portissa polun `/unbroken/api` alla. ”Ylläpitäjä” tarkoittaa, että
 `x-dauntless-unbroken-user-api-key`-otsakkeen on kuuluttava käyttäjälle, jolla on `isAdmin`. Puuttuva tai
 tuntematon avain saa vastauksen 401; kelvollinen avain, joka ei kuulu ylläpitäjälle, saa vastauksen 403.
 **Ylläpitokutsu, jossa on välityspalvelimen otsake, saa vastauksen 403** jo ennen kuin avainta
@@ -367,16 +367,16 @@ $h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key 
 $json = @{ ContentType = "application/json"; Headers = $h; TimeoutSec = 10 }
 
 # kutsu kaveri ryhmääsi, lähetä kaveripyyntö, kutsu kiltaasi
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/PartyInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/Friends" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/GuildInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/PartyInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/Friends" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/GuildInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
 
 # ylläpitäjänä toisen pelaajan puolesta: Friend2 kutsuu Friendin Friend2:n ryhmään
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/PartyInvite" @json -Body (@{ Username = "Friend"; From = "Friend2" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/PartyInvite" @json -Body (@{ Username = "Friend"; From = "Friend2" } | ConvertTo-Json)
 
 # listaa killat ja poista yksi
-Invoke-RestMethod -Uri "http://$M/undaunted/api/Guilds" -Headers $h -TimeoutSec 10
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/DisbandGuild" @json -Body (@{ Guild = "SomeGuild" } | ConvertTo-Json)
+Invoke-RestMethod -Uri "http://$M/unbroken/api/Guilds" -Headers $h -TimeoutSec 10
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/DisbandGuild" @json -Body (@{ Guild = "SomeGuild" } | ConvertTo-Json)
 ```
 
 Torjunta on 4xx-vastaus muodossa `{ "error", "message" }`. `Invoke-RestMethod` heittää siitä
@@ -408,7 +408,7 @@ ylläpitäjäksi ylentämiseen. Nimen vaihto on olemassa (`RenameUser`, katso
   tämä nimellä `rekey.js` kansioon `DauntlessUnbrokenMetagame`, jotta `require` löytää `better-sqlite3`-kirjaston:
 
   ```js
-  // node rekey.js <UserId>   (take the UserId from GET /undaunted/api/GetAllUsers)
+  // node rekey.js <UserId>   (take the UserId from GET /unbroken/api/GetAllUsers)
   const crypto = require("crypto");
   const fs = require("fs");
   const Database = require("better-sqlite3");
@@ -480,10 +480,10 @@ Tulos 0 tarkoittaa, että jokainen osto menee pelaajan ainoalle hahmolle.
   tietokantatransaktiossa, joka luo tilin (ainutlaatuista indeksiä ei ole), ja ennen kuin kutsukoodi
   kulutetaan, joten hylätty nimi ei polta koodia.
 - Ennen näitä sääntöjä tehdyt tilit säilyttävät nimensä, myös sääntöjä rikkovat.
-- `GET /undaunted/api/UsernameAvailable?Username=<name>` tarkistaa nimen rekisteröimättä. Julkinen
+- `GET /unbroken/api/UsernameAvailable?Username=<name>` tarkistaa nimen rekisteröimättä. Julkinen
   yhdyskäytävä ei päästä sitä läpi, joten se toimii vain palvelinkoneella tai tailnetin kautta.
 - Pelaajan ensimmäisellä kirjautumisella metagame luo hänen hahmonsa ja nimeää sen käyttäjänimen
-  mukaan. Siksi ylläpitoreitti `POST /undaunted/api/RenameUser` nimeää tilin ja sen hahmot uudelleen
+  mukaan. Siksi ylläpitoreitti `POST /unbroken/api/RenameUser` nimeää tilin ja sen hahmot uudelleen
   yhdessä. Pelaaja näkee uuden nimen kirjauduttuaan uudelleen. Päivittyvätkö muiden pelaajien näkemät
   nimikyltit ilman uudelleenkirjautumista, on varmistamatta.
 - Pelin sisällä nimeä ei voi vaihtaa: `/account/api/public/account` ilmoittaa
@@ -500,7 +500,7 @@ Nimen vaihtaminen, kun `$M` ja `$h` on asetettu kuten kohdassa
 
 ```powershell
 $body = @{ Username = "OldName"; NewUsername = "New_Name" } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/RenameUser" -Headers $h `
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/RenameUser" -Headers $h `
   -ContentType "application/json" -Body $body -TimeoutSec 10
 ```
 

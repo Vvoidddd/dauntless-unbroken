@@ -1,4 +1,4 @@
-// Live server status (shared contract 3): GET /undaunted/api/ServerStatus.
+// Live server status (shared contract 3): GET /unbroken/api/ServerStatus.
 // The answer comes from the network, so every field is checked and cleaned before the UI sees it.
 
 import { UNSAFE_CHARS } from "./text";

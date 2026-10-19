@@ -7,19 +7,19 @@ import ts from "typescript";
 
 // Our product is Dauntless Unbroken. No text the metagame sends or logs may call it Undaunted:
 // every string in src/ is checked. What stays are wire identifiers and file names, which are
-// renamed later (the /undaunted/api routes, the x-dauntless-unbroken-* headers the launcher, gateway and
+// renamed later (the /unbroken/api routes, the x-dauntless-unbroken-* headers the launcher, gateway and
 // upstream's DLL send, the JWT issuer/audience, and import paths). Credits live in the docs.
 const SRC = path.join(__dirname, "..", "..", "src");
 
 const WIRE = [
-    /\/undaunted\/api\b/gi,
+    /\/unbroken\/api\b/gi,
     /\bx-dauntless-unbroken-(user-api-key|gameserver-apikey)\b/g,
     /^dauntless-unbroken-metagame$/g,
     /^undaunted\.db$/g // existing Windows backup format; not a product-facing label
 ];
 
 function NamesProduct(Text: string){
-    return /undaunted/i.test(WIRE.reduce((Rest, Pattern) => Rest.replace(Pattern, ""), Text));
+    return /unbroken/i.test(WIRE.reduce((Rest, Pattern) => Rest.replace(Pattern, ""), Text));
 }
 
 function SourceFiles(Dir: string): string[] {
@@ -76,19 +76,19 @@ describe("branding", () => {
             fs.writeFileSync(Probe, [
                 'import { x } from "./unbrokenapi";',
                 'const a = "x-dauntless-unbroken-user-api-key";',
-                "const b = `Welcome to Undaunted ${a}!`;",
+                "const b = `Welcome to Dauntless Unbroken ${a}!`;",
                 ""
             ].join("\n"));
-            assert.deepEqual(Strings(Probe).map((Found) => Found.text), ["x-dauntless-unbroken-user-api-key", "Welcome to Undaunted ", "!"]);
+            assert.deepEqual(Strings(Probe).map((Found) => Found.text), ["x-dauntless-unbroken-user-api-key", "Welcome to Dauntless Unbroken ", "!"]);
         }
         finally{
             fs.rmSync(Dir, { recursive: true, force: true });
         }
 
-        for(const Text of ["Welcome to Undaunted v0.0.5!", "Undaunted Metagame on ", "UNDAUNTED", "/undaunted/api/x by Undaunted"]){
+        for(const Text of ["Welcome to Undaunted v0.0.5!", "Undaunted Metagame on ", "UNDAUNTED", "/unbroken/api/x by Undaunted"]){
             assert.equal(NamesProduct(Text), true, Text);
         }
-        for(const Text of ["/undaunted/api/ServerStatus", "/UNDAUNTED/API/Register", "x-dauntless-unbroken-user-api-key", "x-dauntless-unbroken-gameserver-apikey", "dauntless-unbroken-metagame", "Welcome to Dauntless Unbroken!"]){
+        for(const Text of ["/unbroken/api/ServerStatus", "/UNBROKEN/API/Register", "x-dauntless-unbroken-user-api-key", "x-dauntless-unbroken-gameserver-apikey", "dauntless-unbroken-metagame", "Welcome to Dauntless Unbroken!"]){
             assert.equal(NamesProduct(Text), false, Text);
         }
     });

@@ -110,7 +110,7 @@ telemetria (pelin lähettämät käyttötiedot) olisivat jääneet vanhaan portt
 ## Invoke-RestMethod jumittaa {#invoke-restmethod-hangs}
 
 **Oire.** Windows PowerShell 5.1:ssä komento
-`Invoke-RestMethod -Method Post -Uri http://127.0.0.1:60000/undaunted/api/Register ...` ei koskaan
+`Invoke-RestMethod -Method Post -Uri http://127.0.0.1:60000/unbroken/api/Register ...` ei koskaan
 palannut, eikä metagame kirjannut mitään.
 
 **Mitä se oikeasti oli.** Aluksi pidimme sitä PowerShell 5.1:n omituisuutena ja siirryimme käyttämään

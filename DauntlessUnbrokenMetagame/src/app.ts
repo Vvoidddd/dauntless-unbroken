@@ -27,7 +27,7 @@ import { backupRouter } from './routes/backup';
 export const app = express();
 app.use(TrackBackendHealth);
 // Keep discovery reachable so a banned launcher can display the actual reason.
-app.use((req,res,next)=>{if(/^\/undaunted\/api\/ServerStatus\/?$/i.test(req.path) || CheckPlayerAccess(req,res))next();});
+app.use((req,res,next)=>{if(/^\/unbroken\/api\/ServerStatus\/?$/i.test(req.path) || CheckPlayerAccess(req,res))next();});
 
 // Development logins (AUTH_MODE=NONE) never answer anything relayed by the gateway or
 // another proxy; a no-op with AUTH_MODE=APIKEY. See middleware/RequestOrigin.ts.
@@ -77,7 +77,7 @@ app.use("/", partyRouter);
 app.use("/", slayerLinksRouter);
 app.use("/", progressionRouter);
 app.use("/", loadoutRouter);
-app.use("/undaunted/api", unbrokenApiRouter); // Everything that I/we add to help manage undaunted that doesn't belong to the game proper belongs here
+app.use("/unbroken/api", unbrokenApiRouter); // Everything that I/we add to help manage undaunted that doesn't belong to the game proper belongs here
 
 app.use((req, res) => {
     logger.warn(`Unstubbed route ${req.method} ${req.path}`)
@@ -89,7 +89,7 @@ app.use((req, res) => {
 // Unparseable JSON on the account routes the launcher and host scripts call gets the
 // same {"error": "bad_request"} as any other bad body there. Every other route keeps
 // Express's default error handling.
-const JSON_ERROR_ROUTES = new Set(["/undaunted/api/register", "/undaunted/api/createinvite", "/undaunted/api/renameuser", "/undaunted/api/partyinvite", "/undaunted/api/friends", "/undaunted/api/guildinvite", "/undaunted/api/disbandguild"]);
+const JSON_ERROR_ROUTES = new Set(["/unbroken/api/register", "/unbroken/api/createinvite", "/unbroken/api/renameuser", "/unbroken/api/partyinvite", "/unbroken/api/friends", "/unbroken/api/guildinvite", "/unbroken/api/disbandguild"]);
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     if(err?.type === "entity.parse.failed" && JSON_ERROR_ROUTES.has(req.path.toLowerCase().replace(/\/+$/, ""))){

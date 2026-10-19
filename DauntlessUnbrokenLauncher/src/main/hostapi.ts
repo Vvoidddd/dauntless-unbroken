@@ -16,7 +16,7 @@ const KEY_HEADER = "x-dauntless-unbroken-user-api-key";
 // Reported identifiers are an optional launcher check, not hardware attestation.
 export async function checkDeviceSignals(ep: Endpoint,key:string,signals:import('./device-signals').DeviceSignals):Promise<{ok:true}|{ok:false,error:'account_banned'|'server_error'|'rate_limited',detail?:string}>{
   try {
-    const res=await request(ep,'/undaunted/api/DeviceSignals',{method:'POST',headers:{[KEY_HEADER]:key,'content-type':'application/json'},body:JSON.stringify(signals),timeoutMs:8000,maxBytes:4096});
+    const res=await request(ep,'/unbroken/api/DeviceSignals',{method:'POST',headers:{[KEY_HEADER]:key,'content-type':'application/json'},body:JSON.stringify(signals),timeoutMs:8000,maxBytes:4096});
     if(res.status===204 || res.status===404)return {ok:true};
     const body=parseJsonBody(res);
     if(res.status===503 && isObject(body) && body.error==='device_signals_unavailable')return {ok:true};
@@ -26,7 +26,7 @@ export async function checkDeviceSignals(ep: Endpoint,key:string,signals:import(
 }
 
 export async function saveHuntRegion(ep: Endpoint, key: string, region: 'main' | 'ger' | 'us'): Promise<boolean> {
-  const res = await request(ep, '/undaunted/api/HuntRegion', {
+  const res = await request(ep, '/unbroken/api/HuntRegion', {
     method:'POST', headers:statusHeaders(ep,key), body:JSON.stringify({region}), timeoutMs:10000,maxBytes:4096
   });
   const body = parseJsonBody(res);
@@ -70,7 +70,7 @@ export async function fetchServerStatus(ep: Endpoint, opts: StatusOptions = {}):
   const timeoutMs = opts.timeoutMs ?? CONNECT_TIMEOUT_MS;
   let res: HttpResponse;
   try {
-    res = await request(ep, "/undaunted/api/ServerStatus", { headers: statusHeaders(ep, opts.key), timeoutMs, maxBytes: 1024 * 1024 });
+    res = await request(ep, "/unbroken/api/ServerStatus", { headers: statusHeaders(ep, opts.key), timeoutMs, maxBytes: 1024 * 1024 });
   } catch (e) {
     return isPin(e) ? { kind: "cert_mismatch" } : { kind: "unreachable" };
   }
@@ -98,7 +98,7 @@ export type RegisterResult = { ok: true; key: string } | { ok: false; error: Err
 export async function registerAccount(ep: Endpoint, username: string, inviteCode: string): Promise<RegisterResult> {
   let res: HttpResponse;
   try {
-    res = await request(ep, "/undaunted/api/Register", {
+    res = await request(ep, "/unbroken/api/Register", {
       method: "POST",
       body: JSON.stringify({ Username: username, InviteCode: inviteCode }),
       timeoutMs: 20000,
@@ -147,7 +147,7 @@ export async function fetchUserInfo(ep: Endpoint, key: string): Promise<UserInfo
   if (!isPlausibleAccountKey(key)) return { ok: false, error: "key_rejected" };
   let res: HttpResponse;
   try {
-    res = await request(ep, "/undaunted/api/GetUserInfo", { headers: { [KEY_HEADER]: key }, timeoutMs: 10000, maxBytes: 64 * 1024 });
+    res = await request(ep, "/unbroken/api/GetUserInfo", { headers: { [KEY_HEADER]: key }, timeoutMs: 10000, maxBytes: 64 * 1024 });
   } catch (e) {
     return { ok: false, error: isPin(e) ? "cert_mismatch" : "server_unreachable" };
   }
@@ -275,5 +275,5 @@ export async function fetchBrandingImage(ep: Endpoint, urlPath: string): Promise
 }
 
 export async function endPlaying(ep:Endpoint,key:string):Promise<void> {
-  await request(ep,'/undaunted/api/PlayingEnded',{method:'POST',headers:statusHeaders(ep,key),timeoutMs:5000,maxBytes:4096});
+  await request(ep,'/unbroken/api/PlayingEnded',{method:'POST',headers:statusHeaders(ep,key),timeoutMs:5000,maxBytes:4096});
 }

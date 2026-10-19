@@ -51,10 +51,10 @@
     linear-gradient(0deg, var(--dr-ink), transparent 46%);
 }
 .view { padding: 36px 42px 24px; }
-#view-play { padding-top: clamp(34px, 11vh, 116px); }
-.play-content { max-width: 540px; }
-.play-content::before { content: "DAUNTLESS UNBROKEN"; display: block; margin-bottom: 18px; color: var(--dr-ice); font-size: 11px; font-weight: 700; letter-spacing: .28em; }
-.hero-title { font-size: clamp(36px, 4.8vw, 64px); line-height: 1.05; letter-spacing: -.045em; max-width: 12ch; margin-bottom: 18px; }
+#view-play { padding-top: 28px; }
+#view-play > .play-content { margin-top: 0; }
+.play-content { max-width: 540px; gap: 10px; }
+.hero-title { font-size: clamp(32px, 4vw, 48px); line-height: 1.05; letter-spacing: -.045em; max-width: 14ch; margin-bottom: 4px; }
 .hero-text { max-width: 43ch; font-size: 15px; line-height: 1.7; color: var(--dr-steel); }
 .play-content .card { background: var(--glass); border-color: var(--dr-deep); border-radius: 14px; }
 .page { background: var(--glass-strong); border: 1px solid var(--dr-deep); border-radius: 18px; padding: 28px; }
@@ -65,7 +65,7 @@
 .play-split { flex: none; }
 .big-button { min-width: 220px; height: 62px; border-radius: 10px 0 0 10px; background: var(--dr-ice); color: var(--dr-ink); box-shadow: 0 5px 28px color-mix(in srgb, var(--dr-azure) 24%, transparent); font-size: 20px; letter-spacing: .045em; }
 .big-button:hover:not(:disabled) { background: var(--dr-glow); }
-.play-more { height: 62px; border-radius: 0 10px 10px 0; color: var(--dr-ink); background: var(--dr-ice); border-left-color: var(--dr-azure); }
+.play-more { top: 0; bottom: auto; right: 0; height: 62px; border-radius: 0 10px 10px 0; color: var(--dr-ink); background: var(--dr-ice); border-left-color: var(--dr-azure); }
 .play-more:hover:not(:disabled) { background: var(--dr-glow); }
 .play-menu { border-radius: 12px; background: var(--dr-navy); border-color: var(--dr-steel); }
 .server-panel { align-self: start; max-height: calc(100% - 56px); margin: 28px 24px 0 0; padding: 18px; border: 1px solid var(--dr-deep); border-radius: 16px; background: color-mix(in srgb, var(--dr-navy) 77%, transparent); backdrop-filter: blur(14px); }

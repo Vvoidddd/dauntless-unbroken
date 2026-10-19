@@ -194,13 +194,13 @@ describe("gateway limits", () => {
 
         it("limits Register strictly", async () => {
             const Body = JSON.stringify({ Username: "Someone", InviteCode: "ABCD-EFGH-JKMN" });
-            assert.equal((await HttpsRequest(Port, "/undaunted/api/Register", { method: "POST", body: Body, localAddress: "127.0.0.22" })).status, 200);
-            assert.equal((await HttpsRequest(Port, "/undaunted/api/register", { method: "POST", body: Body, localAddress: "127.0.0.22" })).status, 200);
-            const Limited = await HttpsRequest(Port, "/undaunted/api/Register", { method: "POST", body: Body, localAddress: "127.0.0.22" });
+            assert.equal((await HttpsRequest(Port, "/unbroken/api/Register", { method: "POST", body: Body, localAddress: "127.0.0.22" })).status, 200);
+            assert.equal((await HttpsRequest(Port, "/unbroken/api/register", { method: "POST", body: Body, localAddress: "127.0.0.22" })).status, 200);
+            const Limited = await HttpsRequest(Port, "/unbroken/api/Register", { method: "POST", body: Body, localAddress: "127.0.0.22" });
             assert.equal(Limited.status, 429);
             assert.equal(Limited.headers["retry-after"], "300");
             // Ordinary requests from that address still work: separate bucket.
-            assert.equal((await HttpsRequest(Port, "/undaunted/api/ServerStatus", { localAddress: "127.0.0.22" })).status, 200);
+            assert.equal((await HttpsRequest(Port, "/unbroken/api/ServerStatus", { localAddress: "127.0.0.22" })).status, 200);
         });
 
         it("limits the login token route strictly", async () => {

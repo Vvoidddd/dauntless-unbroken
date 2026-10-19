@@ -121,7 +121,7 @@ function Set-StopFlagSafe {
 
 function Get-GatewayCheck {
     if (-not $Fingerprint) { return 'no certificate fingerprint in server.json' }
-    $r = Invoke-DRHttp -Url ('https://127.0.0.1:{0}/undaunted/api/ServerStatus' -f $Ports.gateway) -Fingerprint $Fingerprint -TimeoutSec 5
+    $r = Invoke-DRHttp -Url ('https://127.0.0.1:{0}/unbroken/api/ServerStatus' -f $Ports.gateway) -Fingerprint $Fingerprint -TimeoutSec 5
     if ($r.Status -eq 200) { return 'TLS ok, certificate matches the invite fingerprint, metagame answers' }
     if ($r.Status -gt 0) { return "TLS ok, certificate matches; ServerStatus answered HTTP $($r.Status)" }
     return "not answering over TLS ($($r.Error))"
@@ -216,7 +216,7 @@ function Show-Status {
         $h = $null
         try { $k = Read-DRAccountKey $P.OwnerKey; if ($k) { $h = @{ 'x-dauntless-unbroken-user-api-key' = $k } } } catch {}
         $k = $null
-        $r = Invoke-DRHttp -Url ("http://{0}:{1}/undaunted/api/ServerStatus" -f $Bind, $Ports.metagame) -Headers $h -TimeoutSec 5
+        $r = Invoke-DRHttp -Url ("http://{0}:{1}/unbroken/api/ServerStatus" -f $Bind, $Ports.metagame) -Headers $h -TimeoutSec 5
         $sentKey = $null -ne $h
         $h = $null
         if ($r.Status -eq 200 -and $r.Json -and $r.Json.limited -eq $true) {

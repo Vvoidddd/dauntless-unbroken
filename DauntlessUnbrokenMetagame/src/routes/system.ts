@@ -30,7 +30,7 @@ function MiscRoutesOn(req: any, res: any, next: any){
 // so the fields after them are for people and scripts: the server's name and the source it
 // runs (roadmap 1.13, the AGPL source link). Nothing about players: this route answers anyone
 // (also through the gateway), and who is online, even just how many, is for registered players
-// only (GET /undaunted/api/ServerStatus with an account key).
+// only (GET /unbroken/api/ServerStatus with an account key).
 // STATUS_EXTRA=0 answers the nine fields alone, as before. The eight texts are the in-game
 // banner: a welcome to the server by its name (SERVER_NAME), one translation per language.
 systemRouter.get("/dauntless-status", (req, res) => {

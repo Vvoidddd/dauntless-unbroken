@@ -9,7 +9,7 @@ import path from "node:path";
 import tls from "node:tls";
 import { DEFAULT_LIMITS, DEFAULT_TIMEOUTS, GatewayConfig } from "../src/config";
 import { LogLevel, SetLogSink } from "../src/log";
-import { PUBLIC_UNDAUNTED_API } from "../src/policy";
+import { PUBLIC_UNBROKEN_API } from "../src/policy";
 
 // Tests only ever listen on these spare loopback ports (62400-62499), never on the live stack's.
 export const ROOT = path.resolve(__dirname, "..", "..");
@@ -253,18 +253,18 @@ export function PortOpen(Port: number): Promise<boolean> {
     });
 }
 
-// Every route the metagame registers under /undaunted/api, read from its source so a route added
+// Every route the metagame registers under /unbroken/api, read from its source so a route added
 // later is covered without touching this test.
 export function DauntlessUnbrokenApiRoutes(): { method: string; path: string }[] {
     const Source = fs.readFileSync(path.join(ROOT, "..", "DauntlessUnbrokenMetagame", "src", "routes", "unbrokenapi.ts"), "utf8");
     const Routes: { method: string; path: string }[] = [];
     for(const Match of Source.matchAll(/unbrokenApiRouter\.(get|post|put|delete|patch)\(\s*"([^"]+)"/g)){
-        Routes.push({ method: Match[1].toUpperCase(), path: "/undaunted/api" + Match[2].replace(/:[A-Za-z]+/g, "ABCD-EFGH-JKMN") });
+        Routes.push({ method: Match[1].toUpperCase(), path: "/unbroken/api" + Match[2].replace(/:[A-Za-z]+/g, "ABCD-EFGH-JKMN") });
     }
     return Routes;
 }
 
 export function IsPublicRoute(Method: string, Path: string): boolean {
-    const Name = Path.slice("/undaunted/api/".length).toLowerCase();
-    return PUBLIC_UNDAUNTED_API.get(Name)?.includes(Method) === true;
+    const Name = Path.slice("/unbroken/api/".length).toLowerCase();
+    return PUBLIC_UNBROKEN_API.get(Name)?.includes(Method) === true;
 }

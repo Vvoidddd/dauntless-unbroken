@@ -631,7 +631,7 @@ export async function StartupGameserverWithHuntIdAndPlayers(HuntId: string, Expe
     }
 }
 
-// ---- GET /gameservers: what runs now, for the metagame's /undaunted/api/ServerStatus ----
+// ---- GET /gameservers: what runs now, for the metagame's /unbroken/api/ServerStatus ----
 
 export type GameserverKind = "city" | "hunt" | "dojo" | "tutorial";
 

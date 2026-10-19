@@ -35,7 +35,7 @@ test("packaged Windows runtime resolves external code and userData state indepen
         assert.equal(result.services[name].envPath, path.join(options.userDataDir, "offline", "runtime", `${name}.env`));
     }
     assert.equal(layout.databasePath, path.join(options.userDataDir, "offline", "dauntless-unbroken.db"));
-    assert.equal(result.services.metagame.healthPath, "/undaunted/api/RegistrationStatus");
+    assert.equal(result.services.metagame.healthPath, "/unbroken/api/RegistrationStatus");
     assert.equal(result.services.deploy.healthPath, "/gameservers");
     assert.equal(result.services.metagame.readyTimeoutMs, 90_000);
     assert.equal(result.services.deploy.readyTimeoutMs, 20_000);

@@ -53,7 +53,7 @@ export function resolveLocalStackPaths(options: {
                 cwd: metagameDir,
                 envPath: metagameEnv,
                 port: 61000,
-                healthPath: "/undaunted/api/RegistrationStatus",
+                healthPath: "/unbroken/api/RegistrationStatus",
                 // Clean installations may need time to create and migrate the database.
                 readyTimeoutMs: options.packaged ? 90_000 : undefined,
             },

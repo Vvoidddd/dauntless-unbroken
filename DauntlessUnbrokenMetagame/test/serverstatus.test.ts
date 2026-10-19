@@ -270,7 +270,7 @@ describe("SoftAccountAuth", () => {
     });
 
     function Request(Headers: Record<string, unknown>): any {
-        return { headers: Headers, method: "GET", path: "/undaunted/api/ServerStatus", socket: { remoteAddress: "127.0.0.1" } };
+        return { headers: Headers, method: "GET", path: "/unbroken/api/ServerStatus", socket: { remoteAddress: "127.0.0.1" } };
     }
 
     async function Run(Headers: Record<string, unknown>){

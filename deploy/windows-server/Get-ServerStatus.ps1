@@ -3,7 +3,7 @@
     Shows who is online and which worlds and hunts are running on a Dauntless Unbroken server.
 
 .DESCRIPTION
-    Calls GET /undaunted/api/ServerStatus and prints the server's name and version, the players online
+    Calls GET /unbroken/api/ServerStatus and prints the server's name and version, the players online
     and where they are, and every running game server (Ramsgate, the Training Dojo, hunts) with its
     player count.
 
@@ -118,7 +118,7 @@ try {
         $key = $null
     }
 
-    $r = Invoke-DRHttp -Url "$url/undaunted/api/ServerStatus" -Headers $headers -Fingerprint $fp -TimeoutSec $TimeoutSec
+    $r = Invoke-DRHttp -Url "$url/unbroken/api/ServerStatus" -Headers $headers -Fingerprint $fp -TimeoutSec $TimeoutSec
     $headers = $null
     if ($r.Status -eq 0) {
         Write-Host "OFFLINE  $via does not answer ($($r.Error))" -ForegroundColor Red
@@ -139,7 +139,7 @@ try {
     if ($r.Status -eq 404) {
         # A metagame from before ServerStatus existed: at least say whether it is up (no key sent here).
         $s = Invoke-DRHttp -Url "$url/dauntless-status" -Fingerprint $fp -TimeoutSec $TimeoutSec
-        $reg = Invoke-DRHttp -Url "$url/undaunted/api/RegistrationStatus" -Fingerprint $fp -TimeoutSec $TimeoutSec
+        $reg = Invoke-DRHttp -Url "$url/unbroken/api/RegistrationStatus" -Fingerprint $fp -TimeoutSec $TimeoutSec
         if ($Json) { Write-Output (@{ online = ($s.Status -eq 200 -or $reg.Status -eq 200); registration = $reg.Json.RegistrationMode } | ConvertTo-Json -Compress); exit 0 }
         Write-Host "ONLINE   $via (this server version does not report players or game servers)" -ForegroundColor Green
         if ($reg.Json) { Write-Host "         registration: $($reg.Json.RegistrationMode)" }

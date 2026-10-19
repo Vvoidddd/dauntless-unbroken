@@ -34,31 +34,31 @@ const Players: Record<string, Player> = {};
 it('device reports require an account key, reject supplied identities and limit requests', async () => {
     process.env.DEVICE_SIGNAL_HMAC_KEY='cd'.repeat(32);
     try {
-        assert.equal((await Call('POST','/undaunted/api/DeviceSignals',{body:{}})).status,401);
-        assert.equal((await Call('POST','/undaunted/api/DeviceSignals',{key:Players[A].Key,body:{accountId:B}})).status,400);
-        assert.equal((await Call('POST','/undaunted/api/DeviceSignals',{key:Players[A].Key,body:{smbiosUuid:'12345678-1234-5678-9abc-123456789abc'}})).status,204);
+        assert.equal((await Call('POST','/unbroken/api/DeviceSignals',{body:{}})).status,401);
+        assert.equal((await Call('POST','/unbroken/api/DeviceSignals',{key:Players[A].Key,body:{accountId:B}})).status,400);
+        assert.equal((await Call('POST','/unbroken/api/DeviceSignals',{key:Players[A].Key,body:{smbiosUuid:'12345678-1234-5678-9abc-123456789abc'}})).status,204);
         assert.equal((GetDb().$client.prepare('SELECT count(*) n FROM account_device_signals WHERE account_id=?').get(B) as any).n,0);
-        for(let i=0;i<8;i++)assert.equal((await Call('POST','/undaunted/api/DeviceSignals',{key:Players[A].Key,body:{}})).status,204);
-        assert.equal((await Call('POST','/undaunted/api/DeviceSignals',{key:Players[A].Key,body:{}})).status,429);
+        for(let i=0;i<8;i++)assert.equal((await Call('POST','/unbroken/api/DeviceSignals',{key:Players[A].Key,body:{}})).status,204);
+        assert.equal((await Call('POST','/unbroken/api/DeviceSignals',{key:Players[A].Key,body:{}})).status,429);
     } finally { delete process.env.DEVICE_SIGNAL_HMAC_KEY; }
 });
 
 it('hunt region changes require the account key and cannot target another account', async () => {
     process.env.US_REGION='1';
     try {
-        assert.equal((await Call('POST','/undaunted/api/HuntRegion',{body:{region:'us'}})).status,401);
-        assert.equal((await Call('POST','/undaunted/api/HuntRegion',{key:Players[A].Key,body:{region:'remote'}})).status,400);
-        assert.equal((await Call('POST','/undaunted/api/HuntRegion',{key:Players[A].Key,body:{region:'us',userId:B}})).status,200);
-        assert.equal((await Call('GET','/undaunted/api/HuntRegion',{key:Players[A].Key})).json.region,'us');
-        assert.equal((await Call('GET','/undaunted/api/HuntRegion',{key:Players[B].Key})).json.region,'main');
-        assert.equal((await Call('POST','/undaunted/api/HuntRegion',{key:Players[A].Key,body:{region:'main'}})).status,200);
+        assert.equal((await Call('POST','/unbroken/api/HuntRegion',{body:{region:'us'}})).status,401);
+        assert.equal((await Call('POST','/unbroken/api/HuntRegion',{key:Players[A].Key,body:{region:'remote'}})).status,400);
+        assert.equal((await Call('POST','/unbroken/api/HuntRegion',{key:Players[A].Key,body:{region:'us',userId:B}})).status,200);
+        assert.equal((await Call('GET','/unbroken/api/HuntRegion',{key:Players[A].Key})).json.region,'us');
+        assert.equal((await Call('GET','/unbroken/api/HuntRegion',{key:Players[B].Key})).json.region,'main');
+        assert.equal((await Call('POST','/unbroken/api/HuntRegion',{key:Players[A].Key,body:{region:'main'}})).status,200);
     } finally { delete process.env.US_REGION; }
-    assert.equal((await Call('POST','/undaunted/api/HuntRegion',{key:Players[A].Key,body:{region:'us'}})).status,503);
-    assert.equal((await Call('POST','/undaunted/api/HuntRegion',{key:Players[A].Key,body:{region:'aus'}})).status,410);
+    assert.equal((await Call('POST','/unbroken/api/HuntRegion',{key:Players[A].Key,body:{region:'us'}})).status,503);
+    assert.equal((await Call('POST','/unbroken/api/HuntRegion',{key:Players[A].Key,body:{region:'aus'}})).status,410);
 });
 
 it('dashboard account directory exposes names and short fingerprints, never login keys or full hashes', async () => {
-    const reply = await Call('GET', '/undaunted/api/DashboardAccounts?offset=0', {key: Players[ADMIN].Key});
+    const reply = await Call('GET', '/unbroken/api/DashboardAccounts?offset=0', {key: Players[ADMIN].Key});
     assert.equal(reply.status, 200);
     const account = reply.json.accounts.find((a: any) => a.id === A);
     assert.equal(account.name, A.replace(/-/g, '_').slice(0, 16));
@@ -66,17 +66,17 @@ it('dashboard account directory exposes names and short fingerprints, never logi
     assert.equal(account.admin, false);
     assert.equal(reply.text.includes(Players[A].Key), false);
     assert.equal(reply.text.includes(HashUserAPIKey(Players[A].Key)), false);
-    assert.equal((await Call('GET', '/undaunted/api/DashboardAccounts?offset=-1', {key: Players[ADMIN].Key})).status, 400);
+    assert.equal((await Call('GET', '/unbroken/api/DashboardAccounts?offset=-1', {key: Players[ADMIN].Key})).status, 400);
     const raw=GetDb().$client;
     for(let i=0;i<105;i++)raw.prepare('INSERT INTO users(userId,name,notes) VALUES (?,?,0)').run('UID-zz-search-'+String(i).padStart(3,'0'),'DirectorySearch'+i);
     try {
-        const beyond=await Call('GET','/undaunted/api/DashboardAccounts?offset=0&q=DirectorySearch104',{key:Players[ADMIN].Key});
+        const beyond=await Call('GET','/unbroken/api/DashboardAccounts?offset=0&q=DirectorySearch104',{key:Players[ADMIN].Key});
         assert.deepEqual(beyond.json.accounts.map((a:any)=>a.name),['DirectorySearch104']);
     } finally { raw.prepare("DELETE FROM users WHERE userId LIKE 'UID-zz-search-%'").run(); }
-    const search=await Call('GET','/undaunted/api/DashboardAccounts?offset=0&q='+encodeURIComponent(A),{key:Players[ADMIN].Key});
+    const search=await Call('GET','/unbroken/api/DashboardAccounts?offset=0&q='+encodeURIComponent(A),{key:Players[ADMIN].Key});
     assert.deepEqual(search.json.accounts.map((a:any)=>a.id),[A]);
-    assert.equal((await Call('GET','/undaunted/api/DashboardAccounts?offset=0&q=%25',{key:Players[ADMIN].Key})).json.accounts.length,0);
-    const empty = await Call('GET', '/undaunted/api/DashboardAccounts?offset=99999' , {key: Players[ADMIN].Key});
+    assert.equal((await Call('GET','/unbroken/api/DashboardAccounts?offset=0&q=%25',{key:Players[ADMIN].Key})).json.accounts.length,0);
+    const empty = await Call('GET', '/unbroken/api/DashboardAccounts?offset=99999' , {key: Players[ADMIN].Key});
     assert.deepEqual(empty.json, {accounts: [], nextOffset: null});
 });
 
@@ -323,49 +323,49 @@ const EXPECTED_ROUTES = [
     "POST /loadout/:userId/:characterId/active/:index [RealProgressionOnly, HasDauntlessUnbrokenMetagameAuth]",
     "GET /loadout/:userId/:characterId/all [HasDauntlessUnbrokenMetagameAuth]",
     "POST /loadout/:userId/:characterId/:index [HasDauntlessUnbrokenMetagameAuth]",
-    "POST /undaunted/api/DeviceSignals [HasDauntlessUnbrokenUserApiKey]",
-    "GET /undaunted/api/HuntRegion [HasDauntlessUnbrokenUserApiKey]",
-    "POST /undaunted/api/HuntRegion [HasDauntlessUnbrokenUserApiKey]",
-    "GET /undaunted/api/DiscordKeyStats [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/DeviceSignals [HasDauntlessUnbrokenUserApiKey]",
+    "GET /unbroken/api/HuntRegion [HasDauntlessUnbrokenUserApiKey]",
+    "POST /unbroken/api/HuntRegion [HasDauntlessUnbrokenUserApiKey]",
+    "GET /unbroken/api/DiscordKeyStats [HasDauntlessUnbrokenAdminApiKey]",
 
-    "POST /undaunted/api/DiscordLink [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/DiscordLink/:discordId [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/DiscordLink [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/DiscordLink/:discordId [HasDauntlessUnbrokenAdminApiKey]",
 
-    "GET /undaunted/api/BackendHealth [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/DashboardAccounts [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/PlayingEnded [HasDauntlessUnbrokenUserApiKey]",
-    "GET /undaunted/api/Moderation/:accountId [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/ModerationLog [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/Moderation [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/RegistrationStatus []",
-    "POST /undaunted/api/RegistrationStatus [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/InviteCodes [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/GenerateJWTForUserId [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/GetAllUsers [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/RegisterInviteCode [HasDauntlessUnbrokenAdminApiKey]",
-    "DELETE /undaunted/api/InviteCode/:inviteCodeToDelete [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/Register []",
-    "GET /undaunted/api/UsernameAvailable []",
-    "POST /undaunted/api/CreateInvite [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/RenameUser [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/ServerStatus [SoftAccountAuth]",
-    "GET /undaunted/api/GetUserInfo [HasDauntlessUnbrokenUserApiKey]",
-    "GET /undaunted/api/PrivateOnlineStats [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/PublicOnlineStats [HasDauntlessUnbrokenUserApiKey]",
-    "GET /undaunted/api/SaveHistory [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/RollbackCharacter [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/RollbackLoadout [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/Progression [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/SeedProgression [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/GrantEntitlement [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/RevokeEntitlement [HasDauntlessUnbrokenAdminApiKey]",
-    "POST /undaunted/api/PartyInvite [HasDauntlessUnbrokenUserApiKey]",
-    "POST /undaunted/api/Friends [HasDauntlessUnbrokenUserApiKey]",
-    // Guild fallbacks on the host (the gateway does not pass /undaunted/api/* except the four public ones)
-    "POST /undaunted/api/GuildInvite [HasDauntlessUnbrokenUserApiKey]",
-    "POST /undaunted/api/DisbandGuild [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/Guilds [HasDauntlessUnbrokenAdminApiKey]",
-    "GET /undaunted/api/AccountRecovery/:userId [HasDauntlessUnbrokenAdminApiKey]"
+    "GET /unbroken/api/BackendHealth [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/DashboardAccounts [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/PlayingEnded [HasDauntlessUnbrokenUserApiKey]",
+    "GET /unbroken/api/Moderation/:accountId [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/ModerationLog [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/Moderation [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/RegistrationStatus []",
+    "POST /unbroken/api/RegistrationStatus [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/InviteCodes [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/GenerateJWTForUserId [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/GetAllUsers [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/RegisterInviteCode [HasDauntlessUnbrokenAdminApiKey]",
+    "DELETE /unbroken/api/InviteCode/:inviteCodeToDelete [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/Register []",
+    "GET /unbroken/api/UsernameAvailable []",
+    "POST /unbroken/api/CreateInvite [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/RenameUser [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/ServerStatus [SoftAccountAuth]",
+    "GET /unbroken/api/GetUserInfo [HasDauntlessUnbrokenUserApiKey]",
+    "GET /unbroken/api/PrivateOnlineStats [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/PublicOnlineStats [HasDauntlessUnbrokenUserApiKey]",
+    "GET /unbroken/api/SaveHistory [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/RollbackCharacter [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/RollbackLoadout [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/Progression [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/SeedProgression [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/GrantEntitlement [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/RevokeEntitlement [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/PartyInvite [HasDauntlessUnbrokenUserApiKey]",
+    "POST /unbroken/api/Friends [HasDauntlessUnbrokenUserApiKey]",
+    // Guild fallbacks on the host (the gateway does not pass /unbroken/api/* except the four public ones)
+    "POST /unbroken/api/GuildInvite [HasDauntlessUnbrokenUserApiKey]",
+    "POST /unbroken/api/DisbandGuild [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/Guilds [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/AccountRecovery/:userId [HasDauntlessUnbrokenAdminApiKey]"
 ];
 
 function RegisteredRoutes(){
@@ -376,7 +376,7 @@ function RegisteredRoutes(){
             continue;
         }
 
-        const Prefix = Layer.handle === unbrokenApiRouter ? "/undaunted/api" : "";
+        const Prefix = Layer.handle === unbrokenApiRouter ? "/unbroken/api" : "";
 
         for(const RouteLayer of Layer.handle.stack){
             if(!RouteLayer.route){
@@ -510,35 +510,35 @@ describe("game-server-only writes", () => {
 // ---- 3. Admin routes need the admin key, and never work through a proxy ----
 
 const ADMIN_ROUTES = (): [string, string, unknown][] => [
-    ["POST", "/undaunted/api/RegistrationStatus", { RegistrationStatus: "OPEN" }],
-    ["GET", "/undaunted/api/InviteCodes", undefined],
-    ["POST", "/undaunted/api/GenerateJWTForUserId", { UserId: C }],
-    ["GET", "/undaunted/api/GetAllUsers", undefined],
-    ["GET", "/undaunted/api/DiscordKeyStats", undefined],
+    ["POST", "/unbroken/api/RegistrationStatus", { RegistrationStatus: "OPEN" }],
+    ["GET", "/unbroken/api/InviteCodes", undefined],
+    ["POST", "/unbroken/api/GenerateJWTForUserId", { UserId: C }],
+    ["GET", "/unbroken/api/GetAllUsers", undefined],
+    ["GET", "/unbroken/api/DiscordKeyStats", undefined],
 
-    ["POST", "/undaunted/api/DiscordLink", {DiscordId:'12345678901234567',UserId:A}],
-    ["GET", "/undaunted/api/DiscordLink/12345678901234567", undefined],
+    ["POST", "/unbroken/api/DiscordLink", {DiscordId:'12345678901234567',UserId:A}],
+    ["GET", "/unbroken/api/DiscordLink/12345678901234567", undefined],
 
-    ["GET", "/undaunted/api/BackendHealth", undefined],
-    ["GET", "/undaunted/api/DashboardAccounts", undefined],
-    ["GET", "/undaunted/api/AccountRecovery/UID-example", undefined],
-    ["GET", `/undaunted/api/Moderation/${C}`, undefined],
-    ["GET", "/undaunted/api/ModerationLog?kind=events", undefined],
-    ["POST", "/undaunted/api/Moderation", {accountId:C,reason:'test',active:false}],
-    ["POST", "/undaunted/api/RegisterInviteCode", { NewInviteCode: "PERM-TEST-CODE", Uses: 1 }],
-    ["DELETE", "/undaunted/api/InviteCode/PERM-TEST-CODE", undefined],
-    ["POST", "/undaunted/api/CreateInvite", {}],
-    ["POST", "/undaunted/api/RenameUser", { UserId: C, NewUsername: "Renamed_c" }],
-    ["GET", "/undaunted/api/PrivateOnlineStats", undefined],
-    ["GET", `/undaunted/api/SaveHistory?UserId=${C}`, undefined],
-    ["POST", "/undaunted/api/RollbackCharacter", { CharacterId: Players[C].CharacterId, Version: 0 }],
-    ["POST", "/undaunted/api/RollbackLoadout", { CharacterId: Players[C].CharacterId, Version: 0 }],
-    ["GET", `/undaunted/api/Progression?UserId=${C}`, undefined],
-    ["POST", "/undaunted/api/SeedProgression", { UserId: C, Mode: "fresh" }],
-    ["POST", "/undaunted/api/GrantEntitlement", { UserId: C, Entitlement: "perm_test" }],
-    ["POST", "/undaunted/api/RevokeEntitlement", { UserId: C, Entitlement: "perm_test" }],
-    ["POST", "/undaunted/api/DisbandGuild", { Guild: "NoSuchGuild" }],
-    ["GET", "/undaunted/api/Guilds", undefined],
+    ["GET", "/unbroken/api/BackendHealth", undefined],
+    ["GET", "/unbroken/api/DashboardAccounts", undefined],
+    ["GET", "/unbroken/api/AccountRecovery/UID-example", undefined],
+    ["GET", `/unbroken/api/Moderation/${C}`, undefined],
+    ["GET", "/unbroken/api/ModerationLog?kind=events", undefined],
+    ["POST", "/unbroken/api/Moderation", {accountId:C,reason:'test',active:false}],
+    ["POST", "/unbroken/api/RegisterInviteCode", { NewInviteCode: "PERM-TEST-CODE", Uses: 1 }],
+    ["DELETE", "/unbroken/api/InviteCode/PERM-TEST-CODE", undefined],
+    ["POST", "/unbroken/api/CreateInvite", {}],
+    ["POST", "/unbroken/api/RenameUser", { UserId: C, NewUsername: "Renamed_c" }],
+    ["GET", "/unbroken/api/PrivateOnlineStats", undefined],
+    ["GET", `/unbroken/api/SaveHistory?UserId=${C}`, undefined],
+    ["POST", "/unbroken/api/RollbackCharacter", { CharacterId: Players[C].CharacterId, Version: 0 }],
+    ["POST", "/unbroken/api/RollbackLoadout", { CharacterId: Players[C].CharacterId, Version: 0 }],
+    ["GET", `/unbroken/api/Progression?UserId=${C}`, undefined],
+    ["POST", "/unbroken/api/SeedProgression", { UserId: C, Mode: "fresh" }],
+    ["POST", "/unbroken/api/GrantEntitlement", { UserId: C, Entitlement: "perm_test" }],
+    ["POST", "/unbroken/api/RevokeEntitlement", { UserId: C, Entitlement: "perm_test" }],
+    ["POST", "/unbroken/api/DisbandGuild", { Guild: "NoSuchGuild" }],
+    ["GET", "/unbroken/api/Guilds", undefined],
     ["DELETE", `/progression/${B}/season09b`, undefined]
 ];
 
@@ -560,7 +560,7 @@ describe("admin routes", () => {
 
         // Express matches paths case-insensitively and with a trailing slash, so a front-door
         // filter that compares exact strings would miss these; the metagame still refuses them
-        for(const Path of ["/undaunted/api/createinvite", "/UNDAUNTED/API/CreateInvite/", "/undaunted/api/CreateInvite?x=1"]){
+        for(const Path of ["/unbroken/api/createinvite", "/UNBROKEN/API/CreateInvite/", "/unbroken/api/CreateInvite?x=1"]){
             assert.equal((await Call("POST", Path, { body: {}, key: Players[ADMIN].Key, headers: VIA_GATEWAY })).status, 403, Path);
         }
     });
@@ -571,7 +571,7 @@ describe("admin routes", () => {
             assert.ok(Reply.status !== 401 && Reply.status !== 403, `${Method} ${Path}: ${Reply.status}`);
         }
 
-        assert.equal((await Call("POST", "/undaunted/api/createinvite", { body: {}, key: Players[ADMIN].Key })).status, 200, "lower-case path reaches the route");
+        assert.equal((await Call("POST", "/unbroken/api/createinvite", { body: {}, key: Players[ADMIN].Key })).status, 200, "lower-case path reaches the route");
     });
 });
 
@@ -603,10 +603,10 @@ describe("game-server key and the gateway", () => {
         const Heartbeat = await Call("POST", "/heartbeat", { as: A, headers: VIA_GATEWAY, body: { map: "/Game/Maps/ramsgate/ramsgate_01_persistent" } });
         assert.deepEqual([Heartbeat.status, Heartbeat.text], [200, "20000"]);
 
-        const Info = await Call("GET", "/undaunted/api/GetUserInfo", { key: Players[A].Key, headers: VIA_GATEWAY });
+        const Info = await Call("GET", "/unbroken/api/GetUserInfo", { key: Players[A].Key, headers: VIA_GATEWAY });
         assert.deepEqual([Info.status, Info.json?.UserId], [200, A]);
 
-        const Registered = await Call("POST", "/undaunted/api/Register", { body: { Username: "Via_Gateway" }, headers: VIA_GATEWAY });
+        const Registered = await Call("POST", "/unbroken/api/Register", { body: { Username: "Via_Gateway" }, headers: VIA_GATEWAY });
         assert.equal(Registered.status, 200);
 
         const Login = await Call("POST", "/account/api/oauth/token", { body: { grant_type: "exchange_code", exchange_code: Registered.json.UUK }, headers: VIA_GATEWAY });
@@ -616,11 +616,11 @@ describe("game-server key and the gateway", () => {
         // ServerStatus: the player list only for a registered player's key (an admin's too: it is
         // not an admin route); without one, or with a wrong one, the limited answer, never a 401
         for(const Headers of [VIA_GATEWAY, { ...VIA_GATEWAY, "x-dauntless-unbroken-user-api-key": "UUK_not_a_real_key_00000000" }]){
-            const Anonymous = await Call("GET", "/undaunted/api/ServerStatus", { headers: Headers });
+            const Anonymous = await Call("GET", "/unbroken/api/ServerStatus", { headers: Headers });
             assert.deepEqual([Anonymous.status, Anonymous.json?.limited, Anonymous.json?.playersOnline, Anonymous.json?.players], [200, true, 0, []]);
         }
         for(const Key of [Players[A].Key, Registered.json.UUK, Players[ADMIN].Key]){
-            const Full = await Call("GET", "/undaunted/api/ServerStatus", { key: Key, headers: VIA_GATEWAY });
+            const Full = await Call("GET", "/unbroken/api/ServerStatus", { key: Key, headers: VIA_GATEWAY });
             assert.deepEqual([Full.status, Full.json?.limited], [200, false]);
             assert.ok(Full.json.players.some((Player: any) => Player.name === "UID_real_a"), "A's heartbeat is listed");
         }

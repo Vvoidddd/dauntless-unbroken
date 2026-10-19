@@ -25,7 +25,7 @@ if(!`$db){throw 'No fresh database backup'}
     $result = & ssh.exe -o BatchMode=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$knownHosts" -o ConnectTimeout=15 -i $IdentityFile "Administrator@$SourceHost" powershell -NoProfile -EncodedCommand $encoded
     if ($LASTEXITCODE) { throw 'Source backup request failed' }
     $info = ($result -join "`n") | ConvertFrom-Json
-    if ($info.hash -notmatch '^[A-Fa-f0-9]{64}$' -or $info.path -notmatch '/backups/\d{4}-\d{2}-\d{2}_\d{6}/undaunted\.db$') { throw 'Invalid source backup metadata' }
+    if ($info.hash -notmatch '^[A-Fa-f0-9]{64}$' -or $info.path -notmatch '/backups/\d{4}-\d{2}-\d{2}_\d{6}/unbroken\.db$') { throw 'Invalid source backup metadata' }
     $name = 'dauntless-unbroken-' + [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss') + '.db'
     $partial = Join-Path $dest ($name+'.partial')
     & scp.exe -q -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$knownHosts" -o ConnectTimeout=15 -i $IdentityFile "Administrator@${SourceHost}:$($info.path)" $partial

@@ -577,7 +577,7 @@ server's `.env`. Game servers receive it as their first command-line argument.
 
 ## 10. Create the admin account {#admin-account}
 
-Accounts are created through `POST /undaunted/api/Register`. The response contains the account key.
+Accounts are created through `POST /unbroken/api/Register`. The response contains the account key.
 **That key is the password.** The server keeps only its SHA-256, and there is no recovery tool yet,
 so if you lose the key you lose the account. Admin rights are a flag in the database.
 
@@ -587,7 +587,7 @@ We use Node's `fetch` with a timeout here, not `Invoke-RestMethod` (see
 
 ```powershell
 Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
-node -e "(async () => { const name = process.argv[1]; const base = 'http://127.0.0.1:61000/undaunted/api'; const r = await fetch(base + '/Register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Username: name }), signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error('Register returned HTTP ' + r.status); const { UUK } = await r.json(); require('fs').writeFileSync('C:/dr/data/owner.key', UUK); const info = await (await fetch(base + '/GetUserInfo', { headers: { 'x-dauntless-unbroken-user-api-key': UUK }, signal: AbortSignal.timeout(15000) })).json(); new (require('better-sqlite3'))('C:/dr/data/dauntless-unbroken.db').prepare('UPDATE users SET isAdmin = 1 WHERE userId = ?').run(info.UserId); console.log('created ' + name + ' as admin; key saved to C:/dr/data/owner.key (not shown)'); })().catch(e => { console.error(e.message); process.exit(1); })" YourName
+node -e "(async () => { const name = process.argv[1]; const base = 'http://127.0.0.1:61000/unbroken/api'; const r = await fetch(base + '/Register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Username: name }), signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error('Register returned HTTP ' + r.status); const { UUK } = await r.json(); require('fs').writeFileSync('C:/dr/data/owner.key', UUK); const info = await (await fetch(base + '/GetUserInfo', { headers: { 'x-dauntless-unbroken-user-api-key': UUK }, signal: AbortSignal.timeout(15000) })).json(); new (require('better-sqlite3'))('C:/dr/data/dauntless-unbroken.db').prepare('UPDATE users SET isAdmin = 1 WHERE userId = ?').run(info.UserId); console.log('created ' + name + ' as admin; key saved to C:/dr/data/owner.key (not shown)'); })().catch(e => { console.error(e.message); process.exit(1); })" YourName
 ```
 
 Notes:

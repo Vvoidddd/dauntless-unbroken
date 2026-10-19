@@ -1263,9 +1263,8 @@ void Init() {
         if (Globals::EnableLogging) {
             InitServerConsole();
 
-            std::cout << "Welcome to Undaunted v" << UNDAUNTED_INTERNAL_VERSION << "!" << std::endl;
-            std::cout << "prod. gwog :3" << std::endl;
-            std::cout << "thanks to all who contributed in any way, you know who you are, dm me on discord if you want a named shoutout here :3" << std::endl;
+            std::cout << "Welcome to Dauntless Unbroken v" << UNBROKEN_INTERNAL_VERSION << "!" << std::endl;
+
 
             std::cout << "Running as a server!" << std::endl;
         }
@@ -1306,9 +1305,8 @@ void Init() {
                 freopen_s(&Dummy, "CONIN$", "r", stdin);
             }
 
-            std::cout << "Welcome to Undaunted v" << UNDAUNTED_INTERNAL_VERSION << "!" << std::endl;
-            std::cout << "prod. gwog :3" << std::endl;
-            std::cout << "thanks to all who contributed in any way, you know who you are, dm me on discord if you want a named shoutout here :3" << std::endl;
+            std::cout << "Welcome to Dauntless Unbroken v" << UNBROKEN_INTERNAL_VERSION << "!" << std::endl;
+
 
             std::cout << "Running as a debug-enabled client!" << std::endl;
         }
@@ -1322,6 +1320,28 @@ void Init() {
         }
 
         DR_InitDiagnostics(); // only when GAMESERVER_READY_DIR is set, e.g. a manual debug launch
+        // Brand only this process's Unreal window once it has been created.
+        HANDLE BrandingThread = CreateThread(nullptr, 0, [](LPVOID) -> DWORD {
+            for (int Attempt = 0; Attempt < 120; ++Attempt) {
+                BOOL Found = FALSE;
+                EnumWindows([](HWND Window, LPARAM Context) -> BOOL {
+                    DWORD Owner = 0;
+                    GetWindowThreadProcessId(Window, &Owner);
+                    wchar_t ClassName[64] = {};
+                    GetClassNameW(Window, ClassName, 64);
+                    if (Owner == GetCurrentProcessId() && wcscmp(ClassName, L"UnrealWindow") == 0) {
+                        SetWindowTextW(Window, L"Dauntless Unbroken");
+                        *reinterpret_cast<BOOL*>(Context) = TRUE;
+                        return FALSE;
+                    }
+                    return TRUE;
+                }, reinterpret_cast<LPARAM>(&Found));
+                if (Found) break;
+                Sleep(500);
+            }
+            return 0;
+        }, nullptr, 0, nullptr);
+        if (BrandingThread) CloseHandle(BrandingThread);
         InitClientHooks();
     }
 

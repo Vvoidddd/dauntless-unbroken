@@ -722,5 +722,5 @@ export function ProgressionUpgradeNotice(): string | undefined{
         return undefined;
     }
 
-    return `${Count} player account(s) have no stored progression yet: they start at Slayer level 1 with an empty Hunt Pass, not upstream's fake max ranks. Nothing was migrated. To keep max ranks for a player, seed them before they play (admin POST /undaunted/api/SeedProgression with Mode "grandfather"); PROGRESSION_MODE=stub brings the fake ranks back for everyone. See the upgrade notes (docs/setup/upgrading.md).`;
+    return `${Count} player account(s) have no stored progression yet: they start at Slayer level 1 with an empty Hunt Pass, not upstream's fake max ranks. Nothing was migrated. To keep max ranks for a player, seed them before they play (admin POST /unbroken/api/SeedProgression with Mode "grandfather"); PROGRESSION_MODE=stub brings the fake ranks back for everyone. See the upgrade notes (docs/setup/upgrading.md).`;
 }

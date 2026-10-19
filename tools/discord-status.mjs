@@ -52,7 +52,7 @@ export async function sampleBackend(backend, key, fetcher = fetch) {
   if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || url.username || url.password) throw new Error('Backend must use loopback HTTP');
   const start = performance.now();
   try {
-    const res = await fetcher(new URL('/undaunted/api/ServerStatus', url), {headers: {'x-dauntless-unbroken-user-api-key': key}, signal: AbortSignal.timeout(8000), redirect: 'error'});
+    const res = await fetcher(new URL('/unbroken/api/ServerStatus', url), {headers: {'x-dauntless-unbroken-user-api-key': key}, signal: AbortSignal.timeout(8000), redirect: 'error'});
     if (!res.ok) return null;
     const data = await res.json();
     if (data.online !== true || data.limited !== false || !Number.isInteger(data.playersOnline) || data.playersOnline < 0 || !Number.isFinite(data.uptimeSeconds) || data.uptimeSeconds < 0) return null;

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 // Account check for downloads. Every file request carries the account key (x-dauntless-unbroken-user-api-key),
-// and we ask the metagame who it belongs to (GET /undaunted/api/GetUserInfo). Answers are cached for a
+// and we ask the metagame who it belongs to (GET /unbroken/api/GetUserInfo). Answers are cached for a
 // few minutes, keyed by the SHA-256 of the key: the key itself is never stored, cached or logged here.
 
 export type AccountInfo = {
@@ -121,11 +121,11 @@ export class AuthCache {
     }
 }
 
-// The real lookup: GET <METAGAME_URL>/undaunted/api/GetUserInfo with the key in its header.
+// The real lookup: GET <METAGAME_URL>/unbroken/api/GetUserInfo with the key in its header.
 // 200 with a UserId is an account, 401/403 is a refused key, anything else means the metagame
 // can't answer right now.
 export function MetagameLookup(MetagameUrl: string, TimeoutMs = 5000): KeyLookup {
-    const Url = `${MetagameUrl.replace(/\/+$/, "")}/undaunted/api/GetUserInfo`;
+    const Url = `${MetagameUrl.replace(/\/+$/, "")}/unbroken/api/GetUserInfo`;
 
     return async (Key: string): Promise<LookupResult> => {
         let Response: Response;

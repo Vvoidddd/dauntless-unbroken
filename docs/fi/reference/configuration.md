@@ -168,7 +168,7 @@ palvelin).
 ## Metagame (`DauntlessUnbrokenMetagame/`) {#metagame}
 
 Taustapalvelu, jonka kanssa peli keskustelee: kirjautumiset, hahmot, tavarat, eteneminen, matchmaking
-ja `/undaunted/api`-hallintareitit. Valmis `.env` yhdelle koneelle on sivulla
+ja `/unbroken/api`-hallintareitit. Valmis `.env` yhdelle koneelle on sivulla
 [Pystytä palvelin]({{ host_page.url | relative_url }}#metagame).
 
 **Pakolliset, ei oletusta:** `PORT`, `AUTH_MODE`, `AUTH_SIGNING_PRIVKEY_B64`, `AUTH_SIGNING_PUBKEY_B64`,
@@ -215,7 +215,7 @@ ennen kuin tietokanta avataan.
 | `AUTH_MODE` | ei oletusta. Puuttuu tai tuntematon: kirjautumiset eivät saa vastausta lainkaan (peli jää odottamaan), ja jokainen tiliavaimen tarkistava reitti vastaa 500. | `APIKEY` tai `NONE` (tarkalleen) | Miten kirjautumiset ja tiliavaimet tarkistetaan. `APIKEY`: pelin kirjautumisessa on mukana pelaajan tiliavain (`UUK_...`), jota verrataan tallennettuihin SHA-256-tiivisteisiin; pelaaja saa 24 tuntia voimassa olevan istuntotunnisteen. `NONE`: vain kehitykseen. Mikä tahansa tunniste kelpaa kirjautumiseen ja mikä tahansa tilitunnus API-avaimeksi, myös ylläpitoreiteillä. `NONE` ohitetaan, kun `NODE_ENV=production` (kirjautumiset eivät silloin saa vastausta), se torjutaan kaikelta välityspalvelimen (proxy) kautta tulleelta, eikä metagame käynnisty sen kanssa, kun `GATEWAY_SECRET` on asetettu. | Sinä (`APIKEY`); paketti: aina `APIKEY` |
 | `AUTH_SIGNING_PRIVKEY_B64` | ei oletusta. Puuttuu: metagame pysähtyy käynnistyessään. Tyhjä: se käynnistyy, mutta jokainen kirjautuminen epäonnistuu. | PEM-muotoisen RSA-yksityisavaimen (PKCS#8) base64 | **Salainen: älä koskaan jaa, älä koskaan tallenna versionhallintaan.** Allekirjoittaa pelaajien istuntotunnisteet (RS256, voimassa 24 tuntia). Sen haltija voi kirjautua minä tahansa tilinä. Avainparin vaihtaminen vain kirjaa kaikki ulos. Varmuuskopioi se salattuna. | Sinä ([Pystytä palvelin]({{ host_page.url | relative_url }}#metagame) näyttää, miten se luodaan); paketti: otetaan olemassa olevasta tiedostosta tai varmuuskopiosta, muuten luodaan kerran |
 | `AUTH_SIGNING_PUBKEY_B64` | ei oletusta. Puuttuu: metagame pysähtyy käynnistyessään. | vastaavan PEM-muotoisen julkisen avaimen (SPKI) base64 | Tarkistaa jokaisen istuntotunnisteen. Ei salainen, mutta sen on oltava yksityisavaimen pari, tai jokainen kirjautuneen pelaajan pyyntö epäonnistuu. | Luodaan yhdessä yksityisavaimen kanssa |
-| `REGISTRATION_MODE` | ei oletusta. Puuttuu tai tuntematon: tilin luonti vastaa 500. | `NONE`, `INVITECODE` tai `OPEN` (tarkalleen) | Kuka saa luoda tilin (`POST /undaunted/api/Register`). `NONE`: ei kukaan (400). `INVITECODE`: vain käyttökelpoisella kutsukoodilla (muuten 401). `OPEN`: kuka tahansa, joka tavoittaa metagamen, joten käytä sitä vain, kun metagame kuuntelee osoitteessa `127.0.0.1`. Ylläpitäjä voi vaihtaa tilan ajon aikana; muutos kestää seuraavaan uudelleenkäynnistykseen. | Sinä (`OPEN` yhdellä koneella); paketti: aina `INVITECODE` (käsin asetettu arvo kirjoitetaan yli jokaisella asennuskerralla) |
+| `REGISTRATION_MODE` | ei oletusta. Puuttuu tai tuntematon: tilin luonti vastaa 500. | `NONE`, `INVITECODE` tai `OPEN` (tarkalleen) | Kuka saa luoda tilin (`POST /unbroken/api/Register`). `NONE`: ei kukaan (400). `INVITECODE`: vain käyttökelpoisella kutsukoodilla (muuten 401). `OPEN`: kuka tahansa, joka tavoittaa metagamen, joten käytä sitä vain, kun metagame kuuntelee osoitteessa `127.0.0.1`. Ylläpitäjä voi vaihtaa tilan ajon aikana; muutos kestää seuraavaan uudelleenkäynnistykseen. | Sinä (`OPEN` yhdellä koneella); paketti: aina `INVITECODE` (käsin asetettu arvo kirjoitetaan yli jokaisella asennuskerralla) |
 | `DB_FILENAME` | ei oletusta. Puuttuu tai tyhjä: väliaikainen tietokanta, joka poistetaan, kun metagame sulkeutuu. | tiedostopolku kauttaviivoin; suhteellinen polku lasketaan työhakemistosta | SQLite-tietokanta: tilit, avainten tiivisteet, tallennukset, eteneminen. Sen kansion on oltava olemassa. Odottavat migraatiot ajetaan jokaisella käynnistyksellä ottamatta ensin varmuuskopiota, joten ota varmuuskopio ennen päivitystä. Tiedosto on yksityinen: siinä ovat käyttäjänimet, tallennukset, avainten tiivisteet ja seuraavaan käynnistykseen asti rekisteröintiä odottavat avaimet selväkielisinä. Myös `npm run db:generate` lukee sen `.env`-tiedostosta. | Sinä (Pystytä palvelin -ohjeessa `C:/dr/data/dauntless-unbroken.db`); paketti: aina (`<root>/data/dauntless-unbroken.db`) |
 | `DB_WAL` | pois | `1` tai mikä tahansa muu | `1` vaihtaa SQLiten WAL-lokitilaan (journal mode). Pois päältä, koska ohjeiden varmuuskopiot kopioivat pelkän tietokantatiedoston ja paketti pysäyttää metagamen kovakouraisesti, jolloin uusimmat tallennukset voisivat jäädä vain erilliseen `-wal`-tiedostoon. Kun asetus on pois, WAL-tilaan jäänyt tietokanta vaihdetaan takaisin käynnistyksessä. | Oletuksena ei kukaan; paketti: säilyttää |
 
@@ -240,7 +240,7 @@ ennen kuin tietokanta avataan.
 
 `BACKEND_HEALTH=1` ottaa käyttöön pyyntöjen koontimittarit ja tapahtumasilmukan viiveen mittauksen
 20 ms tarkkuudella. Oletus pois; käynnistä metagame uudelleen muutoksen jälkeen.
-Ylläpitäjän `/undaunted/api/BackendHealth` vastaa 404, kun mittaus on pois.
+Ylläpitäjän `/unbroken/api/BackendHealth` vastaa 404, kun mittaus on pois.
 Muistiin jää enintään 60 sekuntikohtaista laskuria, ei URL-osoitteita, pyyntöjen sisältöä tai tilitunnuksia.
 Näkymän ohje: `tools/DASHBOARD.md`.
 
@@ -255,7 +255,7 @@ Näkymän ohje: `tools/DASHBOARD.md`.
 ### Palvelimen tiedot {#metagame-identity}
 
 Nämä arvot ovat **julkisia**: kuka tahansa voi lukea ne osoitteesta `GET /dauntless-status`, ja
-rekisteröityneet pelaajat osoitteesta `GET /undaunted/api/ServerStatus` (katso
+rekisteröityneet pelaajat osoitteesta `GET /unbroken/api/ServerStatus` (katso
 [HTTP-rajapinta]({{ api_page.url | relative_url }})).
 
 | Nimi | Oletus | Arvot | Mitä se tekee | Kuka asettaa |
@@ -534,7 +534,7 @@ uudelleenkäynnistystä. `NODE_ENV` ei vaikuta tässä mitään.
 | `PORT` | `61002` | 1-65535 | Kuunteluportti. | Sinä; paketti: aina (61002, hiekkalaatikkotilassa 62002, tai `-ContentPort`) |
 | `BIND_HOST` | `127.0.0.1` | pilkuilla erotetut IP-osoitteet tai `localhost` | Kuunteluosoitteet, kullekin oma kuuntelija. Vain loopback- ja Tailscale-osoitteet (100.64.0.0/10, fd7a:115c:a1e0::/48) hyväksytään; kaikki muu, myös `0.0.0.0`, vaatii asetuksen `CONTENT_ALLOW_ANY_BIND=1`. | Sinä; paketti: aina (julkisessa tilassa `127.0.0.1`, yksityisessä tilassa Tailscale-osoite) |
 | `CONTENT_ALLOW_ANY_BIND` | pois | tarkalleen `1` ottaa sen käyttöön | Poistaa `BIND_HOST`-tarkistuksen. Vain jos palomuuri pitää internetin ulkona: pelitiedostojen ei koskaan pidä olla saatavilla suoraan internetistä. | Ei kukaan; paketti ei koskaan kirjoita sitä |
-| `METAGAME_URL` | `http://127.0.0.1:61000` | `http://`- tai `https://`-URL | Missä tiliavaimet tarkistetaan (`GET /undaunted/api/GetUserInfo`). Jokaisen lataajan avain lähetetään tänne, joten osoitteen on oltava oma metagamesi. | Paketti: aina (`http://<metagamen osoite>:<portti>`) |
+| `METAGAME_URL` | `http://127.0.0.1:61000` | `http://`- tai `https://`-URL | Missä tiliavaimet tarkistetaan (`GET /unbroken/api/GetUserInfo`). Jokaisen lataajan avain lähetetään tänne, joten osoitteen on oltava oma metagamesi. | Paketti: aina (`http://<metagamen osoite>:<portti>`) |
 | `CONTENT_GAME_DIR` | ei oletusta, pakollinen | kansion polku | Tarkistettu 1.4.4-asennus (kansio, jossa on `Archon\`), joka avataan vain luku -tilassa. Vain sisältöluettelossa (manifest) mainittuja tiedostoja jaetaan koskaan. `npm run verify -- --game-dir <kansio>` ohittaa sen tarkistusta varten. | Sinä; paketti: aina (`<root>/game/Dauntless`) |
 | `CONTENT_MANIFEST` | sisäänrakennettu `data/dauntless-1.4.4.json` | tiedostopolku | Toinen sisältöluettelo testeihin, joissa oikean pelikansion paikalla on korvike. | Paketti: vain hiekkalaatikkotilassa valinnalla `-ContentManifest`, muuten poistetaan |
 | `CONTENT_BRANDING_DIR` | puuttuu: ei kuvia | kansion polku | Isännän kuvapaketti käynnistimelle: kuvat sekä valinnainen `branding.json`. Jaa vain kuvia, joihin sinulla on oikeudet. | Paketti: aina (`<root>/data/branding`) |
@@ -743,7 +743,7 @@ määrittävät alueiden saavutettavat TCP-kuuntelijat. `REGION_*_PROBE_PORT` on
 Main käyttää ilman asetusta kutsun osoitetta ja porttia. Australia ja Saksa näytetään vain,
 kun `AUS_REGION=1` ja `GERMANY_REGION=1`. Mittaus ei lähetä tunnuksia tai sovellusdataa.
 Epäonnistuneet mittaukset ohitetaan; jos kaikki epäonnistuvat, nykyinen backend-alue säilyy.
-GET `/undaunted/api/HuntRegion` palauttaa lisäksi `probes: [{region, host, port}]`.
+GET `/unbroken/api/HuntRegion` palauttaa lisäksi `probes: [{region, host, port}]`.
 
 Toiminta vaatii uudelleen käännetyn palvelin-DLL:n ja päivitetyn käynnistimen asentamisen.
 Lähdekoodin muutos ei vaihda asennuspaketin mukana tulevia binäärejä.

@@ -271,7 +271,7 @@ export class FakeMetagame {
   handle(req: http.IncomingMessage, res: http.ServerResponse): void {
     const url = new URL(req.url ?? "/", "http://x");
     if (url.pathname === "/dauntless-status") return this.json(res, 200, { "show-status": true, en: "Welcome to Dauntless Unbroken!" });
-    if (url.pathname === "/undaunted/api/ServerStatus") {
+    if (url.pathname === "/unbroken/api/ServerStatus") {
       if (this.opts.statusMissing) return this.json(res, 404, {});
       // Like the metagame: the player list only for a known account key, never a 401.
       const key = req.headers["x-dauntless-unbroken-user-api-key"];
@@ -309,13 +309,13 @@ export class FakeMetagame {
       void held.gate.then(answer);
       return;
     }
-    if (url.pathname === "/undaunted/api/GetUserInfo") {
+    if (url.pathname === "/unbroken/api/GetUserInfo") {
       const key = req.headers["x-dauntless-unbroken-user-api-key"];
       const user = typeof key === "string" ? this.users.get(key) : undefined;
       if (!user) return this.json(res, 401, {});
       return this.json(res, 200, { UserId: user.id, Username: user.username, IsAdmin: false });
     }
-    if (url.pathname === "/undaunted/api/Register" && req.method === "POST") {
+    if (url.pathname === "/unbroken/api/Register" && req.method === "POST") {
       let body = "";
       req.on("data", (c) => (body += c));
       req.on("end", () => {

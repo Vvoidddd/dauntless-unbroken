@@ -265,7 +265,7 @@ peli ---------------------UDP---------------------> pelipalvelin :8770-8777 (sal
 | 1 | Käynnistin | Yhdyskäytävä `<PublicHost>:443`, TLS kiinnitettynä kutsun sormenjälkeen | Rekisteröityminen, palvelimen tila, uutiset ja kuvat, pelitiedostojen lataukset |
 | 2 | Peli | Välitin `127.0.0.1:61000`, salaamaton HTTP pelaajan koneella | Jokainen taustapalvelun kutsu, kirjautuminen tiliavaimella, QoS-ping, chatin WebSocket |
 | 3 | Välitin | Yhdyskäytävä `<PublicHost>:443`, TLS kiinnitettynä | Kaikki vaiheesta 2 |
-| 4 | Yhdyskäytävä | Metagame `127.0.0.1:61000` | Kaikki paitsi `/content` ja WebSocketit. Yhdyskäytävä lisää otsakkeet `X-Dauntless-Gateway` (yhdyskäytävän salaisuus) ja `X-Forwarded-For` (pelaajan osoite). Vain neljä `/undaunted/api`-reittiä pääsee läpi; katso [HTTP-rajapinta]({{ api_page.url | relative_url }}). |
+| 4 | Yhdyskäytävä | Metagame `127.0.0.1:61000` | Kaikki paitsi `/content` ja WebSocketit. Yhdyskäytävä lisää otsakkeet `X-Dauntless-Gateway` (yhdyskäytävän salaisuus) ja `X-Forwarded-For` (pelaajan osoite). Vain neljä `/unbroken/api`-reittiä pääsee läpi; katso [HTTP-rajapinta]({{ api_page.url | relative_url }}). |
 | 5 | Yhdyskäytävä | Sisältöpalvelin `127.0.0.1:61002` | `/content` ja `/content/*` |
 | 6 | Yhdyskäytävä | Chat `127.0.0.1:61099` metagamessa | WebSocket-avaukset: pelin chat (pyynnön polku `//`). Kun chat on pois päältä, siellä ei kuuntele mikään: 502. |
 | 7 | Yhdyskäytävä | Sallittujen listan apuri `127.0.0.1:61005`, `POST /allow` apurin salaisuudella | Pelaajan osoite onnistuneen kirjautumisen (`POST /account/api/oauth/token`) tai sellaisen onnistuneen elonmerkin jälkeen, jossa oli bearer-tunniste |

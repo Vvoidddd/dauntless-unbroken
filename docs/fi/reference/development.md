@@ -118,7 +118,7 @@ on. `tsc` ei koskaan poista tiedostoja `dist/`-kansiosta, joten poista kansio en
 lähdetiedosto on poistettu tai nimetty uudelleen.
 
 Käännöstiedot kertovat, mikä lähdekoodi tarkalleen on käynnissä. Ne näkyvät reiteissä
-`GET /undaunted/api/ServerStatus` ja `/dauntless-status`
+`GET /unbroken/api/ServerStatus` ja `/dauntless-status`
 ([HTTP-rajapinta]({{ api_page.url | relative_url }})). Jos `DauntlessUnbrokenMetagame/`-kansiossa on
 käännöshetkellä commitoimattomia muutoksia, commitin perään tulee `-dirty`. Metagamen `.env`-tiedoston
 `GIT_COMMIT` korvaa kirjatun commitin. `npm run dev` ajaa lähdekoodia ilman käännöstä, joten
@@ -295,7 +295,7 @@ kopioi niitä oikealta palvelimelta äläkä koskaan käytä kehitysarvoja oikea
 |---|---|---|
 | `AUTH_SIGNING_PRIVKEY_B64` (ja `AUTH_SIGNING_PUBKEY_B64`) | Metagame. Yksityinen avain allekirjoittaa jokaisen 24 tuntia voimassa olevan istuntotunnisteen, joten kuka tahansa, jolla avain on, voi kirjautua millä tahansa tilillä. | Alla oleva komento |
 | Pelipalvelinavain | Metagame (se tallentaa vain SHA-256-tiivisteen), deploy-palvelin (`METAGAME_API_KEY`) ja jokaisen pelipalvelimen komentorivi | [Vaihe 9]({{ host_page.url | relative_url }}#metagame): lisää se tietokannan jonoon ja käynnistä metagame uudelleen |
-| Tiliavaimet (`UUK_...`) | Tilin salasana: kirjautuminen ja otsake `x-dauntless-unbroken-user-api-key` | `POST /undaunted/api/Register` palauttaa avaimen kerran; palvelin säilyttää vain sen SHA-256-tiivisteen ([vaihe 10]({{ host_page.url | relative_url }}#admin-account)) |
+| Tiliavaimet (`UUK_...`) | Tilin salasana: kirjautuminen ja otsake `x-dauntless-unbroken-user-api-key` | `POST /unbroken/api/Register` palauttaa avaimen kerran; palvelin säilyttää vain sen SHA-256-tiivisteen ([vaihe 10]({{ host_page.url | relative_url }}#admin-account)) |
 | `GATEWAY_SECRET` | Metagame ja yhdyskäytävä, sama arvo molemmissa: 32–256 tulostettavaa merkkiä ilman välilyöntejä | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `ALLOWLIST_SECRET` | Yhdyskäytävä ja sallittujen listan apuri, sama arvo molemmissa. Käytä eri arvoa kuin yhdyskäytävän salaisuudessa. | Sama komento |
 | Yhdyskäytävän TLS-avain (`gateway-key.pem`) | Yhdyskäytävä | `make-cert`, [alla](#public-mode-locally). Pidä se repositorion ulkopuolella. |
@@ -604,7 +604,7 @@ Kunkin taulukon polut ovat suhteessa taulukon yläpuolella mainittuun kansioon.
 | Tietokanta | `db.ts`, `db/schema.ts`, `drizzle/` | Migraatiot ajetaan jokaisessa käynnistyksessä journaalin järjestyksessä; ajetut migraatiot kirjataan tauluun `__drizzle_migrations`. `DB_WAL` otetaan käyttöön tiedostossa `db.ts`. |
 | Mistä pyyntö tuli | `middleware/RequestOrigin.ts` | Julkinen tila: yhdyskäytävän salaisuus, pelaajan osoite, `AUTH_MODE=NONE`-tilan hylkäykset. |
 | Avaimet ja kirjautuminen | `controllers/auth.ts`, `controllers/apikeys.ts`, `routes/eos.ts`, `routes/login.ts`, `middleware/Has*.ts` | `eos.ts` sisältää tunnistekirjautumisen. |
-| Tilit, kutsut, käyttäjänimet | `controllers/accounts.ts`, `controllers/login.ts`, `routes/unbrokenapi.ts`, `controllers/unbrokenapi.ts` | `/undaunted/api`-reitit ([HTTP-rajapinta]({{ api_page.url | relative_url }})). |
+| Tilit, kutsut, käyttäjänimet | `controllers/accounts.ts`, `controllers/login.ts`, `routes/unbrokenapi.ts`, `controllers/unbrokenapi.ts` | `/unbroken/api`-reitit ([HTTP-rajapinta]({{ api_page.url | relative_url }})). |
 | Hahmot ja tallennushistoria | `controllers/character.ts`, `controllers/savehistory.ts`, `routes/character.ts` | Palautukset aiempaan tallennukseen ovat ylläpitäjän reittejä tiedostossa `routes/unbrokenapi.ts`. |
 | Eteneminen | `controllers/progressionmode.ts` (oikea tai stub, `PROGRESSION_MODE`), `controllers/realprogression.ts` (radat, tavoitteet, myönnöt ja niiden uusintavahti, tasojen vahvistukset ja valinnaiset vahvistuksen oikeudet, ylläpitäjän alustus (seed), päivitysilmoitus), `controllers/progressionconfig.ts` (etenemisasetusten ainoa lataaja: mukana tuleva `vendor/progression_config.json`, `PROGRESSION_CONFIG_DIR`, `ACTIVE_HUNT_PASS`), `controllers/progressionrank.ts` (tasojen laskenta), `controllers/progressionevents.ts` (auditointirivit), `controllers/progression.ts` (kohdattu sisältö ja vihjepolut eli breadcrumbs), `routes/progression.ts`, `middleware/RealProgressionOnly.ts` | `routes/progression.ts` vastaa sekä oikean että stub-tilan muodossa ja kirjaa `/progression`-pyynnöt, joihin mikään reitti ei vastaa. Taulut ovat migraatiossa `0011_real_progression.sql`. |
 | Escalation | `controllers/escalationConfig.ts` (kausiluettelo `vendor/escalation/seasons.json`, tarkistetaan latauksessa), `controllers/escalation.ts` (luvut, tallennussäännöt, auditointirivit), `routes/escalation.ts` (tynkä- ja oikeat reitit, `ESCALATION_MODE`) | Siirretty Harmonicin haarasta. Taulut ovat migraatiossa `0014_escalation.sql`. [Escalation]({{ '/fi/findings/escalation.html' | relative_url }}); testit `test/escalation.test.ts`. |

@@ -625,7 +625,7 @@ deploy-palvelimen `.env`-tiedostossa. Pelipalvelimet saavat sen ensimmäisenä k
 
 ## 10. Luo ylläpitäjän tili {#admin-account}
 
-Tilit luodaan kutsulla `POST /undaunted/api/Register`. Vastauksessa on tiliavain. **Avain on
+Tilit luodaan kutsulla `POST /unbroken/api/Register`. Vastauksessa on tiliavain. **Avain on
 salasana.** Palvelin säilyttää siitä vain SHA-256-tiivisteen, eikä palautustyökalua vielä ole, joten
 jos kadotat avaimen, menetät tilin. Ylläpitäjän oikeudet ovat lippu tietokannassa.
 
@@ -635,7 +635,7 @@ kansiosta, jotta `better-sqlite3` löytyy, ja korvaa `YourName` omalla nimelläs
 
 ```powershell
 Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
-node -e "(async () => { const name = process.argv[1]; const base = 'http://127.0.0.1:61000/undaunted/api'; const r = await fetch(base + '/Register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Username: name }), signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error('Register returned HTTP ' + r.status); const { UUK } = await r.json(); require('fs').writeFileSync('C:/dr/data/owner.key', UUK); const info = await (await fetch(base + '/GetUserInfo', { headers: { 'x-dauntless-unbroken-user-api-key': UUK }, signal: AbortSignal.timeout(15000) })).json(); new (require('better-sqlite3'))('C:/dr/data/dauntless-unbroken.db').prepare('UPDATE users SET isAdmin = 1 WHERE userId = ?').run(info.UserId); console.log('created ' + name + ' as admin; key saved to C:/dr/data/owner.key (not shown)'); })().catch(e => { console.error(e.message); process.exit(1); })" YourName
+node -e "(async () => { const name = process.argv[1]; const base = 'http://127.0.0.1:61000/unbroken/api'; const r = await fetch(base + '/Register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Username: name }), signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error('Register returned HTTP ' + r.status); const { UUK } = await r.json(); require('fs').writeFileSync('C:/dr/data/owner.key', UUK); const info = await (await fetch(base + '/GetUserInfo', { headers: { 'x-dauntless-unbroken-user-api-key': UUK }, signal: AbortSignal.timeout(15000) })).json(); new (require('better-sqlite3'))('C:/dr/data/dauntless-unbroken.db').prepare('UPDATE users SET isAdmin = 1 WHERE userId = ?').run(info.UserId); console.log('created ' + name + ' as admin; key saved to C:/dr/data/owner.key (not shown)'); })().catch(e => { console.error(e.message); process.exit(1); })" YourName
 ```
 
 Huomioita:

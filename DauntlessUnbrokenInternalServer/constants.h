@@ -1,3 +1,3 @@
 #pragma once
 
-static const std::string UNDAUNTED_INTERNAL_VERSION = "0.0.3";
+static const std::string UNBROKEN_INTERNAL_VERSION = "1.0.0";

@@ -1,4 +1,4 @@
-// Builds src/vendor/hunt_titles.json, the friendly names /undaunted/api/ServerStatus
+// Builds src/vendor/hunt_titles.json, the friendly names /unbroken/api/ServerStatus
 // shows for running hunts, from the deploy server's copies of the game's hunt tables.
 //   node scripts/make-hunt-titles.js
 // Every name comes from the tables' own HuntName text, except the short manual list

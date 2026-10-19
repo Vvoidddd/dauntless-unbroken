@@ -1,5 +1,5 @@
 // Runs after `npm run build` (the "postbuild" script): records which commit the
-// build came from in dist/build-info.json, so /undaunted/api/ServerStatus and
+// build came from in dist/build-info.json, so /unbroken/api/ServerStatus and
 // /dauntless-status can name the exact source that is running (roadmap 1.13).
 // A build with uncommitted changes in this folder is marked "-dirty". Without git the build still
 // succeeds and the commit shows as "unknown"; GIT_COMMIT in .env overrides both.

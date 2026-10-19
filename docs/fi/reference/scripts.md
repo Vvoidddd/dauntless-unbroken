@@ -507,7 +507,7 @@ C:\DauntlessUnbroken\bin\New-Invite.ps1 -Revoke ABCD-EFGH-JKLM
 
 ### Get-ServerStatus.ps1 {#get-serverstatusps1}
 
-Kutsuu `GET /undaunted/api/ServerStatus` ja tulostaa palvelimen nimen ja version, paikalla olevat
+Kutsuu `GET /unbroken/api/ServerStatus` ja tulostaa palvelimen nimen ja version, paikalla olevat
 pelaajat ja sen, missä he ovat, sekä jokaisen käynnissä olevan maailman ja metsästyksen. Palvelin
 näyttää pelaajat ja pelipalvelimet vain rekisteröityneille pelaajille, joten pyynnössä on tiliavain.
 Ilman avainta, tai avaimella, jota palvelin ei hyväksy, skripti kertoo, että lista on piilotettu,

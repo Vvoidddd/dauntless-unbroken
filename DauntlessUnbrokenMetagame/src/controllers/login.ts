@@ -79,7 +79,7 @@ export function FindAccountByUsername(Username: unknown): { UserId: string, User
     return Rows.length === 1 ? { UserId: Rows[0].userId, Username: Rows[0].name } : undefined;
 }
 
-// An account named either by id or by name (the /undaunted/api fallbacks take both)
+// An account named either by id or by name (the /unbroken/api fallbacks take both)
 export function FindAccount(Who: unknown): { UserId: string, Username: string } | undefined {
     if(IsAccountIdShape(Who)){
         const Name = FindUsernameForUserId(Who);

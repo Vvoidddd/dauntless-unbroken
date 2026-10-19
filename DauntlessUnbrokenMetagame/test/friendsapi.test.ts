@@ -71,14 +71,14 @@ after(async () => {
 
 let Friend: { key: string, token: string, userId: string };
 
-describe("POST /undaunted/api/Register", () => {
+describe("POST /unbroken/api/Register", () => {
     it("answers 200 {UUK} and nothing else for a valid new name", async () => {
-        const Reply = await Call("POST", "/undaunted/api/Register", { body: { Username: "Hunter_1" } });
+        const Reply = await Call("POST", "/unbroken/api/Register", { body: { Username: "Hunter_1" } });
 
         assert.equal(Reply.status, 200);
         assert.deepEqual(Object.keys(Reply.json), ["UUK"]);
 
-        const Info = await Call("GET", "/undaunted/api/GetUserInfo", { key: Reply.json.UUK });
+        const Info = await Call("GET", "/unbroken/api/GetUserInfo", { key: Reply.json.UUK });
         assert.equal(Info.status, 200);
         assert.deepEqual(Object.keys(Info.json).sort(), ["IsAdmin", "UserId", "Username"]);
         assert.equal(Info.json.Username, "Hunter_1");
@@ -88,86 +88,86 @@ describe("POST /undaunted/api/Register", () => {
     });
 
     it("refuses with the JSON errors of the contract", async () => {
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: "ab" } }), 400, "username_invalid");
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: "bad name!" } }), 400, "username_invalid");
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: "SLAYER" } }), 409, "username_taken");
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: "hunter_1" } }), 409, "username_taken");
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: {} }), 400, "bad_request");
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: 7 } }), 400, "bad_request");
-        AssertError(await Call("POST", "/undaunted/api/Register", {}), 400, "bad_request");
-        AssertError(await Call("POST", "/undaunted/api/Register", { raw: "{\"Username\": " }), 400, "bad_request");
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: "ab" } }), 400, "username_invalid");
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: "bad name!" } }), 400, "username_invalid");
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: "SLAYER" } }), 409, "username_taken");
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: "hunter_1" } }), 409, "username_taken");
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: {} }), 400, "bad_request");
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: 7 } }), 400, "bad_request");
+        AssertError(await Call("POST", "/unbroken/api/Register", {}), 400, "bad_request");
+        AssertError(await Call("POST", "/unbroken/api/Register", { raw: "{\"Username\": " }), 400, "bad_request");
     });
 
     it("says whether a name is free", async () => {
-        assert.deepEqual((await Call("GET", "/undaunted/api/UsernameAvailable?Username=Brand_New")).json, { available: true });
-        assert.equal((await Call("GET", "/undaunted/api/UsernameAvailable?Username=HUNTER_1")).json.error, "username_taken");
-        assert.equal((await Call("GET", "/undaunted/api/UsernameAvailable?Username=x")).json.error, "username_invalid");
-        assert.equal((await Call("GET", "/undaunted/api/UsernameAvailable")).json.available, false);
+        assert.deepEqual((await Call("GET", "/unbroken/api/UsernameAvailable?Username=Brand_New")).json, { available: true });
+        assert.equal((await Call("GET", "/unbroken/api/UsernameAvailable?Username=HUNTER_1")).json.error, "username_taken");
+        assert.equal((await Call("GET", "/unbroken/api/UsernameAvailable?Username=x")).json.error, "username_invalid");
+        assert.equal((await Call("GET", "/unbroken/api/UsernameAvailable")).json.available, false);
     });
 });
 
 describe("invites", () => {
     after(async () => {
-        await Call("POST", "/undaunted/api/RegistrationStatus", { body: { RegistrationStatus: "OPEN" }, key: ADMIN_KEY });
+        await Call("POST", "/unbroken/api/RegistrationStatus", { body: { RegistrationStatus: "OPEN" }, key: ADMIN_KEY });
     });
 
     it("CreateInvite is admin-only", async () => {
-        assert.equal((await Call("POST", "/undaunted/api/CreateInvite", { body: {} })).status, 401);
-        assert.equal((await Call("POST", "/undaunted/api/CreateInvite", { body: {}, key: "UUK_not_a_key" })).status, 401);
-        assert.equal((await Call("POST", "/undaunted/api/CreateInvite", { body: {}, key: Friend.key })).status, 403);
+        assert.equal((await Call("POST", "/unbroken/api/CreateInvite", { body: {} })).status, 401);
+        assert.equal((await Call("POST", "/unbroken/api/CreateInvite", { body: {}, key: "UUK_not_a_key" })).status, 401);
+        assert.equal((await Call("POST", "/unbroken/api/CreateInvite", { body: {}, key: Friend.key })).status, 403);
     });
 
     it("CreateInvite makes a code that registers exactly as many accounts as it has uses", async () => {
-        assert.equal((await Call("POST", "/undaunted/api/RegistrationStatus", { body: { RegistrationStatus: "INVITECODE" }, key: ADMIN_KEY })).status, 200);
+        assert.equal((await Call("POST", "/unbroken/api/RegistrationStatus", { body: { RegistrationStatus: "INVITECODE" }, key: ADMIN_KEY })).status, 200);
 
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: "Invited_1" } }), 401, "invite_invalid");
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: "Invited_1", InviteCode: "NOPE-NOPE-NOPE" } }), 401, "invite_invalid");
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: "Invited_1" } }), 401, "invite_invalid");
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: "Invited_1", InviteCode: "NOPE-NOPE-NOPE" } }), 401, "invite_invalid");
 
-        const Created = await Call("POST", "/undaunted/api/CreateInvite", { body: { uses: 2, name: "for the Tuesday group" }, key: ADMIN_KEY });
+        const Created = await Call("POST", "/unbroken/api/CreateInvite", { body: { uses: 2, name: "for the Tuesday group" }, key: ADMIN_KEY });
         assert.equal(Created.status, 200);
         assert.deepEqual(Object.keys(Created.json), ["code"]);
         assert.match(Created.json.code, /^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/);
         const Code = Created.json.code;
 
         // A taken name does not use the code up
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: "Hunter_1", InviteCode: Code } }), 409, "username_taken");
-        assert.equal((await Call("POST", "/undaunted/api/Register", { body: { Username: "Invited_1", InviteCode: Code } })).status, 200);
-        assert.equal((await Call("POST", "/undaunted/api/Register", { body: { Username: "Invited_2", InviteCode: Code } })).status, 200);
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: "Invited_3", InviteCode: Code } }), 401, "invite_invalid");
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: "Hunter_1", InviteCode: Code } }), 409, "username_taken");
+        assert.equal((await Call("POST", "/unbroken/api/Register", { body: { Username: "Invited_1", InviteCode: Code } })).status, 200);
+        assert.equal((await Call("POST", "/unbroken/api/Register", { body: { Username: "Invited_2", InviteCode: Code } })).status, 200);
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: "Invited_3", InviteCode: Code } }), 401, "invite_invalid");
 
-        const Single = await Call("POST", "/undaunted/api/CreateInvite", { body: {}, key: ADMIN_KEY });
-        assert.equal((await Call("POST", "/undaunted/api/Register", { body: { Username: "Invited_3", InviteCode: Single.json.code } })).status, 200);
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: "Invited_4", InviteCode: Single.json.code } }), 401, "invite_invalid");
+        const Single = await Call("POST", "/unbroken/api/CreateInvite", { body: {}, key: ADMIN_KEY });
+        assert.equal((await Call("POST", "/unbroken/api/Register", { body: { Username: "Invited_3", InviteCode: Single.json.code } })).status, 200);
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: "Invited_4", InviteCode: Single.json.code } }), 401, "invite_invalid");
 
-        const Listed = await Call("GET", "/undaunted/api/InviteCodes", { key: ADMIN_KEY });
+        const Listed = await Call("GET", "/unbroken/api/InviteCodes", { key: ADMIN_KEY });
         assert.equal(Listed.json.InviteCodes.find((Invite: any) => Invite.inviteCode === Code)?.usesRemaining, 0);
     });
 
     it("CreateInvite refuses a bad use count", async () => {
         for(const Body of [{ uses: 0 }, { uses: -1 }, { uses: 1.5 }, { uses: "2" }, { uses: 1001 }, { name: 5 }]){
-            AssertError(await Call("POST", "/undaunted/api/CreateInvite", { body: Body, key: ADMIN_KEY }), 400, "bad_request");
+            AssertError(await Call("POST", "/unbroken/api/CreateInvite", { body: Body, key: ADMIN_KEY }), 400, "bad_request");
         }
 
-        AssertError(await Call("POST", "/undaunted/api/CreateInvite", { raw: "{uses:", key: ADMIN_KEY }), 400, "bad_request");
+        AssertError(await Call("POST", "/unbroken/api/CreateInvite", { raw: "{uses:", key: ADMIN_KEY }), 400, "bad_request");
     });
 
     it("answers registration_closed when registration is off", async () => {
-        assert.equal((await Call("POST", "/undaunted/api/RegistrationStatus", { body: { RegistrationStatus: "NONE" }, key: ADMIN_KEY })).status, 200);
-        AssertError(await Call("POST", "/undaunted/api/Register", { body: { Username: "Too_Late", InviteCode: "ANY-CODE" } }), 400, "registration_closed");
+        assert.equal((await Call("POST", "/unbroken/api/RegistrationStatus", { body: { RegistrationStatus: "NONE" }, key: ADMIN_KEY })).status, 200);
+        AssertError(await Call("POST", "/unbroken/api/Register", { body: { Username: "Too_Late", InviteCode: "ANY-CODE" } }), 400, "registration_closed");
     });
 });
 
-describe("POST /undaunted/api/RenameUser", () => {
+describe("POST /unbroken/api/RenameUser", () => {
     it("is admin-only", async () => {
-        assert.equal((await Call("POST", "/undaunted/api/RenameUser", { body: { UserId: Friend.userId, NewUsername: "Renamed_1" } })).status, 401);
-        assert.equal((await Call("POST", "/undaunted/api/RenameUser", { body: { UserId: Friend.userId, NewUsername: "Renamed_1" }, key: Friend.key })).status, 403);
+        assert.equal((await Call("POST", "/unbroken/api/RenameUser", { body: { UserId: Friend.userId, NewUsername: "Renamed_1" } })).status, 401);
+        assert.equal((await Call("POST", "/unbroken/api/RenameUser", { body: { UserId: Friend.userId, NewUsername: "Renamed_1" }, key: Friend.key })).status, 403);
     });
 
     it("renames, and the client sees the stored name everywhere it shows one", async () => {
         const Characters = await Call("GET", "/character", { token: Friend.token });
         assert.equal(Characters.json[0].name, "Hunter_1");
 
-        const Renamed = await Call("POST", "/undaunted/api/RenameUser", { body: { UserId: Friend.userId, NewUsername: "Renamed_1" }, key: ADMIN_KEY });
+        const Renamed = await Call("POST", "/unbroken/api/RenameUser", { body: { UserId: Friend.userId, NewUsername: "Renamed_1" }, key: ADMIN_KEY });
         assert.equal(Renamed.status, 200);
         assert.deepEqual(Renamed.json, { UserId: Friend.userId, OldUsername: "Hunter_1", Username: "Renamed_1" });
 
@@ -175,14 +175,14 @@ describe("POST /undaunted/api/RenameUser", () => {
         assert.equal((await Call("GET", "/accountinfo", { token: Friend.token })).json.username, "Renamed_1");
         assert.equal((await Call("GET", "/account/api/public/account", { token: Friend.token })).json.displayName, "Renamed_1");
         assert.equal((await Call("POST", "/party", { token: Friend.token, body: {} })).json.playerStates[0].displayName, "Renamed_1");
-        assert.equal((await Call("GET", "/undaunted/api/GetUserInfo", { key: Friend.key })).json.Username, "Renamed_1");
+        assert.equal((await Call("GET", "/unbroken/api/GetUserInfo", { key: Friend.key })).json.Username, "Renamed_1");
     });
 
     it("refuses a taken or invalid name and an unknown account", async () => {
-        AssertError(await Call("POST", "/undaunted/api/RenameUser", { body: { UserId: Friend.userId, NewUsername: "slayer" }, key: ADMIN_KEY }), 409, "username_taken");
-        AssertError(await Call("POST", "/undaunted/api/RenameUser", { body: { UserId: Friend.userId, NewUsername: "no" }, key: ADMIN_KEY }), 400, "username_invalid");
-        AssertError(await Call("POST", "/undaunted/api/RenameUser", { body: { Username: "Nobody_At_All", NewUsername: "Fine_Name" }, key: ADMIN_KEY }), 404, "not_found");
-        AssertError(await Call("POST", "/undaunted/api/RenameUser", { body: { NewUsername: "Fine_Name" }, key: ADMIN_KEY }), 400, "bad_request");
+        AssertError(await Call("POST", "/unbroken/api/RenameUser", { body: { UserId: Friend.userId, NewUsername: "slayer" }, key: ADMIN_KEY }), 409, "username_taken");
+        AssertError(await Call("POST", "/unbroken/api/RenameUser", { body: { UserId: Friend.userId, NewUsername: "no" }, key: ADMIN_KEY }), 400, "username_invalid");
+        AssertError(await Call("POST", "/unbroken/api/RenameUser", { body: { Username: "Nobody_At_All", NewUsername: "Fine_Name" }, key: ADMIN_KEY }), 404, "not_found");
+        AssertError(await Call("POST", "/unbroken/api/RenameUser", { body: { NewUsername: "Fine_Name" }, key: ADMIN_KEY }), 400, "bad_request");
     });
 
     it("ACCOUNT_DISPLAY_NAME=0 puts the old {} display name back", async () => {
@@ -200,7 +200,7 @@ describe("POST /undaunted/api/RenameUser", () => {
 
 const STATUS_KEYS = ["name", "online", "version", "commit", "sourceUrl", "registration", "playersOnline", "players", "instances", "contentPort", "uptimeSeconds", "limited"];
 
-describe("GET /undaunted/api/ServerStatus", () => {
+describe("GET /unbroken/api/ServerStatus", () => {
     it("shows a registered player who is online where and the deploy server's three servers, with no ids, keys or addresses", async () => {
         Fake = await StartFakeDeployServer(FRIENDS_DEPLOYSERVER_PORT, ThreeServers(Friend.userId));
         ClearServerStatusCache();
@@ -210,7 +210,7 @@ describe("GET /undaunted/api/ServerStatus", () => {
         const AdminToken = await Login(ADMIN_KEY);
         assert.equal((await Call("POST", "/heartbeat", { token: AdminToken, body: { map: "/Game/Maps/ramsgate/ramsgate_01_persistent", state: "city" } })).status, 200);
 
-        const Reply = await Call("GET", "/undaunted/api/ServerStatus", { key: Friend.key });
+        const Reply = await Call("GET", "/unbroken/api/ServerStatus", { key: Friend.key });
         assert.equal(Reply.status, 200);
         assert.match(Reply.type ?? "", /application\/json/);
 
@@ -249,10 +249,10 @@ describe("GET /undaunted/api/ServerStatus", () => {
     });
 
     it("no key: 200, the same shape with no players and no servers, limited", async () => {
-        const Full = (await Call("GET", "/undaunted/api/ServerStatus", { key: Friend.key })).json;
+        const Full = (await Call("GET", "/unbroken/api/ServerStatus", { key: Friend.key })).json;
         const Requests = Fake!.Requests.length;
         ClearServerStatusCache();
-        const Reply = await Call("GET", "/undaunted/api/ServerStatus");
+        const Reply = await Call("GET", "/unbroken/api/ServerStatus");
 
         assert.equal(Reply.status, 200);
         assert.deepEqual(Object.keys(Reply.json), STATUS_KEYS);
@@ -266,7 +266,7 @@ describe("GET /undaunted/api/ServerStatus", () => {
 
     it("a bad key or a bad token: 200 limited, never a 401", async () => {
         for(const Options of [{ key: "UUK_not_a_real_key_000000000000000000" }, { key: Friend.key + "0" }, { key: "UID-admin" }, { token: "not.a.token" }, { token: Friend.token.slice(0, -6) + "AAAAAA" }]){
-            const Reply = await Call("GET", "/undaunted/api/ServerStatus", Options);
+            const Reply = await Call("GET", "/unbroken/api/ServerStatus", Options);
             assert.equal(Reply.status, 200, JSON.stringify(Object.keys(Options)));
             assert.deepEqual([Reply.json.limited, Reply.json.playersOnline, Reply.json.players.length, Reply.json.instances.length], [true, 0, 0, 0]);
         }
@@ -274,7 +274,7 @@ describe("GET /undaunted/api/ServerStatus", () => {
 
     it("a player's key, an admin's key or a player's token: the full answer", async () => {
         for(const Options of [{ key: Friend.key }, { key: ADMIN_KEY }, { token: Friend.token }, { key: "UUK_wrong", token: Friend.token }]){
-            const Reply = await Call("GET", "/undaunted/api/ServerStatus", Options);
+            const Reply = await Call("GET", "/unbroken/api/ServerStatus", Options);
             assert.equal(Reply.status, 200);
             assert.equal(Reply.json.limited, false, JSON.stringify(Object.keys(Options)));
             assert.equal(Reply.json.playersOnline, 2);
@@ -285,14 +285,14 @@ describe("GET /undaunted/api/ServerStatus", () => {
 
     it("answers each variant from its own 5 s cache", async () => {
         ClearServerStatusCache();
-        await Call("GET", "/undaunted/api/ServerStatus");
-        await Call("GET", "/undaunted/api/ServerStatus", { token: Friend.token });
+        await Call("GET", "/unbroken/api/ServerStatus");
+        await Call("GET", "/unbroken/api/ServerStatus", { token: Friend.token });
         const Requests = Fake!.Requests.length;
         const [A, B, C, D] = await Promise.all([
-            Call("GET", "/undaunted/api/ServerStatus"),
-            Call("GET", "/undaunted/api/ServerStatus"),
-            Call("GET", "/undaunted/api/ServerStatus", { key: Friend.key }),
-            Call("GET", "/undaunted/api/ServerStatus", { key: ADMIN_KEY })
+            Call("GET", "/unbroken/api/ServerStatus"),
+            Call("GET", "/unbroken/api/ServerStatus"),
+            Call("GET", "/unbroken/api/ServerStatus", { key: Friend.key }),
+            Call("GET", "/unbroken/api/ServerStatus", { key: ADMIN_KEY })
         ]);
 
         assert.equal(A.status, 200);
@@ -335,7 +335,7 @@ describe("GET /dauntless-status", () => {
     });
 
     // The banner the game draws: a welcome to the server by its name, translated for each
-    // language the client asks for, with no version (upstream sent "Welcome to Undaunted v0.0.5!"
+    // language the client asks for, with no version (upstream sent "Welcome to Dauntless Unbroken v0.0.5!"
     // in English under every key)
     it("welcomes the player to the server by name, in each of the client's languages", async () => {
         const Saved = process.env.SERVER_NAME;
@@ -360,7 +360,7 @@ describe("GET /dauntless-status", () => {
             const Texts = Object.values(StatusTexts(Default));
             assert.equal(new Set(Texts).size, Texts.length);
             for(const Text of Texts){
-                assert.doesNotMatch(Text, /undaunted|\d+\.\d+/i);
+                assert.doesNotMatch(Text, /unbroken|\d+\.\d+/i);
             }
 
             process.env.SERVER_NAME = "Friday Hunts";
@@ -416,17 +416,17 @@ describe("GET /product/skus/public", () => {
 });
 
 // Nothing a player or the launcher is shown names upstream's product. Routes and headers
-// (/undaunted/api/..., x-dauntless-unbroken-...) are wire identifiers, not text anyone reads.
+// (/unbroken/api/..., x-dauntless-unbroken-...) are wire identifiers, not text anyone reads.
 describe("player-visible replies", () => {
     it("never say Undaunted", async () => {
         const Calls: [string, { key?: string, token?: string }][] = [
             ["/dauntless-status", {}],
             ["/dauntless-status", { token: Friend.token }],
             ["/product/skus/public", { token: Friend.token }],
-            ["/undaunted/api/ServerStatus", {}],
-            ["/undaunted/api/ServerStatus", { key: Friend.key }],
-            ["/undaunted/api/GetUserInfo", { key: Friend.key }],
-            ["/undaunted/api/UsernameAvailable?Username=Someone_New", {}],
+            ["/unbroken/api/ServerStatus", {}],
+            ["/unbroken/api/ServerStatus", { key: Friend.key }],
+            ["/unbroken/api/GetUserInfo", { key: Friend.key }],
+            ["/unbroken/api/UsernameAvailable?Username=Someone_New", {}],
             ["/accountinfo", { token: Friend.token }],
             ["/character", { token: Friend.token }]
         ];
@@ -434,7 +434,7 @@ describe("player-visible replies", () => {
         for(const [Path, Options] of Calls){
             const Reply = await Call("GET", Path, Options);
             assert.ok(Reply.status < 500, `${Path}: ${Reply.status}`);
-            assert.doesNotMatch(Reply.text.replace(/\/undaunted\/api\//gi, "/"), /undaunted/i, Path);
+            assert.doesNotMatch(Reply.text.replace(/\/unbroken\/api\//gi, "/"), /unbroken/i, Path);
         }
     });
 });

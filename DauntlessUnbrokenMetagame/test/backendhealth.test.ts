@@ -26,7 +26,7 @@ test('instrumentation keeps HTTP replies intact, counts once and excludes monito
     const app = express();
     app.use(TrackBackendHealth);
     app.get('/fixture', (_req, res) => { res.status(503).json({fixture: true}); });
-    app.get('/undaunted/api/ServerStatus', (_req, res) => { res.json({}); });
+    app.get('/unbroken/api/ServerStatus', (_req, res) => { res.json({}); });
     const server = app.listen(0, '127.0.0.1');
     await new Promise<void>(resolve => server.once('listening', resolve));
     const base = `http://127.0.0.1:${(server.address() as any).port}`;
@@ -35,7 +35,7 @@ test('instrumentation keeps HTTP replies intact, counts once and excludes monito
         const response = await fetch(base + '/fixture');
         assert.equal(response.status, 503);
         assert.deepEqual(await response.json(), {fixture: true});
-        await fetch(base + '/undaunted/api/ServerStatus');
+        await fetch(base + '/unbroken/api/ServerStatus');
         assert.equal(requestMetrics.snapshot().completed, before + 1);
         process.env.BACKEND_HEALTH = '0';
         await fetch(base + '/fixture');

@@ -65,7 +65,7 @@ before(async () => {
   content = new FakeContentServer({ key: "unused", files });
   gateway = https.createServer({ cert: cert.certPem, key: cert.keyPem }, (req, res) => {
     gatewayRequests.push(`${req.method} ${req.url}`);
-    if (req.url === '/undaunted/api/DeviceSignals' && deviceBlocked) {
+    if (req.url === '/unbroken/api/DeviceSignals' && deviceBlocked) {
       req.resume(); res.writeHead(403, {'content-type':'application/json'});
       res.end(JSON.stringify({error:'device_banned',reason:'Test restriction'})); return;
     }
@@ -241,7 +241,7 @@ test("public mode end to end: join, register, install, play through the relay, g
   assert.ok(ini.includes('ServerAddr="ws://127.0.0.1"\r\nServerPort=' + RELAY_PORT + "\r\nbUseSSL=false"));
 
   // The game's own traffic crosses the relay to the gateway.
-  const through = await get(RELAY_PORT, "/undaunted/api/ServerStatus");
+  const through = await get(RELAY_PORT, "/unbroken/api/ServerStatus");
   assert.equal(through.status, 200);
   assert.equal(JSON.parse(through.body).name, "Friday Hunts");
 
@@ -250,7 +250,7 @@ test("public mode end to end: join, register, install, play through the relay, g
   await new Promise((r) => setTimeout(r, 100));
   assert.equal(hx.c.relayActive, false);
   assert.equal(hx.last().phase, "ready");
-  await assert.rejects(get(RELAY_PORT, "/undaunted/api/ServerStatus"));
+  await assert.rejects(get(RELAY_PORT, "/unbroken/api/ServerStatus"));
   assert.equal(hx.last().lastError, null);
   assert.deepEqual(await hx.c.play(), {ok:true});
   hx.child()!.emit('exit', -1073741515);
@@ -1160,7 +1160,7 @@ test("public mode: an invite for the same host:port with a new certificate never
     assert.equal(s.connect.problem, null);
     assert.equal(s.account.username, "Cert_Change");
     assert.equal(s.phase, "install");
-    assert.ok(seen.some((r) => r.withKey && r.fp === other.fingerprint && r.url === "/undaunted/api/GetUserInfo"));
+    assert.ok(seen.some((r) => r.withKey && r.fp === other.fingerprint && r.url === "/unbroken/api/GetUserInfo"));
     assert.ok(meta.opts.validCodes?.has("FOURTH-CODE"), "the account was kept, the new invite's code was not spent");
     assert.equal(await ks.load({ host: "127.0.0.1", port: SWAP_PORT, mode: "public", fp: cert.fingerprint }), null);
   } finally {

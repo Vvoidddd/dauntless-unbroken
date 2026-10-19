@@ -90,21 +90,21 @@ test('trusted IP logging, account/IP bans, required reasons, JWT revocation and 
   const port=(server.address() as any).port;
   try {
     const request=async(path:string,k:string,body?:unknown)=>fetch(`http://127.0.0.1:${port}${path}`,{method:body?'POST':'GET',headers:{'x-dauntless-unbroken-user-api-key':k,'content-type':'application/json'},body:body?JSON.stringify(body):undefined});
-    assert.equal((await request('/undaunted/api/ModerationLog?kind=events',key)).status,403);
-    assert.equal((await request('/undaunted/api/ModerationLog?kind=events',admin)).status,200);
-    assert.equal((await request('/undaunted/api/ModerationLog?kind=bans&offset=-1',admin)).status,400);
-    const reply=await request('/undaunted/api/GetUserInfo',key);assert.equal(reply.status,403);assert.deepEqual(await reply.json(),{error:'account_banned',reason:'Repeated harassment'});
-    assert.equal((await request('/undaunted/api/Moderation/UID-ban-test',key)).status,403);
-    assert.equal((await request('/undaunted/api/Moderation',admin,{accountId:'UID-ban-test',reason:'Appeal accepted',active:false})).status,200);
-    assert.equal((await request('/undaunted/api/GetUserInfo',key)).status,200);
+    assert.equal((await request('/unbroken/api/ModerationLog?kind=events',key)).status,403);
+    assert.equal((await request('/unbroken/api/ModerationLog?kind=events',admin)).status,200);
+    assert.equal((await request('/unbroken/api/ModerationLog?kind=bans&offset=-1',admin)).status,400);
+    const reply=await request('/unbroken/api/GetUserInfo',key);assert.equal(reply.status,403);assert.deepEqual(await reply.json(),{error:'account_banned',reason:'Repeated harassment'});
+    assert.equal((await request('/unbroken/api/Moderation/UID-ban-test',key)).status,403);
+    assert.equal((await request('/unbroken/api/Moderation',admin,{accountId:'UID-ban-test',reason:'Appeal accepted',active:false})).status,200);
+    assert.equal((await request('/unbroken/api/GetUserInfo',key)).status,200);
     assert.equal(BanFor('UID-other','203.0.113.9'),undefined);
     assert.ok(ValidateMetagameJWTAndGetPayload(token));
     const heartbeat=await fetch(`http://127.0.0.1:${port}/heartbeat`,{method:'POST',headers:{authorization:'Bearer '+token,'content-type':'application/json','x-dauntless-gateway':'test-gateway-secret','x-forwarded-for':'203.0.113.9'},body:JSON.stringify({map:'ramsgate',state:'city'})});
     assert.equal(heartbeat.status,200);
     assert.equal(ModerationInfo('UID-ban-test').addresses.length,1);
-    assert.equal((await request('/undaunted/api/PlayingEnded',key,{})).status,204);
+    assert.equal((await request('/unbroken/api/PlayingEnded',key,{})).status,204);
     assert.equal(ModerationInfo('UID-ban-test').addresses.length,0);
-    assert.equal((await request('/undaunted/api/GetUserInfo',key)).status,200);
+    assert.equal((await request('/unbroken/api/GetUserInfo',key)).status,200);
     assert.equal(ModerationInfo('UID-ban-test').addresses.length,0);
   }finally{await new Promise<void>((r,j)=>server.close(e=>e?j(e):r()));delete process.env.GATEWAY_SECRET;}
 });

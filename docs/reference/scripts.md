@@ -488,7 +488,7 @@ C:\DauntlessUnbroken\bin\New-Invite.ps1 -Revoke ABCD-EFGH-JKLM
 
 ### Get-ServerStatus.ps1
 
-Calls `GET /undaunted/api/ServerStatus` and prints the server's name and version, the players online
+Calls `GET /unbroken/api/ServerStatus` and prints the server's name and version, the players online
 and where they are, and every running world and hunt. The server shows the players and game servers
 to registered players only, so the request carries an account key. Without a key, or with one the
 server does not accept, the script says that the list is hidden instead of printing 0 players.

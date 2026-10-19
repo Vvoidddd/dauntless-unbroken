@@ -1198,7 +1198,7 @@ try {
         # Start the metagame once (directly, as this administrator; the database is created and migrated).
         Write-DRInfo 'starting the metagame once ...'
         [void](Invoke-KitScript 'Stack.ps1' @('start', '-Root', $Root, '-Only', 'metagame', '-NoBackup', '-Direct'))
-        $api = "http://$metaAddr/undaunted/api"
+        $api = "http://$metaAddr/unbroken/api"
         try {
             $st = Invoke-DRHttp -Url "http://$metaAddr/dauntless-status" -TimeoutSec 10
             if ($st.Status -ne 200) { Stop-DR "The metagame did not come up (see $($P.Logs)\metagame.err.log)." }

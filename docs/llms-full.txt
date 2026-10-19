@@ -8,174 +8,49 @@ The pages of https://mixutin.github.io/dauntless-unbroken/ in navigation order, 
 URL: https://mixutin.github.io/dauntless-unbroken/
 ================================================================================
 
-# Dauntless Unbroken
+<div class="ub-hero">
+  <div class="ub-hero-content">
+    <span class="ub-eyebrow">DAUNTLESS UNBROKEN · DOCUMENTATION</span>
+    <h1>Your next hunt starts here.</h1>
+    <p>A fresh community realm for Dauntless 1.4.4. Find your way into the game, host a server, or explore how the services work.</p>
+    <div class="ub-actions">
+      <a class="btn btn-primary" href="https://github.com/Vvoidddd/dauntless-unbroken/releases/latest">Get the launcher ↗</a>
+      <a class="btn" href="https://mixutin.github.io/dauntless-unbroken/setup/">Read the setup guide</a>
+    </div>
+  </div>
+</div>
 
-**Dauntless**, the Phoenix Labs co-op monster-hunting game, lost its official servers on
-**30 May 2025**, but it can still be played against a private server. Dauntless Unbroken is one: a
-private, non-commercial preservation revival that runs the genuine **Dauntless 1.4.4** client
-(October 2020) against a fork of the open-source [Undaunted](https://github.com/SyST3MDeV/Undaunted)
-server by gwog and contributors (AGPL-3.0). It is not a public server: the owner runs it for a few
-friends, and anyone with their own copy of the 1.4.4 client can host the same thing from
-[the repository](https://github.com/Vvoidddd/dauntless-unbroken).
+<div class="ub-facts"><span><strong>1.4.4</strong> Game client</span><span><strong>Windows + Linux</strong> Launcher</span><span><strong>Fresh realm</strong> New progression</span><span><strong>Open source</strong> AGPL-3.0</span></div>
 
-We started out studying the final client, **2.1.1** ("Awakening"). What we learned from both builds
-is written up here.
+## Choose your path
 
-> **Disclaimer.** Dauntless Unbroken is an unofficial fan project. It is **not affiliated with,
-> endorsed by, or supported by Phoenix Labs or Epic Games**. "Dauntless" and related names are
-> trademarks of their owners. This site and the repository **contain no game files**: no executables,
-> no paks, no assets and no configuration from the game, and no links to downloads. To use anything
-> here you need **your own copy** of the Dauntless 1.4.4 client. There is no public server to join.
+<div class="ub-cards">
+  <a class="ub-card" href="https://mixutin.github.io/dauntless-unbroken/setup/"><span class="ub-step">01 / PLAY</span><h3>Get into the game</h3><p>Install the launcher, connect with a server invite and keep your account key safe.</p><span class="ub-card-link">Player setup →</span></a>
+  <a class="ub-card" href="https://mixutin.github.io/dauntless-unbroken/setup/windows-server.html"><span class="ub-step">02 / HOST</span><h3>Run your own realm</h3><p>Deploy the Windows server kit, configure access and operate the game services.</p><span class="ub-card-link">Server setup →</span></a>
+  <a class="ub-card" href="https://mixutin.github.io/dauntless-unbroken/reference/"><span class="ub-step">03 / UNDERSTAND</span><h3>Know what runs where</h3><p>Read the service architecture, configuration and account/progression reference.</p><span class="ub-card-link">Technical reference →</span></a>
+</div>
 
-[Set it up](https://mixutin.github.io/dauntless-unbroken/setup/)
-[Read the findings](https://mixutin.github.io/dauntless-unbroken/findings/)
-[Reference](https://mixutin.github.io/dauntless-unbroken/reference/)
-[Hosting partner · EU Gamehost](https://mixutin.github.io/dauntless-unbroken/setup/hosting-partner.html)
-[Join Discord](https://discord.gg/ZJRprHzsgu)
-[Optional Patreon support](https://patreon.com/DauntlessUnbroken)
-[Roadmap](https://mixutin.github.io/dauntless-unbroken/roadmap.html)
+## What is included
 
-## Patreons
+| Area | Features |
+|:--|:--|
+| **Launcher** | Purple interface, verified downloads, resume support, updates, settings and isolated offline saves. |
+| **Accounts** | Personal account keys, saved progression, inventory, loadouts, friends and parties. |
+| **The shop** | Weekly category rotation, Rams purchases and the once-per-account **Void** creator reward. |
+| **Crafting** | Granny Strega crafting and Rams purchases, with normal progression requirements. |
+| **Hunt hosting** | On-demand servers, fair waiting queues, CPU/RAM admission and empty-hunt cleanup. |
+| **Operations** | Moderation tools, health monitoring, a Discord key bot and automated build checks. |
 
-A huge thank-you to the people supporting Dauntless Unbroken on Patreon. Support is optional and never provides gameplay advantages.
+These are implemented features. Host availability, capacity and in-game verification are separate from a successful build. See the [roadmap](https://mixutin.github.io/dauntless-unbroken/roadmap.html) and [known issues](https://mixutin.github.io/dauntless-unbroken/setup/troubleshooting.html) for technical detail.
 
-- **nasagi** — thank you for becoming a Patreon supporter and helping support the project. ❤️
+## Before you start
 
----
+1. Use the **Unbroken launcher and invite together**. Its update feed and application data are separate from other realms.
+2. A fresh realm means **new accounts and progression**. Old realm saves are not imported.
+3. Keep your personal account key private. Offline play uses a separate local save.
+4. Server operators should read the [configuration reference](https://mixutin.github.io/dauntless-unbroken/reference/configuration.html) before changing ports, keys or capacity limits.
 
-## Current status
-
-As of 22 September 2026. Everything in this section is about the **1.4.4** client. The game itself
-has so far been played by one person, the owner, alone: first on the host PC, then on 22 September
-2026 over the internet on a server on a rented machine. A test with a second player is next.
-
-### What works
-
-| Feature | State | Notes |
-|---|---|---|
-| Log in with your own account | Works | Each player has an account on our server and logs in with a personal account key. **No Epic account is needed.** The 1.4.4 client has no Epic Online Services login; it predates that integration. It is launched in its exchange-code login mode. The injected DLL points the client's Epic-style account-service call at our metagame, which accepts the player's account key as the exchange code. |
-| Tutorial | Works | A new character is matchmade into the tutorial island. That island runs on a game server the deploy server starts on demand. |
-| Ramsgate | Works | A permanent Ramsgate server runs next to the backend. After the tutorial, and on every later login, the player goes straight there. |
-| Hunt servers | Works (solo) | The deploy server starts one game server per hunt. On our setup, one player has played the tutorial hunt, a normal hunt (a Lesser Boreus) and a pursuit on the host PC, and the new-player pursuit over the internet on the rented server, where three game servers ran at once. Undaunted's history reports 4-player hunts on the same client, but we have **not yet tested** hunts with more than one player. |
-| Saved inventory and loadouts | Works (solo); extra-slot UI test pending | Materials, Rams (most likely the `CURRENCY_NOTES` stack), crafted and granted gear, and character data (quest progress, tutorial state, flags, appearance) are stored in SQLite. The backend stores unlocks, the active selection and independent data for all six client loadout slots; only slot 0 has been exercised in the game UI. Hunt loot is saved. The data survives a client restart and a full server restart. |
-| Slayer level, mastery and the Hunt Pass | Works (solo), on by default | Real progression: Slayer level, weapon and behemoth mastery and the Hunt Pass start from the beginning (Slayer level 1) and are saved. Every account owns the Elite Hunt Pass, and rank rewards are granted once. Slayer level, weapon mastery and the Hunt Pass were tested in game on a throwaway account, including a full restart. On the rented server on 22 September 2026 the owner's new account reached Slayer level 3 and gained weapon mastery and behemoth mastery (rank 2, the first time behemoth mastery was seen in game), and the game server confirmed the rank rewards. `PROGRESSION_MODE=stub` brings back upstream's fixed level 50. |
-| A server on a rented machine | Running | The [Windows server kit](https://mixutin.github.io/dauntless-unbroken/setup/windows-server.html) was deployed to a rented Windows Server 2019 VPS in public mode on 21–22 September 2026. Checked there: the stack starts at boot as the kit's service account, Ramsgate runs and sends heartbeats, the gateway answers from the internet with the pinned certificate, and the hourly backup runs. Deploying to a real server found three problems the sandbox tests could not, all fixed in the kit: a 48-character limit on the service account's description, a Windows image that refuses password-less scheduled tasks ("S4U") for accounts that are not administrators, and a provider image that kept Windows Firewall off through policy values. In the first real test (22 September 2026) the tutorial island and the Training Dojo were started on demand, three game servers ran at once, and the UDP allowlist opened the game ports for the player and closed them after they left. Several save-version conflicts were refused as designed (older or duplicate full-snapshot saves), and the newest save was kept. |
-| Friend launcher | Released | The first release, 0.1.0, was published on [GitHub Releases](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest) by CI, with `SHA256SUMS.txt` and a build provenance attestation. Installed launchers update themselves. The owner downloaded 0.1.0 from there, registered with an invite on the rented server and downloaded the game (about 11 GB) through the gateway. Version 0.1.1, published by CI the same night, stopped turning off the game's automatic exposure, which had made Ramsgate and night scenes far too dark; with 0.1.1 Ramsgate looks normal, and the dark pre-hunt airship is back ([details](https://mixutin.github.io/dauntless-unbroken/setup/troubleshooting.html#airship-dark-windows-blown-out)). It is not code-signed yet: on the owner's PC SmartScreen blocked the installer outright, and checking it against `SHA256SUMS.txt` and unblocking it worked ([how](https://mixutin.github.io/dauntless-unbroken/setup/friends.html)). |
-
-The measured cost on the host PC was about 1.1 GB of RAM and roughly 0.2 of a CPU core for the
-Ramsgate server, about 0.9 GB per hunt server, and 1.5 to 2.3 GB for the player's own client (the
-higher figure at Cinematic settings).
-
-### What does not work yet
-
-- **Playing together over the internet: works with two players.** On the rented server, friends
-  join with the launcher and an invite, without Tailscale. On 22 September 2026 the owner went that
-  way from the invite to the first hunt, and later that night two players saw each other in Ramsgate
-  and hunted together, after queueing the same hunt within a few seconds of each other.
-- **Parties, friends and guilds: built, waiting for a test with two players.** In the two-player
-  test on 22 September 2026 a party invite reached the other player's game but never showed, and
-  Add Friends did nothing. We traced both in the game's code: the server described the wrong player
-  when the game asked who sent the invite (`POST /accountinfo/public`), and answered the account
-  lookup (`POST /account/mapping`) in a shape the game does not read. Both are fixed, and guilds are
-  built too (create, invite, ranks, kick, leave, disband, stored in SQLite). Everything passes our
-  tests, which replay the game's own requests, and it has been running on our rented server since 22 September 2026, but nobody has tried it in the game yet. Players must
-  restart their game once after the update. You don't have to be friends to invite someone to a
-  party. Everyone still shows as offline: showing friends as online (presence over the chat
-  connection) is built since 23 September 2026 but off until chat itself is live and two players have
-  tried it (roadmap 3.10). **Slayer Links** (the My Links tab) are built and on, not yet tried in the
-  game. The details are on [Friends, parties and guilds](https://mixutin.github.io/dauntless-unbroken/findings/social.html).
-- **Text chat.** Built and tested without the game: Ramsgate, hunt, party and guild chat and whispers,
-  with usernames, in the metagame itself. It is off by default until two players have tried it on the
-  rented server. Use the [Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu) meanwhile. The details are on
-  [Text chat](https://mixutin.github.io/dauntless-unbroken/findings/chat.html).
-- **Bounties, cooldowns and escalation.** With real progression, bounties and cooldowns are stored
-  per account, but drafting and claiming a bounty in the game and cooldowns across a daily reset have
-  not been tried yet. Real Escalation saves are built (from Harmonic's 1.4.4 fork) but off by default,
-  because switching them on drops every player from the fake maximum to level 0; until then Escalation
-  progress does not carry over between sessions ([Escalation](https://mixutin.github.io/dauntless-unbroken/findings/escalation.html)).
-- **The store.** A free store (every offer costs nothing, from Harmonic's fork) is built but off until
-  the owner decides whether it stays free and it has been tried in the game
-  ([The in-game store](https://mixutin.github.io/dauntless-unbroken/findings/store.html)).
-- **The multiple-loadout UI test, the welcome message and mailbox, and seasonal events.** With real
-  progression, loadout slot unlocks are stored, but the extra slots have not been tried in the game
-  yet.
-
-The [roadmap](https://mixutin.github.io/dauntless-unbroken/roadmap.html) has the order we plan to work in, plus the bugs
-we have seen in real sessions. Some things cannot come back. Voice chat ran on Vivox, a paid
-third-party service, so use the [Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu) instead. Content released after November 2020 is not in the
-1.4.4 build.
-
----
-
-## Who this is for
-
-- **The owner and a handful of invited friends.** This is a small private group, not a public
-  service.
-- **People who own the 1.4.4 client and want to run the same thing for their own group.** The
-  [Setup](https://mixutin.github.io/dauntless-unbroken/setup/) section covers the host, the friends' side, and how to
-  check that your copy of the game is genuine and unmodified.
-- **Anyone curious how Dauntless's online side worked.** The
-  [Findings](https://mixutin.github.io/dauntless-unbroken/findings/) section records the backend contract, how
-  Undaunted's server-mode DLL works, and what we learned from the 2.1.1 client. We say which build
-  each fact comes from, and we mark anything unverified.
-- **Self-hosters and developers who need the exact facts.** The
-  [Reference](https://mixutin.github.io/dauntless-unbroken/reference/) section lists every setting, port, HTTP route, file
-  and script, with its default and who sets it, checked against the code.
-
----
-
-## How it fits together (1.4.4)
-
-| Part | What it is | Where it runs |
-|---|---|---|
-| Client | The unmodified Dauntless 1.4.4 executable plus two DLLs from Undaunted placed next to it: a `dxgi.dll` proxy that loads `DauntlessUnbroken.dll`, which redirects the client's backend calls to the metagame over plain HTTP | Each player's PC |
-| Metagame | Undaunted's TypeScript backend: accounts, characters, inventory, loadouts, matchmaking | Host PC, TCP 61000 |
-| Deploy server | Starts and supervises the game-server processes | Host PC, TCP 61001, loopback only (it has no authentication) |
-| Game servers | More copies of the same client executable, switched into server mode by the DLL: one permanent Ramsgate server, plus one per hunt | Host PC, UDP 8770 to 8777 |
-
-A server installed with the Windows server kit also runs a content server for the launcher's
-downloads and, in public mode, a TLS gateway as its only public port. Every part is described in the
-[Reference](https://mixutin.github.io/dauntless-unbroken/reference/) section.
-
-Our changes to Undaunted started small and practical. Both services now bind to loopback by
-default. A port clash is now a hard error, where it used to be a silent exit. Every request is
-logged. The Training Dojo starts only when it is needed. Progression is real by default, where
-upstream answered with a fixed template and saved nothing. Saves are safer: a repeated inventory
-transaction is applied once, and save history can be rolled back. Since then we have added
-usernames and invite codes, a permission check on every route, parties, a friends list and guilds on
-the server side, the content server, the public-mode gateway, a friend launcher built on Undaunted's, and
-the Windows server kit. The launcher, the in-game welcome text and the server's messages say
-Dauntless Unbroken; folders, the server DLL's file name, API routes and headers keep the Undaunted
-names for now. The
-[README](https://github.com/Vvoidddd/dauntless-unbroken/blob/main/README.md#changes-from-upstream)
-lists every change, and the [roadmap](https://mixutin.github.io/dauntless-unbroken/roadmap.html) what comes next.
-
----
-
-## How we got here
-
-We started with the final **2.1.1** client and wrote our own backend from scratch. That work
-established that the game talks to Phoenix Labs' own REST API on `steelyard.ca` hosts (not PlayFab,
-as earlier community notes assumed). It solved the whole 2.1.1 login chain. By injecting user
-config, it even got Ramsgate to render. It never got a controllable player in the city.
-
-**A correction.** We first concluded that multiplayer was impossible, because both retail builds
-(2.1.1 and 1.4.4) are client-only: `UWorld::Listen` is stubbed out and the net mode is forced to
-"client". That conclusion
-was **wrong**. Only the entry point is stripped. The network layer underneath (`UIpNetDriver::InitListen`
-and the server-side join and login handlers) is intact. An injected DLL can drive it, and that is
-exactly how Undaunted runs multiplayer Ramsgate and hunts on the 1.4.4 client. Once we understood
-that, we switched to 1.4.4 and forked Undaunted.
-
----
-
-## Credits
-
-This project stands on **Undaunted** by gwog (Gregory Morford) and its contributors. The server-mode
-DLL, the deploy server, the metagame and the launcher are theirs. The fork remains AGPL-3.0-only, and
-its full source is in [this site's repository](https://github.com/Vvoidddd/dauntless-unbroken). See
-[Credits and license](https://mixutin.github.io/dauntless-unbroken/legal.html) for the full credits, what the AGPL asks
-of anyone who hosts a modified version, and the notes on trademarks and game files.
+<div class="ub-note"><strong>Independent community project.</strong> Dauntless Unbroken is not affiliated with Phoenix Labs or Epic Games. Game assets remain the property of their owners. This repository contains server and launcher source, not the retail game assets. <a href="https://mixutin.github.io/dauntless-unbroken/legal.html">Legal and license information →</a></div>
 
 ================================================================================
 URL: https://mixutin.github.io/dauntless-unbroken/setup/
@@ -792,7 +667,7 @@ server's `.env`. Game servers receive it as their first command-line argument.
 
 ## 10. Create the admin account
 
-Accounts are created through `POST /undaunted/api/Register`. The response contains the account key.
+Accounts are created through `POST /unbroken/api/Register`. The response contains the account key.
 **That key is the password.** The server keeps only its SHA-256, and there is no recovery tool yet,
 so if you lose the key you lose the account. Admin rights are a flag in the database.
 
@@ -802,7 +677,7 @@ We use Node's `fetch` with a timeout here, not `Invoke-RestMethod` (see
 
 ```powershell
 Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
-node -e "(async () => { const name = process.argv[1]; const base = 'http://127.0.0.1:61000/undaunted/api'; const r = await fetch(base + '/Register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Username: name }), signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error('Register returned HTTP ' + r.status); const { UUK } = await r.json(); require('fs').writeFileSync('C:/dr/data/owner.key', UUK); const info = await (await fetch(base + '/GetUserInfo', { headers: { 'x-dauntless-unbroken-user-api-key': UUK }, signal: AbortSignal.timeout(15000) })).json(); new (require('better-sqlite3'))('C:/dr/data/dauntless-unbroken.db').prepare('UPDATE users SET isAdmin = 1 WHERE userId = ?').run(info.UserId); console.log('created ' + name + ' as admin; key saved to C:/dr/data/owner.key (not shown)'); })().catch(e => { console.error(e.message); process.exit(1); })" YourName
+node -e "(async () => { const name = process.argv[1]; const base = 'http://127.0.0.1:61000/unbroken/api'; const r = await fetch(base + '/Register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Username: name }), signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error('Register returned HTTP ' + r.status); const { UUK } = await r.json(); require('fs').writeFileSync('C:/dr/data/owner.key', UUK); const info = await (await fetch(base + '/GetUserInfo', { headers: { 'x-dauntless-unbroken-user-api-key': UUK }, signal: AbortSignal.timeout(15000) })).json(); new (require('better-sqlite3'))('C:/dr/data/dauntless-unbroken.db').prepare('UPDATE users SET isAdmin = 1 WHERE userId = ?').run(info.UserId); console.log('created ' + name + ' as admin; key saved to C:/dr/data/owner.key (not shown)'); })().catch(e => { console.error(e.message); process.exit(1); })" YourName
 ```
 
 Notes:
@@ -1252,7 +1127,7 @@ host has shared that one PC with. [Run it for a group](https://mixutin.github.io
 ```powershell
 $Server = "100.x.y.z"   # the host's Tailscale address
 tailscale ping $Server
-Invoke-RestMethod "http://${Server}:61000/undaunted/api/RegistrationStatus"
+Invoke-RestMethod "http://${Server}:61000/unbroken/api/RegistrationStatus"
 ```
 
 `tailscale ping` should answer with a `pong`. If the reply says `via DERP(...)`, your traffic is going
@@ -1354,7 +1229,7 @@ $Invite   = "code-from-the-host"
 $dir = "$env:APPDATA\DauntlessUnbroken"
 if (Test-Path "$dir\account.key") { throw "You already have a key in $dir. Registering again would create a second account." }
 $body = @{ Username = $Username; InviteCode = $Invite } | ConvertTo-Json
-$r = Invoke-RestMethod -Method Post -Uri "http://${Server}:61000/undaunted/api/Register" -ContentType "application/json" -Body $body
+$r = Invoke-RestMethod -Method Post -Uri "http://${Server}:61000/unbroken/api/Register" -ContentType "application/json" -Body $body
 New-Item -ItemType Directory -Force $dir | Out-Null
 Set-Content -Path "$dir\account.key" -Value $r.UUK -NoNewline -Encoding ASCII
 "Registered. Key saved to $dir\account.key"
@@ -1375,7 +1250,7 @@ Check that the key works. This prints your user id, your username and whether yo
 
 ```powershell
 $key = (Get-Content "$env:APPDATA\DauntlessUnbroken\account.key" -Raw).Trim()
-Invoke-RestMethod "http://${Server}:61000/undaunted/api/GetUserInfo" -Headers @{ "x-dauntless-unbroken-user-api-key" = $key }
+Invoke-RestMethod "http://${Server}:61000/unbroken/api/GetUserInfo" -Headers @{ "x-dauntless-unbroken-user-api-key" = $key }
 ```
 
 Keep a copy of `account.key` somewhere safe, such as a password manager.
@@ -2200,7 +2075,7 @@ Port forwarding would put all of the following on the public internet:
   `exchange_code` to `/account/api/oauth/token`. The launcher and admin API send it in the
   `x-dauntless-unbroken-user-api-key` header. What comes back is a 24-hour RS256 bearer token that gives full
   access to that player's data.
-- `POST /undaunted/api/Register` needs no authentication, and nothing in the metagame limits request
+- `POST /unbroken/api/Register` needs no authentication, and nothing in the metagame limits request
   rates.
 - The deploy server has no authentication at all. It listens on loopback and answers 403 to callers
   on other machines, and those two checks are all that stop others from making your PC start game
@@ -2269,7 +2144,7 @@ New-NetFirewallRule -DisplayName "Dauntless Unbroken - game servers (Tailscale)"
   private networks (file sharing, for example) also apply to share recipients. Setting it to `Public`
   avoids that. We have not checked whether Tailscale resets the category on reconnect (unverified).
 - Test from a friend's PC with
-  `Invoke-RestMethod http://<host address>:61000/undaunted/api/RegistrationStatus`. The same request
+  `Invoke-RestMethod http://<host address>:61000/unbroken/api/RegistrationStatus`. The same request
   from another device on your home LAN should fail.
 
 ## Switch the addresses to Tailscale
@@ -2357,7 +2232,7 @@ Two `.env` settings in the metagame decide who can get in:
   Never use it with friends.
 - `REGISTRATION_MODE`:
 
-| Mode | `POST /undaunted/api/Register` |
+| Mode | `POST /unbroken/api/Register` |
 |:-----|:-------------------------------|
 | `NONE` | Always refused (400). |
 | `INVITECODE` | Needs a valid code. A wrong or used-up code gets 401. |
@@ -2383,13 +2258,13 @@ $M = "100.x.y.z:61000"    # wherever the metagame listens
 $h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 
 # new single-use code, made by the server (XXXX-XXXX-XXXX)
-$code = (Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/CreateInvite" -Headers $h `
+$code = (Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/CreateInvite" -Headers $h `
   -ContentType "application/json" -Body (@{ uses = 1 } | ConvertTo-Json) -TimeoutSec 10).code
 $code        # send this to one friend, privately
 
 # list, and revoke
-(Invoke-RestMethod -Uri "http://$M/undaunted/api/InviteCodes" -Headers $h -TimeoutSec 10).InviteCodes
-Invoke-RestMethod -Method Delete -Uri "http://$M/undaunted/api/InviteCode/$code" -Headers $h -TimeoutSec 10
+(Invoke-RestMethod -Uri "http://$M/unbroken/api/InviteCodes" -Headers $h -TimeoutSec 10).InviteCodes
+Invoke-RestMethod -Method Delete -Uri "http://$M/unbroken/api/InviteCode/$code" -Headers $h -TimeoutSec 10
 ```
 
 - `CreateInvite` makes three groups of four characters from Crockford's base32 alphabet (60 random
@@ -2412,7 +2287,7 @@ key, so keep it on the host.
 
 ## The admin API
 
-All routes live under `/undaunted/api` on the metagame port. "Admin" means the
+All routes live under `/unbroken/api` on the metagame port. "Admin" means the
 `x-dauntless-unbroken-user-api-key` header must belong to a user with `isAdmin`. A missing or unknown key gets
 401; a valid key that is not an admin gets 403. **An admin call that carries a proxy header gets 403**
 before the key is even checked, so admin calls work only directly against the metagame: on the host,
@@ -2480,16 +2355,16 @@ $h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key 
 $json = @{ ContentType = "application/json"; Headers = $h; TimeoutSec = 10 }
 
 # invite a friend to your party, send a friend request, invite to your guild
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/PartyInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/Friends" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/GuildInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/PartyInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/Friends" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/GuildInvite" @json -Body (@{ Username = "Friend" } | ConvertTo-Json)
 
 # as an admin, for another player: Friend2 invites Friend to Friend2's party
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/PartyInvite" @json -Body (@{ Username = "Friend"; From = "Friend2" } | ConvertTo-Json)
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/PartyInvite" @json -Body (@{ Username = "Friend"; From = "Friend2" } | ConvertTo-Json)
 
 # list the guilds, and remove one
-Invoke-RestMethod -Uri "http://$M/undaunted/api/Guilds" -Headers $h -TimeoutSec 10
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/DisbandGuild" @json -Body (@{ Guild = "SomeGuild" } | ConvertTo-Json)
+Invoke-RestMethod -Uri "http://$M/unbroken/api/Guilds" -Headers $h -TimeoutSec 10
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/DisbandGuild" @json -Body (@{ Guild = "SomeGuild" } | ConvertTo-Json)
 ```
 
 A refusal is a 4xx with `{ "error", "message" }`. `Invoke-RestMethod` throws on it; the message is in
@@ -2520,7 +2395,7 @@ Renaming does exist (`RenameUser`, see [Usernames](https://mixutin.github.io/dau
   `DauntlessUnbrokenMetagame` folder, so that `require` finds `better-sqlite3`:
 
   ```js
-  // node rekey.js <UserId>   (take the UserId from GET /undaunted/api/GetAllUsers)
+  // node rekey.js <UserId>   (take the UserId from GET /unbroken/api/GetAllUsers)
   const crypto = require("crypto");
   const fs = require("fs");
   const Database = require("better-sqlite3");
@@ -2589,10 +2464,10 @@ On a hand-built host, run it from your `DauntlessUnbrokenMetagame` folder with y
   account (there is no unique index), and before the invite code is used up, so a rejected name does
   not burn a code.
 - Accounts made before these rules keep their names, even ones that break them.
-- `GET /undaunted/api/UsernameAvailable?Username=<name>` checks a name without registering. The
+- `GET /unbroken/api/UsernameAvailable?Username=<name>` checks a name without registering. The
   public gateway does not pass it, so it works only on the host or over the tailnet.
 - On a player's first login the metagame creates their character and names it after the username.
-  The admin route `POST /undaunted/api/RenameUser` therefore renames the account and its characters
+  The admin route `POST /unbroken/api/RenameUser` therefore renames the account and its characters
   together. The player sees the new name after logging in again. Whether other players' nameplates
   update without a relog is unverified.
 - There is no rename inside the game: `/account/api/public/account` reports
@@ -2607,7 +2482,7 @@ To rename, with `$M` and `$h` set as in [Making invite codes](https://mixutin.gi
 
 ```powershell
 $body = @{ Username = "OldName"; NewUsername = "New_Name" } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/RenameUser" -Headers $h `
+Invoke-RestMethod -Method Post -Uri "http://$M/unbroken/api/RenameUser" -Headers $h `
   -ContentType "application/json" -Body $body -TimeoutSec 10
 ```
 
@@ -2876,7 +2751,7 @@ avoids this.
 ## Invoke-RestMethod hangs
 
 **Symptom.** In Windows PowerShell 5.1,
-`Invoke-RestMethod -Method Post -Uri http://127.0.0.1:60000/undaunted/api/Register ...` never
+`Invoke-RestMethod -Method Post -Uri http://127.0.0.1:60000/unbroken/api/Register ...` never
 returned, and the metagame logged nothing.
 
 **What it actually was.** At first we put it down to a PowerShell 5.1 quirk and switched to Node.
@@ -3514,7 +3389,7 @@ relay on their own PC, and only that relay talks to the internet:
 |:-----|:------|:-------------|
 | 1 | Friend's PC | The game talks plain HTTP to `127.0.0.1:61000`: the launcher's relay. |
 | 2 | Internet | The relay forwards every request over **TLS** to the server's gateway (port 443 by default). It accepts only the one certificate whose SHA-256 fingerprint came in the invite, so nobody in between can read or change the traffic, and no domain name or certificate authority is needed. |
-| 3 | Server | The **gateway** is the only public TCP port. It passes requests to the metagame and the content server, which listen on `127.0.0.1` only. Of the `/undaunted/api` routes it passes only the four a launcher needs (register, key check, server status, registration mode), so every admin route stays on the server. It refuses anything carrying the game-server key, limits request sizes and rates, and never logs keys or tokens. |
+| 3 | Server | The **gateway** is the only public TCP port. It passes requests to the metagame and the content server, which listen on `127.0.0.1` only. Of the `/unbroken/api` routes it passes only the four a launcher needs (register, key check, server status, registration mode), so every admin route stays on the server. It refuses anything carrying the game-server key, limits request sizes and rates, and never logs keys or tokens. |
 | 4 | Server | When a player logs in (or their game sends its heartbeat), the gateway tells the **allowlist helper** that player's address. The helper keeps one Windows Firewall rule, "Dauntless Unbroken game ports (allowlist)", that opens UDP 8770-8777 to exactly those addresses. An address drops out 10 minutes after its last heartbeat. Everyone else is dropped by the firewall. |
 | 5 | Friend's PC | The game's UDP traffic goes straight to the server's public address, through that rule. |
 
@@ -4726,7 +4601,7 @@ needs Node 18 or newer and nothing else:
 // Optional: set METAGAME to the metagame's address if it does not listen on 127.0.0.1:61000.
 const fs = require("fs");
 const [keyFile, userId, mode] = process.argv.slice(2);
-const base = (process.env.METAGAME || "http://127.0.0.1:61000") + "/undaunted/api";
+const base = (process.env.METAGAME || "http://127.0.0.1:61000") + "/unbroken/api";
 const key = fs.readFileSync(keyFile, "utf8").trim();
 
 async function call(method, path, body) {
@@ -4810,7 +4685,7 @@ fake max ranks). Before you update a server that already has players, read the
 |:-----|:---------------|
 | [Configuration](https://mixutin.github.io/dauntless-unbroken/reference/configuration.html) | Every environment variable of the metagame, deploy server, gateway, allowlist helper and content server, plus the launcher's overrides: default, allowed values, what it does, who sets it, and which ones are secret. Also what the Windows server kit writes into its `.env` files, which switches are on by default, and the repository variable that pauses automatic launcher releases. |
 | [Ports and network](https://mixutin.github.io/dauntless-unbroken/reference/ports.html) | Every TCP and UDP port, which address each component binds in private and public mode, the path a request takes, what must never be exposed, and the firewall rules the kit creates. |
-| [HTTP API](https://mixutin.github.io/dauntless-unbroken/reference/api.html) | Every route of the metagame (the game routes and the management API under `/undaunted/api`), the deploy server, the content server, the gateway, the allowlist helper and the launcher's relay: who may call it, the headers it needs, and what it answers. |
+| [HTTP API](https://mixutin.github.io/dauntless-unbroken/reference/api.html) | Every route of the metagame (the game routes and the management API under `/unbroken/api`), the deploy server, the content server, the gateway, the allowlist helper and the launcher's relay: who may call it, the headers it needs, and what it answers. |
 | [Files and data](https://mixutin.github.io/dauntless-unbroken/reference/files.html) | The repository layout, a hand-built host's folders, the kit's install root, the SQLite database table by table, logs, backups, and the files on a friend's PC. Which files hold secrets. |
 | [Game settings](https://mixutin.github.io/dauntless-unbroken/reference/game-settings.html) | What changes on the 1.4.4 client and its game servers: the user `Engine.ini`, `Game.ini` and `GameUserSettings.ini` lines and who writes them, the client and game-server command lines, the two DLLs and the pinned build. |
 | [Scripts and parameters](https://mixutin.github.io/dauntless-unbroken/reference/scripts.html) | Every script of the Windows server kit, the friend kit and `tools/`, every npm script, and the CI workflows and their tools, with each parameter, its default and examples. |
@@ -4983,7 +4858,7 @@ it would do; any test machine) or `0` (change the firewall; the server).
 ## Metagame (`DauntlessUnbrokenMetagame/`)
 
 The backend the game talks to: logins, characters, inventory, progression, matchmaking and the
-`/undaunted/api` management routes. A worked `.env` for one PC is in
+`/unbroken/api` management routes. A worked `.env` for one PC is in
 [Host a server](https://mixutin.github.io/dauntless-unbroken/setup/host.html#metagame).
 
 **Required, no default:** `PORT`, `AUTH_MODE`, `AUTH_SIGNING_PRIVKEY_B64`, `AUTH_SIGNING_PUBKEY_B64`,
@@ -5027,7 +4902,7 @@ could not be loaded: <reason>`, exit code 1), before the database is opened.
 | `AUTH_MODE` | none. Unset or unknown: logins get no answer at all (the game waits), and every route that checks an account key answers 500. | `APIKEY` or `NONE` (exact) | How logins and account keys are checked. `APIKEY`: the game's login carries the player's account key (`UUK_...`), checked against stored SHA-256 hashes; the player gets a 24-hour session token. `NONE`: development only. Any id is accepted as a login and any account id as an API key, admin routes included. `NONE` is ignored when `NODE_ENV=production` (logins then get no answer), refused for anything that came through a proxy, and the metagame will not start with it while `GATEWAY_SECRET` is set. | You (`APIKEY`); kit: always `APIKEY` |
 | `AUTH_SIGNING_PRIVKEY_B64` | none. Unset: the metagame stops at startup. Empty: it starts, but every login fails. | base64 of a PEM RSA private key (PKCS#8) | **Secret: never share, never commit.** Signs the players' session tokens (RS256, valid 24 hours). Whoever has it can sign in as any account. Replacing the key pair only logs everyone out. Back it up encrypted. | You ([Host a server](https://mixutin.github.io/dauntless-unbroken/setup/host.html#metagame) shows how to generate it); kit: kept from the existing file or the backup, otherwise generated once |
 | `AUTH_SIGNING_PUBKEY_B64` | none. Unset: the metagame stops at startup. | base64 of the matching PEM public key (SPKI) | Checks every session token. Not secret, but it must belong to the private key, or every signed-in request fails. | Generated together with the private key |
-| `REGISTRATION_MODE` | none. Unset or unknown: account creation answers 500. | `NONE`, `INVITECODE` or `OPEN` (exact) | Who may create an account (`POST /undaunted/api/Register`). `NONE`: nobody (400). `INVITECODE`: only with a usable invite code (401 otherwise). `OPEN`: anyone who can reach the metagame, so use it only while the metagame listens on `127.0.0.1`. An admin can change it at runtime; that lasts until the next restart. | You (`OPEN` on one PC); kit: always `INVITECODE` (a hand-set value is overwritten on every installer run) |
+| `REGISTRATION_MODE` | none. Unset or unknown: account creation answers 500. | `NONE`, `INVITECODE` or `OPEN` (exact) | Who may create an account (`POST /unbroken/api/Register`). `NONE`: nobody (400). `INVITECODE`: only with a usable invite code (401 otherwise). `OPEN`: anyone who can reach the metagame, so use it only while the metagame listens on `127.0.0.1`. An admin can change it at runtime; that lasts until the next restart. | You (`OPEN` on one PC); kit: always `INVITECODE` (a hand-set value is overwritten on every installer run) |
 | `DB_FILENAME` | none. Unset or empty: a temporary database that is deleted when the metagame exits. | file path, forward slashes; relative to the working directory | The SQLite database: accounts, key hashes, saves, progression. Its folder must exist. Pending migrations run at every start, without a backup first, so back up before you update. The file is private: it holds usernames, saves, key hashes and, until the next start, keys queued for registration in plain text. `npm run db:generate` reads it from `.env` too. | You (`C:/dr/data/dauntless-unbroken.db` in the host guide); kit: always (`<root>/data/dauntless-unbroken.db`) |
 | `DB_WAL` | off | `1` or anything else | `1` switches SQLite to WAL journal mode. Off because the documented backups copy the database file alone and the kit stops the metagame hard, so the newest saves could sit only in the separate `-wal` file. With it off, a database left in WAL mode is switched back at startup. | Nobody by default; kit: kept |
 
@@ -5051,7 +4926,7 @@ could not be loaded: <reason>`, exit code 1), before the database is opened.
 ### Logging
 
 `BACKEND_HEALTH=1` enables optional aggregate request metrics and a 20 ms event-loop-delay monitor.
-Default off; restart the metagame after changing it. The owner-only `/undaunted/api/BackendHealth`
+Default off; restart the metagame after changing it. The owner-only `/unbroken/api/BackendHealth`
 route returns 404 when disabled. Memory is bounded to 60 one-second request buckets; no request
 URLs, bodies or account identifiers are retained. See `tools/DASHBOARD.md` for dashboard setup.
 
@@ -5066,7 +4941,7 @@ URLs, bodies or account identifiers are retained. See `tools/DASHBOARD.md` for d
 ### Server identity
 
 These values are **public**: anyone can read them from `GET /dauntless-status`, and registered
-players from `GET /undaunted/api/ServerStatus` (see [HTTP API](https://mixutin.github.io/dauntless-unbroken/reference/api.html)).
+players from `GET /unbroken/api/ServerStatus` (see [HTTP API](https://mixutin.github.io/dauntless-unbroken/reference/api.html)).
 
 | Name | Default | Values | What it does | Set by |
 |:-----|:--------|:-------|:-------------|:-------|
@@ -5354,7 +5229,7 @@ variable. The news file and the art pack folder themselves are re-read while it 
 | `PORT` | `61002` | 1-65535 | Listen port. | You; kit: always (61002, 62002 in sandbox, or `-ContentPort`) |
 | `BIND_HOST` | `127.0.0.1` | comma-separated IP addresses or `localhost` | Listen addresses, one listener each. Only loopback and Tailscale addresses (100.64.0.0/10, fd7a:115c:a1e0::/48) are accepted; anything else, `0.0.0.0` included, needs `CONTENT_ALLOW_ANY_BIND=1`. | You; kit: always (`127.0.0.1` in public mode, the Tailscale address in private mode) |
 | `CONTENT_ALLOW_ANY_BIND` | off | exactly `1` turns it on | Lifts the `BIND_HOST` check. Only if a firewall keeps the internet out: game files must never be reachable from the internet directly. | Nobody; never written by the kit |
-| `METAGAME_URL` | `http://127.0.0.1:61000` | `http://` or `https://` URL | Where account keys are checked (`GET /undaunted/api/GetUserInfo`). Every downloader's key is sent here, so it must point at your own metagame. | Kit: always (`http://<metagame address>:<port>`) |
+| `METAGAME_URL` | `http://127.0.0.1:61000` | `http://` or `https://` URL | Where account keys are checked (`GET /unbroken/api/GetUserInfo`). Every downloader's key is sent here, so it must point at your own metagame. | Kit: always (`http://<metagame address>:<port>`) |
 | `CONTENT_GAME_DIR` | none, required | folder path | The verified 1.4.4 install (the folder that contains `Archon\`), opened read-only. Only files listed in the manifest are ever served. `npm run verify -- --game-dir <folder>` overrides it for a check. | You; kit: always (`<root>/game/Dauntless`) |
 | `CONTENT_MANIFEST` | the built-in `data/dauntless-1.4.4.json` | file path | Another manifest, for tests with a stand-in game folder. | Kit: only in sandbox with `-ContentManifest`, removed otherwise |
 | `CONTENT_BRANDING_DIR` | unset: no art | folder path | The host's art pack for the launcher: images plus an optional `branding.json`. Share only art you have the rights to. | Kit: always (`<root>/data/branding`) |
@@ -5563,7 +5438,7 @@ host and port. Australia and Germany are advertised only with `AUS_REGION=1` and
 `GERMANY_REGION=1`. Probe sockets transmit no credentials or application data.
 Failed probes are ignored; if none works, the current backend region is retained.
 Configure a reachable listener before enabling automatic selection of another region.
-GET `/undaunted/api/HuntRegion` now includes `probes: [{region, host, port}]` alongside
+GET `/unbroken/api/HuntRegion` now includes `probes: [{region, host, port}]` alongside
 its existing fields. Region saving and the manually selected region API are unchanged.
 
 Install the rebuilt server DLL and updated launcher to activate native shutdown and
@@ -5797,7 +5672,7 @@ game ---------------------UDP-------------------> game server :8770-8777 (allowl
 | 1 | Launcher | Gateway `<PublicHost>:443`, TLS pinned to the invite's fingerprint | Registration, server status, news and art, game file downloads |
 | 2 | Game | Relay `127.0.0.1:61000`, plain HTTP on the player's PC | Every backend call, the login with the account key, the QoS ping, the chat WebSocket |
 | 3 | Relay | Gateway `<PublicHost>:443`, TLS pinned | Everything from step 2 |
-| 4 | Gateway | Metagame `127.0.0.1:61000` | Everything except `/content` and WebSockets. The gateway adds `X-Dauntless-Gateway` (the gateway secret) and `X-Forwarded-For` (the player's address). Only four `/undaunted/api` routes pass; see [HTTP API](https://mixutin.github.io/dauntless-unbroken/reference/api.html). |
+| 4 | Gateway | Metagame `127.0.0.1:61000` | Everything except `/content` and WebSockets. The gateway adds `X-Dauntless-Gateway` (the gateway secret) and `X-Forwarded-For` (the player's address). Only four `/unbroken/api` routes pass; see [HTTP API](https://mixutin.github.io/dauntless-unbroken/reference/api.html). |
 | 5 | Gateway | Content server `127.0.0.1:61002` | `/content` and `/content/*` |
 | 6 | Gateway | Chat `127.0.0.1:61099`, in the metagame | WebSocket upgrades: the game's chat (request target `//`). With chat off nothing listens there: 502. |
 | 7 | Gateway | Allowlist helper `127.0.0.1:61005`, `POST /allow` with the allowlist secret | The player's address, after a successful login (`POST /account/api/oauth/token`) or a successful heartbeat that carried a bearer token |
@@ -6016,7 +5891,7 @@ call it, what it does, and whether it can be reached through the gateway.
 
 The game routes follow the contract of the 1.4.4 client: the paths and reply shapes of the original
 backend (see [Backend contract](https://mixutin.github.io/dauntless-unbroken/findings/backend-contract.html)). They are not an API of their
-own. The management routes under `/undaunted/api` come from Undaunted and from this fork.
+own. The management routes under `/unbroken/api` come from Undaunted and from this fork.
 
 ## Services at a glance
 
@@ -6047,7 +5922,7 @@ server stays on loopback in both modes.
 | Game client (1.4.4), chat | [Chat](https://mixutin.github.io/dauntless-unbroken/reference/api.html#chat) over XMPP on a WebSocket, the same way through the relay and the gateway | The player token |
 | Game servers (Ramsgate, the Training Dojo, hunts) | The metagame, directly on the host | The game-server key, plus the player's token when acting for a player |
 | Metagame | The deploy server: matchmaking and the game-server list | Nothing (loopback only) |
-| Content server | The metagame's `GET /undaunted/api/GetUserInfo`, to check a downloader's key | The downloader's account key |
+| Content server | The metagame's `GET /unbroken/api/GetUserInfo`, to check a downloader's key | The downloader's account key |
 | Friend launcher | `Register`, `GetUserInfo`, `ServerStatus` (falls back to `/dauntless-status` on an older metagame), and the content routes | The player's account key |
 | Friend kit (private mode) | `Register` and `GetUserInfo` | The player's account key |
 | Host scripts (`New-Invite.ps1`, `Get-ServerStatus.ps1`, `Stack.ps1`, `Update-DauntlessUnbrokenServer.ps1`) | `ServerStatus`, `/dauntless-status`, `RegistrationStatus`, `GetUserInfo` and the invite routes; `Stack.ps1 status` also reads the allowlist helper's `GET /status` | The owner's admin key where a route takes a key, and the allowlist secret for `/status`, on the server itself |
@@ -6061,7 +5936,7 @@ The scripts are described on [Scripts and parameters](https://mixutin.github.io/
 
 | Credential | Sent as | Format | Held by | What it allows |
 |:-----------|:--------|:-------|:--------|:---------------|
-| Account key | Header `x-dauntless-unbroken-user-api-key`; also the login's `exchange_code` | `UUK_` followed by 48 lowercase hex characters | Each player (launcher key store, friend kit's `account.key`); the host for the owner account | Logging in as that player, the account's `/undaunted/api` routes, game-file downloads |
+| Account key | Header `x-dauntless-unbroken-user-api-key`; also the login's `exchange_code` | `UUK_` followed by 48 lowercase hex characters | Each player (launcher key store, friend kit's `account.key`); the host for the owner account | Logging in as that player, the account's `/unbroken/api` routes, game-file downloads |
 | Player token | Header `Authorization: Bearer <token>` | JWT signed with RS256, valid 24 hours | The game client after login; game servers forward it | Every game route, for that player's own account |
 | Admin key | Header `x-dauntless-unbroken-user-api-key` | An account key whose account has `isAdmin` = 1 | The server owner, on the host | The admin routes, including a token for any account |
 | Game-server key | Header `x-dauntless-unbroken-gameserver-apikey` | Any string; the kit and the guide make 48 hex characters | The deploy server, which hands it to every game server | Reading and writing any player's data, and the game-server-only writes |
@@ -6077,7 +5952,7 @@ lines. Where the kit and the guides keep each key is on
 
 ### Account keys
 
-- `POST /undaunted/api/Register` creates the account and returns its key once. The metagame stores
+- `POST /unbroken/api/Register` creates the account and returns its key once. The metagame stores
   only the key's SHA-256 (table `userapikeys`) and compares hashes in constant time, so a lost key
   cannot be recovered.
 - There is no route to reissue, revoke or delete a key.
@@ -6111,7 +5986,7 @@ What follows from this:
   already issued: it stays valid until it expires, up to 24 hours. The session-kill routes revoke
   nothing. A new signing key pair invalidates every token at once, and players simply log in again.
 - **Anyone with the private signing key can mint a token for any account.**
-- Admins can mint a token for any account with `POST /undaunted/api/GenerateJWTForUserId`.
+- Admins can mint a token for any account with `POST /unbroken/api/GenerateJWTForUserId`.
 - `AUTH_MODE=NONE` is for development only and is honoured only when `NODE_ENV` is not `production`.
   The `exchange_code` and the `x-dauntless-unbroken-user-api-key` value are then taken as the account id
   itself, so anyone can act as anyone. In this mode the metagame answers 403 to every request that
@@ -6204,7 +6079,7 @@ it, and everyone else gets upstream's fixed max ranks
 ## Metagame conventions
 
 - Paths are matched regardless of letter case, and a trailing slash is ignored, so
-  `/undaunted/api/register` reaches `Register`. `HEAD` works on every `GET` route.
+  `/unbroken/api/register` reaches `Register`. `HEAD` works on every `GET` route.
 - A method and path that match no route get an empty 404 and the log line `Unstubbed route <METHOD> <path>`.
 - Request bodies may be JSON (up to 50 MB) or form-encoded (up to Express's default of 100 kB).
   Through the gateway the limit is 128 KiB.
@@ -6595,10 +6470,10 @@ reward routes `PUT /slayerlink/links/rewards` and `GET /slayerlink/links/rewards
 
 ## Metagame: the management API
 
-All of these live under `/undaunted/api/` on the metagame; the paths below are relative to it.
+All of these live under `/unbroken/api/` on the metagame; the paths below are relative to it.
 **Through the gateway only four answer:**
 `POST Register` and `GET`/`HEAD` of `GetUserInfo`, `ServerStatus` and `RegistrationStatus`. Every other
-path under `/undaunted`, including `UsernameAvailable`, `PublicOnlineStats`, `PartyInvite`,
+path under `/unbroken`, including `UsernameAvailable`, `PublicOnlineStats`, `PartyInvite`,
 `Friends` and the guild routes, gets 403 from the gateway. Run the rest on the server itself (in public mode at
 `http://127.0.0.1:61000`), or in private mode from a machine that can reach the metagame.
 
@@ -6637,7 +6512,7 @@ Admin grants and revokes are recorded in the progression event log like the game
 
 ### Register
 
-`POST /undaunted/api/Register` with the body `{"Username": "...", "InviteCode": "..."}`:
+`POST /unbroken/api/Register` with the body `{"Username": "...", "InviteCode": "..."}`:
 
 - **Usernames** are trimmed, then must be 3 to 16 letters, digits or underscores
   (`^[A-Za-z0-9_]{3,16}$`) and unique regardless of case. Accounts made before these rules keep their
@@ -6678,7 +6553,7 @@ API refuse with a bare status code and no body.
 
 ### ServerStatus
 
-`GET /undaunted/api/ServerStatus` answers everyone, so a launcher that has not registered yet can still
+`GET /unbroken/api/ServerStatus` answers everyone, so a launcher that has not registered yet can still
 read the server's name and registration mode:
 
 ```json
@@ -6818,7 +6693,7 @@ the host's art pack and news. It only answers `GET` and `HEAD`, and there is no 
 
 - The public routes send `Access-Control-Allow-Origin: *`. Branding and news are empty unless the
   host sets `CONTENT_BRANDING_DIR` and `CONTENT_NEWS_FILE`.
-- **The key check.** The content server asks the metagame's `GET /undaunted/api/GetUserInfo` (at
+- **The key check.** The content server asks the metagame's `GET /unbroken/api/GetUserInfo` (at
   `METAGAME_URL`, default `http://127.0.0.1:61000`) who the key belongs to. It caches the answer by the
   key's SHA-256: accepted keys for `CONTENT_AUTH_CACHE_SECONDS` (300), refused keys for 30 seconds. It
   never stores or logs the key itself. A value that is not 1 to 256 printable characters without
@@ -6861,14 +6736,14 @@ There is no route to the deploy server or the allowlist helper.
 |:-------|:--------|:-----|
 | 400 | `bad_request` | The request target is not a plain path (`/...`), an unsupported upgrade, or a malformed request. |
 | 400 | `bad_path` | A backslash, whitespace or a control character in the path, a `.` or `..` segment, `%2f`, `%5c`, `%00` or `%2e`, or broken percent-encoding. |
-| 403 | `forbidden` | Any `x-dauntless-unbroken-gameserver-apikey` header. Any path under `/undaunted` except the four public ones (also for upgrades). |
+| 403 | `forbidden` | Any `x-dauntless-unbroken-gameserver-apikey` header. Any path under `/unbroken` except the four public ones (also for upgrades). |
 | 405 | `method_not_allowed` | Anything but `GET`, `HEAD`, `POST`, `PUT`, `DELETE`, `PATCH` and `OPTIONS`. |
 | 408, 431 | `request_timeout`, `headers_too_large` | Headers too slow or too large. |
 | 413 | `body_too_large` | A body over `GATEWAY_MAX_BODY_BYTES` (128 KiB). |
 | 429 | `rate_limited` | The address's rate bucket is empty; with `Retry-After`. |
 | 502, 504 | `bad_gateway`, `upstream_timeout` | The upstream is down or does not answer. |
 
-The `/undaunted` check runs on the path in lower case, percent-decoded, with repeated slashes folded
+The `/unbroken` check runs on the path in lower case, percent-decoded, with repeated slashes folded
 and trailing slashes dropped, so letter case or encoding cannot slip an admin route past it.
 
 **Rate limits.** Token buckets per IPv4 address, or per IPv6 /64. Refused requests count too.
@@ -6877,7 +6752,7 @@ and trailing slashes dropped, so letter case or encoding cannot slip an admin ro
 |:-------|:-------|------:|------------------:|:--------|
 | general | Everything not below | 300 | 180 | `GATEWAY_RATE_GENERAL` |
 | content | `/content` | 600 | 600 | `GATEWAY_RATE_CONTENT` |
-| register | `/undaunted/api/Register` | 5 | 0.2 | `GATEWAY_RATE_REGISTER` |
+| register | `/unbroken/api/Register` | 5 | 0.2 | `GATEWAY_RATE_REGISTER` |
 | token | `/account/api/oauth/token` | 10 | 1 | `GATEWAY_RATE_TOKEN` |
 | connect | New TCP connections | 200 | 300 | `GATEWAY_RATE_CONNECT` |
 
@@ -6933,7 +6808,7 @@ public-mode path, from the game to the relay, the gateway and the game ports.
 
 ### Owner backend health
 
-`GET /undaunted/api/BackendHealth` requires the direct administrator key; forwarded requests are
+`GET /unbroken/api/BackendHealth` requires the direct administrator key; forwarded requests are
 refused. Separate limit: 120 calls per minute per address. It returns 404 unless `BACKEND_HEALTH=1`.
 The no-store response includes uptime, RSS/heap MB, completed requests, 4xx/5xx errors, aborted
 responses, requests/second and approximate p50/p95 latency upper bounds over 60 second buckets.
@@ -6948,8 +6823,8 @@ Put a time limit on every call, so a wrong listener fails fast (see
 Anyone, on the server (or over Tailscale with its address):
 
 ```powershell
-Invoke-RestMethod -Uri http://127.0.0.1:61000/undaunted/api/RegistrationStatus -TimeoutSec 10
-Invoke-RestMethod -Uri http://127.0.0.1:61000/undaunted/api/ServerStatus -TimeoutSec 10
+Invoke-RestMethod -Uri http://127.0.0.1:61000/unbroken/api/RegistrationStatus -TimeoutSec 10
+Invoke-RestMethod -Uri http://127.0.0.1:61000/unbroken/api/ServerStatus -TimeoutSec 10
 ```
 
 Admin calls, on the server itself. The key is read from its file and never printed. The owner key is
@@ -6957,7 +6832,7 @@ Admin calls, on the server itself. The key is read from its file and never print
 `C:\DauntlessUnbroken\data\keys\owner.key` on a kit server:
 
 ```powershell
-$api = "http://127.0.0.1:61000/undaunted/api"
+$api = "http://127.0.0.1:61000/unbroken/api"
 $h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 
 (Invoke-RestMethod -Uri "$api/GetAllUsers" -Headers $h -TimeoutSec 10).Users
@@ -6978,8 +6853,8 @@ invite. On a hand-built host, `POST $api/CreateInvite` with the body `{"uses": 1
   checks, in registration order. Adding a route or changing its checks fails that test until the list
   is updated, which forces a decision about who may call it.
 - The gateway's tests read `DauntlessUnbrokenMetagame/src/routes/unbrokenapi.ts`, so every new
-  `/undaunted/api` route is automatically tested as blocked by the gateway. Only a route added to
-  `PUBLIC_UNDAUNTED_API` in `DauntlessUnbrokenGateway/src/policy.ts` becomes reachable from the internet.
+  `/unbroken/api` route is automatically tested as blocked by the gateway. Only a route added to
+  `PUBLIC_UNBROKEN_API` in `DauntlessUnbrokenGateway/src/policy.ts` becomes reachable from the internet.
 - A new game route is reachable through the gateway as soon as it exists. Give it an access check.
 
 [Developer guide](https://mixutin.github.io/dauntless-unbroken/reference/development.html) covers building and running the tests.
@@ -7033,7 +6908,7 @@ them are named `dauntless-unbroken-*` (for example `dauntless-unbroken-metagame`
 
 | Folder | What it holds | Build output (git-ignored) |
 |:-------|:--------------|:---------------------------|
-| `DauntlessUnbrokenMetagame/` | The backend the game talks to (TypeScript, Express): accounts, saves, progression, matchmaking, parties, friends, guilds, the `/undaunted/api` admin API and the game's text chat (`src/realtime/`, an XMPP listener in the same process, on when `CHAT=1`). `src/db/schema.ts` defines the database, `src/drizzle/` holds its migrations, `src/vendor/` the game's `progression_config.json`, the generated `hunt_titles.json`, and the data from Harmonic's 1.4.4 fork: `escalation/seasons.json` (the Escalation season registry), `store_catalog.json` (the free store's offers) and `store_item_kinds.json` (how each store item is granted). `test/data/store_art_skus.json` lists the store SKU ids with a 2:1 tile image, for a test. The build copies `src/vendor/` to `dist/vendor/`. `scripts/` has `write-build-info.js` and `make-hunt-titles.js`. | `dist/` (with `dist/build-info.json`), `build/` (tests), `node_modules/` |
+| `DauntlessUnbrokenMetagame/` | The backend the game talks to (TypeScript, Express): accounts, saves, progression, matchmaking, parties, friends, guilds, the `/unbroken/api` admin API and the game's text chat (`src/realtime/`, an XMPP listener in the same process, on when `CHAT=1`). `src/db/schema.ts` defines the database, `src/drizzle/` holds its migrations, `src/vendor/` the game's `progression_config.json`, the generated `hunt_titles.json`, and the data from Harmonic's 1.4.4 fork: `escalation/seasons.json` (the Escalation season registry), `store_catalog.json` (the free store's offers) and `store_item_kinds.json` (how each store item is granted). `test/data/store_art_skus.json` lists the store SKU ids with a 2:1 tile image, for a test. The build copies `src/vendor/` to `dist/vendor/`. `scripts/` has `write-build-info.js` and `make-hunt-titles.js`. | `dist/` (with `dist/build-info.json`), `build/` (tests), `node_modules/` |
 | `DauntlessUnbrokenDeployServer/` | Starts and supervises the game-server processes (Ramsgate, the Training Dojo, hunts). `src/vendor/` holds the hunt tables. | `dist/`, `build/` |
 | `DauntlessUnbrokenGateway/` | Public mode only: the TLS gateway (`dist/server.js`) and the allowlist helper (`dist/allowlist/server.js`). `tools/make-cert.js` makes the gateway certificate. | `dist/`, `build/` |
 | `DauntlessUnbrokenContent/` | The content server: game files, news and the art pack for registered launchers. `data/dauntless-1.4.4.json` is the game manifest (410 files) that the launcher also compiles in. | `dist/`, `build/` |
@@ -7382,7 +7257,7 @@ These are **lost when the metagame restarts**:
   guild's invite, and the party invite limits (20 per sender in 10 minutes, the 2-minute pause after a
   decline);
 - who is online and where (a player counts as online for 90 seconds after their game's last heartbeat);
-- a registration mode changed through `POST /undaunted/api/RegistrationStatus`: after a restart the
+- a registration mode changed through `POST /unbroken/api/RegistrationStatus`: after a restart the
   `REGISTRATION_MODE` from the settings file applies again;
 - short caches (the server status, the build info).
 
@@ -8711,7 +8586,7 @@ C:\DauntlessUnbroken\bin\New-Invite.ps1 -Revoke ABCD-EFGH-JKLM
 
 ### Get-ServerStatus.ps1
 
-Calls `GET /undaunted/api/ServerStatus` and prints the server's name and version, the players online
+Calls `GET /unbroken/api/ServerStatus` and prints the server's name and version, the players online
 and where they are, and every running world and hunt. The server shows the players and game servers
 to registered players only, so the request carries an account key. Without a key, or with one the
 server does not accept, the script says that the list is hidden instead of printing 0 players.
@@ -9391,7 +9266,7 @@ yourself and never commit them. After a pull, run `npm run build` again before `
 runs whatever is in `dist/`. `tsc` never deletes files from `dist/`, so delete the folder first when a
 source file was removed or renamed.
 
-The build info names the exact source that is running, in `GET /undaunted/api/ServerStatus` and
+The build info names the exact source that is running, in `GET /unbroken/api/ServerStatus` and
 `/dauntless-status` ([HTTP API](https://mixutin.github.io/dauntless-unbroken/reference/api.html)). A build from a folder with
 uncommitted changes under `DauntlessUnbrokenMetagame/` gets `-dirty` after the commit. `GIT_COMMIT` in the
 metagame's `.env` overrides the recorded commit. `npm run dev` runs the sources without a build, so it
@@ -9556,7 +9431,7 @@ and never reuse development ones on a real server.
 |---|---|---|
 | `AUTH_SIGNING_PRIVKEY_B64` (with `AUTH_SIGNING_PUBKEY_B64`) | The metagame. The private key signs every 24-hour session token, so anyone who has it can log in as any account. | The command below |
 | Game-server key | The metagame (it stores only a SHA-256), the deploy server (`METAGAME_API_KEY`) and every game server's command line | [Host step 9](https://mixutin.github.io/dauntless-unbroken/setup/host.html#metagame): queue it in the database, then restart the metagame |
-| Account keys (`UUK_...`) | The account's password: the login, and the `x-dauntless-unbroken-user-api-key` header | Returned once by `POST /undaunted/api/Register`; the server keeps only a SHA-256 ([host step 10](https://mixutin.github.io/dauntless-unbroken/setup/host.html#admin-account)) |
+| Account keys (`UUK_...`) | The account's password: the login, and the `x-dauntless-unbroken-user-api-key` header | Returned once by `POST /unbroken/api/Register`; the server keeps only a SHA-256 ([host step 10](https://mixutin.github.io/dauntless-unbroken/setup/host.html#admin-account)) |
 | `GATEWAY_SECRET` | The metagame and the gateway, the same value in both: 32 to 256 printable characters without spaces | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `ALLOWLIST_SECRET` | The gateway and the allowlist helper, the same value in both. Use a separate value, not the gateway secret. | The same command |
 | Gateway TLS key (`gateway-key.pem`) | The gateway | `make-cert`, [below](https://mixutin.github.io/dauntless-unbroken/reference/development.html#public-mode-locally). Keep it outside the repository. |
@@ -9850,7 +9725,7 @@ Paths in each table are relative to the folder named above it.
 | Database | `db.ts`, `db/schema.ts`, `drizzle/` | Migrations run at every start, in journal order; the applied ones are recorded in the `__drizzle_migrations` table. `DB_WAL` is applied in `db.ts`. |
 | Where a request came from | `middleware/RequestOrigin.ts` | Public mode: the gateway secret, the player's address, `AUTH_MODE=NONE` refusals. |
 | Keys and login | `controllers/auth.ts`, `controllers/apikeys.ts`, `routes/eos.ts`, `routes/login.ts`, `middleware/Has*.ts` | `eos.ts` holds the token login. |
-| Accounts, invites, usernames | `controllers/accounts.ts`, `controllers/login.ts`, `routes/unbrokenapi.ts`, `controllers/unbrokenapi.ts` | The `/undaunted/api` routes ([HTTP API](https://mixutin.github.io/dauntless-unbroken/reference/api.html)). |
+| Accounts, invites, usernames | `controllers/accounts.ts`, `controllers/login.ts`, `routes/unbrokenapi.ts`, `controllers/unbrokenapi.ts` | The `/unbroken/api` routes ([HTTP API](https://mixutin.github.io/dauntless-unbroken/reference/api.html)). |
 | Characters and save history | `controllers/character.ts`, `controllers/savehistory.ts`, `routes/character.ts` | Rollbacks are admin routes in `routes/unbrokenapi.ts`. |
 | Progression | `controllers/progressionmode.ts` (real or stub, `PROGRESSION_MODE`), `controllers/realprogression.ts` (tracks, objectives, grants and their retry guard, rank confirmations and the optional confirm entitlements, the admin seed, the upgrade notice), `controllers/progressionconfig.ts` (the one loader of the progression config: the bundled `vendor/progression_config.json`, `PROGRESSION_CONFIG_DIR`, `ACTIVE_HUNT_PASS`), `controllers/progressionrank.ts` (rank math), `controllers/progressionevents.ts` (audit rows), `controllers/progression.ts` (encountered content and breadcrumbs), `routes/progression.ts`, `middleware/RealProgressionOnly.ts` | `routes/progression.ts` answers both the real and the stub shapes, and logs requests under `/progression` that no route answers. Tables in migration `0011_real_progression.sql`. |
 | Hunt Pass, entitlements, bounties, cooldowns | `routes/system.ts`, `controllers/entitlements.ts`, `controllers/bounties.ts`, `controllers/cooldowns.ts` | Part of real progression. |
@@ -15584,7 +15459,7 @@ remains pending. This supersedes older "off by default" chat notes below.
 >   - Launcher 0.1.0's `r.EyeAdaptationQuality=0` made Ramsgate and night scenes far too dark. Launcher 0.1.1, published by CI the same night, no longer writes it and removes the old line on the next launch; with 0.1.1 the owner confirmed Ramsgate looks normal. The dark pre-hunt airship is back: a known, short scene, and a proper fix is 4.17.
 >   - **Two players, later the same night:** two players saw each other in Ramsgate and hunted together over the internet, after queueing the same hunt within a few seconds (no party). **Not yet verified:** parties and friends in game (a party invite was dropped at `POST /accountinfo/public` and Add Friends at `POST /account/mapping`; both fixed and running on the rented server since 22 September, not yet tried in game, see the update above, 1.9 and 1.11). Text chat is not built (3.10), and friends' online status needs the chat server.
 > - **Parties and the friends list (1.9): the server side is built** and passes the integration harness with simulated players. It has not been tried with two real game clients yet. Party invites don't require being friends. Showing friends as online needs the chat server (3.10), which isn't built. *Update: the two causes that blocked them in game are fixed, and guilds are built (see the newest update above).*
-> - The live player list (`/undaunted/api/ServerStatus`) is shown to registered players only, and `/dauntless-status` no longer carries a player count.
+> - The live player list (`/unbroken/api/ServerStatus`) is shown to registered players only, and `/dauntless-status` no longer carries a player count.
 > - Rebrand, part 1: the launcher, the in-game welcome text and the server's messages say Dauntless Unbroken, and the credits name Undaunted. Folders, the server DLL's file name (`DauntlessUnbroken.dll`), API routes and headers keep the Undaunted names for now (4.15).
 > - New items: performance logging and capacity measurement (4.12), more game-server ports (4.13), PostgreSQL before any public release (4.14), rebrand part 2 (4.15), a code-signed launcher (4.16) and a proper fix for the dark pre-hunt airship (4.17).
 
@@ -16322,7 +16197,7 @@ Before starting M2, 0.1 must be running and 0.4 must be done.
 - [ ] **4.15 Rebrand, part 2** (M) — *Added 2026-09-22. After the first friends test. Part 1 is done: the launcher, the in-game welcome text and the server's messages say Dauntless Unbroken.*
   - **What:** rename what still says Undaunted:
     - the folder names (`DauntlessUnbrokenMetagame/` and the others)
-    - the `/undaunted/api` routes and the `x-dauntless-unbroken-*` headers, keeping the old names as aliases so older launchers and servers keep working
+    - the `/unbroken/api` routes and the `x-dauntless-unbroken-*` headers, keeping the old names as aliases so older launchers and servers keep working
     - the Undaunted names in environment settings and data files (for example the database file `dauntless-unbroken.db`)
     - the JWT issuer and audience (`dauntless-unbroken-metagame`)
     - the server kit's install layout

@@ -35,7 +35,7 @@ $Win64 = Join-Path $Game "Archon\Binaries\Win64"
 $Pinned = @{
   "Dauntless-Win64-Shipping.exe" = "D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4"
   "dxgi.dll"                     = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
-  "DauntlessUnbroken.dll"  = "21df88216d012b10b37ee054ebd446d20c70f3ba341f53e6392053559e0db47c"
+  "DauntlessUnbroken.dll"  = "6ce7e0ea3eff8c6841ea81c67a0eb177d84223af844f15c6679ef0827143be8d"
 }
 foreach ($f in $Pinned.Keys) {
   $p = Join-Path $Win64 $f

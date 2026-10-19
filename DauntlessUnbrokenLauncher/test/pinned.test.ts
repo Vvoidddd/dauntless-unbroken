@@ -137,7 +137,7 @@ test("ServerStatus: an older server (404) is recognised through /dauntless-statu
     const r = await fetchServerStatus({ host: "127.0.0.1", port: LEGACY_PORT, pin: null }, { key: KEY });
     assert.deepEqual(r, { kind: "unsupported" });
     assert.deepEqual(seen, [
-      { url: "/undaunted/api/ServerStatus", key: KEY },
+      { url: "/unbroken/api/ServerStatus", key: KEY },
       { url: "/dauntless-status", key: undefined },
     ]);
   } finally {

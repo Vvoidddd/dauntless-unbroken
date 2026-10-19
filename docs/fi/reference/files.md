@@ -77,7 +77,7 @@ niiden npm-pakettien nimet ovat muotoa `dauntless-unbroken-*` (esimerkiksi `daun
 
 | Kansio | Mitä siinä on | Käännöstulos (gitin ohittama) |
 |:-------|:--------------|:------------------------------|
-| `DauntlessUnbrokenMetagame/` | Taustapalvelu, jonka kanssa peli keskustelee (TypeScript, Express): tilit, tallennukset, eteneminen, matchmaking, ryhmät, kaverit, killat, `/undaunted/api`-ylläpitorajapinta ja pelin tekstichat (`src/realtime/`, XMPP-kuuntelija samassa prosessissa, päällä kun `CHAT=1`). `src/db/schema.ts` määrittelee tietokannan, `src/drizzle/` sisältää sen migraatiot ja `src/vendor/` pelin `progression_config.json`-tiedoston, generoidun `hunt_titles.json`-tiedoston sekä Harmonicin 1.4.4-forkin datan: `escalation/seasons.json` (Escalationin kausiluettelo), `store_catalog.json` (ilmaisen kaupan tarjoukset) ja `store_item_kinds.json` (miten kukin kaupan tavara annetaan). `test/data/store_art_skus.json` luettelee testiä varten kaupan tarjoustunnukset, joiden ruutukuva on 2:1. Käännös kopioi kansion `src/vendor/` kansioon `dist/vendor/`. Kansiossa `scripts/` ovat `write-build-info.js` ja `make-hunt-titles.js`. | `dist/` (jossa `dist/build-info.json`), `build/` (testit), `node_modules/` |
+| `DauntlessUnbrokenMetagame/` | Taustapalvelu, jonka kanssa peli keskustelee (TypeScript, Express): tilit, tallennukset, eteneminen, matchmaking, ryhmät, kaverit, killat, `/unbroken/api`-ylläpitorajapinta ja pelin tekstichat (`src/realtime/`, XMPP-kuuntelija samassa prosessissa, päällä kun `CHAT=1`). `src/db/schema.ts` määrittelee tietokannan, `src/drizzle/` sisältää sen migraatiot ja `src/vendor/` pelin `progression_config.json`-tiedoston, generoidun `hunt_titles.json`-tiedoston sekä Harmonicin 1.4.4-forkin datan: `escalation/seasons.json` (Escalationin kausiluettelo), `store_catalog.json` (ilmaisen kaupan tarjoukset) ja `store_item_kinds.json` (miten kukin kaupan tavara annetaan). `test/data/store_art_skus.json` luettelee testiä varten kaupan tarjoustunnukset, joiden ruutukuva on 2:1. Käännös kopioi kansion `src/vendor/` kansioon `dist/vendor/`. Kansiossa `scripts/` ovat `write-build-info.js` ja `make-hunt-titles.js`. | `dist/` (jossa `dist/build-info.json`), `build/` (testit), `node_modules/` |
 | `DauntlessUnbrokenDeployServer/` | Käynnistää ja valvoo pelipalvelinprosesseja (Ramsgate, Training Dojo, metsästykset). `src/vendor/` sisältää metsästystaulukot. | `dist/`, `build/` |
 | `DauntlessUnbrokenGateway/` | Vain julkinen tila: TLS-yhdyskäytävä (`dist/server.js`) ja sallittujen listan apuri (`dist/allowlist/server.js`). `tools/make-cert.js` tekee yhdyskäytävän varmenteen. | `dist/`, `build/` |
 | `DauntlessUnbrokenContent/` | Sisältöpalvelin: pelitiedostot, uutiset ja kuvapaketti rekisteröityneille käynnistimille. `data/dauntless-1.4.4.json` on pelin tiedostoluettelo (manifest, 410 tiedostoa), joka käännetään myös käynnistimen sisään. | `dist/`, `build/` |
@@ -440,7 +440,7 @@ Nämä **katoavat, kun metagame käynnistyy uudelleen**:
   minuutissa, 2 minuutin tauko hylkäyksen jälkeen);
 - kuka on paikalla ja missä (pelaaja lasketaan paikalla olevaksi 90 sekunnin ajan pelinsä viimeisestä
   elonmerkistä);
-- reitin `POST /undaunted/api/RegistrationStatus` kautta muutettu rekisteröintitila: uudelleenkäynnistyksen
+- reitin `POST /unbroken/api/RegistrationStatus` kautta muutettu rekisteröintitila: uudelleenkäynnistyksen
   jälkeen asetustiedoston `REGISTRATION_MODE` on taas voimassa;
 - lyhytaikaiset välimuistit (palvelimen tila, käännöstiedot).
 

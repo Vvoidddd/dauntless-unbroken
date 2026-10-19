@@ -41,7 +41,7 @@ test('optional IP bans use backend observations, ignore submitted IPs, and fail 
   const key='test-ip-moderation-owner';const writes=[];let address='203.0.113.20';
   const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',fetcher:async(url,opts)=>{
     if(opts?.method==='POST'){writes.push(JSON.parse(opts.body));return {status:200,json:async()=>({})};}
-    if(url.pathname.startsWith('/undaunted/api/Moderation/'))return {status:200,json:async()=>({addresses:address?[{address}]:[]})};
+    if(url.pathname.startsWith('/unbroken/api/Moderation/'))return {status:200,json:async()=>({addresses:address?[{address}]:[]})};
     return {ok:true,json:async()=>({Users:[],players:[],instances:[],playersOnline:0})};
   }});
   try{
@@ -57,7 +57,7 @@ test('optional IP bans use backend observations, ignore submitted IPs, and fail 
 test('moderation history requires owner auth and bounded pagination',async()=>{
   const key='test-history-owner-key';let reads=0;
   const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',fetcher:async(url,opts)=>{
-    if(url.pathname==='/undaunted/api/ModerationLog'){reads++;assert.equal(opts.headers['x-dauntless-unbroken-user-api-key'],key);return {status:200,json:async()=>({rows:[],nextOffset:null})};}
+    if(url.pathname==='/unbroken/api/ModerationLog'){reads++;assert.equal(opts.headers['x-dauntless-unbroken-user-api-key'],key);return {status:200,json:async()=>({rows:[],nextOffset:null})};}
     return {ok:true,json:async()=>({Users:[],players:[],instances:[],playersOnline:0})};
   }});
   try {
@@ -72,7 +72,7 @@ test('moderation history requires owner auth and bounded pagination',async()=>{
 test('moderation writes require owner authentication and same origin and never retry',async()=>{
   const key='test-moderation-owner-key';let writes=0;
   const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',fetcher:async(url,opts)=>{
-    if(opts?.method==='POST'){writes++;assert.equal(url.pathname,'/undaunted/api/Moderation');const body=JSON.parse(opts.body);assert.equal(body.durationHours,168);assert.equal(body.address,null);return {status:200,json:async()=>({ban:{active:1},addresses:[]})};}
+    if(opts?.method==='POST'){writes++;assert.equal(url.pathname,'/unbroken/api/Moderation');const body=JSON.parse(opts.body);assert.equal(body.durationHours,168);assert.equal(body.address,null);return {status:200,json:async()=>({ban:{active:1},addresses:[]})};}
     return {ok:true,json:async()=>({Users:[],players:[],instances:[],playersOnline:0})};
   }});
   try{
@@ -110,7 +110,7 @@ test('dashboard isolates owner data and only polls read routes', async () => {
     assert.equal(data.sample.locations.hunt, 0);
     assert.equal(data.fleet.totals.hunts, 4);
     assert.equal(data.fleet.rows[0].capacity.pending, 1);
-    assert.deepEqual(routes.sort(), ['/gameservers', '/undaunted/api/BackendHealth', '/undaunted/api/DiscordKeyStats', '/undaunted/api/GetAllUsers', '/undaunted/api/ServerStatus']);
+    assert.deepEqual(routes.sort(), ['/gameservers', '/unbroken/api/BackendHealth', '/unbroken/api/DiscordKeyStats', '/unbroken/api/GetAllUsers', '/unbroken/api/ServerStatus']);
   } finally { await new Promise(resolve => server.close(resolve)); }
 });
 test('redacts credential lines and caps log line count', () => {
@@ -166,7 +166,7 @@ test('invites require owner authentication, same origin, bounded input and fixed
     assert.equal(link.searchParams.get('code'), 'TEST-ONLY-1234');
     assert.equal(result.uses, 2);
     assert.equal(writes.length, 1);
-    assert.equal(writes[0].url.pathname, '/undaunted/api/CreateInvite');
+    assert.equal(writes[0].url.pathname, '/unbroken/api/CreateInvite');
     assert.deepEqual(JSON.parse(writes[0].options.body), {uses: 2, name: 'Friends'});
     assert.equal(JSON.stringify(result).includes(key), false);
   } finally { await new Promise(resolve => server.close(resolve)); }
@@ -227,7 +227,7 @@ test('account proxy strips unexpected fields, validates paging, and preserves un
 test('account recovery requires owner authentication and is never cached',async()=>{
  const key='test-recovery-owner-key';let recovered=0;
  const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',fetcher:async url=>{
-   if(url.pathname.startsWith('/undaunted/api/AccountRecovery/')){recovered++;return {status:200,json:async()=>({accountId:'UID-test',key:'fixture-login-key'})};}
+   if(url.pathname.startsWith('/unbroken/api/AccountRecovery/')){recovered++;return {status:200,json:async()=>({accountId:'UID-test',key:'fixture-login-key'})};}
    return {ok:true,json:async()=>({Users:[],players:[],instances:[],playersOnline:0})};
  }});
  try {

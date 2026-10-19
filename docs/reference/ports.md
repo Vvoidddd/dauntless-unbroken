@@ -250,7 +250,7 @@ game ---------------------UDP-------------------> game server :8770-8777 (allowl
 | 1 | Launcher | Gateway `<PublicHost>:443`, TLS pinned to the invite's fingerprint | Registration, server status, news and art, game file downloads |
 | 2 | Game | Relay `127.0.0.1:61000`, plain HTTP on the player's PC | Every backend call, the login with the account key, the QoS ping, the chat WebSocket |
 | 3 | Relay | Gateway `<PublicHost>:443`, TLS pinned | Everything from step 2 |
-| 4 | Gateway | Metagame `127.0.0.1:61000` | Everything except `/content` and WebSockets. The gateway adds `X-Dauntless-Gateway` (the gateway secret) and `X-Forwarded-For` (the player's address). Only four `/undaunted/api` routes pass; see [HTTP API]({{ api_page.url | relative_url }}). |
+| 4 | Gateway | Metagame `127.0.0.1:61000` | Everything except `/content` and WebSockets. The gateway adds `X-Dauntless-Gateway` (the gateway secret) and `X-Forwarded-For` (the player's address). Only four `/unbroken/api` routes pass; see [HTTP API]({{ api_page.url | relative_url }}). |
 | 5 | Gateway | Content server `127.0.0.1:61002` | `/content` and `/content/*` |
 | 6 | Gateway | Chat `127.0.0.1:61099`, in the metagame | WebSocket upgrades: the game's chat (request target `//`). With chat off nothing listens there: 502. |
 | 7 | Gateway | Allowlist helper `127.0.0.1:61005`, `POST /allow` with the allowlist secret | The player's address, after a successful login (`POST /account/api/oauth/token`) or a successful heartbeat that carried a bearer token |

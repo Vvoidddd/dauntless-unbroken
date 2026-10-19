@@ -123,7 +123,7 @@ test("MetagameLookup maps the metagame's answers", async () => {
     const Seen: (string | undefined)[] = [];
     const Server = http.createServer((req, res) => {
         Seen.push(req.url);
-        if(req.url !== "/undaunted/api/GetUserInfo"){
+        if(req.url !== "/unbroken/api/GetUserInfo"){
             res.statusCode = 404;
             res.end();
             return;
@@ -152,7 +152,7 @@ test("MetagameLookup maps the metagame's answers", async () => {
         assert.equal((await Lookup(GOOD)).status, "unavailable");
         Mode = "500";
         assert.equal((await Lookup(GOOD)).status, "unavailable");
-        assert.ok(Seen.every((Url) => Url === "/undaunted/api/GetUserInfo"));
+        assert.ok(Seen.every((Url) => Url === "/unbroken/api/GetUserInfo"));
 
         const Nowhere = MetagameLookup("http://127.0.0.1:62019", 1000);
         assert.equal((await Nowhere(GOOD)).status, "unavailable");

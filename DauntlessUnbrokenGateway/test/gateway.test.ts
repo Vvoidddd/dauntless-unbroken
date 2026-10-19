@@ -121,7 +121,7 @@ describe("gateway over TLS", () => {
                 Res.end(Ok ? "20000" : "");
                 return true;
             }
-            if(Path === "/undaunted/api/devicesignals"){
+            if(Path === "/unbroken/api/devicesignals"){
                 const blocked=Req.headers['x-test-device-result']==='blocked';
                 Res.writeHead(blocked?403:404,{'content-type':'application/json'});
                 Res.end(JSON.stringify({error:blocked?'device_banned':'not_found'}));
@@ -154,9 +154,9 @@ describe("gateway over TLS", () => {
     });
 
     it("preserves legacy missing-device-route and genuine device-ban responses",async()=>{
-        const legacy=await HttpsRequest(P.gateway,'/undaunted/api/DeviceSignals',{method:'POST',body:'{}'});
+        const legacy=await HttpsRequest(P.gateway,'/unbroken/api/DeviceSignals',{method:'POST',body:'{}'});
         assert.equal(legacy.status,404);
-        const banned=await HttpsRequest(P.gateway,'/undaunted/api/DeviceSignals',{method:'POST',body:'{}',headers:{'x-test-device-result':'blocked'}});
+        const banned=await HttpsRequest(P.gateway,'/unbroken/api/DeviceSignals',{method:'POST',body:'{}',headers:{'x-test-device-result':'blocked'}});
         assert.equal(banned.status,403);
         assert.equal(banned.json().error,'device_banned');
     });
@@ -215,7 +215,7 @@ describe("gateway over TLS", () => {
         assert.equal(File.json().headers["x-dauntless-unbroken-user-api-key"], FAKE_KEY);
         assert.equal(File.json().headers["range"], "bytes=0-9");
 
-        for(const Path of ["/party/invites", "/entitlementsv2?accountId=UID-1&x=%20y", "/account127.0.0.1:61000", "/undaunted/api/ServerStatus", "/QoS"]){
+        for(const Path of ["/party/invites", "/entitlementsv2?accountId=UID-1&x=%20y", "/account127.0.0.1:61000", "/unbroken/api/ServerStatus", "/QoS"]){
             const Reply = await HttpsRequest(P.gateway, Path);
             assert.equal(Reply.status, 200, Path);
             assert.equal(Reply.json().upstream, "metagame", Path);
@@ -238,7 +238,7 @@ describe("gateway over TLS", () => {
     });
 
     it("overwrites X-Forwarded-For with the real peer and adds the gateway secret, whatever the client claims", async () => {
-        for(const [Local, Path] of [["127.0.0.1", "/party"], ["127.0.0.2", "/content/v1/news"], ["127.0.0.3", "/undaunted/api/GetUserInfo"]] as const){
+        for(const [Local, Path] of [["127.0.0.1", "/party"], ["127.0.0.2", "/content/v1/news"], ["127.0.0.3", "/unbroken/api/GetUserInfo"]] as const){
             const Reply = await HttpsRequest(P.gateway, Path, {
                 localAddress: Local,
                 headers: {
@@ -265,7 +265,7 @@ describe("gateway over TLS", () => {
     it("answers 403 to any request carrying the game-server key header, and the upstream never sees it", async () => {
         const MetaBefore = Meta.seen.length;
         const ContentBefore = Content.seen.length;
-        for(const [Method, Path] of [["POST", "/heartbeat"], ["POST", "/progression/UID-1"], ["PUT", "/cooldown/batch/UID-1"], ["GET", "/content/v1/manifest"], ["POST", "/undaunted/api/Register"], ["GET", "/party/invites"]]){
+        for(const [Method, Path] of [["POST", "/heartbeat"], ["POST", "/progression/UID-1"], ["PUT", "/cooldown/batch/UID-1"], ["GET", "/content/v1/manifest"], ["POST", "/unbroken/api/Register"], ["GET", "/party/invites"]]){
             const Reply = await HttpsRequest(P.gateway, Path, { method: Method, headers: { "x-dauntless-unbroken-gameserver-apikey": "0123456789abcdef0123456789abcdef0123456789abcdef", authorization: "Bearer good-token" }, body: Method === "GET" ? undefined : "{}" });
             assert.equal(Reply.status, 403, `${Method} ${Path}`);
             assert.deepEqual(Reply.json(), { error: "forbidden" });
@@ -276,7 +276,7 @@ describe("gateway over TLS", () => {
         assert.equal(Content.seen.length, ContentBefore);
     });
 
-    it("blocks every /undaunted/api route of the metagame except Register, GetUserInfo, ServerStatus and RegistrationStatus", async () => {
+    it("blocks every /unbroken/api route of the metagame except Register, GetUserInfo, ServerStatus and RegistrationStatus", async () => {
         const Routes = DauntlessUnbrokenApiRoutes();
         let Blocked = 0;
         for(const Route of Routes){
@@ -297,13 +297,13 @@ describe("gateway over TLS", () => {
         assert.equal(Blocked, Routes.length - 4);
         assert.ok(Blocked >= 18, `blocked ${Blocked}`);
 
-        for(const Path of ["/UNDAUNTED/API/CREATEINVITE", "/undaunted/api/createinvite/", "/undaunted//api/CreateInvite", "/undaunted/api/%43reateInvite", "/undaunted/api/GrantEntitlement?UserId=x"]){
+        for(const Path of ["/UNBROKEN/API/CREATEINVITE", "/unbroken/api/createinvite/", "/unbroken//api/CreateInvite", "/unbroken/api/%43reateInvite", "/unbroken/api/GrantEntitlement?UserId=x"]){
             const Before = Meta.seen.length;
             const Reply = await HttpsRequest(P.gateway, Path, { method: "POST", body: "{}", headers: { "content-type": "application/json" } });
             assert.equal(Reply.status, 403, Path);
             assert.equal(Meta.seen.length, Before, Path);
         }
-        for(const Path of ["/undaunted/api/Register/../CreateInvite", "/undaunted%2Fapi/CreateInvite", "/undaunted/api\\CreateInvite"]){
+        for(const Path of ["/unbroken/api/Register/../CreateInvite", "/unbroken%2Fapi/CreateInvite", "/unbroken/api\\CreateInvite"]){
             const Reply = await HttpsRequest(P.gateway, Path, { method: "POST", body: "{}" });
             assert.equal(Reply.status, 400, Path);
         }
@@ -348,7 +348,7 @@ describe("gateway over TLS", () => {
         const Start = Log.lines.length;
         await HttpsRequest(P.gateway, `/account/api/oauth/sessions/kill/${FAKE_JWT}`, { method: "DELETE", headers: { authorization: `Bearer ${FAKE_JWT}`, "x-dauntless-unbroken-user-api-key": FAKE_KEY } });
         await HttpsRequest(P.gateway, `/entitlementsv2?accountId=UID-1&token=${FAKE_JWT}`, { headers: { authorization: `Bearer ${FAKE_JWT}` } });
-        await HttpsRequest(P.gateway, "/undaunted/api/CreateInvite", { method: "POST", body: "{\"InviteCode\":\"SECRET-CODE-1234\"}", headers: { "x-dauntless-unbroken-user-api-key": FAKE_KEY } });
+        await HttpsRequest(P.gateway, "/unbroken/api/CreateInvite", { method: "POST", body: "{\"InviteCode\":\"SECRET-CODE-1234\"}", headers: { "x-dauntless-unbroken-user-api-key": FAKE_KEY } });
         const Lines = Log.lines.slice(Start).filter((Line) => Line.entry.msg === "request");
         assert.equal(Lines.length, 3);
         const Text = Log.lines.map((Line) => Line.raw).join("\n");
@@ -374,7 +374,7 @@ describe("gateway over TLS", () => {
         // A key that does not look like one (no UUK_ prefix, short enough to escape the long-token
         // pattern): it stays out of the log only because headers are never logged at all.
         const OddKey = "k3y-" + crypto.randomBytes(8).toString("hex");
-        const Cases: [string, string, string][] = [["GET", "/undaunted/api/ServerStatus", FAKE_KEY], ["GET", "/undaunted/api/serverstatus", OddKey], ["HEAD", "/undaunted/api/ServerStatus", FAKE_KEY]];
+        const Cases: [string, string, string][] = [["GET", "/unbroken/api/ServerStatus", FAKE_KEY], ["GET", "/unbroken/api/serverstatus", OddKey], ["HEAD", "/unbroken/api/ServerStatus", FAKE_KEY]];
         for(const [Method, Path, Key] of Cases){
             const Before = Meta.seen.length;
             const Reply = await HttpsRequest(P.gateway, Path, { method: Method, headers: { "X-dauntless-unbroken-User-Api-Key": Key } });
@@ -387,7 +387,7 @@ describe("gateway over TLS", () => {
             assert.equal(Seen.headers["x-forwarded-for"], "127.0.0.1");
         }
         // Without a key the metagame gets no key header (it answers the limited status)
-        const Anonymous = await HttpsRequest(P.gateway, "/undaunted/api/ServerStatus");
+        const Anonymous = await HttpsRequest(P.gateway, "/unbroken/api/ServerStatus");
         assert.equal(Anonymous.status, 200);
         assert.equal(Meta.seen[Meta.seen.length - 1].headers["x-dauntless-unbroken-user-api-key"], undefined);
 
@@ -458,7 +458,7 @@ describe("gateway over TLS", () => {
         const Before = Ws.seen.length;
         const WithKey = await Upgrade(P.gateway, "/xmpp", { "x-dauntless-unbroken-gameserver-apikey": "k" });
         assert.equal(WithKey.status, 403);
-        const Admin = await Upgrade(P.gateway, "/undaunted/api/ServerStatus");
+        const Admin = await Upgrade(P.gateway, "/unbroken/api/ServerStatus");
         assert.equal(Admin.status, 403);
         const Dots = await Upgrade(P.gateway, "/a/../xmpp");
         assert.equal(Dots.status, 400);

@@ -100,7 +100,7 @@ avoids this.
 ## Invoke-RestMethod hangs {#invoke-restmethod-hangs}
 
 **Symptom.** In Windows PowerShell 5.1,
-`Invoke-RestMethod -Method Post -Uri http://127.0.0.1:60000/undaunted/api/Register ...` never
+`Invoke-RestMethod -Method Post -Uri http://127.0.0.1:60000/unbroken/api/Register ...` never
 returned, and the metagame logged nothing.
 
 **What it actually was.** At first we put it down to a PowerShell 5.1 quirk and switched to Node.

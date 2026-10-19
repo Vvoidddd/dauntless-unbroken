@@ -40,9 +40,9 @@ test('Discord key statistics are owner-only and refuse proxied owner requests',a
         db.prepare('INSERT INTO users(userId,name,notes,isAdmin) VALUES(?,?,0,?)').run(`UID-${id}`,id,admin);
         db.prepare('INSERT INTO userapikeys(userId,keyHash) VALUES(?,?)').run(`UID-${id}`,createHash('sha256').update(`test-key-${id}`).digest('hex'));
     }
-    const app=express();app.use('/undaunted/api',unbrokenApiRouter);
+    const app=express();app.use('/unbroken/api',unbrokenApiRouter);
     const server=app.listen(0,'127.0.0.1');await new Promise<void>(resolve=>server.once('listening',resolve));
-    const url=`http://127.0.0.1:${(server.address() as any).port}/undaunted/api/DiscordKeyStats`;
+    const url=`http://127.0.0.1:${(server.address() as any).port}/unbroken/api/DiscordKeyStats`;
     try {
         assert.equal((await fetch(url)).status,401);
         assert.equal((await fetch(url,{headers:{'x-dauntless-unbroken-user-api-key':'test-key-player'}})).status,403);

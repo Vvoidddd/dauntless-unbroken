@@ -280,7 +280,7 @@ describe("the entry points as processes", () => {
         assert.deepEqual(Status.entries.map((Entry: any) => Entry.ip), ["127.0.0.1"]);
 
         // An admin route through the real process: refused.
-        const Admin = await HttpsRequest(P.gatewayProcess, "/undaunted/api/CreateInvite", { method: "POST", body: "{}", pin: Cert.fingerprint });
+        const Admin = await HttpsRequest(P.gatewayProcess, "/unbroken/api/CreateInvite", { method: "POST", body: "{}", pin: Cert.fingerprint });
         assert.equal(Admin.status, 403);
     });
 });

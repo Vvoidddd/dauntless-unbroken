@@ -159,7 +159,7 @@ it would do; any test machine) or `0` (change the firewall; the server).
 ## Metagame (`DauntlessUnbrokenMetagame/`) {#metagame}
 
 The backend the game talks to: logins, characters, inventory, progression, matchmaking and the
-`/undaunted/api` management routes. A worked `.env` for one PC is in
+`/unbroken/api` management routes. A worked `.env` for one PC is in
 [Host a server]({{ host_page.url | relative_url }}#metagame).
 
 **Required, no default:** `PORT`, `AUTH_MODE`, `AUTH_SIGNING_PRIVKEY_B64`, `AUTH_SIGNING_PUBKEY_B64`,
@@ -203,7 +203,7 @@ could not be loaded: <reason>`, exit code 1), before the database is opened.
 | `AUTH_MODE` | none. Unset or unknown: logins get no answer at all (the game waits), and every route that checks an account key answers 500. | `APIKEY` or `NONE` (exact) | How logins and account keys are checked. `APIKEY`: the game's login carries the player's account key (`UUK_...`), checked against stored SHA-256 hashes; the player gets a 24-hour session token. `NONE`: development only. Any id is accepted as a login and any account id as an API key, admin routes included. `NONE` is ignored when `NODE_ENV=production` (logins then get no answer), refused for anything that came through a proxy, and the metagame will not start with it while `GATEWAY_SECRET` is set. | You (`APIKEY`); kit: always `APIKEY` |
 | `AUTH_SIGNING_PRIVKEY_B64` | none. Unset: the metagame stops at startup. Empty: it starts, but every login fails. | base64 of a PEM RSA private key (PKCS#8) | **Secret: never share, never commit.** Signs the players' session tokens (RS256, valid 24 hours). Whoever has it can sign in as any account. Replacing the key pair only logs everyone out. Back it up encrypted. | You ([Host a server]({{ host_page.url | relative_url }}#metagame) shows how to generate it); kit: kept from the existing file or the backup, otherwise generated once |
 | `AUTH_SIGNING_PUBKEY_B64` | none. Unset: the metagame stops at startup. | base64 of the matching PEM public key (SPKI) | Checks every session token. Not secret, but it must belong to the private key, or every signed-in request fails. | Generated together with the private key |
-| `REGISTRATION_MODE` | none. Unset or unknown: account creation answers 500. | `NONE`, `INVITECODE` or `OPEN` (exact) | Who may create an account (`POST /undaunted/api/Register`). `NONE`: nobody (400). `INVITECODE`: only with a usable invite code (401 otherwise). `OPEN`: anyone who can reach the metagame, so use it only while the metagame listens on `127.0.0.1`. An admin can change it at runtime; that lasts until the next restart. | You (`OPEN` on one PC); kit: always `INVITECODE` (a hand-set value is overwritten on every installer run) |
+| `REGISTRATION_MODE` | none. Unset or unknown: account creation answers 500. | `NONE`, `INVITECODE` or `OPEN` (exact) | Who may create an account (`POST /unbroken/api/Register`). `NONE`: nobody (400). `INVITECODE`: only with a usable invite code (401 otherwise). `OPEN`: anyone who can reach the metagame, so use it only while the metagame listens on `127.0.0.1`. An admin can change it at runtime; that lasts until the next restart. | You (`OPEN` on one PC); kit: always `INVITECODE` (a hand-set value is overwritten on every installer run) |
 | `DB_FILENAME` | none. Unset or empty: a temporary database that is deleted when the metagame exits. | file path, forward slashes; relative to the working directory | The SQLite database: accounts, key hashes, saves, progression. Its folder must exist. Pending migrations run at every start, without a backup first, so back up before you update. The file is private: it holds usernames, saves, key hashes and, until the next start, keys queued for registration in plain text. `npm run db:generate` reads it from `.env` too. | You (`C:/dr/data/dauntless-unbroken.db` in the host guide); kit: always (`<root>/data/dauntless-unbroken.db`) |
 | `DB_WAL` | off | `1` or anything else | `1` switches SQLite to WAL journal mode. Off because the documented backups copy the database file alone and the kit stops the metagame hard, so the newest saves could sit only in the separate `-wal` file. With it off, a database left in WAL mode is switched back at startup. | Nobody by default; kit: kept |
 
@@ -227,7 +227,7 @@ could not be loaded: <reason>`, exit code 1), before the database is opened.
 ### Logging {#metagame-logging}
 
 `BACKEND_HEALTH=1` enables optional aggregate request metrics and a 20 ms event-loop-delay monitor.
-Default off; restart the metagame after changing it. The owner-only `/undaunted/api/BackendHealth`
+Default off; restart the metagame after changing it. The owner-only `/unbroken/api/BackendHealth`
 route returns 404 when disabled. Memory is bounded to 60 one-second request buckets; no request
 URLs, bodies or account identifiers are retained. See `tools/DASHBOARD.md` for dashboard setup.
 
@@ -242,7 +242,7 @@ URLs, bodies or account identifiers are retained. See `tools/DASHBOARD.md` for d
 ### Server identity {#metagame-identity}
 
 These values are **public**: anyone can read them from `GET /dauntless-status`, and registered
-players from `GET /undaunted/api/ServerStatus` (see [HTTP API]({{ api_page.url | relative_url }})).
+players from `GET /unbroken/api/ServerStatus` (see [HTTP API]({{ api_page.url | relative_url }})).
 
 | Name | Default | Values | What it does | Set by |
 |:-----|:--------|:-------|:-------------|:-------|
@@ -530,7 +530,7 @@ variable. The news file and the art pack folder themselves are re-read while it 
 | `PORT` | `61002` | 1-65535 | Listen port. | You; kit: always (61002, 62002 in sandbox, or `-ContentPort`) |
 | `BIND_HOST` | `127.0.0.1` | comma-separated IP addresses or `localhost` | Listen addresses, one listener each. Only loopback and Tailscale addresses (100.64.0.0/10, fd7a:115c:a1e0::/48) are accepted; anything else, `0.0.0.0` included, needs `CONTENT_ALLOW_ANY_BIND=1`. | You; kit: always (`127.0.0.1` in public mode, the Tailscale address in private mode) |
 | `CONTENT_ALLOW_ANY_BIND` | off | exactly `1` turns it on | Lifts the `BIND_HOST` check. Only if a firewall keeps the internet out: game files must never be reachable from the internet directly. | Nobody; never written by the kit |
-| `METAGAME_URL` | `http://127.0.0.1:61000` | `http://` or `https://` URL | Where account keys are checked (`GET /undaunted/api/GetUserInfo`). Every downloader's key is sent here, so it must point at your own metagame. | Kit: always (`http://<metagame address>:<port>`) |
+| `METAGAME_URL` | `http://127.0.0.1:61000` | `http://` or `https://` URL | Where account keys are checked (`GET /unbroken/api/GetUserInfo`). Every downloader's key is sent here, so it must point at your own metagame. | Kit: always (`http://<metagame address>:<port>`) |
 | `CONTENT_GAME_DIR` | none, required | folder path | The verified 1.4.4 install (the folder that contains `Archon\`), opened read-only. Only files listed in the manifest are ever served. `npm run verify -- --game-dir <folder>` overrides it for a check. | You; kit: always (`<root>/game/Dauntless`) |
 | `CONTENT_MANIFEST` | the built-in `data/dauntless-1.4.4.json` | file path | Another manifest, for tests with a stand-in game folder. | Kit: only in sandbox with `-ContentManifest`, removed otherwise |
 | `CONTENT_BRANDING_DIR` | unset: no art | folder path | The host's art pack for the launcher: images plus an optional `branding.json`. Share only art you have the rights to. | Kit: always (`<root>/data/branding`) |
@@ -740,7 +740,7 @@ host and port. Australia and Germany are advertised only with `AUS_REGION=1` and
 `GERMANY_REGION=1`. Probe sockets transmit no credentials or application data.
 Failed probes are ignored; if none works, the current backend region is retained.
 Configure a reachable listener before enabling automatic selection of another region.
-GET `/undaunted/api/HuntRegion` now includes `probes: [{region, host, port}]` alongside
+GET `/unbroken/api/HuntRegion` now includes `probes: [{region, host, port}]` alongside
 its existing fields. Region saving and the manually selected region API are unchanged.
 
 Install the rebuilt server DLL and updated launcher to activate native shutdown and

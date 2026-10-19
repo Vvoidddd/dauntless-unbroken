@@ -631,7 +631,7 @@ describe("10. GUILDS=0", () => {
     });
 });
 
-describe("11. host fallbacks (/undaunted/api)", () => {
+describe("11. host fallbacks (/unbroken/api)", () => {
     const Keys: Record<string, string> = {};
     const ADMIN = "UID-guild-admin";
 
@@ -647,52 +647,52 @@ describe("11. host fallbacks (/undaunted/api)", () => {
     });
 
     it("GuildInvite: the key's owner invites by name; an admin may name the inviter, directly only", async () => {
-        const ByKey = await Call("POST", "/undaunted/api/GuildInvite", { key: Keys[F], body: { Username: "delta" } });
+        const ByKey = await Call("POST", "/unbroken/api/GuildInvite", { key: Keys[F], body: { Username: "delta" } });
         assert.deepEqual([ByKey.status, ByKey.json], [200, { From: "Foxtrot", To: "Delta", Guild: "Foxes" }]);
         assert.deepEqual((await OwnInvites(D)).map((Entry) => [Entry.guildName, Entry.inviter]), [["Foxes", F]]);
 
-        const Again = await Call("POST", "/undaunted/api/GuildInvite", { key: Keys[F], body: { Username: "Delta" } });
+        const Again = await Call("POST", "/unbroken/api/GuildInvite", { key: Keys[F], body: { Username: "Delta" } });
         assert.equal(Again.status, 409);
         assert.equal(Again.json.error, "guild_refused");
         assert.match(Again.json.message, /^RedundantAdorableQuillshot: /);
 
-        const NoGuild = await Call("POST", "/undaunted/api/GuildInvite", { key: Keys[D], body: { Username: "Foxtrot" } });
+        const NoGuild = await Call("POST", "/unbroken/api/GuildInvite", { key: Keys[D], body: { Username: "Foxtrot" } });
         assert.deepEqual([NoGuild.status, NoGuild.json.error], [404, "guild_refused"], "D has no guild");
 
-        assert.equal((await Call("POST", "/undaunted/api/GuildInvite", { key: Keys[D], body: { Username: "Echo", From: "Foxtrot" } })).status, 403, "not an admin");
-        const ForF = await Call("POST", "/undaunted/api/GuildInvite", { key: Keys[ADMIN], body: { Username: "Echo", From: F } });
+        assert.equal((await Call("POST", "/unbroken/api/GuildInvite", { key: Keys[D], body: { Username: "Echo", From: "Foxtrot" } })).status, 403, "not an admin");
+        const ForF = await Call("POST", "/unbroken/api/GuildInvite", { key: Keys[ADMIN], body: { Username: "Echo", From: F } });
         assert.deepEqual([ForF.status, ForF.json], [200, { From: "Foxtrot", To: "Echo", Guild: "Foxes" }]);
-        assert.equal((await Call("POST", "/undaunted/api/GuildInvite", { key: Keys[ADMIN], body: { Username: "Echo", From: F }, headers: { "x-forwarded-for": "203.0.113.9" } })).status, 403, "admin through a proxy");
+        assert.equal((await Call("POST", "/unbroken/api/GuildInvite", { key: Keys[ADMIN], body: { Username: "Echo", From: F }, headers: { "x-forwarded-for": "203.0.113.9" } })).status, 403, "admin through a proxy");
 
-        assert.equal((await Call("POST", "/undaunted/api/GuildInvite", { key: Keys[F], body: { Username: "Nobody" } })).status, 404);
-        assert.equal((await Call("POST", "/undaunted/api/GuildInvite", { body: { Username: "Delta" } })).status, 401);
-        assert.deepEqual((await Call("POST", "/undaunted/api/GuildInvite", { key: Keys[F], raw: "{nope" })).json, { error: "bad_request", message: "The request body is not valid JSON." });
+        assert.equal((await Call("POST", "/unbroken/api/GuildInvite", { key: Keys[F], body: { Username: "Nobody" } })).status, 404);
+        assert.equal((await Call("POST", "/unbroken/api/GuildInvite", { body: { Username: "Delta" } })).status, 401);
+        assert.deepEqual((await Call("POST", "/unbroken/api/GuildInvite", { key: Keys[F], raw: "{nope" })).json, { error: "bad_request", message: "The request body is not valid JSON." });
     });
 
     it("Guilds and DisbandGuild: admin only; disband by name or id removes members and invites", async () => {
-        assert.equal((await Call("GET", "/undaunted/api/Guilds", { key: Keys[F] })).status, 403);
-        const List = await Call("GET", "/undaunted/api/Guilds", { key: Keys[ADMIN] });
+        assert.equal((await Call("GET", "/unbroken/api/Guilds", { key: Keys[F] })).status, 403);
+        const List = await Call("GET", "/unbroken/api/Guilds", { key: Keys[ADMIN] });
         assert.equal(List.status, 200);
         const Foxes = List.json.find((Entry: any) => Entry.name === "Foxes");
         assert.deepEqual(Foxes, { guildId: Foxes.guildId, name: "Foxes", nameplate: "FOX", leader: F, members: 1 });
 
-        assert.equal((await Call("POST", "/undaunted/api/DisbandGuild", { key: Keys[F], body: { Guild: "Foxes" } })).status, 403);
-        assert.deepEqual((await Call("POST", "/undaunted/api/DisbandGuild", { key: Keys[ADMIN], body: { Guild: "NoSuchGuild" } })).json.error, "not_found");
+        assert.equal((await Call("POST", "/unbroken/api/DisbandGuild", { key: Keys[F], body: { Guild: "Foxes" } })).status, 403);
+        assert.deepEqual((await Call("POST", "/unbroken/api/DisbandGuild", { key: Keys[ADMIN], body: { Guild: "NoSuchGuild" } })).json.error, "not_found");
 
-        const Done = await Call("POST", "/undaunted/api/DisbandGuild", { key: Keys[ADMIN], body: { Guild: "fOXES" } });
+        const Done = await Call("POST", "/unbroken/api/DisbandGuild", { key: Keys[ADMIN], body: { Guild: "fOXES" } });
         assert.deepEqual([Done.status, Done.json], [200, { Guild: "Foxes", Members: 1 }]);
         assert.equal((await GetGuild(F)).status, 204);
         assert.deepEqual(await OwnInvites(D), [], "its invites went with it");
 
-        const Echoes = (await Call("GET", "/undaunted/api/Guilds", { key: Keys[ADMIN] })).json.find((Entry: any) => Entry.name === "Echoes");
-        assert.deepEqual((await Call("POST", "/undaunted/api/DisbandGuild", { key: Keys[ADMIN], body: { Guild: Echoes.guildId } })).json, { Guild: "Echoes", Members: 1 });
+        const Echoes = (await Call("GET", "/unbroken/api/Guilds", { key: Keys[ADMIN] })).json.find((Entry: any) => Entry.name === "Echoes");
+        assert.deepEqual((await Call("POST", "/unbroken/api/DisbandGuild", { key: Keys[ADMIN], body: { Guild: Echoes.guildId } })).json, { Guild: "Echoes", Members: 1 });
     });
 
     it("GUILDS=0 turns them off too", async () => {
         process.env.GUILDS = "0";
 
         try{
-            for(const [Method, Path, Body] of [["POST", "/undaunted/api/GuildInvite", { Username: "Delta" }], ["POST", "/undaunted/api/DisbandGuild", { Guild: "x" }], ["GET", "/undaunted/api/Guilds", undefined]] as [string, string, unknown][]){
+            for(const [Method, Path, Body] of [["POST", "/unbroken/api/GuildInvite", { Username: "Delta" }], ["POST", "/unbroken/api/DisbandGuild", { Guild: "x" }], ["GET", "/unbroken/api/Guilds", undefined]] as [string, string, unknown][]){
                 const Reply = await Call(Method, Path, { key: Keys[ADMIN], body: Body });
                 assert.deepEqual([Reply.status, Reply.json.error], [404, "guilds_off"], Path);
             }

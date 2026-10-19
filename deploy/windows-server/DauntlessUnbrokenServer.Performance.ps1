@@ -185,7 +185,7 @@ function Read-DRPerfCounts($Paths, $Config, [string[]]$Components) {
         try { $k = Read-DRAccountKey $Paths.OwnerKey; if ($k) { $h = @{ 'x-dauntless-unbroken-user-api-key' = $k } } } catch {}
         $k = $null
         $bind = Get-DRConfigValue $Config 'BindAddress' '127.0.0.1'
-        $r = Invoke-DRHttp -Url ('http://{0}:{1}/undaunted/api/ServerStatus' -f $bind, (Get-DRPort $Config 'metagame')) -Headers $h -TimeoutSec 3
+        $r = Invoke-DRHttp -Url ('http://{0}:{1}/unbroken/api/ServerStatus' -f $bind, (Get-DRPort $Config 'metagame')) -Headers $h -TimeoutSec 3
         $h = $null
         # The limited answer (no key, or a key the server refused) says 0 players: that is not a count.
         if ($r.Status -eq 200 -and $r.Json -and $r.Json.limited -ne $true) {

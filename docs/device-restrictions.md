@@ -4,7 +4,7 @@ Updated Windows launchers report the SMBIOS system UUID and, when available, the
 
 These are spoofable client claims, not attestation or proof of cheating. Older/modified launchers and direct game clients can bypass the check. Never automatically ban from these identifiers, movement corrections, latency or falling. Shared PCs can match another account's restriction; moderators must review evidence and appeals.
 
-The account-key-authenticated `/undaunted/api/DeviceSignals` endpoint accepts only the two signal fields, limits reports to ten per account per minute, and stores only domain-separated HMAC-SHA256 values. Raw identifiers must never enter logs. Admin views expose short hash prefixes. Missing or generic identifiers do not create a shared matching bucket.
+The account-key-authenticated `/unbroken/api/DeviceSignals` endpoint accepts only the two signal fields, limits reports to ten per account per minute, and stores only domain-separated HMAC-SHA256 values. Raw identifiers must never enter logs. Admin views expose short hash prefixes. Missing or generic identifiers do not create a shared matching bucket.
 
 The dashboard's device checkbox is off by default. With a seven-day account suspension, it snapshots signals reported within the previous 24 hours. No recent observation means the entire ban request fails atomically; retry without device scope to apply an account-only suspension. Matching either claimed identifier blocks Play in updated launchers. Expiry and unban release the restriction; later reports cannot erase its snapshot. Device scope does not ban additional accounts automatically.
 

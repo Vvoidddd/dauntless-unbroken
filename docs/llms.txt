@@ -10,7 +10,7 @@
 
 ## Start here
 
-- [Home](https://mixutin.github.io/dauntless-unbroken/): Dauntless Unbroken is a private server revival of Dauntless: the genuine 1.4.4 client on a self-hosted fork of Undaunted. What works and how to set it up.
+- [Home](https://mixutin.github.io/dauntless-unbroken/): Play, host and maintain Dauntless Unbroken. Launcher setup, server guides and technical documentation.
 - [FAQ](https://mixutin.github.io/dauntless-unbroken/faq.html): Can you still play Dauntless? Is there a private server? Short answers about Dauntless Unbroken: versions, Epic accounts, joining, hosting, legality and Linux.
 
 ## Setup
@@ -65,7 +65,7 @@
 
 ## Suomeksi (the Finnish version of the site, in plain language)
 
-- [Dauntless Unbroken suomeksi](https://mixutin.github.io/dauntless-unbroken/fi/): Dauntless Unbroken on yksityinen palvelin, jolla Dauntlessia voi taas pelata: aito 1.4.4-versio ja muokattu Undaunted. Mikä toimii ja miten sen saa käyttöön.
+- [Dauntless Unbroken](https://mixutin.github.io/dauntless-unbroken/fi/):
 - [Asennus](https://mixutin.github.io/dauntless-unbroken/fi/setup/): Dauntless Unbroken Windowsissa, Linuxissa tai OpenBSD:ssa: palvelimen pystytys, kavereiden liittyminen, ryhmäkäyttö ja vianetsintä.
 - [Pystytä palvelin](https://mixutin.github.io/dauntless-unbroken/fi/setup/host.html): Vaiheittainen ohje Dauntless 1.4.4 -yksityispalvelimen pystyttämiseen Windows-koneelle: version tarkistus, kaksi DLL-tiedostoa, metagame ja deploy-palvelin.
 - [Hosting-kumppani](https://mixutin.github.io/dauntless-unbroken/fi/setup/hosting-partner.html): EU Gamehost -kumppanuus ja Dauntless Unbrokenille suositellut hosting-esimerkit.

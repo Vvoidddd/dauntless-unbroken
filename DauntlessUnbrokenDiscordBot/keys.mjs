@@ -36,7 +36,7 @@ export function backend(base, key, request = fetch) {
   const url = new URL(base);
   if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error('Metagame must use loopback HTTP');
   async function api(path, body) {
-    const response = await request(new URL(`/undaunted/api/${path}`, url), {
+    const response = await request(new URL(`/unbroken/api/${path}`, url), {
       method: body ? 'POST' : 'GET', redirect: 'error', signal: AbortSignal.timeout(15000),
       headers: {'x-dauntless-unbroken-user-api-key': key, 'content-type': 'application/json'},
       body: body ? JSON.stringify(body) : undefined,
@@ -54,7 +54,7 @@ export function backend(base, key, request = fetch) {
     },
     async create(code) { await api('RegisterInviteCode', {NewInviteCode: code, Uses: 1, InfiniteUses: false}); },
     async identity(launcherKey) {
-      const response = await request(new URL('/undaunted/api/GetUserInfo', url), {
+      const response = await request(new URL('/unbroken/api/GetUserInfo', url), {
         headers: {'x-dauntless-unbroken-user-api-key': launcherKey}, redirect: 'error', signal: AbortSignal.timeout(5000),
       });
       if (response.status === 401 || response.status === 403) return null;

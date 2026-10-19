@@ -128,7 +128,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $gw 'node_modules\node-forge'))) {
 const https = require('https'); const fs = require('fs');
 const known = process.argv[5];
 const s = https.createServer({ cert: fs.readFileSync(process.argv[2]), key: fs.readFileSync(process.argv[3]) }, (req, res) => {
-  if (req.url !== '/undaunted/api/ServerStatus') {
+  if (req.url !== '/unbroken/api/ServerStatus') {
     res.writeHead(404, { 'content-type': 'application/json' });
     return res.end(JSON.stringify({ name: 'pin test', path: req.url }));
   }
@@ -149,12 +149,12 @@ s.listen(Number(process.argv[4]), '127.0.0.1', () => console.log('listening'));
     $server = [Diagnostics.Process]::Start($psi)
     try {
         [void]$server.StandardOutput.ReadLine()
-        $ok = Invoke-DRHttp -Url "https://127.0.0.1:$Port/undaunted/api/ServerStatus" -Fingerprint $mine -TimeoutSec 5
+        $ok = Invoke-DRHttp -Url "https://127.0.0.1:$Port/unbroken/api/ServerStatus" -Fingerprint $mine -TimeoutSec 5
         Check 'pinned TLS with the right fingerprint' ($ok.Status -eq 200 -and $ok.Json.name -eq 'pin test' -and $ok.SeenFingerprint -eq $mine) "$($ok.Status) $($ok.Error)"
         $wrong = ('0' * 63) + '1'
-        $no = Invoke-DRHttp -Url "https://127.0.0.1:$Port/undaunted/api/ServerStatus" -Fingerprint $wrong -TimeoutSec 5
+        $no = Invoke-DRHttp -Url "https://127.0.0.1:$Port/unbroken/api/ServerStatus" -Fingerprint $wrong -TimeoutSec 5
         Check 'pinned TLS refuses another certificate' ($no.Status -eq 0 -and $no.Error -match 'fingerprint mismatch' -and $no.SeenFingerprint -eq $mine) "$($no.Status) $($no.Error)"
-        $none = Invoke-DRHttp -Url "https://127.0.0.1:$Port/undaunted/api/ServerStatus" -TimeoutSec 5
+        $none = Invoke-DRHttp -Url "https://127.0.0.1:$Port/unbroken/api/ServerStatus" -TimeoutSec 5
         Check 'https without a fingerprint is refused before connecting' ($none.Status -eq 0 -and $none.Error -match 'fingerprint')
         $gs = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Kit 'Get-ServerStatus.ps1') -Server "127.0.0.1:$Port" -Fingerprint $wrong 2>&1 | Out-String
         Check 'Get-ServerStatus warns about a different certificate' ($LASTEXITCODE -eq 1 -and $gs -match 'DIFFERENT certificate') $gs

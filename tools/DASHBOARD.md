@@ -92,7 +92,7 @@ retried: if a response times out, an invite may already exist. Monitoring remain
 For backend metrics set `BACKEND_HEALTH=1` in the metagame's private `.env`, then restart the
 metagame during a maintenance window. The default is off. The dashboard keeps working with
 an older backend or disabled health route, labeling those readings unavailable.
-The owner-only `GET /undaunted/api/BackendHealth` supplies backend uptime, RSS/heap memory,
+The owner-only `GET /unbroken/api/BackendHealth` supplies backend uptime, RSS/heap memory,
 completed responses per second, 4xx/5xx counts, aborted responses and latency percentiles.
 Request figures cover the last 60 one-second buckets; percentile values are approximate histogram
 upper bounds, with `>5000` for the overflow bucket. Monitoring polls are excluded. Event-loop

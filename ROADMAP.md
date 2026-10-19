@@ -78,7 +78,7 @@ remains pending. This supersedes older "off by default" chat notes below.
 >   - Launcher 0.1.0's `r.EyeAdaptationQuality=0` made Ramsgate and night scenes far too dark. Launcher 0.1.1, published by CI the same night, no longer writes it and removes the old line on the next launch; with 0.1.1 the owner confirmed Ramsgate looks normal. The dark pre-hunt airship is back: a known, short scene, and a proper fix is 4.17.
 >   - **Two players, later the same night:** two players saw each other in Ramsgate and hunted together over the internet, after queueing the same hunt within a few seconds (no party). **Not yet verified:** parties and friends in game (a party invite was dropped at `POST /accountinfo/public` and Add Friends at `POST /account/mapping`; both fixed and running on the rented server since 22 September, not yet tried in game, see the update above, 1.9 and 1.11). Text chat is not built (3.10), and friends' online status needs the chat server.
 > - **Parties and the friends list (1.9): the server side is built** and passes the integration harness with simulated players. It has not been tried with two real game clients yet. Party invites don't require being friends. Showing friends as online needs the chat server (3.10), which isn't built. *Update: the two causes that blocked them in game are fixed, and guilds are built (see the newest update above).*
-> - The live player list (`/undaunted/api/ServerStatus`) is shown to registered players only, and `/dauntless-status` no longer carries a player count.
+> - The live player list (`/unbroken/api/ServerStatus`) is shown to registered players only, and `/dauntless-status` no longer carries a player count.
 > - Rebrand, part 1: the launcher, the in-game welcome text and the server's messages say Dauntless Unbroken, and the credits name Undaunted. Folders, the server DLL's file name (`DauntlessUnbroken.dll`), API routes and headers keep the Undaunted names for now (4.15).
 > - New items: performance logging and capacity measurement (4.12), more game-server ports (4.13), PostgreSQL before any public release (4.14), rebrand part 2 (4.15), a code-signed launcher (4.16) and a proper fix for the dark pre-hunt airship (4.17).
 
@@ -816,7 +816,7 @@ Before starting M2, 0.1 must be running and 0.4 must be done.
 - [ ] **4.15 Rebrand, part 2** (M) — *Added 2026-09-22. After the first friends test. Part 1 is done: the launcher, the in-game welcome text and the server's messages say Dauntless Unbroken.*
   - **What:** rename what still says Undaunted:
     - the folder names (`DauntlessUnbrokenMetagame/` and the others)
-    - the `/undaunted/api` routes and the `x-dauntless-unbroken-*` headers, keeping the old names as aliases so older launchers and servers keep working
+    - the `/unbroken/api` routes and the `x-dauntless-unbroken-*` headers, keeping the old names as aliases so older launchers and servers keep working
     - the Undaunted names in environment settings and data files (for example the database file `dauntless-unbroken.db`)
     - the JWT issuer and audience (`dauntless-unbroken-metagame`)
     - the server kit's install layout

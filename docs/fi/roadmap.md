@@ -452,7 +452,7 @@ M4:ään lisättiin 22.9.2026 kuusi uutta kohtaa:
   etenemisen, koko pelikerta (kirjautuminen, Ramsgate, metsästys, tallennus) toimii PostgreSQL:llä,
   tietokanta ei ota yhteyksiä internetistä, ja öinen kopio palautuu toiselle koneelle.
 - **4.15 Nimenvaihdon toinen osa**, ensimmäisen kaveritestin jälkeen. *Mitä:* kansioiden nimet,
-  `/undaunted/api`-reitit ja `x-dauntless-unbroken-*`-otsakkeet (vanhat nimet jäävät rinnakkaisnimiksi),
+  `/unbroken/api`-reitit ja `x-dauntless-unbroken-*`-otsakkeet (vanhat nimet jäävät rinnakkaisnimiksi),
   asetusten ja datatiedostojen dauntless-unbroken-nimet (esimerkiksi tietokantatiedosto `dauntless-unbroken.db`),
   JWT-tunnisteiden myöntäjä ja kohde (issuer ja audience) ja palvelinpaketin asennuskansiot. Alkuperäisen projektin valmiisiin
   DLL-tiedostoihin kiinteästi kirjoitetut nimet jäävät, ellemme käännä omia DLL-tiedostoja, ja kiitokset

@@ -8,7 +8,7 @@ import { logger } from "../logger";
 import { GetOnlinePlayerActivity, IsRegistrationMode, REGISTRATION_MODE } from "./unbrokenapi";
 import { GetLastMatchmakingResult } from "./matchmaking";
 
-// GET /undaunted/api/ServerStatus: who is online and which game servers run, for the
+// GET /unbroken/api/ServerStatus: who is online and which game servers run, for the
 // friend launcher. Nothing in it may identify an account beyond its username: no
 // account ids, keys, tokens or addresses.
 //

@@ -85,7 +85,7 @@ async function smoke() {
                 env: { ...process.env, LOCALAPPDATA: local }, gameRoot: () => gameRoot });
         }
         async function info(key) {
-            const response = await fetch("http://127.0.0.1:61000/undaunted/api/GetUserInfo", {
+            const response = await fetch("http://127.0.0.1:61000/unbroken/api/GetUserInfo", {
                 headers: { "X-dauntless-unbroken-User-API-Key": key } });
             assert.equal(response.status, 200, "Restored APIKEY authentication must succeed");
             return response.json();
@@ -96,7 +96,7 @@ async function smoke() {
         await stack.start();
         mark("Packaged Metagame and Deploy started for disposable profile A");
         phase = "profile A registration";
-        const response = await fetch("http://127.0.0.1:61000/undaunted/api/Register", {
+        const response = await fetch("http://127.0.0.1:61000/unbroken/api/Register", {
             method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Username: "PortableSmoke" }) });
         assert.equal(response.status, 200);
         const { UUK: activeKey } = await response.json();
@@ -161,7 +161,7 @@ async function smoke() {
         const restored = await info(importedKey);
         assert.equal(restored.UserId, original.UserId);
         assert.equal(restored.Username, original.Username);
-        assert.equal((await fetch("http://127.0.0.1:61000/undaunted/api/GetUserInfo", {
+        assert.equal((await fetch("http://127.0.0.1:61000/unbroken/api/GetUserInfo", {
             headers: { "X-dauntless-unbroken-User-API-Key": activeKey } })).status, 401);
         await stack.stop(); stack = null;
         mark("Restored packaged Metagame authenticated the backup key; rejected the former live key");

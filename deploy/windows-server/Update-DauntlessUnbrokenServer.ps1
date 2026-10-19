@@ -52,7 +52,7 @@ function Test-Healthy {
     $metaUrl = 'http://{0}:{1}/dauntless-status' -f (Get-DRConfigValue $Cfg 'BindAddress' '127.0.0.1'), (Get-DRPort $Cfg 'metagame')
     $public = (Get-DRMode $Cfg) -eq 'Public'
     $fp = [string](Get-DRConfigValue $Cfg 'CertFingerprint' '')
-    $gwUrl = 'https://127.0.0.1:{0}/undaunted/api/ServerStatus' -f (Get-DRPort $Cfg 'gateway')
+    $gwUrl = 'https://127.0.0.1:{0}/unbroken/api/ServerStatus' -f (Get-DRPort $Cfg 'gateway')
     $why = ''
     while ((Get-Date) -lt $deadline) {
         $m = Invoke-DRHttp -Url $metaUrl -TimeoutSec 5

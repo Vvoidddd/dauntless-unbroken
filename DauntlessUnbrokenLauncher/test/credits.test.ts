@@ -5,106 +5,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { PATRONS, PROJECT_PEOPLE, SOFTWARE, UPSTREAM_PEOPLE, localized, type CreditPerson } from "../src/shared/credits";
+import { SOFTWARE, localized } from "../src/shared/credits";
 import { STRINGS, type StringKey } from "../src/shared/i18n";
 import { LANGUAGES, type ExternalTarget } from "../src/shared/types";
 
 const ROOT = path.resolve(__dirname, "..", "..");
 // Line endings depend on the checkout (Windows runners and core.autocrlf give CRLF), so compare with LF.
 const NOTICES = readFileSync(path.join(ROOT, "THIRD-PARTY-NOTICES.txt"), "utf8").replace(/\r\n/g, "\n");
-
-function person(list: readonly CreditPerson[], github: string): CreditPerson {
-  const p = list.find((x) => x.github === github);
-  assert.ok(p, `${github} is missing from the credits`);
-  return p;
-}
-
-test("the credits name every contributor, in order, with their role", () => {
-  assert.equal(PROJECT_PEOPLE[0].github, "Vvoidddd", "the current maintainer comes first");
-  assert.equal(person(PROJECT_PEOPLE, "mixutin").role, "creator");
-  assert.equal(person(PROJECT_PEOPLE, "mixutin").name, "mixutin");
-  assert.match(person(PROJECT_PEOPLE, "LupesHk").note.en, /Brazilian Portuguese/);
-  assert.match(person(PROJECT_PEOPLE, "JusMH").note.en, /Offline play runtime/);
-  assert.match(person(PROJECT_PEOPLE, "anxo0").note.en, /DualSense/);
-  assert.equal(person(PROJECT_PEOPLE, "Vvoidddd").role, "maintainer");
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.en, /airship/);
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.en, /console windows/);
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.en, /\.gitignore/);
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.en, /performance sampler/); // #6
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.fi, /suorituskykymittarin/);
-  // #8
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.en, /existing Dauntless 1\.4\.4 folder by pasting its path/);
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.fi, /valmista Dauntless 1\.4\.4 -kansiota liittämällä sen polun/);
-  // #9
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.en, /first in-game text chat server \(XMPP\) and tested it with a real 1\.4\.4 client/);
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.fi, /ensimmäisen pelinsisäisen tekstichat-palvelimen \(XMPP\) ja testasi sen oikealla 1\.4\.4-pelillä/);
-  // #7: the exposure setting is an opt-in experiment, off by default; the note must say so.
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.en, /opt-in Basic adaptive exposure setting for the airship \(off by default\)/);
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.fi, /valinnaisen mukautuvan perusvalotuksen asetuksen ilmalaivaa varten \(oletuksena pois päältä\)/);
-  // The exposure change was taken back out in 0.1.1 (it darkened Ramsgate); the note must not
-  // suggest the airship is fixed.
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.en, /reverted in launcher 0\.1\.1/);
-  assert.match(person(PROJECT_PEOPLE, "Vvoidddd").note.fi, /peruttiin käynnistimen versiossa 0\.1\.1/);
-
-  // Harmonic: the work ported from Harmonic's Dauntless 1.4.4 fork (Harmonicrain/Undaunted 895f7c7),
-  // listed after Vvoidddd. The English note names no gender (nothing we have says which).
-  const harmonic = person(PROJECT_PEOPLE, "Harmonicrain");
-  assert.equal(harmonic.name, "Harmonic");
-  assert.equal(harmonic.role, "contributor");
-  assert.ok(
-    PROJECT_PEOPLE.findIndex((p) => p.github === "Harmonicrain") > PROJECT_PEOPLE.findIndex((p) => p.github === "Vvoidddd"),
-    "Harmonic comes after Vvoidddd",
-  );
-  assert.match(harmonic.note.en, /Dauntless 1\.4\.4 fork of Undaunted/);
-  assert.doesNotMatch(harmonic.note.en, /\b(he|his|him|she|her|hers)\b/i);
-  for (const part of ["Escalation season registry and save rules", "the free store", "Slayer Links", "restart of a dead Ramsgate", "friends' online status", "test cases"]) {
-    assert.ok(harmonic.note.en.includes(part), `Harmonic en: ${part}`);
-  }
-  assert.match(harmonic.note.fi, /Undauntedin Dauntless 1\.4\.4 -haaraa/);
-  for (const part of ["Escalationin kausiluettelo ja tallennussäännöt", "ilmainen kauppa", "Slayer Links", "kaatunut Ramsgate", "kavereiden paikalla olosta", "testitapaukset"]) {
-    assert.ok(harmonic.note.fi.includes(part), `Harmonic fi: ${part}`);
-  }
-
-  assert.equal(UPSTREAM_PEOPLE[0].github, "SyST3MDeV", "Undaunted's creator comes first");
-  const gwog = person(UPSTREAM_PEOPLE, "SyST3MDeV");
-  assert.equal(gwog.role, "creator");
-  assert.match(gwog.name, /^gwog\b/);
-  for (const part of ["server-mode DLL", "deploy server", "metagame", "launcher"]) assert.ok(gwog.note.en.includes(part), part);
-  assert.equal(person(UPSTREAM_PEOPLE, "EisigesEis").role, "contributor");
-
-  const handles = [...PROJECT_PEOPLE, ...UPSTREAM_PEOPLE].map((p) => p.github);
-  assert.equal(new Set(handles).size, handles.length, "nobody is listed twice");
-});
-
-test("patrons are listed separately with localized thanks", () => {
-  assert.deepEqual(PATRONS.map((p) => p.name), ["nasagi"]);
-  for (const p of PATRONS) {
-    assert.ok(p.name.trim(), JSON.stringify(p));
-    assert.match(p.note.en, /Patreon/);
-    assert.match(p.note.fi, /Patreon/);
-    assert.notEqual(p.note.fi, p.note.en, `${p.name}: the Finnish note is not translated`);
-  }
-});
-
-test("every credit has text in every language", () => {
-  for (const p of [...PROJECT_PEOPLE, ...UPSTREAM_PEOPLE]) {
-    assert.ok(p.name.trim() && p.github.trim(), JSON.stringify(p));
-    assert.match(p.github, /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/, `not a GitHub handle: ${p.github}`);
-    for (const lang of LANGUAGES) assert.ok(p.note[lang].trim().length > 10, `${p.github} ${lang}`);
-    assert.notEqual(p.note.fi, p.note.en, `${p.github}: the Finnish note is not translated`);
-    assert.notEqual(p.note.es, p.note.en, `${p.github}: the Spanish note is not translated`);
-  }
-  for (const sw of SOFTWARE) {
-    assert.ok(sw.name.trim(), JSON.stringify(sw));
-    for (const lang of LANGUAGES) {
-      assert.ok(localized(sw.author, lang).trim(), `${sw.name} author ${lang}`);
-      assert.ok(sw.note[lang].trim(), `${sw.name} note ${lang}`);
-    }
-    assert.notEqual(sw.note.fi, sw.note.en, `${sw.name}: the Finnish note is not translated`);
-    assert.notEqual(sw.note.es, sw.note.en, `${sw.name}: the Spanish note is not translated`);
-    if (sw.license !== null) assert.match(sw.license, /^[A-Za-z0-9.-]+$/, `${sw.name}: not an SPDX identifier`);
-  }
-});
 
 test("the open-source software list covers the server DLL's libraries, the framework and the GitHub mark", () => {
   const by = (name: string) => {
@@ -159,7 +66,7 @@ test("THIRD-PARTY-NOTICES.txt ships with the launcher and has the Octicons, MinH
 });
 
 test("the credits hold no links and no e-mail addresses", () => {
-  const data = JSON.stringify([PATRONS, PROJECT_PEOPLE, UPSTREAM_PEOPLE, SOFTWARE]);
+  const data = JSON.stringify(SOFTWARE);
   assert.ok(!data.includes("://"), "the credits must not carry URLs: the page opens links by name");
   assert.ok(!/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.test(data), "no e-mail addresses on the Credits page");
 });
@@ -199,7 +106,7 @@ test("the page opens links by name only, and community/source controls are in th
     for (const arg of calls) assert.equal(arg, "target", `${f}: openExternal must only get the typed link name`);
   }
   assert.ok(opens >= 10, `only ${opens} open("...") calls found; the scan is broken`);
-  for (const target of ["project_source", "project_contributors", "upstream_source", "upstream_contributors"]) {
+  for (const target of ["project_source"]) {
     assert.ok(readFileSync(path.join(dir, "index.ts"), "utf8").includes(`open("${target}")`), `nothing opens ${target}`);
   }
 
@@ -256,8 +163,8 @@ test("the new text exists in English and Finnish", () => {
   }
   assert.equal(STRINGS.en.github_link, "Source code on GitHub");
   assert.equal(STRINGS.fi.github_link, "Lähdekoodi GitHubissa");
-  assert.equal(STRINGS.en.nav_credits, "Credits");
-  assert.equal(STRINGS.fi.nav_credits, "Tekijät");
+  assert.equal(STRINGS.en.nav_credits, "Licenses");
+  assert.equal(STRINGS.fi.nav_credits, "Lisenssit");
   for (const lang of LANGUAGES) {
     assert.match(STRINGS[lang].credits_license_text, /AGPL-3\.0/);
     assert.match(STRINGS[lang].credits_phoenix, /Phoenix Labs/);

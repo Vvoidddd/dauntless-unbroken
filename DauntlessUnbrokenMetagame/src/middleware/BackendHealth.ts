@@ -55,7 +55,7 @@ export function TrackBackendHealth(req: Request, res: Response, next: NextFuncti
     if (!BackendHealthEnabled()) { next(); return; }
     if (!delay) { delay = monitorEventLoopDelay({ resolution: 20 }); delay.enable(); }
     // Monitoring polls must not make an idle server appear busy. Never store URLs or identifiers.
-    if (/^\/undaunted\/api\/(BackendHealth|ServerStatus|GetAllUsers|DashboardAccounts|DiscordKeyStats)\/?$/i.test(req.path)) { next(); return; }
+    if (/^\/unbroken\/api\/(BackendHealth|ServerStatus|GetAllUsers|DashboardAccounts|DiscordKeyStats)\/?$/i.test(req.path)) { next(); return; }
     const started = performance.now();
     let recorded = false;
     const finish = (aborted: boolean) => {

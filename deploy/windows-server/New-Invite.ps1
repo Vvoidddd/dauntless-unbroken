@@ -50,7 +50,7 @@ try {
     $mode = Get-DRMode $Cfg
     $bind = Get-DRConfigValue $Cfg 'BindAddress' '127.0.0.1'
     $port = Get-DRPort $Cfg 'metagame'
-    $api = "http://${bind}:$port/undaunted/api"
+    $api = "http://${bind}:$port/unbroken/api"
 
     if (-not (Test-Path -LiteralPath $P.OwnerKey)) { Stop-DR "No owner key at $($P.OwnerKey)." }
     try { $key = ([IO.File]::ReadAllText($P.OwnerKey)).Trim() }
@@ -99,7 +99,7 @@ try {
         }
         # The same path a friend's launcher takes: TLS to the gateway, certificate pinned to fp.
         if (-not $SkipGatewayCheck) {
-            $gw = Invoke-DRHttp -Url ('https://127.0.0.1:{0}/undaunted/api/RegistrationStatus' -f $invitePort) -Fingerprint $fp -TimeoutSec 10
+            $gw = Invoke-DRHttp -Url ('https://127.0.0.1:{0}/unbroken/api/RegistrationStatus' -f $invitePort) -Fingerprint $fp -TimeoutSec 10
             if ($gw.Status -ne 200) { Stop-DR "The gateway does not answer over TLS with the invite's certificate ($(if ($gw.Status) { "HTTP $($gw.Status)" } else { $gw.Error })). Check Stack.ps1 status." }
             Write-DROk "gateway answers on port $invitePort with certificate $($fp.Substring(0, 16))... (registration: $($gw.Json.RegistrationMode))"
         }

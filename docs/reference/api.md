@@ -33,7 +33,7 @@ call it, what it does, and whether it can be reached through the gateway.
 
 The game routes follow the contract of the 1.4.4 client: the paths and reply shapes of the original
 backend (see [Backend contract]({{ contract_page.url | relative_url }})). They are not an API of their
-own. The management routes under `/undaunted/api` come from Undaunted and from this fork.
+own. The management routes under `/unbroken/api` come from Undaunted and from this fork.
 
 <details open markdown="block">
   <summary>Contents</summary>
@@ -71,7 +71,7 @@ server stays on loopback in both modes.
 | Game client (1.4.4), chat | [Chat](#chat) over XMPP on a WebSocket, the same way through the relay and the gateway | The player token |
 | Game servers (Ramsgate, the Training Dojo, hunts) | The metagame, directly on the host | The game-server key, plus the player's token when acting for a player |
 | Metagame | The deploy server: matchmaking and the game-server list | Nothing (loopback only) |
-| Content server | The metagame's `GET /undaunted/api/GetUserInfo`, to check a downloader's key | The downloader's account key |
+| Content server | The metagame's `GET /unbroken/api/GetUserInfo`, to check a downloader's key | The downloader's account key |
 | Friend launcher | `Register`, `GetUserInfo`, `ServerStatus` (falls back to `/dauntless-status` on an older metagame), and the content routes | The player's account key |
 | Friend kit (private mode) | `Register` and `GetUserInfo` | The player's account key |
 | Host scripts (`New-Invite.ps1`, `Get-ServerStatus.ps1`, `Stack.ps1`, `Update-DauntlessUnbrokenServer.ps1`) | `ServerStatus`, `/dauntless-status`, `RegistrationStatus`, `GetUserInfo` and the invite routes; `Stack.ps1 status` also reads the allowlist helper's `GET /status` | The owner's admin key where a route takes a key, and the allowlist secret for `/status`, on the server itself |
@@ -85,7 +85,7 @@ The scripts are described on [Scripts and parameters]({{ scripts_page.url | rela
 
 | Credential | Sent as | Format | Held by | What it allows |
 |:-----------|:--------|:-------|:--------|:---------------|
-| Account key | Header `x-dauntless-unbroken-user-api-key`; also the login's `exchange_code` | `UUK_` followed by 48 lowercase hex characters | Each player (launcher key store, friend kit's `account.key`); the host for the owner account | Logging in as that player, the account's `/undaunted/api` routes, game-file downloads |
+| Account key | Header `x-dauntless-unbroken-user-api-key`; also the login's `exchange_code` | `UUK_` followed by 48 lowercase hex characters | Each player (launcher key store, friend kit's `account.key`); the host for the owner account | Logging in as that player, the account's `/unbroken/api` routes, game-file downloads |
 | Player token | Header `Authorization: Bearer <token>` | JWT signed with RS256, valid 24 hours | The game client after login; game servers forward it | Every game route, for that player's own account |
 | Admin key | Header `x-dauntless-unbroken-user-api-key` | An account key whose account has `isAdmin` = 1 | The server owner, on the host | The admin routes, including a token for any account |
 | Game-server key | Header `x-dauntless-unbroken-gameserver-apikey` | Any string; the kit and the guide make 48 hex characters | The deploy server, which hands it to every game server | Reading and writing any player's data, and the game-server-only writes |
@@ -101,7 +101,7 @@ lines. Where the kit and the guides keep each key is on
 
 ### Account keys
 
-- `POST /undaunted/api/Register` creates the account and returns its key once. The metagame stores
+- `POST /unbroken/api/Register` creates the account and returns its key once. The metagame stores
   only the key's SHA-256 (table `userapikeys`) and compares hashes in constant time, so a lost key
   cannot be recovered.
 - There is no route to reissue, revoke or delete a key.
@@ -135,7 +135,7 @@ What follows from this:
   already issued: it stays valid until it expires, up to 24 hours. The session-kill routes revoke
   nothing. A new signing key pair invalidates every token at once, and players simply log in again.
 - **Anyone with the private signing key can mint a token for any account.**
-- Admins can mint a token for any account with `POST /undaunted/api/GenerateJWTForUserId`.
+- Admins can mint a token for any account with `POST /unbroken/api/GenerateJWTForUserId`.
 - `AUTH_MODE=NONE` is for development only and is honoured only when `NODE_ENV` is not `production`.
   The `exchange_code` and the `x-dauntless-unbroken-user-api-key` value are then taken as the account id
   itself, so anyone can act as anyone. In this mode the metagame answers 403 to every request that
@@ -228,7 +228,7 @@ it, and everyone else gets upstream's fixed max ranks
 ## Metagame conventions {#metagame-conventions}
 
 - Paths are matched regardless of letter case, and a trailing slash is ignored, so
-  `/undaunted/api/register` reaches `Register`. `HEAD` works on every `GET` route.
+  `/unbroken/api/register` reaches `Register`. `HEAD` works on every `GET` route.
 - A method and path that match no route get an empty 404 and the log line `Unstubbed route <METHOD> <path>`.
 - Request bodies may be JSON (up to 50 MB) or form-encoded (up to Express's default of 100 kB).
   Through the gateway the limit is 128 KiB.
@@ -619,10 +619,10 @@ reward routes `PUT /slayerlink/links/rewards` and `GET /slayerlink/links/rewards
 
 ## Metagame: the management API {#dauntless-unbroken-api}
 
-All of these live under `/undaunted/api/` on the metagame; the paths below are relative to it.
+All of these live under `/unbroken/api/` on the metagame; the paths below are relative to it.
 **Through the gateway only four answer:**
 `POST Register` and `GET`/`HEAD` of `GetUserInfo`, `ServerStatus` and `RegistrationStatus`. Every other
-path under `/undaunted`, including `UsernameAvailable`, `PublicOnlineStats`, `PartyInvite`,
+path under `/unbroken`, including `UsernameAvailable`, `PublicOnlineStats`, `PartyInvite`,
 `Friends` and the guild routes, gets 403 from the gateway. Run the rest on the server itself (in public mode at
 `http://127.0.0.1:61000`), or in private mode from a machine that can reach the metagame.
 
@@ -661,7 +661,7 @@ Admin grants and revokes are recorded in the progression event log like the game
 
 ### Register {#register}
 
-`POST /undaunted/api/Register` with the body `{"Username": "...", "InviteCode": "..."}`:
+`POST /unbroken/api/Register` with the body `{"Username": "...", "InviteCode": "..."}`:
 
 - **Usernames** are trimmed, then must be 3 to 16 letters, digits or underscores
   (`^[A-Za-z0-9_]{3,16}$`) and unique regardless of case. Accounts made before these rules keep their
@@ -702,7 +702,7 @@ API refuse with a bare status code and no body.
 
 ### ServerStatus {#serverstatus}
 
-`GET /undaunted/api/ServerStatus` answers everyone, so a launcher that has not registered yet can still
+`GET /unbroken/api/ServerStatus` answers everyone, so a launcher that has not registered yet can still
 read the server's name and registration mode:
 
 ```json
@@ -842,7 +842,7 @@ the host's art pack and news. It only answers `GET` and `HEAD`, and there is no 
 
 - The public routes send `Access-Control-Allow-Origin: *`. Branding and news are empty unless the
   host sets `CONTENT_BRANDING_DIR` and `CONTENT_NEWS_FILE`.
-- **The key check.** The content server asks the metagame's `GET /undaunted/api/GetUserInfo` (at
+- **The key check.** The content server asks the metagame's `GET /unbroken/api/GetUserInfo` (at
   `METAGAME_URL`, default `http://127.0.0.1:61000`) who the key belongs to. It caches the answer by the
   key's SHA-256: accepted keys for `CONTENT_AUTH_CACHE_SECONDS` (300), refused keys for 30 seconds. It
   never stores or logs the key itself. A value that is not 1 to 256 printable characters without
@@ -885,14 +885,14 @@ There is no route to the deploy server or the allowlist helper.
 |:-------|:--------|:-----|
 | 400 | `bad_request` | The request target is not a plain path (`/...`), an unsupported upgrade, or a malformed request. |
 | 400 | `bad_path` | A backslash, whitespace or a control character in the path, a `.` or `..` segment, `%2f`, `%5c`, `%00` or `%2e`, or broken percent-encoding. |
-| 403 | `forbidden` | Any `x-dauntless-unbroken-gameserver-apikey` header. Any path under `/undaunted` except the four public ones (also for upgrades). |
+| 403 | `forbidden` | Any `x-dauntless-unbroken-gameserver-apikey` header. Any path under `/unbroken` except the four public ones (also for upgrades). |
 | 405 | `method_not_allowed` | Anything but `GET`, `HEAD`, `POST`, `PUT`, `DELETE`, `PATCH` and `OPTIONS`. |
 | 408, 431 | `request_timeout`, `headers_too_large` | Headers too slow or too large. |
 | 413 | `body_too_large` | A body over `GATEWAY_MAX_BODY_BYTES` (128 KiB). |
 | 429 | `rate_limited` | The address's rate bucket is empty; with `Retry-After`. |
 | 502, 504 | `bad_gateway`, `upstream_timeout` | The upstream is down or does not answer. |
 
-The `/undaunted` check runs on the path in lower case, percent-decoded, with repeated slashes folded
+The `/unbroken` check runs on the path in lower case, percent-decoded, with repeated slashes folded
 and trailing slashes dropped, so letter case or encoding cannot slip an admin route past it.
 
 **Rate limits.** Token buckets per IPv4 address, or per IPv6 /64. Refused requests count too.
@@ -901,7 +901,7 @@ and trailing slashes dropped, so letter case or encoding cannot slip an admin ro
 |:-------|:-------|------:|------------------:|:--------|
 | general | Everything not below | 300 | 180 | `GATEWAY_RATE_GENERAL` |
 | content | `/content` | 600 | 600 | `GATEWAY_RATE_CONTENT` |
-| register | `/undaunted/api/Register` | 5 | 0.2 | `GATEWAY_RATE_REGISTER` |
+| register | `/unbroken/api/Register` | 5 | 0.2 | `GATEWAY_RATE_REGISTER` |
 | token | `/account/api/oauth/token` | 10 | 1 | `GATEWAY_RATE_TOKEN` |
 | connect | New TCP connections | 200 | 300 | `GATEWAY_RATE_CONNECT` |
 
@@ -957,7 +957,7 @@ public-mode path, from the game to the relay, the gateway and the game ports.
 
 ### Owner backend health
 
-`GET /undaunted/api/BackendHealth` requires the direct administrator key; forwarded requests are
+`GET /unbroken/api/BackendHealth` requires the direct administrator key; forwarded requests are
 refused. Separate limit: 120 calls per minute per address. It returns 404 unless `BACKEND_HEALTH=1`.
 The no-store response includes uptime, RSS/heap MB, completed requests, 4xx/5xx errors, aborted
 responses, requests/second and approximate p50/p95 latency upper bounds over 60 second buckets.
@@ -972,8 +972,8 @@ Put a time limit on every call, so a wrong listener fails fast (see
 Anyone, on the server (or over Tailscale with its address):
 
 ```powershell
-Invoke-RestMethod -Uri http://127.0.0.1:61000/undaunted/api/RegistrationStatus -TimeoutSec 10
-Invoke-RestMethod -Uri http://127.0.0.1:61000/undaunted/api/ServerStatus -TimeoutSec 10
+Invoke-RestMethod -Uri http://127.0.0.1:61000/unbroken/api/RegistrationStatus -TimeoutSec 10
+Invoke-RestMethod -Uri http://127.0.0.1:61000/unbroken/api/ServerStatus -TimeoutSec 10
 ```
 
 Admin calls, on the server itself. The key is read from its file and never printed. The owner key is
@@ -981,7 +981,7 @@ Admin calls, on the server itself. The key is read from its file and never print
 `C:\DauntlessUnbroken\data\keys\owner.key` on a kit server:
 
 ```powershell
-$api = "http://127.0.0.1:61000/undaunted/api"
+$api = "http://127.0.0.1:61000/unbroken/api"
 $h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 
 (Invoke-RestMethod -Uri "$api/GetAllUsers" -Headers $h -TimeoutSec 10).Users
@@ -1002,8 +1002,8 @@ invite. On a hand-built host, `POST $api/CreateInvite` with the body `{"uses": 1
   checks, in registration order. Adding a route or changing its checks fails that test until the list
   is updated, which forces a decision about who may call it.
 - The gateway's tests read `DauntlessUnbrokenMetagame/src/routes/unbrokenapi.ts`, so every new
-  `/undaunted/api` route is automatically tested as blocked by the gateway. Only a route added to
-  `PUBLIC_UNDAUNTED_API` in `DauntlessUnbrokenGateway/src/policy.ts` becomes reachable from the internet.
+  `/unbroken/api` route is automatically tested as blocked by the gateway. Only a route added to
+  `PUBLIC_UNBROKEN_API` in `DauntlessUnbrokenGateway/src/policy.ts` becomes reachable from the internet.
 - A new game route is reachable through the gateway as soon as it exists. Give it an access check.
 
 [Developer guide]({{ dev_page.url | relative_url }}) covers building and running the tests.

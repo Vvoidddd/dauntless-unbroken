@@ -112,7 +112,7 @@ yourself and never commit them. After a pull, run `npm run build` again before `
 runs whatever is in `dist/`. `tsc` never deletes files from `dist/`, so delete the folder first when a
 source file was removed or renamed.
 
-The build info names the exact source that is running, in `GET /undaunted/api/ServerStatus` and
+The build info names the exact source that is running, in `GET /unbroken/api/ServerStatus` and
 `/dauntless-status` ([HTTP API]({{ api_page.url | relative_url }})). A build from a folder with
 uncommitted changes under `DauntlessUnbrokenMetagame/` gets `-dirty` after the commit. `GIT_COMMIT` in the
 metagame's `.env` overrides the recorded commit. `npm run dev` runs the sources without a build, so it
@@ -277,7 +277,7 @@ and never reuse development ones on a real server.
 |---|---|---|
 | `AUTH_SIGNING_PRIVKEY_B64` (with `AUTH_SIGNING_PUBKEY_B64`) | The metagame. The private key signs every 24-hour session token, so anyone who has it can log in as any account. | The command below |
 | Game-server key | The metagame (it stores only a SHA-256), the deploy server (`METAGAME_API_KEY`) and every game server's command line | [Host step 9]({{ host_page.url | relative_url }}#metagame): queue it in the database, then restart the metagame |
-| Account keys (`UUK_...`) | The account's password: the login, and the `x-dauntless-unbroken-user-api-key` header | Returned once by `POST /undaunted/api/Register`; the server keeps only a SHA-256 ([host step 10]({{ host_page.url | relative_url }}#admin-account)) |
+| Account keys (`UUK_...`) | The account's password: the login, and the `x-dauntless-unbroken-user-api-key` header | Returned once by `POST /unbroken/api/Register`; the server keeps only a SHA-256 ([host step 10]({{ host_page.url | relative_url }}#admin-account)) |
 | `GATEWAY_SECRET` | The metagame and the gateway, the same value in both: 32 to 256 printable characters without spaces | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `ALLOWLIST_SECRET` | The gateway and the allowlist helper, the same value in both. Use a separate value, not the gateway secret. | The same command |
 | Gateway TLS key (`gateway-key.pem`) | The gateway | `make-cert`, [below](#public-mode-locally). Keep it outside the repository. |
@@ -571,7 +571,7 @@ Paths in each table are relative to the folder named above it.
 | Database | `db.ts`, `db/schema.ts`, `drizzle/` | Migrations run at every start, in journal order; the applied ones are recorded in the `__drizzle_migrations` table. `DB_WAL` is applied in `db.ts`. |
 | Where a request came from | `middleware/RequestOrigin.ts` | Public mode: the gateway secret, the player's address, `AUTH_MODE=NONE` refusals. |
 | Keys and login | `controllers/auth.ts`, `controllers/apikeys.ts`, `routes/eos.ts`, `routes/login.ts`, `middleware/Has*.ts` | `eos.ts` holds the token login. |
-| Accounts, invites, usernames | `controllers/accounts.ts`, `controllers/login.ts`, `routes/unbrokenapi.ts`, `controllers/unbrokenapi.ts` | The `/undaunted/api` routes ([HTTP API]({{ api_page.url | relative_url }})). |
+| Accounts, invites, usernames | `controllers/accounts.ts`, `controllers/login.ts`, `routes/unbrokenapi.ts`, `controllers/unbrokenapi.ts` | The `/unbroken/api` routes ([HTTP API]({{ api_page.url | relative_url }})). |
 | Characters and save history | `controllers/character.ts`, `controllers/savehistory.ts`, `routes/character.ts` | Rollbacks are admin routes in `routes/unbrokenapi.ts`. |
 | Progression | `controllers/progressionmode.ts` (real or stub, `PROGRESSION_MODE`), `controllers/realprogression.ts` (tracks, objectives, grants and their retry guard, rank confirmations and the optional confirm entitlements, the admin seed, the upgrade notice), `controllers/progressionconfig.ts` (the one loader of the progression config: the bundled `vendor/progression_config.json`, `PROGRESSION_CONFIG_DIR`, `ACTIVE_HUNT_PASS`), `controllers/progressionrank.ts` (rank math), `controllers/progressionevents.ts` (audit rows), `controllers/progression.ts` (encountered content and breadcrumbs), `routes/progression.ts`, `middleware/RealProgressionOnly.ts` | `routes/progression.ts` answers both the real and the stub shapes, and logs requests under `/progression` that no route answers. Tables in migration `0011_real_progression.sql`. |
 | Hunt Pass, entitlements, bounties, cooldowns | `routes/system.ts`, `controllers/entitlements.ts`, `controllers/bounties.ts`, `controllers/cooldowns.ts` | Part of real progression. |

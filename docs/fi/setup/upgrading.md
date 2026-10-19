@@ -343,7 +343,7 @@ tahansa sillä koneella. Se tarvitsee Noden version 18 tai uudemman eikä mitä�
 // Optional: set METAGAME to the metagame's address if it does not listen on 127.0.0.1:61000.
 const fs = require("fs");
 const [keyFile, userId, mode] = process.argv.slice(2);
-const base = (process.env.METAGAME || "http://127.0.0.1:61000") + "/undaunted/api";
+const base = (process.env.METAGAME || "http://127.0.0.1:61000") + "/unbroken/api";
 const key = fs.readFileSync(keyFile, "utf8").trim();
 
 async function call(method, path, body) {

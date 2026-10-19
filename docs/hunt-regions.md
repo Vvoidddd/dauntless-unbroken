@@ -15,7 +15,7 @@ An explicit OCE selection never silently falls back to Main. If AUS is unavailab
 - The main dashboard uses `DASHBOARD_WORKER_URL` and `DASHBOARD_AUS_URL` for its private worker monitors. Overview combines all hosts; Server #1, #2 and #3 retain their own resource/process/world views.
 - The Discord status worker reads the owner-protected dashboard over `STATUS_DASHBOARD` (default loopback port 61110). Only numeric aggregate metrics and fixed public labels enter the embed; no addresses, account details or raw errors are forwarded.
 
-`GET/POST /undaunted/api/HuntRegion` requires the player's account key. POST accepts only `{ "region": "main" }` or `{ "region": "aus" }`. Migration 0020 stores preferences in the shared database.
+`GET/POST /unbroken/api/HuntRegion` requires the player's account key. POST accepts only `{ "region": "main" }` or `{ "region": "aus" }`. Migration 0020 stores preferences in the shared database.
 
 ## Hunt cleanup
 

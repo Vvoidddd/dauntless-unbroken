@@ -27,7 +27,7 @@ Migration 0024 clears legacy observations in the live database. Historical backu
 created before this migration can still contain the previous records; it does not
 rewrite backups or securely erase old SQLite pages. Keep backups private.
 
-`GET /undaunted/api/Moderation/:accountId` and `POST /undaunted/api/Moderation`
+`GET /unbroken/api/Moderation/:accountId` and `POST /unbroken/api/Moderation`
 require a direct owner/admin key, never a proxied request. POST accepts
 `{accountId, reason, active, address?}`. Account and optional IP bans persist across
 restarts. Backend authentication/token validation refuses banned accounts, and

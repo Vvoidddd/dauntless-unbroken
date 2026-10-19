@@ -23,8 +23,8 @@ const EUGAMEHOST_GAME2_URL = "https://www.eugamehost.com/clients/cart.php?a=add&
 const EUGAMEHOST_GAME3_URL = "https://www.eugamehost.com/clients/cart.php?a=add&pid=240&promocode=SIGNUP6MONTH&skipconfig=1";
 const EUGAMEHOST_GAME5_URL = "https://www.eugamehost.com/clients/cart.php?a=add&pid=242&promocode=SIGNUP6MONTH&skipconfig=1";
 const EUGAMEHOST_5800X_URL = "https://www.eugamehost.com/clients/cart.php?a=add&pid=500";
-const DISCORD_URL = "https://discord.gg/dauntlessrevived";
-const PATREON_URL = "https://patreon.com/DauntlessRevived";
+const DISCORD_URL = "https://github.com/Vvoidddd/dauntless-unbroken/discussions";
+const PATREON_URL = "https://github.com/Vvoidddd/dauntless-unbroken";
 
 export const FIXED_LINKS: Readonly<Record<FixedTarget, string>> = Object.freeze({
   tailscale_download: TAILSCALE_DOWNLOAD_URL,
@@ -52,7 +52,7 @@ export function fixedLinkUrl(target: unknown): string | null {
 }
 
 // On github.com only these exact pages: the project's and upstream Undaunted's.
-const GITHUB_PAGES: ReadonlySet<string> = new Set([PROJECT_URL, PROJECT_LICENSE_URL, PROJECT_CONTRIBUTORS_URL, UPSTREAM_URL, UPSTREAM_CONTRIBUTORS_URL]);
+const GITHUB_PAGES: ReadonlySet<string> = new Set([PROJECT_URL, PROJECT_LICENSE_URL, PROJECT_CONTRIBUTORS_URL, UPSTREAM_URL, UPSTREAM_CONTRIBUTORS_URL, DISCORD_URL]);
 
 // Plain https without user info. An explicit port only where the caller allows one.
 function parse(url: string, allowPort = false): URL | null {

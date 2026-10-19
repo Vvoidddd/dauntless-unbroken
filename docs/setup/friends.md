@@ -104,7 +104,7 @@ host has shared that one PC with. [Run it for a group]({{ admin_page.url | relat
 ```powershell
 $Server = "100.x.y.z"   # the host's Tailscale address
 tailscale ping $Server
-Invoke-RestMethod "http://${Server}:61000/undaunted/api/RegistrationStatus"
+Invoke-RestMethod "http://${Server}:61000/unbroken/api/RegistrationStatus"
 ```
 
 `tailscale ping` should answer with a `pong`. If the reply says `via DERP(...)`, your traffic is going
@@ -206,7 +206,7 @@ $Invite   = "code-from-the-host"
 $dir = "$env:APPDATA\DauntlessUnbroken"
 if (Test-Path "$dir\account.key") { throw "You already have a key in $dir. Registering again would create a second account." }
 $body = @{ Username = $Username; InviteCode = $Invite } | ConvertTo-Json
-$r = Invoke-RestMethod -Method Post -Uri "http://${Server}:61000/undaunted/api/Register" -ContentType "application/json" -Body $body
+$r = Invoke-RestMethod -Method Post -Uri "http://${Server}:61000/unbroken/api/Register" -ContentType "application/json" -Body $body
 New-Item -ItemType Directory -Force $dir | Out-Null
 Set-Content -Path "$dir\account.key" -Value $r.UUK -NoNewline -Encoding ASCII
 "Registered. Key saved to $dir\account.key"
@@ -227,7 +227,7 @@ Check that the key works. This prints your user id, your username and whether yo
 
 ```powershell
 $key = (Get-Content "$env:APPDATA\DauntlessUnbroken\account.key" -Raw).Trim()
-Invoke-RestMethod "http://${Server}:61000/undaunted/api/GetUserInfo" -Headers @{ "x-dauntless-unbroken-user-api-key" = $key }
+Invoke-RestMethod "http://${Server}:61000/unbroken/api/GetUserInfo" -Headers @{ "x-dauntless-unbroken-user-api-key" = $key }
 ```
 
 Keep a copy of `account.key` somewhere safe, such as a password manager.

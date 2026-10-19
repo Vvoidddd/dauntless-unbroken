@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 $Repo = Split-Path $PSScriptRoot -Parent
 $Pinned = @{
   "dxgi.dll"                    = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
-  "DauntlessUnbroken.dll" = "21df88216d012b10b37ee054ebd446d20c70f3ba341f53e6392053559e0db47c"
+  "DauntlessUnbroken.dll" = "6ce7e0ea3eff8c6841ea81c67a0eb177d84223af844f15c6679ef0827143be8d"
 }
 
 $commit = (git -C $Repo rev-parse HEAD).Trim()

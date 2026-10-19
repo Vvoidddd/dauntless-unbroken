@@ -463,26 +463,26 @@ describe("friends list and blocklist", () => {
     });
 });
 
-describe("/undaunted/api fallbacks by name", () => {
+describe("/unbroken/api fallbacks by name", () => {
     it("PartyInvite: the key's owner invites; an admin may name the inviter, directly only", async () => {
-        const ByKey = await Call("POST", "/undaunted/api/PartyInvite", { key: Keys[B], body: { Username: "charlie" } });
+        const ByKey = await Call("POST", "/unbroken/api/PartyInvite", { key: Keys[B], body: { Username: "charlie" } });
         assert.deepEqual([ByKey.status, ByKey.json], [200, { From: "Bravo", To: "Charlie" }]);
         assert.ok((await Invites(C)).json.invitations.some((Pending: any) => Pending.sendingPlayerId === B));
 
-        assert.equal((await Call("POST", "/undaunted/api/PartyInvite", { key: Keys[A], body: { Username: "Bravo", From: "Charlie" } })).status, 403, "not an admin");
-        const ForSomeone = await Call("POST", "/undaunted/api/PartyInvite", { key: Keys[ADMIN], body: { Username: "Alpha", From: C } });
+        assert.equal((await Call("POST", "/unbroken/api/PartyInvite", { key: Keys[A], body: { Username: "Bravo", From: "Charlie" } })).status, 403, "not an admin");
+        const ForSomeone = await Call("POST", "/unbroken/api/PartyInvite", { key: Keys[ADMIN], body: { Username: "Alpha", From: C } });
         assert.deepEqual([ForSomeone.status, ForSomeone.json], [200, { From: "Charlie", To: "Alpha" }]);
-        assert.equal((await Call("POST", "/undaunted/api/PartyInvite", { key: Keys[ADMIN], body: { Username: "Alpha", From: "Bravo" }, headers: { "x-forwarded-for": "203.0.113.9" } })).status, 403, "admin through a proxy");
-        assert.equal((await Call("POST", "/undaunted/api/PartyInvite", { key: Keys[B], body: { Username: "Nobody" } })).status, 404);
-        assert.equal((await Call("POST", "/undaunted/api/PartyInvite", { body: { Username: "Alpha" } })).status, 401);
-        const Refused = await Call("POST", "/undaunted/api/PartyInvite", { key: Keys[B], body: { Username: "Charlie" } });
+        assert.equal((await Call("POST", "/unbroken/api/PartyInvite", { key: Keys[ADMIN], body: { Username: "Alpha", From: "Bravo" }, headers: { "x-forwarded-for": "203.0.113.9" } })).status, 403, "admin through a proxy");
+        assert.equal((await Call("POST", "/unbroken/api/PartyInvite", { key: Keys[B], body: { Username: "Nobody" } })).status, 404);
+        assert.equal((await Call("POST", "/unbroken/api/PartyInvite", { body: { Username: "Alpha" } })).status, 401);
+        const Refused = await Call("POST", "/unbroken/api/PartyInvite", { key: Keys[B], body: { Username: "Charlie" } });
         assert.deepEqual([Refused.status, Refused.json.error], [409, "party_invite_refused"], "already invited");
     });
 
     it("Friends: sends a request, or accepts the one the other side sent", async () => {
-        const Sent = await Call("POST", "/undaunted/api/Friends", { key: Keys[C], body: { Username: "Bravo" } });
+        const Sent = await Call("POST", "/unbroken/api/Friends", { key: Keys[C], body: { Username: "Bravo" } });
         assert.deepEqual([Sent.status, Sent.json], [200, { From: "Charlie", To: "Bravo", Result: "requested" }]);
-        const Back = await Call("POST", "/undaunted/api/Friends", { key: Keys[B], body: { Username: "charlie" } });
+        const Back = await Call("POST", "/unbroken/api/Friends", { key: Keys[B], body: { Username: "charlie" } });
         assert.deepEqual([Back.status, Back.json.Result], [200, "accepted"]);
         assert.deepEqual((await Call("GET", `/friends/api/public/friends/${B}`, { as: B })).json.map((Friend: any) => Friend.accountId), [C]);
     });
@@ -493,7 +493,7 @@ describe("heartbeats", () => {
         const Beat = await Call("POST", "/heartbeat", { gs: true, body: { map: "/Game/Maps/ramsgate/ramsgate_01_persistent" } });
         assert.deepEqual([Beat.status, Beat.text], [200, "20000"]);
         assert.deepEqual((await Call("POST", "/heartbeat", { as: A, body: { map: "/Game/Maps/ramsgate/ramsgate_01_persistent" } })).text, "20000");
-        const Players = await Call("GET", "/undaunted/api/PrivateOnlineStats", { key: Keys[ADMIN] });
+        const Players = await Call("GET", "/unbroken/api/PrivateOnlineStats", { key: Keys[ADMIN] });
         assert.deepEqual(Players.json.map((Player: any) => Player.UserId), [A], "only the player's own heartbeat");
     });
 });

@@ -15,10 +15,10 @@ export type Decision =
     | { action: "reject"; status: 400 | 403 | 405; error: string; reason: string; limitClass: LimitClass }
     | { action: "proxy"; upstream: Upstream; limitClass: LimitClass; feed?: FeedKind };
 
-// The only /undaunted/api routes reachable from outside, and with which methods. Everything else
-// under /undaunted/api is an admin route (invites, renames, rollbacks, entitlements, JWTs for any
+// The only /unbroken/api routes reachable from outside, and with which methods. Everything else
+// under /unbroken/api is an admin route (invites, renames, rollbacks, entitlements, JWTs for any
 // account) and answers 403 here, even with a valid admin key.
-export const PUBLIC_UNDAUNTED_API: ReadonlyMap<string, readonly string[]> = new Map([
+export const PUBLIC_UNBROKEN_API: ReadonlyMap<string, readonly string[]> = new Map([
     ["register", ["POST"]],
     ["getuserinfo", ["GET", "HEAD"]],
     ["serverstatus", ["GET", "HEAD"]],
@@ -99,7 +99,7 @@ export function Classify(Method: string | undefined, RawUrl: string | undefined,
     }
 
     const LimitClass: LimitClass = IsUpgrade ? "ws"
-        : Canonical === "/undaunted/api/register" ? "register"
+        : Canonical === "/unbroken/api/register" ? "register"
         : Canonical === "/account/api/oauth/token" ? "token"
         : Canonical === "/content" || Canonical.startsWith("/content/") ? "content"
         : "general";
@@ -112,9 +112,9 @@ export function Classify(Method: string | undefined, RawUrl: string | undefined,
         return Reject(403, "forbidden", "gameserver_key_header", LimitClass);
     }
 
-    if(Canonical === "/undaunted" || Canonical.startsWith("/undaunted/")){
-        const Match = /^\/undaunted\/api\/([^/]+)$/.exec(Canonical);
-        const Methods = Match === null ? undefined : PUBLIC_UNDAUNTED_API.get(Match[1]);
+    if(Canonical === "/unbroken" || Canonical.startsWith("/unbroken/")){
+        const Match = /^\/unbroken\/api\/([^/]+)$/.exec(Canonical);
+        const Methods = Match === null ? undefined : PUBLIC_UNBROKEN_API.get(Match[1]);
         if(IsUpgrade || Methods === undefined || !Methods.includes(Verb)){
             return Reject(403, "forbidden", "admin_route", LimitClass);
         }

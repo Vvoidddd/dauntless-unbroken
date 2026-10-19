@@ -24,7 +24,7 @@ const Cities = new CityRouter(async () => {
     const key = process.env.CITY_STATUS_KEY;
     if (!key) throw new Error('CITY_STATUS_KEY is required for Ramsgate balancing');
     const [response, worker] = await Promise.all([
-        fetch('http://127.0.0.1:61000/undaunted/api/ServerStatus', {
+        fetch('http://127.0.0.1:61000/unbroken/api/ServerStatus', {
             headers: {'x-dauntless-unbroken-user-api-key': key}, signal: AbortSignal.timeout(5000)
         }), DescribeOverflow()
     ]);

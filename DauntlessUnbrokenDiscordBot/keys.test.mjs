@@ -153,7 +153,7 @@ test('identity verification sends the supplied key only to loopback and rejects 
     sent={url:String(url),...options}; return new Response(JSON.stringify({UserId:'UID-account',Username:'Slayer'}),{status});
   });
   assert.deepEqual(await api.identity('player-key'),{userId:'UID-account',username:'Slayer'});
-  assert.equal(sent.url,'http://127.0.0.1:61000/undaunted/api/GetUserInfo');
+  assert.equal(sent.url,'http://127.0.0.1:61000/unbroken/api/GetUserInfo');
   assert.equal(sent.headers['x-dauntless-unbroken-user-api-key'],'player-key');
   assert.equal(sent.redirect,'error');
   status=401; assert.equal(await api.identity('bad-key'),null);

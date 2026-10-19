@@ -61,7 +61,7 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
         return response.json();
       };
       const [accounts, status, allocation] = await Promise.all([
-        accountCache && Date.now() - accountsAt < 60000 ? accountCache : get('/undaunted/api/GetAllUsers'), get('/undaunted/api/ServerStatus'),
+        accountCache && Date.now() - accountsAt < 60000 ? accountCache : get('/unbroken/api/GetAllUsers'), get('/unbroken/api/ServerStatus'),
         (async () => {
           try {
             const response = await fetcher(new URL(`http://127.0.0.1:${serverConfig?.Ports?.deploy || 61001}/gameservers`), {signal: AbortSignal.timeout(5000), redirect: 'error'});
@@ -74,8 +74,8 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
       let health = null;
       let healthError = null;
       let discord = null;
-      try { discord = await get('/undaunted/api/DiscordKeyStats'); } catch { /* Older backends: report unavailable, not zero. */ }
-      try { health = await get('/undaunted/api/BackendHealth'); if (!health?.requests) { health = null; healthError = 'Backend returned no health metrics.'; } }
+      try { discord = await get('/unbroken/api/DiscordKeyStats'); } catch { /* Older backends: report unavailable, not zero. */ }
+      try { health = await get('/unbroken/api/BackendHealth'); if (!health?.requests) { health = null; healthError = 'Backend returned no health metrics.'; } }
       catch { healthError = 'Backend health disabled or unavailable. Set BACKEND_HEALTH=1 and restart the metagame.'; }
       if (performanceDir && Date.now() - performanceAt >= 15000) {
         performanceAt = Date.now();
@@ -127,7 +127,7 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
       const kind=query.get('kind'),offset=Number(query.get('offset')??0);
       if(!['bans','events'].includes(kind)||!Number.isSafeInteger(offset)||offset<0||offset>1000000){res.writeHead(400).end();return;}
       try {
-        const response=await fetcher(new URL(`/undaunted/api/ModerationLog?kind=${kind}&offset=${offset}`,target),{headers:{'x-dauntless-unbroken-user-api-key':key},signal:AbortSignal.timeout(30000),redirect:'error'});
+        const response=await fetcher(new URL(`/unbroken/api/ModerationLog?kind=${kind}&offset=${offset}`,target),{headers:{'x-dauntless-unbroken-user-api-key':key},signal:AbortSignal.timeout(30000),redirect:'error'});
         res.writeHead(response.status).end(JSON.stringify(await response.json()));
       }catch{res.writeHead(502).end(JSON.stringify({error:'Moderation history unavailable'}));}
       return;
@@ -145,7 +145,7 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
           if(body.active===true){
             body.durationHours??=168;
             if(body.includeIp===true){
-              const observed=await fetcher(new URL(`/undaunted/api/Moderation/${encodeURIComponent(body.accountId)}`,target),{headers:{'x-dauntless-unbroken-user-api-key':key},signal:AbortSignal.timeout(30000),redirect:'error'});
+              const observed=await fetcher(new URL(`/unbroken/api/Moderation/${encodeURIComponent(body.accountId)}`,target),{headers:{'x-dauntless-unbroken-user-api-key':key},signal:AbortSignal.timeout(30000),redirect:'error'});
               const info=await observed.json();
               if(observed.status!==200 || !info.addresses?.[0]?.address){res.writeHead(409).end(JSON.stringify({error:'No recently observed player IP. Use an account-only ban.'}));return;}
               body.address=info.addresses[0].address;
@@ -155,7 +155,7 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
         }
         const id=new URL(req.url,'http://localhost').searchParams.get('accountId');
         if(!moderate && (!id || !/^UID-[A-Za-z0-9-]{1,100}$/.test(id))){res.writeHead(400).end();return;}
-        const response=await fetcher(new URL(moderate?'/undaunted/api/Moderation':`/undaunted/api/Moderation/${encodeURIComponent(id)}`,target),{
+        const response=await fetcher(new URL(moderate?'/unbroken/api/Moderation':`/unbroken/api/Moderation/${encodeURIComponent(id)}`,target),{
           method:moderate?'POST':'GET',headers:{'x-dauntless-unbroken-user-api-key':key,'content-type':'application/json'},
           body:moderate?JSON.stringify(body):undefined,signal:AbortSignal.timeout(30000),redirect:'error'});
         res.writeHead(response.status).end(JSON.stringify(await response.json()));
@@ -167,7 +167,7 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
       const id=new URL(req.url,'http://localhost').searchParams.get('accountId');
       if(!id || !/^UID-[A-Za-z0-9-]{1,100}$/.test(id)){res.writeHead(400).end();return;}
       try {
-        const response=await fetcher(new URL(`/undaunted/api/AccountRecovery/${encodeURIComponent(id)}`,target),{headers:{'x-dauntless-unbroken-user-api-key':key},signal:AbortSignal.timeout(30000),redirect:'error'});
+        const response=await fetcher(new URL(`/unbroken/api/AccountRecovery/${encodeURIComponent(id)}`,target),{headers:{'x-dauntless-unbroken-user-api-key':key},signal:AbortSignal.timeout(30000),redirect:'error'});
         res.writeHead(response.status).end(JSON.stringify(await response.json()));
       } catch {res.writeHead(503).end(JSON.stringify({error:'Account recovery unavailable.'}));}
       return;
@@ -181,7 +181,7 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
       if (readingAccounts) { res.writeHead(429).end(); return; }
       readingAccounts = true;
       try {
-        const response = await fetcher(new URL(`/undaunted/api/DashboardAccounts?offset=${Number(offset)}&q=${encodeURIComponent(query)}`, target), {headers: {'x-dauntless-unbroken-user-api-key': key}, signal: AbortSignal.timeout(30000), redirect: 'error'});
+        const response = await fetcher(new URL(`/unbroken/api/DashboardAccounts?offset=${Number(offset)}&q=${encodeURIComponent(query)}`, target), {headers: {'x-dauntless-unbroken-user-api-key': key}, signal: AbortSignal.timeout(30000), redirect: 'error'});
         if (!response.ok) throw new Error('unavailable');
         const result = await response.json();
         if (!Array.isArray(result.accounts)) throw new Error('invalid');
@@ -209,7 +209,7 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
         if (!body || !Number.isInteger(body.uses) || body.uses < 1 || body.uses > 100 || typeof body.name !== 'string' || body.name.length > 100 || /[\x00-\x1f]/.test(body.name)) { res.writeHead(400).end(); return; }
         inviteCount++;
         submitted = true;
-        const response = await fetcher(new URL('/undaunted/api/CreateInvite', target), {method: 'POST', headers: {'x-dauntless-unbroken-user-api-key': key, 'content-type': 'application/json'}, body: JSON.stringify({uses: body.uses, name: body.name}), signal: AbortSignal.timeout(15000), redirect: 'error'});
+        const response = await fetcher(new URL('/unbroken/api/CreateInvite', target), {method: 'POST', headers: {'x-dauntless-unbroken-user-api-key': key, 'content-type': 'application/json'}, body: JSON.stringify({uses: body.uses, name: body.name}), signal: AbortSignal.timeout(15000), redirect: 'error'});
         if (!response.ok) { res.writeHead(response.status === 429 ? 429 : 502).end(JSON.stringify({error: 'Backend refused invite creation.'})); return; }
         const result = await response.json();
         if (!/^[A-Za-z0-9-]{4,64}$/.test(result.code || '')) throw new Error('Invalid invite response');

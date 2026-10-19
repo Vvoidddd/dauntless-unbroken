@@ -6,7 +6,7 @@ import { users } from "../db/schema";
 import { ValidateMetagameJWTAndGetPayload } from "../controllers/auth";
 import { GetUserInfoForApiKey } from "../controllers/unbrokenapi";
 
-// For routes that answer everyone but tell registered players more (GET /undaunted/api/ServerStatus:
+// For routes that answer everyone but tell registered players more (GET /unbroken/api/ServerStatus:
 // the live player list is for registered players only). The caller counts as a registered player
 // with either
 // - an account key in x-dauntless-unbroken-user-api-key, checked exactly like GetUserInfo (the hashed-key

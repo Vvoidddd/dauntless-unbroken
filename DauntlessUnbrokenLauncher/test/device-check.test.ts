@@ -6,7 +6,7 @@ import {checkDeviceSignals} from '../src/main/hostapi';
 test('device check supports legacy hosts and optional hardware, but rejects restrictions and errors',async()=>{
   let status=204,body:unknown={},received='';
   const server=http.createServer((req,res)=>{
-    assert.equal(req.url,'/undaunted/api/DeviceSignals');
+    assert.equal(req.url,'/unbroken/api/DeviceSignals');
     assert.equal(req.headers['x-dauntless-unbroken-user-api-key'],'test-key');
     received='';req.on('data',chunk=>received+=chunk);
     req.on('end',()=>{res.writeHead(status,{'content-type':'application/json'});res.end(JSON.stringify(body));});

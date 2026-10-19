@@ -24,7 +24,7 @@ export function TrimUsername(Value: unknown){
     return typeof Value === "string" ? Value.trim() : Value;
 }
 
-// Error codes of the /undaunted/api account routes: {"error": <code>, "message": <text>}
+// Error codes of the /unbroken/api account routes: {"error": <code>, "message": <text>}
 export type AccountError = "username_invalid" | "registration_closed" | "bad_request" | "invite_invalid" | "username_taken" | "not_found";
 
 const MESSAGES: Record<AccountError, string> = {
@@ -69,7 +69,7 @@ function UsableInvite(InviteCode: string){
 
 export type RegisterResult = { ok: true, UserId: string, Username: string, UUK: string } | AccountFailure;
 
-// POST /undaunted/api/Register. Everything happens in one SQLite transaction: the
+// POST /unbroken/api/Register. Everything happens in one SQLite transaction: the
 // invite is checked, then the name, and only then is a use of the invite spent, so a
 // taken name never costs the friend their code; the account row and its key row are
 // written together, so a crash can't leave an account without a key.

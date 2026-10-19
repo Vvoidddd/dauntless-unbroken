@@ -186,22 +186,22 @@ try {
     # ------------------------------------------------------------------------------------------
     Step 'Gateway policy, as a friend would meet it'
     $g = "https://127.0.0.1:62443"
-    $rs = Invoke-DRHttp -Url "$g/undaunted/api/RegistrationStatus" -Fingerprint $fp
+    $rs = Invoke-DRHttp -Url "$g/unbroken/api/RegistrationStatus" -Fingerprint $fp
     Check 'RegistrationStatus allowed' ($rs.Status -eq 200) "$($rs.Status) $($rs.Error)"
-    $ci = Invoke-DRHttp -Method POST -Url "$g/undaunted/api/CreateInvite" -Fingerprint $fp -Body @{ uses = 1 }
+    $ci = Invoke-DRHttp -Method POST -Url "$g/unbroken/api/CreateInvite" -Fingerprint $fp -Body @{ uses = 1 }
     Check 'CreateInvite blocked (403)' ($ci.Status -eq 403) "$($ci.Status)"
-    $il = Invoke-DRHttp -Url "$g/undaunted/api/InviteCodes" -Fingerprint $fp
+    $il = Invoke-DRHttp -Url "$g/unbroken/api/InviteCodes" -Fingerprint $fp
     Check 'InviteCodes blocked (403)' ($il.Status -eq 403) "$($il.Status)"
     $gk = Invoke-DRHttp -Url "$g/dauntless-status" -Fingerprint $fp -Headers @{ 'x-dauntless-unbroken-gameserver-apikey' = 'anything' }
     Check 'game-server key header blocked (403)' ($gk.Status -eq 403) "$($gk.Status)"
-    $wrong = Invoke-DRHttp -Url "$g/undaunted/api/RegistrationStatus" -Fingerprint ('0' * 64)
+    $wrong = Invoke-DRHttp -Url "$g/unbroken/api/RegistrationStatus" -Fingerprint ('0' * 64)
     Check 'another fingerprint is refused' ($wrong.Status -eq 0 -and $wrong.SeenFingerprint -eq $fp)
-    $reg = Invoke-DRHttp -Method POST -Url "$g/undaunted/api/Register" -Fingerprint $fp -Body @{ Username = 'SandboxFriend'; InviteCode = $parsed.Code }
+    $reg = Invoke-DRHttp -Method POST -Url "$g/unbroken/api/Register" -Fingerprint $fp -Body @{ Username = 'SandboxFriend'; InviteCode = $parsed.Code }
     Check 'Register with the invite through the gateway' ($reg.Status -eq 200 -and $reg.Json.UUK) "$($reg.Status) $($reg.Text)"
     $friendKey = [string]$reg.Json.UUK
-    $again = Invoke-DRHttp -Method POST -Url "$g/undaunted/api/Register" -Fingerprint $fp -Body @{ Username = 'SandboxFriend2'; InviteCode = $parsed.Code }
+    $again = Invoke-DRHttp -Method POST -Url "$g/unbroken/api/Register" -Fingerprint $fp -Body @{ Username = 'SandboxFriend2'; InviteCode = $parsed.Code }
     Check 'the one-use invite is spent' ($again.Status -eq 401) "$($again.Status)"
-    $me = Invoke-DRHttp -Url "$g/undaunted/api/GetUserInfo" -Fingerprint $fp -Headers @{ 'x-dauntless-unbroken-user-api-key' = $friendKey }
+    $me = Invoke-DRHttp -Url "$g/unbroken/api/GetUserInfo" -Fingerprint $fp -Headers @{ 'x-dauntless-unbroken-user-api-key' = $friendKey }
     Check 'GetUserInfo with the new key' ($me.Status -eq 200 -and $me.Json.Username -eq 'SandboxFriend' -and -not $me.Json.IsAdmin) "$($me.Status)"
     # A friend's own key, from their PC: -Invite with -KeyFile shows the list.
     $friendKeyFile = Join-Path $SandboxDir 'friend-account.key'
@@ -244,7 +244,7 @@ try {
     Check 'the update took a backup first' ($up.Text -match 'backup: ')
     $rb = Run-Kit (Join-Path $bin 'Update-DauntlessUnbrokenServer.ps1') @('-Root', $Root, '-Rollback')
     Check 'rollback exits 0' ($rb.Code -eq 0 -and $rb.Text -match 'back on') (($rb.Out | Where-Object { $_ -match 'FAIL' } | Select-Object -First 4) -join ' | ')
-    $after = Invoke-DRHttp -Url "$g/undaunted/api/ServerStatus" -Fingerprint $fp
+    $after = Invoke-DRHttp -Url "$g/unbroken/api/ServerStatus" -Fingerprint $fp
     Check 'the server answers through the gateway after the rollback' ($after.Status -eq 200)
 
     # ------------------------------------------------------------------------------------------

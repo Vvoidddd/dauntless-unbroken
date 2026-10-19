@@ -726,7 +726,7 @@ SetCandidateLeaveHook((UserId, CandidateId) => {
     }
 });
 
-// Read-only, for /undaunted/api/ServerStatus: the game server a player was last sent to.
+// Read-only, for /unbroken/api/ServerStatus: the game server a player was last sent to.
 // In memory like the rest of matchmaking, so it is empty after a metagame restart.
 export function GetLastMatchmakingResult(PlayerId: string){
     const Result = MatchmakingResultMap.get(PlayerId);
