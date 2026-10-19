@@ -14,7 +14,7 @@
   q: "Can you still play Dauntless after the shutdown?"
   a: >-
     Yes, against a private server. The official servers shut down on 30 May 2025, and without a backend
-    the game cannot be played at all. Dauntless Revived is a replacement backend for the genuine
+    the game cannot be played at all. Dauntless Unbroken is a replacement backend for the genuine
     Dauntless 1.4.4 client: if you have your own copy of that client, you can host it and play. So far
     the game has been played by one player: on the host PC (login, the tutorial, Ramsgate, the Training
     Dojo, hunts and crafting) and, on 22 September 2026, over the internet on a server on a rented
@@ -24,10 +24,10 @@
 - id: is-there-a-dauntless-private-server
   q: "Is there a Dauntless private server?"
   a: >-
-    Yes. Dauntless Revived is a private server built on [Undaunted](https://github.com/SyST3MDeV/Undaunted),
+    Yes. Dauntless Unbroken is a private server built on [Undaunted](https://github.com/SyST3MDeV/Undaunted),
     the open-source Dauntless server by gwog and contributors. It is not a public server that anyone can
     join: it runs for a few friends, and anyone can host their own from
-    [the source code](https://github.com/mixutin/dauntless-revived). A related project,
+    [the source code](https://github.com/Vvoidddd/dauntless-unbroken). A related project,
     [Mystic Paradox](https://github.com/pranav158/Mystic-Paradox), ports the same approach to the 1.12.0
     client.
 
@@ -73,7 +73,7 @@
     unmodified.
 
 - id: is-it-affiliated
-  q: "Is Dauntless Revived affiliated with Phoenix Labs or Epic Games?"
+  q: "Is Dauntless Unbroken affiliated with Phoenix Labs or Epic Games?"
   a: >-
     No. It is an unofficial, non-commercial fan project. It is not affiliated with, endorsed by or
     supported by Phoenix Labs or Epic Games, and "Dauntless" is a trademark of its owners. Nothing is
@@ -100,12 +100,12 @@
     the [roadmap](roadmap.md).
 
 - id: what-is-undaunted
-  q: "What is Undaunted, and how is Dauntless Revived different?"
+  q: "What is Undaunted, and how is Dauntless Unbroken different?"
   a: >-
     [Undaunted](https://github.com/SyST3MDeV/Undaunted), by gwog (Gregory Morford) and contributors, is
     the open-source project that made this possible. The server-mode DLL that turns a copy of the 1.4.4
     client into a game server, the deploy server, the metagame backend and the launcher are all theirs.
-    Dauntless Revived is a modified fork of it. We started with practical changes (safer network
+    Dauntless Unbroken is a modified fork of it. We started with practical changes (safer network
     defaults, clearer errors and a request log) and have since added saved progression, safer saves,
     usernames and invite codes, parties, a friends list and guilds on the server side, a friend launcher built on
     Undaunted's, a gateway for hosting on a public address, a Windows server kit, documentation in English
@@ -139,4 +139,4 @@
   a: >-
     Yes. The source code, the [roadmap](roadmap.md) and the [findings](findings/index.md) are public, so
     you can read, test and fork everything. If you spot a mistake on this site, or you know how part of
-    the original backend behaved, open an issue on [GitHub](https://github.com/mixutin/dauntless-revived).
+    the original backend behaved, open an issue on [GitHub](https://github.com/Vvoidddd/dauntless-unbroken).

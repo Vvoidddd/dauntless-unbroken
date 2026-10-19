@@ -1,4 +1,4 @@
-# Security policy: Dauntless Revived
+# Security policy: Dauntless Unbroken
 
 🇫🇮 [Suomeksi alempana](#suomeksi)
 
@@ -6,14 +6,14 @@
 
 | Version | Supported |
 |---|---|
-| The latest commit on the `dauntless-revived` branch | Yes |
+| The latest commit on the `dauntless-unbroken` branch | Yes |
 | Older commits, and friend kits built from them | No. Update to the latest commit first and check the problem is still there. |
 | Other branches, including `main`, which holds upstream Undaunted's code | No. Report problems in upstream code to [Undaunted](https://github.com/SyST3MDeV/Undaunted). |
 
 ## How to report
 
 Report privately through GitHub's private vulnerability reporting:
-**[Report a vulnerability](https://github.com/mixutin/dauntless-revived/security/advisories/new)**
+**[Report a vulnerability](https://github.com/Vvoidddd/dauntless-unbroken/security/advisories/new)**
 (the repository's **Security** tab, then **Report a vulnerability**). Only you and the maintainer
 can see the report.
 
@@ -32,13 +32,13 @@ time to fix the problem (90 days by default) before you publish.
 
 ## In scope
 
-- **The metagame** (`UndauntedMetagame/`), as modified in this repository.
-- **The deploy server** (`UndauntedDeployServer/`), as modified in this repository.
+- **The metagame** (`DauntlessUnbrokenMetagame/`), as modified in this repository.
+- **The deploy server** (`DauntlessUnbrokenDeployServer/`), as modified in this repository.
 - **The friend kit** (`friend-kit/` and `tools/make-friend-kit.ps1`): for example, a way to make
   its hash checks pass for a tampered DLL, or anything it writes to a player's PC that it
   should not.
 - **The documentation site** (`docs/`, published at
-  [mixutin.github.io/dauntless-revived](https://mixutin.github.io/dauntless-revived/)): for
+  [mixutin.github.io/dauntless-unbroken](https://mixutin.github.io/dauntless-unbroken/)): for
   example, setup instructions that would leave a host exposed if followed as written.
 - **Any change this fork made** on top of upstream Undaunted. The commit history shows what
   those are.
@@ -59,7 +59,7 @@ These are deliberate. Please read them first, so that your report can focus on w
     reach the metagame and the game servers through the host's Tailscale address, and encryption
     comes from the Tailscale tunnel.
   - **Public mode** (the default of the Windows server kit in `deploy/windows-server/`): a TLS
-    gateway (`UndauntedGateway/`) is the game's only public TCP port. The client talks plain HTTP only to
+    gateway (`DauntlessUnbrokenGateway/`) is the game's only public TCP port. The client talks plain HTTP only to
     the launcher on the player's own PC, which forwards over TLS pinned to the certificate
     fingerprint in the invite. The gateway refuses admin routes and the game-server key from
     outside, and the game's UDP ports are opened only for the addresses of players who logged in.
@@ -74,7 +74,7 @@ These are deliberate. Please read them first, so that your report can focus on w
 
 - **The Dauntless game client** itself, and Phoenix Labs' or Epic Games' original online
   services. We do not have, and do not change, the game's code.
-- **Upstream Undaunted's prebuilt DLLs** (`dxgi.dll`, `UndauntedInternalServer.dll`) and any
+- **Upstream Undaunted's prebuilt DLLs** (`dxgi.dll`, `DauntlessUnbroken.dll`) and any
   upstream code this fork has not changed. Report those to
   [Undaunted](https://github.com/SyST3MDeV/Undaunted). How our friend kit checks and installs
   the DLLs is in scope.
@@ -89,18 +89,18 @@ These are deliberate. Please read them first, so that your report can focus on w
 
 ## Suomeksi
 
-Tämä ohje kertoo, miten Dauntless Revived -projektin tietoturva-aukoista (virheistä, joita joku
+Tämä ohje kertoo, miten Dauntless Unbroken -projektin tietoturva-aukoista (virheistä, joita joku
 voisi käyttää väärin) ilmoitetaan.
 
 ### Mitä versiota tuetaan
 
-Vain `dauntless-revived`-haaran uusinta versiota. Jos käytät vanhempaa versiota, päivitä ensin ja
+Vain `dauntless-unbroken`-haaran uusinta versiota. Jos käytät vanhempaa versiota, päivitä ensin ja
 katso, onko ongelma yhä olemassa.
 
 ### Näin ilmoitat
 
 - Ilmoita yksityisesti
-  [tämän linkin kautta](https://github.com/mixutin/dauntless-revived/security/advisories/new).
+  [tämän linkin kautta](https://github.com/Vvoidddd/dauntless-unbroken/security/advisories/new).
   Silloin vain sinä ja ylläpitäjä näette ilmoituksen.
 - Älä kirjoita aukosta julkiseen keskusteluun tai Discordiin ennen kuin korjaus on valmis.
 - Kerro, mitä versiota kokeilit, mikä ongelma on ja miten sen saa toistettua.
@@ -127,7 +127,7 @@ omaa asennustasi, älä muiden ihmisten palvelimia tai koneita.
   - **Yksityinen tila:** Tailscalen kautta. Tailscale on ohjelma, joka tekee kavereiden koneista
     yksityisen, salatun verkon.
   - **Julkinen tila** (Windows-palvelinpaketin oletus, `deploy/windows-server/`): salattu
-    yhdyskäytävä (`UndauntedGateway/`) on pelin ainoa julkinen TCP-portti. Peli puhuu salaamatonta HTTP:tä
+    yhdyskäytävä (`DauntlessUnbrokenGateway/`) on pelin ainoa julkinen TCP-portti. Peli puhuu salaamatonta HTTP:tä
     vain pelaajan omalla koneella olevalle käynnistimelle, joka välittää liikenteen salattuna kutsun
     varmenteeseen kiinnitettyä yhteyttä pitkin. Yhdyskäytävä torjuu ylläpitoreitit ja pelipalvelimen
     avaimen ulkopuolelta, ja pelin UDP-portit avataan vain kirjautuneiden pelaajien osoitteille.
@@ -136,7 +136,7 @@ omaa asennustasi, älä muiden ihmisten palvelimia tai koneita.
 ### Mitä ohje ei koske
 
 - Itse Dauntless-peliä ja sen alkuperäisiä verkkopalveluja.
-- Undauntedin valmiita DLL-tiedostoja ja muuta alkuperäistä Undaunted-koodia. Ilmoita niistä
-  [Undaunted-projektiin](https://github.com/SyST3MDeV/Undaunted).
+- Undauntedin valmiita DLL-tiedostoja ja muuta alkuperäistä dauntless-unbroken-koodia. Ilmoita niistä
+  [dauntless-unbroken-projektiin](https://github.com/SyST3MDeV/Undaunted).
 - Muita palveluja, kuten GitHubia tai Tailscalea.
 - Asennuksia, jotka on tehty ohjeiden vastaisesti.

@@ -2,7 +2,7 @@
 title: Linux server
 parent: Setup
 nav_order: 7
-description: "Run the Dauntless Revived server stack on x86_64 Linux: native Node services, Proton/Wine game servers, systemd and nftables."
+description: "Run the Dauntless Unbroken server stack on x86_64 Linux: native Node services, Proton/Wine game servers, systemd and nftables."
 lang: en
 ref: setup/linux-server
 ---
@@ -178,9 +178,9 @@ Default locations:
 
 | What | Path |
 |---|---|
-| Application | `/opt/dauntless-revived` |
-| State / database / TLS | `/var/lib/dauntless-revived` |
-| Secret environment files | `/etc/dauntless-revived` |
+| Application | `/opt/dauntless-unbroken` |
+| State / database / TLS | `/var/lib/dauntless-unbroken` |
+| Secret environment files | `/etc/dauntless-unbroken` |
 | systemd units | `/etc/systemd/system/dauntless-*.service` |
 
 Services:
@@ -202,8 +202,8 @@ sudo ./deploy/linux-server/stack.sh logs
 ## Create an invite
 
 ```bash
-sudo -u dauntless node /opt/dauntless-revived/deploy/unix-common/new-invite.mjs \
-  --config /etc/dauntless-revived \
+sudo -u dauntless node /opt/dauntless-unbroken/deploy/unix-common/new-invite.mjs \
+  --config /etc/dauntless-unbroken \
   --name FriendName
 ```
 
@@ -235,14 +235,14 @@ The Linux port does not yet have the Windows kit's transactional update/rollback
 Before updating, back up the data directory. SQLite can also be copied safely through the helper:
 
 ```bash
-sudo -u dauntless node /opt/dauntless-revived/deploy/unix-common/dr-db.cjs \
-  backup /opt/dauntless-revived/UndauntedMetagame \
-  /var/lib/dauntless-revived/undaunted.db \
-  /var/lib/dauntless-revived/undaunted-backup.db
+sudo -u dauntless node /opt/dauntless-unbroken/deploy/unix-common/dr-db.cjs \
+  backup /opt/dauntless-unbroken/DauntlessUnbrokenMetagame \
+  /var/lib/dauntless-unbroken/dauntless-unbroken.db \
+  /var/lib/dauntless-unbroken/dauntless-unbroken-backup.db
 ```
 
 Then pull/copy the newer source and re-run the installer with the same arguments. Keep the same
-`/var/lib/dauntless-revived` and `/etc/dauntless-revived` directories to preserve keys and data.
+`/var/lib/dauntless-unbroken` and `/etc/dauntless-unbroken` directories to preserve keys and data.
 
 ## Troubleshooting
 

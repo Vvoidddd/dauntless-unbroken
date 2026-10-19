@@ -6,8 +6,8 @@ $ErrorActionPreference = "Stop"
 
 $Repo = Split-Path $PSScriptRoot -Parent
 $Pinned = @{
-  "dxgi.dll"                    = "9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F"
-  "UndauntedInternalServer.dll" = "6f2433abebdee451edfc9060fa58eb3e2a3e73e5f7063de05386316b52d7b30b"
+  "dxgi.dll"                    = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
+  "DauntlessUnbroken.dll" = "21df88216d012b10b37ee054ebd446d20c70f3ba341f53e6392053559e0db47c"
 }
 
 $commit = (git -C $Repo rev-parse HEAD).Trim()
@@ -15,7 +15,7 @@ $dirty = [bool](git -C $Repo status --porcelain -- friend-kit client-mods)
 if ($dirty) { throw "friend-kit\ or client-mods\ has uncommitted changes. Commit and push first, so SOURCE.txt names real code." }
 $remote = (git -C $Repo remote get-url origin).Trim() -replace '\.git$', ''
 
-$Stage = Join-Path $Out "DauntlessRevived-FriendKit"
+$Stage = Join-Path $Out "DauntlessUnbroken-FriendKit"
 if (Test-Path $Stage) { Remove-Item -Recurse -Force $Stage }
 New-Item -ItemType Directory -Force (Join-Path $Stage "dll") | Out-Null
 
@@ -23,7 +23,7 @@ foreach ($f in "setup.ps1", "play.ps1", "Setup.cmd", "Play Dauntless.cmd", "READ
   Copy-Item -LiteralPath (Join-Path $Repo "friend-kit\$f") -Destination $Stage
 }
 foreach ($name in $Pinned.Keys) {
-  $src = Join-Path $Repo "UndauntedLauncher\assets\$name"
+  $src = Join-Path $Repo "DauntlessUnbrokenLauncher\assets\$name"
   if ((Get-FileHash -LiteralPath $src -Algorithm SHA256).Hash -ne $Pinned[$name]) { throw "$name does not match its pinned hash" }
   Copy-Item -LiteralPath $src -Destination (Join-Path $Stage "dll")
 }
@@ -31,7 +31,7 @@ Copy-Item -LiteralPath (Join-Path $Repo "LICENSE.txt") -Destination $Stage
 # UE4SS and the client mods; setup.ps1 installs them (checked against client-mods\manifest.json).
 Copy-Item -LiteralPath (Join-Path $Repo "client-mods") -Destination (Join-Path $Stage "client-mods") -Recurse
 @(
-  "Dauntless Revived - source code (AGPL-3.0)",
+  "Dauntless Unbroken - source code (AGPL-3.0)",
   "",
   "Repository: $remote",
   "Version:    $commit",
@@ -44,7 +44,7 @@ Get-ChildItem -LiteralPath $Stage -Recurse -File | Sort-Object FullName | ForEac
   "$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.FullName.Substring($Stage.Length + 1).Replace('\', '/'))"
 } | Set-Content -LiteralPath (Join-Path $Stage "SHA256SUMS.txt") -Encoding ASCII
 
-$zip = Join-Path $Out "DauntlessRevived-FriendKit-$($commit.Substring(0, 7)).zip"
+$zip = Join-Path $Out "DauntlessUnbroken-FriendKit-$($commit.Substring(0, 7)).zip"
 if (Test-Path $zip) { Remove-Item -Force $zip }
 Compress-Archive -Path (Join-Path $Stage "*") -DestinationPath $zip
 "kit:    $zip"

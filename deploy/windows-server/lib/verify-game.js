@@ -1,4 +1,4 @@
-// Dauntless Revived - check an installed game folder against the content manifest.
+// Dauntless Unbroken - check an installed game folder against the content manifest.
 //
 //   node verify-game.js <manifest.json> <game folder> [--quick]
 //

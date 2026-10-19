@@ -39,9 +39,9 @@ export function payload(sample, now = Date.now(), fleet = null) {
     fields.push({name:'Shared backend',value:'🟠 Check unavailable · player count and uptime unknown'});
   }
   fields.push({name:'Region guide',value:'Choose EU, Germany or US (NA) in launcher Settings. EU has an additional overflow worker. Parties follow their leader across regions. CPU/count headroom is not a queue-time estimate; memory and server readiness also affect launches.'});
-  fields.push({name:'📥 Launcher · Cloudflare downloads',value:'[Latest launcher / release notes](https://github.com/mixutin/dauntless-revived/releases/latest). Game downloads use Cloudflare with resume support and file verification.'});
+  fields.push({name:'📥 Launcher · Cloudflare downloads',value:'[Latest launcher / release notes](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest). Game downloads use Cloudflare with resume support and file verification.'});
   fields.push({name:'Last checked',value:`<t:${at}:F> (<t:${at}:R>)`});
-  return {allowed_mentions:{parse:[]},embeds:[{title:'Dauntless Revived · Live realm status',
+  return {allowed_mentions:{parse:[]},embeds:[{title:'Dauntless Unbroken · Live realm status',
     description:online?'Shared accounts and progression across **EU, Germany and US (NA)**.':'The shared backend check failed. Please check again shortly.',
     color:online&&fleet?.servers>0&&fleet.online===fleet.servers?0x35bc84:0xe1a349,fields,
     footer:{text:'Host health and backend activity, not player ping or proof of hunt completion. Stale readings are unknown.'}}]};
@@ -52,7 +52,7 @@ export async function sampleBackend(backend, key, fetcher = fetch) {
   if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || url.username || url.password) throw new Error('Backend must use loopback HTTP');
   const start = performance.now();
   try {
-    const res = await fetcher(new URL('/undaunted/api/ServerStatus', url), {headers: {'x-undaunted-user-api-key': key}, signal: AbortSignal.timeout(8000), redirect: 'error'});
+    const res = await fetcher(new URL('/undaunted/api/ServerStatus', url), {headers: {'x-dauntless-unbroken-user-api-key': key}, signal: AbortSignal.timeout(8000), redirect: 'error'});
     if (!res.ok) return null;
     const data = await res.json();
     if (data.online !== true || data.limited !== false || !Number.isInteger(data.playersOnline) || data.playersOnline < 0 || !Number.isFinite(data.uptimeSeconds) || data.uptimeSeconds < 0) return null;

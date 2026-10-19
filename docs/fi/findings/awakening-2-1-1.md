@@ -1,7 +1,7 @@
 ---
 title: Itsenäinen käynnistys 2.1.1:llä
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 8
 lang: fi
 ref: findings/awakening-2-1-1

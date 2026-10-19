@@ -2,7 +2,7 @@
 title: Scripts and parameters
 parent: Reference
 nav_order: 6
-description: "Every script you run for Dauntless Revived: the Windows server kit, the friend kit, tools/ and the npm scripts, with each parameter, its default and examples."
+description: "Every script you run for Dauntless Unbroken: the Windows server kit, the friend kit, tools/ and the npm scripts, with each parameter, its default and examples."
 lang: en
 ref: reference/scripts
 ---
@@ -56,16 +56,16 @@ These rules apply to every script in `deploy/windows-server/`.
   has. If the execution policy blocks scripts, run them the way the kit runs its own scripts:
   `powershell -NoProfile -ExecutionPolicy Bypass -File <script> <arguments>`.
 - **Where the scripts live.** On an installed server, run them from `<root>\bin`
-  (`C:\DauntlessRevived\bin` by default). On this page `<root>` means the install root. The
+  (`C:\DauntlessUnbroken\bin` by default). On this page `<root>` means the install root. The
   installer copies the kit there, and
-  `Update-DauntlessServer.ps1` refreshes that copy from the new code. `staging\kit` is only the upload
+  `Update-DauntlessUnbrokenServer.ps1` refreshes that copy from the new code. `staging\kit` is only the upload
   folder that `Deploy-Remote.ps1` uses.
-- **`-Root`.** `Stack.ps1`, `Update-DauntlessServer.ps1`, `Backup-DauntlessServer.ps1`,
+- **`-Root`.** `Stack.ps1`, `Update-DauntlessUnbrokenServer.ps1`, `Backup-DauntlessUnbrokenServer.ps1`,
   `New-Invite.ps1`, `Get-ServerStatus.ps1`, `Set-Chat.ps1` and `Write-PerformanceLog.ps1` take `-Root <install root>`. Without it they use the
   folder above their own folder if that folder holds `data\config\server.json`, which is the case for
-  `<root>\bin`. Otherwise they use `C:\DauntlessRevived`. The installer takes `-InstallRoot` instead.
-- **`-WhatIf` and `-Confirm`** work on `Deploy-Remote.ps1`, `Install-DauntlessServer.ps1`,
-  `Update-DauntlessServer.ps1`, `Stack.ps1`, `Backup-DauntlessServer.ps1` and `New-Invite.ps1`.
+  `<root>\bin`. Otherwise they use `C:\DauntlessUnbroken`. The installer takes `-InstallRoot` instead.
+- **`-WhatIf` and `-Confirm`** work on `Deploy-Remote.ps1`, `Install-DauntlessUnbrokenServer.ps1`,
+  `Update-DauntlessUnbrokenServer.ps1`, `Stack.ps1`, `Backup-DauntlessUnbrokenServer.ps1` and `New-Invite.ps1`.
   `-WhatIf` lists the changes without making them. `Get-ServerStatus.ps1` changes nothing and has no
   `-WhatIf`.
 - **Exit codes.** `0` means success and `1` means failure. A failure prints a red `FAIL` line, and
@@ -83,13 +83,13 @@ Which scripts need an elevated PowerShell ("Run as administrator"):
 
 | Script | Elevated? |
 |:-------|:----------|
-| `Install-DauntlessServer.ps1` | Yes. With `-Sandbox` it only warns. |
-| `Update-DauntlessServer.ps1` | Yes, except on a `-Sandbox` install. |
+| `Install-DauntlessUnbrokenServer.ps1` | Yes. With `-Sandbox` it only warns. |
+| `Update-DauntlessUnbrokenServer.ps1` | Yes, except on a `-Sandbox` install. |
 | `Stack.ps1` | `start`, `stop` and `restart` on an installed server work through the scheduled tasks and need it, and so does `-Direct`. `status` runs without it, but it can show the players online only when it can read the owner key, which needs elevation. |
 | `New-Invite.ps1` | Yes: it reads `data\keys\owner.key`. |
 | `Set-Chat.ps1` | Yes, except on a `-Sandbox` install: it rewrites `metagame.env` and restarts the stack. |
 | `Get-ServerStatus.ps1` | On the server, if you want the player list: it reads the owner key. Not needed with `-KeyFile`. |
-| `Backup-DauntlessServer.ps1` | Run it elevated, or let the backup task run it as the service account. An account that cannot read a file skips it and names it in the output. |
+| `Backup-DauntlessUnbrokenServer.ps1` | Run it elevated, or let the backup task run it as the service account. An account that cannot read a file skips it and names it in the output. |
 | `Write-PerformanceLog.ps1` | On an installed server, yes: without elevation it cannot see the game servers (they run as the service account) or read the owner key for the player counts. Not on a `-Sandbox` install. |
 | `Deploy-Remote.ps1` | No. It runs on your PC as your normal account. The SSH account on the server must be an administrator. |
 
@@ -98,17 +98,17 @@ Which scripts need an elevated PowerShell ("Run as administrator"):
 | Script | Runs on | What it does |
 |:-------|:--------|:-------------|
 | `Deploy-Remote.ps1` | Your PC | Uploads the kit, the code, a backup and the game zip over key-only SSH, then runs the installer or the updater. Also makes invites and shows the status. |
-| `Install-DauntlessServer.ps1` | The server | Installs, repairs or restores a server in public or private mode. Idempotent. |
-| `Update-DauntlessServer.ps1` | The server | New server code, built beside the running server, with a health check and an automatic rollback. |
+| `Install-DauntlessUnbrokenServer.ps1` | The server | Installs, repairs or restores a server in public or private mode. Idempotent. |
+| `Update-DauntlessUnbrokenServer.ps1` | The server | New server code, built beside the running server, with a health check and an automatic rollback. |
 | `Stack.ps1` | The server | `status`, `start`, `stop`, `restart`, and `supervise` (inside the scheduled tasks). |
 | `New-Invite.ps1` | The server | Creates an invite code and prints the invite line. Also lists and revokes codes. |
 | `Get-ServerStatus.ps1` | The server or any PC | Who is online and which worlds and hunts run. |
-| `Backup-DauntlessServer.ps1` | The server | A backup now, with retention. |
+| `Backup-DauntlessUnbrokenServer.ps1` | The server | A backup now, with retention. |
 | `Set-Chat.ps1` | The server | Turns the in-game text chat on or off (public mode), and restarts the stack. |
 | `backup-hidden.vbs` | The server | Runs the backup without a window (used by the hourly task). |
 | `Write-PerformanceLog.ps1` | The server | A performance sample now, or every minute in a sandbox. The stack supervisor already takes one every minute on an installed server. |
 | `Receive-Upload.ps1` | The server | The server side of the chunked upload. `Deploy-Remote.ps1` calls it; you do not. |
-| `DauntlessServer.Common.ps1`, `DauntlessServer.Performance.ps1` | Both | Shared helpers the scripts dot-source: pins, invites, pinned HTTPS, processes; the performance sampler. |
+| `DauntlessUnbrokenServer.Common.ps1`, `DauntlessUnbrokenServer.Performance.ps1` | Both | Shared helpers the scripts dot-source: pins, invites, pinned HTTPS, processes; the performance sampler. |
 | `lib\dr-db.js`, `lib\dr-keys.js`, `lib\verify-game.js` | The server | Node helpers the scripts call. |
 | `tests\Test-*.ps1` | A development PC | The kit's own tests. |
 
@@ -132,7 +132,7 @@ server's host key in a `known_hosts` file. Commands run on the server as
    Administrators and SYSTEM can open that folder, and it is deleted after a successful install.
 4. With `-GameZip`, it uploads the game zip to `staging\upload` in parts. The finished
    `BaseGame144.zip` stays there for repairs.
-5. It runs `Install-DauntlessServer.ps1` and streams its output.
+5. It runs `Install-DauntlessUnbrokenServer.ps1` and streams its output.
 6. It prints the result. In public mode it also checks the gateway from your PC, with the pinned
    certificate, and reminds you to allow inbound TCP on the gateway port and UDP 8770-8777 from any
    address in the provider's firewall. It cannot test UDP from your PC.
@@ -148,15 +148,15 @@ server's host key in a `known_hosts` file. Commands run on the server as
 | `-KnownHostsFile` | path without spaces | `known_hosts` in the folder of `-KeyFile` | Where the server's host key is pinned. The first connection records it (`StrictHostKeyChecking=accept-new`), and every later one must match. |
 | `-HostKeyFingerprint` | `SHA256:` and 43 base64 characters (the prefix may be left out) | none | For the first connection. The script fetches the server's host keys with `ssh-keyscan`, requires one with this fingerprint and pins it. Without it, a first connection that also has `-RestoreFrom` is refused, because the backup holds every key. Take the fingerprint from the provider's console. |
 
-**What to install** (passed on to `Install-DauntlessServer.ps1`)
+**What to install** (passed on to `Install-DauntlessUnbrokenServer.ps1`)
 
 | Parameter | Type | Default | What it does |
 |:----------|:-----|:--------|:-------------|
 | `-Mode` | `Public` or `Private` | `Public` | The server's mode. Always passed on an install run: see "Re-deploying" below. |
-| `-InstallRoot` | absolute path without spaces | `C:\DauntlessRevived` | The install root on the server. |
+| `-InstallRoot` | absolute path without spaces | `C:\DauntlessUnbroken` | The install root on the server. |
 | `-OwnerName` | 3-16 letters, digits or `_` | none | The admin account of a new server. An install needs `-OwnerName` or `-RestoreFrom`, unless you pass `-UploadOnly`. |
-| `-RestoreFrom` | a local backup folder with a plain name, such as `2026-10-01_200000` | none | Moves an existing server: the database and every key. The folder must hold `undaunted.db`, `secrets\metagame.env` and `secrets\deployserver.env`. After the upload the file count and the database hash are compared. **Secret: the folder holds every key; never share, never commit.** It travels only inside the SSH connection. |
-| `-ServerName` | 1-64 characters: no line breaks, control characters, double quotes, backslashes or direction-override characters, and no spaces at either end (the installer's rule) | not passed | The name friends see. When it is left out, the installer uses its own default, `Dauntless Revived`. |
+| `-RestoreFrom` | a local backup folder with a plain name, such as `2026-10-01_200000` | none | Moves an existing server: the database and every key. The folder must hold `dauntless-unbroken.db`, `secrets\metagame.env` and `secrets\deployserver.env`. After the upload the file count and the database hash are compared. **Secret: the folder holds every key; never share, never commit.** It travels only inside the SSH connection. |
+| `-ServerName` | 1-64 characters: no line breaks, control characters, double quotes, backslashes or direction-override characters, and no spaces at either end (the installer's rule) | not passed | The name friends see. When it is left out, the installer uses its own default, `Dauntless Unbroken`. |
 | `-PublicHost` | IPv4 address or DNS name | `-Server` | Public mode: the address friends connect to. Always passed in public mode. |
 | `-GatewayPort` | 1-65535 | `443` | Public mode: the gateway's TCP port. Always passed in public mode. |
 | `-AdminIp` | IPv4 address or `IPv4/prefix` with a prefix from 8 to 32; one or more | none | The addresses allowed to use Remote Desktop. Without it and without `-KeepRdpOpen`, the script warns that the installer turns internet-open Remote Desktop rules off. |
@@ -175,8 +175,8 @@ server's host key in a `known_hosts` file. Commands run on the server as
 | `-Ref` | branch, tag or commit | `friends-v1` (`$DRRepo.PinnedRef`) | The ref for `-Source GitHub`. |
 | `-WorkingTree` | switch | off | Sends your current files instead of `HEAD`: tracked and untracked files that git does not ignore, minus the folders `node_modules`, `dist`, `build`, `out` and `.vite`, every `.env` and `.env.*` file except `.env.example`, and `*.key`, `*.pem`, `*.db`, `*.db-journal`, `*.db-wal`, `*.db-shm` and `*.log`. The commit is recorded as `<commit>-worktree`. Cannot be combined with `-Source GitHub`. |
 
-In public mode an upload of `HEAD` is refused when `HEAD` lacks `UndauntedGateway` or
-`UndauntedContent`. The check runs after the kit upload, before the code, the backup and the game
+In public mode an upload of `HEAD` is refused when `HEAD` lacks `DauntlessUnbrokenGateway` or
+`DauntlessUnbrokenContent`. The check runs after the kit upload, before the code, the backup and the game
 zip are sent. Commit your work, or add `-WorkingTree`. Uncommitted changes are not deployed without
 `-WorkingTree`, and the script warns about them.
 
@@ -184,8 +184,8 @@ zip are sent. Commit your work, or add `-WorkingTree`. Uncommitted changes are n
 
 | Parameter | Type | What it does |
 |:----------|:-----|:-------------|
-| (none) | | Install: uploads everything and runs `Install-DauntlessServer.ps1`. |
-| `-Update` | switch | Uploads the kit and the code, then runs `Update-DauntlessServer.ps1 -Root <InstallRoot>` with the uploaded zip, or with `-Ref` for `-Source GitHub`. `-GameZip`, `-GameZipUrl`, `-RestoreFrom` and `-OwnerName` are refused. |
+| (none) | | Install: uploads everything and runs `Install-DauntlessUnbrokenServer.ps1`. |
+| `-Update` | switch | Uploads the kit and the code, then runs `Update-DauntlessUnbrokenServer.ps1 -Root <InstallRoot>` with the uploaded zip, or with `-Ref` for `-Source GitHub`. `-GameZip`, `-GameZipUrl`, `-RestoreFrom` and `-OwnerName` are refused. |
 | `-Status` | switch | Runs `<InstallRoot>\bin\Stack.ps1 status` and `Get-ServerStatus.ps1` on the server. The exit code is theirs. |
 | `-InviteFor` | text without control characters, quotes, backticks or `$` | Runs `New-Invite.ps1 -For <text>` on the server, prints the invite line, then checks it from your PC with `Get-ServerStatus.ps1 -Invite`. |
 | `-Chat` alone | `On` or `Off` | With no install parameter (`-OwnerName`, `-RestoreFrom`, `-GameZip`, `-GameZipUrl`, `-ServerName`, `-AdminIp`, `-Ref`, `-WorkingTree`, `-UploadOnly`), runs `<InstallRoot>\bin\Set-Chat.ps1 -On` or `-Off` on the server and uploads nothing. The stack restarts, so do it when nobody is playing. Refused together with `-Update`, `-Status` or `-InviteFor`. |
@@ -207,7 +207,7 @@ zip are sent. Commit your work, or add `-WorkingTree`. Uncommitted changes are n
 - In public mode `-PublicHost` (default: `-Server`) and `-GatewayPort` (default `443`) are always
   passed. They replace what the server has stored.
 - `-ServerName` is passed only when you give it, and the installer's default is
-  `Dauntless Revived`. Re-deploying without it renames the server.
+  `Dauntless Unbroken`. Re-deploying without it renames the server.
 - `-InteractiveSession` is not remembered. Re-deploying without it turns the auto-logon off again.
 - `-Chat` is remembered in `server.json`: re-deploying without it keeps chat as it was.
 
@@ -233,7 +233,7 @@ For code changes, use `-Update`. It does not run the installer, so none of this 
 .\deploy\windows-server\Deploy-Remote.ps1 -Server 203.0.113.7 -Chat On
 ```
 
-### Install-DauntlessServer.ps1
+### Install-DauntlessUnbrokenServer.ps1
 
 Runs on the server, in an elevated PowerShell. `Deploy-Remote.ps1` runs it from
 `<root>\staging\kit`, and you can run it yourself. Every step is safe to repeat: a re-run repairs or
@@ -241,7 +241,7 @@ completes an install and leaves alone what is already right. The steps are descr
 [What the installer does]({{ winserver_page.url | relative_url }}#what-the-installer-does).
 
 The installer refuses to run while any part of the stack is running. Stop it first with
-`Stack.ps1 stop`, or use `Update-DauntlessServer.ps1` for code updates. The preflight checks for an
+`Stack.ps1 stop`, or use `Update-DauntlessUnbrokenServer.ps1` for code updates. The preflight checks for an
 administrator, a 64-bit Windows build 17763 or newer with the Desktop Experience, at least 7.5 GB of
 RAM as Windows reports it, a 40 GB disk budget (2 GB in a sandbox; the game zip on the same drive and
 an installed game count towards it), `tar.exe` and free ports. A problem stops a real run.
@@ -255,8 +255,8 @@ but a port that is taken still stops the run.
 | `-Mode` | `Public` or `Private` | A new install: `Public`. A re-run: the installed mode. An old `server.json` with no mode counts as `Private`. | `Public`: a TLS gateway, v2 invites. `Private`: Tailscale, v1 invites. |
 | `-PublicHost` | IPv4 address or DNS name | The stored `PublicHost`. Otherwise the one public IPv4 address on the network adapters; the installer stops if there is none or more than one. `127.0.0.1` in a sandbox. | Public mode: the address friends connect to. It goes into invites and into the certificate. Its IPv4 address is what game servers advertise. It must resolve to a public IPv4 address, except in a sandbox. Behind 1:1 NAT, pass it. |
 | `-GatewayPort` | 1-65535 (a sandbox: 62000-62499) | The stored gateway port, else `443` (`62443` in a sandbox) | Public mode: the gateway's TCP port, the only public TCP port. |
-| `-ServerName` | 1-64 characters: no line breaks, control characters, double quotes, backslashes or direction-override characters, and no spaces at either end | `Dauntless Revived` | The name friends see in invites and in the launcher. **Not remembered by re-runs:** a re-run without it sets the name back to `Dauntless Revived`. |
-| `-InstallRoot` | path | `C:\DauntlessRevived` | Where everything goes. Required with `-Sandbox`. |
+| `-ServerName` | 1-64 characters: no line breaks, control characters, double quotes, backslashes or direction-override characters, and no spaces at either end | `Dauntless Unbroken` | The name friends see in invites and in the launcher. **Not remembered by re-runs:** a re-run without it sets the name back to `Dauntless Unbroken`. |
+| `-InstallRoot` | path | `C:\DauntlessUnbroken` | Where everything goes. Required with `-Sandbox`. |
 
 **Game files** (use one of the three)
 
@@ -275,19 +275,19 @@ manifest. Then it installs the two server DLLs with their pinned hashes.
 |:----------|:-----|:--------|:-------------|
 | `-SourceZip` | path of a source zip (`git archive`) | none | Builds from an uploaded zip. This is what `Deploy-Remote.ps1` sends. |
 | `-SourceCommit` | 7-40 hex characters, optionally with `-dirty` or `-worktree` | `zip-` and the first 12 hex characters of the zip's SHA-256 | Names the commit of `-SourceZip` for the version reports. |
-| `-SourceDir` | a folder with `UndauntedMetagame\package.json` | none | Builds from a local folder. In a git checkout the commit is read from git, with `-dirty` when there are changes. |
+| `-SourceDir` | a folder with `DauntlessUnbrokenMetagame\package.json` | none | Builds from a local folder. In a git checkout the commit is read from git, with `-dirty` when there are changes. |
 | `-Ref` | branch, tag or commit: letters, digits, `.`, `_`, `/`, `-` (1-100) | See below | Downloads that ref from GitHub and builds it. |
 
 With none of the three, the installer builds the checkout it runs in, if it runs from one (when
-`..\..\UndauntedMetagame\package.json` exists). Otherwise it builds `$DRRepo.PinnedRef`, which is
+`..\..\DauntlessUnbrokenMetagame\package.json` exists). Otherwise it builds `$DRRepo.PinnedRef`, which is
 `friends-v1`, from GitHub. **Watch out:** a re-run from `<root>\bin` is not in a checkout, so without
 a source parameter it downloads `friends-v1`. To keep the installed code, re-deploy with
 `Deploy-Remote.ps1`, which uploads the code again, or pass `-Ref <the installed commit>` if that
 commit is on GitHub. A commit that is already built is not rebuilt, unless it ends in `-dirty` or
 `-worktree` or is `unknown`. The build copies the source into `<root>\app.new` (without
 `node_modules`, build output, `.git`, `.env` files, keys, certificates, databases and logs), runs
-`npm ci` and `npm run build` in the four server packages (`UndauntedMetagame`,
-`UndauntedDeployServer`, `UndauntedContent` and `UndauntedGateway`; the launcher is not built), then
+`npm ci` and `npm run build` in the four server packages (`DauntlessUnbrokenMetagame`,
+`DauntlessUnbrokenDeployServer`, `DauntlessUnbrokenContent` and `DauntlessUnbrokenGateway`; the launcher is not built), then
 swaps it in, keeping the old build as `app.prev`.
 
 **Owner, restore and certificate**
@@ -351,20 +351,20 @@ value that kept Windows Firewall off.
 
 ```powershell
 # From an unpacked kit on the server: a new public server
-.\Install-DauntlessServer.ps1 -GameZip D:\BaseGame144.zip -PublicHost 203.0.113.7 -AdminIp 198.51.100.20 -OwnerName Slayer
+.\Install-DauntlessUnbrokenServer.ps1 -GameZip D:\BaseGame144.zip -PublicHost 203.0.113.7 -AdminIp 198.51.100.20 -OwnerName Slayer
 
 # Everything it would change, without changing anything
-.\Install-DauntlessServer.ps1 -Mode Public -GameZipUrl https://example.org/BaseGame144.zip -OwnerName Slayer -WhatIf
+.\Install-DauntlessUnbrokenServer.ps1 -Mode Public -GameZipUrl https://example.org/BaseGame144.zip -OwnerName Slayer -WhatIf
 
 # A private-mode server that puts its MagicDNS name into invites
-.\Install-DauntlessServer.ps1 -Mode Private -GameZip D:\BaseGame144.zip -OwnerName Slayer -AdvertiseHost dauntless-server.example.ts.net
+.\Install-DauntlessUnbrokenServer.ps1 -Mode Private -GameZip D:\BaseGame144.zip -OwnerName Slayer -AdvertiseHost dauntless-server.example.ts.net
 
 # Re-run on an installed server to limit Remote Desktop to a new address (stop the stack first)
-C:\DauntlessRevived\bin\Stack.ps1 stop
-C:\DauntlessRevived\bin\Install-DauntlessServer.ps1 -Ref <installed commit> -ServerName "Saturday Ramsgate" -AdminIp 198.51.100.21
+C:\DauntlessUnbroken\bin\Stack.ps1 stop
+C:\DauntlessUnbroken\bin\Install-DauntlessUnbrokenServer.ps1 -Ref <installed commit> -ServerName "Saturday Ramsgate" -AdminIp 198.51.100.21
 ```
 
-### Update-DauntlessServer.ps1
+### Update-DauntlessUnbrokenServer.ps1
 
 Runs on the server, elevated. It replaces the server code only. The `.env` files, keys, the
 certificate, the game files and the firewall stay as they are; run the installer again for those.
@@ -384,7 +384,7 @@ certificate, the game files and the firewall stay as they are; run the installer
 | `-Ref` | branch, tag or commit | `friends-v1` | Downloads that ref from GitHub. This is the default parameter set: with no source parameter at all, the updater builds `friends-v1`, which may be older than what the server runs. **Always name the source.** |
 | `-SourceZip` | path | none | Builds from a source zip. `Deploy-Remote.ps1 -Update` passes this. |
 | `-SourceCommit` | 7-40 hex characters, optionally with `-dirty` or `-worktree` | `zip-<12 hex of the zip's SHA-256>` | The commit of `-SourceZip`. |
-| `-SourceDir` | a folder with `UndauntedMetagame\package.json` | none | Builds from a local folder. |
+| `-SourceDir` | a folder with `DauntlessUnbrokenMetagame\package.json` | none | Builds from a local folder. |
 | `-Rollback` | switch | off | Switches back to `app.prev` by hand: stop (with a backup), rename `app` to `app.rolledback` and `app.prev` to `app`, restore the recorded commit, refresh the scripts in `<root>\bin`, start without another backup, check. |
 | `-Force` | switch | off | Rebuilds even when that commit is already installed. A commit ending in `-dirty` or `-worktree` is always rebuilt. |
 | `-HealthTimeoutSec` | seconds | `180` | How long the new build may take to become healthy before the automatic rollback. |
@@ -406,9 +406,9 @@ the metagame then warns that some player accounts have no stored progression yet
 repeats that warning with a link to the upgrade notes. This check never fails the update.
 
 ```powershell
-C:\DauntlessRevived\bin\Update-DauntlessServer.ps1 -Ref <tag or commit>
-C:\DauntlessRevived\bin\Update-DauntlessServer.ps1 -SourceZip C:\DauntlessRevived\staging\source\source-<12 hex>.zip -SourceCommit <commit>
-C:\DauntlessRevived\bin\Update-DauntlessServer.ps1 -Rollback
+C:\DauntlessUnbroken\bin\Update-DauntlessUnbrokenServer.ps1 -Ref <tag or commit>
+C:\DauntlessUnbroken\bin\Update-DauntlessUnbrokenServer.ps1 -SourceZip C:\DauntlessUnbroken\staging\source\source-<12 hex>.zip -SourceCommit <commit>
+C:\DauntlessUnbroken\bin\Update-DauntlessUnbrokenServer.ps1 -Rollback
 ```
 
 ### Stack.ps1
@@ -441,10 +441,10 @@ server, `start` and `stop` therefore work through the two scheduled tasks. Each 
 `Stack.ps1` clears every variable of that `.env` file from its own environment, so the file wins.
 
 ```powershell
-C:\DauntlessRevived\bin\Stack.ps1                     # status
-C:\DauntlessRevived\bin\Stack.ps1 restart -Only gateway
-C:\DauntlessRevived\bin\Stack.ps1 stop
-C:\DauntlessRevived\bin\Stack.ps1 start
+C:\DauntlessUnbroken\bin\Stack.ps1                     # status
+C:\DauntlessUnbroken\bin\Stack.ps1 restart -Only gateway
+C:\DauntlessUnbroken\bin\Stack.ps1 stop
+C:\DauntlessUnbroken\bin\Stack.ps1 start
 ```
 
 ### New-Invite.ps1
@@ -470,8 +470,8 @@ with a code made by the script), checks that the code is in the server's list, r
 invite line through the same strict parser the launcher uses, and prints one line:
 
 ```text
-dauntless-revived://join?v=2&mode=public&host=203.0.113.7&port=443&fp=<64 hex>&code=ABCD-EFGH-JKLM&name=Saturday%20Ramsgate
-dauntless-revived://join?v=1&host=100.x.y.z&port=61000&code=ABCD-EFGH-JKLM&name=Home&share=<url-encoded share link>
+dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=<64 hex>&code=ABCD-EFGH-JKLM&name=Saturday%20Ramsgate
+dauntless-unbroken://join?v=1&host=100.x.y.z&port=61000&code=ABCD-EFGH-JKLM&name=Home&share=<url-encoded share link>
 ```
 
 `v=2` is public mode: `fp` is the SHA-256 of the gateway certificate, and the launcher accepts that
@@ -480,10 +480,10 @@ an account: send it privately. Public mode refuses to make an invite when the ce
 longer matches the fingerprint in `server.json`.
 
 ```powershell
-C:\DauntlessRevived\bin\New-Invite.ps1 -For friend1
-C:\DauntlessRevived\bin\New-Invite.ps1 -Uses 3 -For "Saturday group"
-C:\DauntlessRevived\bin\New-Invite.ps1 -List
-C:\DauntlessRevived\bin\New-Invite.ps1 -Revoke ABCD-EFGH-JKLM
+C:\DauntlessUnbroken\bin\New-Invite.ps1 -For friend1
+C:\DauntlessUnbroken\bin\New-Invite.ps1 -Uses 3 -For "Saturday group"
+C:\DauntlessUnbroken\bin\New-Invite.ps1 -List
+C:\DauntlessUnbroken\bin\New-Invite.ps1 -Revoke ABCD-EFGH-JKLM
 ```
 
 ### Get-ServerStatus.ps1
@@ -512,8 +512,8 @@ fails because the server shows a different certificate, the script says so: eith
 new certificate, or someone is in between.
 
 ```powershell
-C:\DauntlessRevived\bin\Get-ServerStatus.ps1
-.\Get-ServerStatus.ps1 -Invite 'dauntless-revived://join?v=2&mode=public&host=203.0.113.7&port=443&fp=...&code=...&name=...' -KeyFile .\account.key
+C:\DauntlessUnbroken\bin\Get-ServerStatus.ps1
+.\Get-ServerStatus.ps1 -Invite 'dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=...&code=...&name=...' -KeyFile .\account.key
 .\Get-ServerStatus.ps1 -Server 203.0.113.7:443 -Fingerprint <64 hex> -Json
 ```
 
@@ -528,7 +528,7 @@ Turns the in-game text chat on or off on an installed public-mode server
 | Parameter | Type | Default | What it does |
 |:----------|:-----|:--------|:-------------|
 | `-On` / `-Off` | switch, one of them **required** | | The new state. |
-| `-Root` | path | `C:\DauntlessRevived` | The install root. |
+| `-Root` | path | `C:\DauntlessUnbroken` | The install root. |
 
 It writes `CHAT=1` or `0`, `CHAT_BIND_HOST=127.0.0.1` and `CHAT_PORT` (61099, 62099 in a sandbox) into
 `metagame.env` and `"Chat"` into `server.json`. Then it runs `Stack.ps1 stop` and `start`, with the
@@ -540,16 +540,16 @@ goes by the three chat keys and `"Chat"`, so what the installer or an update wro
 memory: run it when nobody is playing. From your PC, `Deploy-Remote.ps1 -Server <address> -Chat On`
 runs it over SSH. On a server installed before chat, the script arrives with the update, so update
 first. Based on Vvoidddd's first chat switch
-([#9](https://github.com/mixutin/dauntless-revived/pull/9)).
+([#9](https://github.com/Vvoidddd/dauntless-unbroken/pull/9)).
 
 ```powershell
-C:\DauntlessRevived\bin\Set-Chat.ps1 -On
-C:\DauntlessRevived\bin\Set-Chat.ps1 -Off
+C:\DauntlessUnbroken\bin\Set-Chat.ps1 -On
+C:\DauntlessUnbroken\bin\Set-Chat.ps1 -Off
 ```
 
-### Backup-DauntlessServer.ps1 and backup-hidden.vbs
+### Backup-DauntlessUnbrokenServer.ps1 and backup-hidden.vbs
 
-`Backup-DauntlessServer.ps1` copies everything a restore needs into
+`Backup-DauntlessUnbrokenServer.ps1` copies everything a restore needs into
 `<root>\backups\yyyy-MM-dd_HHmmss\`: the database, taken with SQLite's online backup and checked;
 `server.json`; the news file; the `.env` files of the metagame, deploy server, content server and
 gateway; every `*.key` file; and the gateway certificate with its private key.
@@ -573,8 +573,8 @@ after every stop (`Stack.ps1`), and before every update.
 script's folder. It returns the backup's exit code.
 
 ```powershell
-C:\DauntlessRevived\bin\Backup-DauntlessServer.ps1
-C:\DauntlessRevived\bin\Backup-DauntlessServer.ps1 -Hourly 96 -Daily 60
+C:\DauntlessUnbroken\bin\Backup-DauntlessUnbrokenServer.ps1
+C:\DauntlessUnbroken\bin\Backup-DauntlessUnbrokenServer.ps1 -Hourly 96 -Daily 60
 ```
 
 ### Write-PerformanceLog.ps1
@@ -585,7 +585,7 @@ their command line, like `Stack.ps1` finds them), and every game server started 
 game folder. The rows are appended to `<root>\data\logs\performance\performance-<UTC date>.csv`; the
 columns are in [Files and data]({{ files_page.url | relative_url }}#performance-log). Files older than
 `-KeepDays` are deleted. Based on the first sampler by Vvoidddd
-([#6](https://github.com/mixutin/dauntless-revived/pull/6)).
+([#6](https://github.com/Vvoidddd/dauntless-unbroken/pull/6)).
 
 On an installed server the stack supervisor already takes a sample every minute (see `supervise`
 under [Stack.ps1](#stackps1)), so run this script for one sample now (`-Once`), or for a `-Sandbox`
@@ -622,7 +622,7 @@ example the metagame is down) leaves its cells empty; the rest of the row is sti
 code is `1` when `-Once` could not write its sample.
 
 ```powershell
-C:\DauntlessRevived\bin\Write-PerformanceLog.ps1 -Once
+C:\DauntlessUnbroken\bin\Write-PerformanceLog.ps1 -Once
 .\Write-PerformanceLog.ps1 -Root C:\dr\sandbox-ws2019\root -IntervalSeconds 30
 ```
 
@@ -653,8 +653,8 @@ The kit scripts call these with the server's `node.exe`. Run them by hand only w
 | `node verify-game.js <manifest.json> <game folder> [--quick]` | Checks every file in the manifest for size and SHA-256 (`--quick`: size only). Extra files are ignored. Exit code `0` all match, `1` a mismatch, `2` a usage error, an unsafe path in the manifest or a read error. |
 
 `dr-db.js` loads `better-sqlite3` from the metagame's own `node_modules`, and exits with `1` on any
-failure. The `<metagame folder>` is `<root>\app\UndauntedMetagame` and the database is
-`<root>\data\undaunted.db`.
+failure. The `<metagame folder>` is `<root>\app\DauntlessUnbrokenMetagame` and the database is
+`<root>\data\dauntless-unbroken.db`.
 
 ### Restore, rollback and uninstall
 
@@ -662,8 +662,8 @@ There are no separate scripts for these:
 
 | Task | How |
 |:-----|:----|
-| Restore a backup, or move a server | `Install-DauntlessServer.ps1 -RestoreFrom <backup folder>`, or from your PC `Deploy-Remote.ps1 -RestoreFrom <local backup folder>`. The folder needs `undaunted.db`, `secrets\metagame.env` and `secrets\deployserver.env`. The database is checked first, and an existing database is never overwritten: delete it first if you mean to replace it. Settings from the backup's `metagame.env` and `deployserver.env` win over the existing ones. The token-signing keys, the game-server key, the `*.key` files (existing ones are kept) and the gateway certificate come along, so invites already handed out keep working. The backup's certificate is used only when this server has none yet and `-NewCertificate` is not given. The gateway and allowlist secrets are not taken from the backup: they stay, or are made new. Backups from `Backup-DauntlessServer.ps1` and from the original host's `backup.ps1` are both accepted. |
-| Go back to the previous build | `Update-DauntlessServer.ps1 -Rollback`. |
+| Restore a backup, or move a server | `Install-DauntlessUnbrokenServer.ps1 -RestoreFrom <backup folder>`, or from your PC `Deploy-Remote.ps1 -RestoreFrom <local backup folder>`. The folder needs `dauntless-unbroken.db`, `secrets\metagame.env` and `secrets\deployserver.env`. The database is checked first, and an existing database is never overwritten: delete it first if you mean to replace it. Settings from the backup's `metagame.env` and `deployserver.env` win over the existing ones. The token-signing keys, the game-server key, the `*.key` files (existing ones are kept) and the gateway certificate come along, so invites already handed out keep working. The backup's certificate is used only when this server has none yet and `-NewCertificate` is not given. The gateway and allowlist secrets are not taken from the backup: they stay, or are made new. Backups from `Backup-DauntlessUnbrokenServer.ps1` and from the original host's `backup.ps1` are both accepted. |
+| Go back to the previous build | `Update-DauntlessUnbrokenServer.ps1 -Rollback`. |
 | Uninstall | A manual snippet: [Uninstall]({{ winserver_page.url | relative_url }}#uninstall). |
 
 ### Kit tests
@@ -677,7 +677,7 @@ at CRLF line endings, also in `git archive`, which is what `Deploy-Remote.ps1` u
 
 | Script | Parameters | What it tests |
 |:-------|:-----------|:--------------|
-| `tests\Test-KitUnit.ps1` | `-WorkDir` (default `%TEMP%\dr-kit-unit`; emptied at the start, deleted at the end); `-Port` (62000-62499, default `62450`; the performance check also uses the port above it) | Every kit script parses on PowerShell 5.1 and is ASCII only; invite lines v1 and v2 and everything that must be refused; addresses and `.env` rules; certificate fingerprints; TLS pinning against a local test server; `Get-ServerStatus.ps1` with and without a key; key files; the upload helper; the performance sampler (CPU arithmetic, roles from the port range, the fixed header, day files and their pruning, player counts from a stand-in metagame with no names or keys in the file, a decimal point on a Finnish Windows, and refusing a junction or a hard link); the chat settings (`CHAT_PORT` equal to the gateway's WebSocket port in normal and sandbox installs, `-Chat` against `server.json`, the keys surviving a re-run, and the `chat` status line). Needs `node` on `PATH` and `npm ci` in `UndauntedGateway`. |
+| `tests\Test-KitUnit.ps1` | `-WorkDir` (default `%TEMP%\dr-kit-unit`; emptied at the start, deleted at the end); `-Port` (62000-62499, default `62450`; the performance check also uses the port above it) | Every kit script parses on PowerShell 5.1 and is ASCII only; invite lines v1 and v2 and everything that must be refused; addresses and `.env` rules; certificate fingerprints; TLS pinning against a local test server; `Get-ServerStatus.ps1` with and without a key; key files; the upload helper; the performance sampler (CPU arithmetic, roles from the port range, the fixed header, day files and their pruning, player counts from a stand-in metagame with no names or keys in the file, a decimal point on a Finnish Windows, and refusing a junction or a hard link); the chat settings (`CHAT_PORT` equal to the gateway's WebSocket port in normal and sandbox installs, `-Chat` against `server.json`, the keys surviving a re-run, and the `chat` status line). Needs `node` on `PATH` and `npm ci` in `DauntlessUnbrokenGateway`. |
 | `tests\Test-DeployRemote.ps1` | `-WorkDir` (default `%TEMP%\dr-deploy-test`; emptied at the start, deleted at the end) | `Deploy-Remote.ps1` without a server: argument refusals, `-WhatIf`, the kit, source and backup uploads, the chunked upload with a dropped connection and damaged parts, and `-Chat` (passed to the installer, or `Set-Chat.ps1` on its own). No network, no SSH key. |
 | `tests\Test-Sandbox.ps1` | `-SandboxDir` (default `C:\dr\sandbox-ws2019`; the folder name must contain `sandbox`, because it is deleted, and it must be outside the checkout, which the installer copies); `-KeepSandbox`; `-SkipRestore` | A full `-Sandbox` public-mode install with chat on into a scratch folder, then invites, status, the gateway's refusals, registration through the gateway, the game's chat connection through the gateway (101), an update and a rollback, `Set-Chat.ps1 -Off` (502 again), a performance sample, a backup, a restore into a second folder, and cleanup. Needs ports 62000, 62002, 62005, 62099 and 62443 free, and builds the code with `npm ci`. The log is copied to `%TEMP%\dr-sandbox-test.log` unless `-KeepSandbox`. |
 
@@ -689,24 +689,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\
 
 ### Kit constants
 
-Fixed values in `deploy/windows-server/DauntlessServer.Common.ps1`. The ports can be changed per
+Fixed values in `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`. The ports can be changed per
 install; the names cannot.
 
 | Constant | Value | Used for |
 |:---------|:------|:---------|
 | `$DRNames.ServiceUser` | `dauntless` | The low-privilege local account that runs the stack. |
-| `$DRNames.StackTask` | `Dauntless Revived stack` | Scheduled task: `Stack.ps1 supervise` as `dauntless`, one minute after startup (or at its logon with `-InteractiveSession`). |
-| `$DRNames.AllowlistTask` | `Dauntless Revived allowlist` | Scheduled task, public mode: `Stack.ps1 supervise -Only allowlist` as SYSTEM, at startup. |
-| `$DRNames.BackupTask` | `Dauntless Revived backup` | Scheduled task: `backup-hidden.vbs` as `dauntless`, hourly. |
-| `$DRNames.FirewallGroup` | `Dauntless Revived` | The group of the kit's firewall rules. |
-| `$DRNames.AllowlistRule` | `Dauntless Revived game ports (allowlist)` | Display name of the UDP game-port rule. |
-| `$DRNames.AllowlistRuleName` | `DauntlessRevived-GamePorts-Allowlist` | Name of that rule. It must match `UndauntedGateway/src/allowlist/firewall.ts`. |
+| `$DRNames.StackTask` | `Dauntless Unbroken stack` | Scheduled task: `Stack.ps1 supervise` as `dauntless`, one minute after startup (or at its logon with `-InteractiveSession`). |
+| `$DRNames.AllowlistTask` | `Dauntless Unbroken allowlist` | Scheduled task, public mode: `Stack.ps1 supervise -Only allowlist` as SYSTEM, at startup. |
+| `$DRNames.BackupTask` | `Dauntless Unbroken backup` | Scheduled task: `backup-hidden.vbs` as `dauntless`, hourly. |
+| `$DRNames.FirewallGroup` | `Dauntless Unbroken` | The group of the kit's firewall rules. |
+| `$DRNames.AllowlistRule` | `Dauntless Unbroken game ports (allowlist)` | Display name of the UDP game-port rule. |
+| `$DRNames.AllowlistRuleName` | `DauntlessUnbroken-GamePorts-Allowlist` | Name of that rule. It must match `DauntlessUnbrokenGateway/src/allowlist/firewall.ts`. |
 | `$DRDefaultPorts` | metagame 61000, deploy 61001, content 61002, gateway 443, allowlist 61005 | Default TCP ports. |
 | `$DRSandboxPorts` | metagame 62000, deploy 62001, content 62002, gateway 62443, allowlist 62005 | TCP ports of a `-Sandbox` install. |
 | `$DRRelayPort` | 61000 | The friend launcher's relay port. Public mode sends every player the QoS address `http://127.0.0.1:61000/QoS`, so it is fixed. |
 | `$DRChatPort` | 61099 | The chat (XMPP) port in the service account's `Engine.ini`, and the gateway's WebSocket upstream (62099 in a sandbox). |
 | `$DRUdpBegin`, `$DRUdpEnd` | 8770, 8777 | The game servers' UDP range. |
-| `$DRRepo.Url` | `https://github.com/mixutin/dauntless-revived` | Where the installer and the updater download code, and the source link the metagame reports. |
+| `$DRRepo.Url` | `https://github.com/Vvoidddd/dauntless-unbroken` | Where the installer and the updater download code, and the source link the metagame reports. |
 | `$DRRepo.PinnedRef` | `friends-v1` | The ref built when no source is named. |
 
 **Pinned hashes.** Each value is copied into several files. Change them together.
@@ -714,9 +714,9 @@ install; the names cannot.
 | What | SHA-256 | Also pinned in |
 |:-----|:--------|:---------------|
 | Game zip, 1.4.4 (`BaseGame144.zip`, 10,479,214,119 bytes) | `556B9A648A5E5E7E11B6F8DD3D80FF8E88FCEB0D3448297AAF47CE7BF756BC6D` | `friend-kit/setup.ps1`, `tools/make-game-manifest.js` |
-| `Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe` | `D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-game-manifest.js`, `UndauntedLauncher/src/main/constants.ts`, the content manifest |
-| `dxgi.dll` | `9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-friend-kit.ps1`, `UndauntedLauncher/src/main/constants.ts` |
-| `UndauntedInternalServer.dll` | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` | the same files as `dxgi.dll` |
+| `Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe` | `D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-game-manifest.js`, `DauntlessUnbrokenLauncher/src/main/constants.ts`, the content manifest |
+| `dxgi.dll` | `f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-friend-kit.ps1`, `DauntlessUnbrokenLauncher/src/main/constants.ts` |
+| `DauntlessUnbroken.dll` | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` | the same files as `dxgi.dll` |
 | Node.js 24.19.0 MSI (`node-v24.19.0-x64.msi`) | `F0F66C2A80C08A30A5AB5179EE9EA9E45F9B46289436A8CC87FF833B852DB351` | only the kit; it must also match nodejs.org's `SHASUMS256.txt` |
 | Tailscale 1.102.4 MSI (private mode) | `80EB007E39DFEBE17299FA1A09C79A8E1D934F76E0246C0817EBE3AF675B7EF6` | only the kit; it must also match the published `.sha256` file |
 
@@ -735,7 +735,7 @@ its TLS gateway; friends of such a server use the launcher. The friend's guide i
 [Join as a friend]({{ friends_page.url | relative_url }}), and `tools/make-friend-kit.ps1` builds
 the zip.
 
-Both scripts keep their files in `%APPDATA%\DauntlessRevived\`:
+Both scripts keep their files in `%APPDATA%\DauntlessUnbroken\`:
 
 - `account.key`: the friend's account key. **Secret: it is the player's password; never share,
   never commit, and back it up.**
@@ -745,7 +745,7 @@ Both scripts keep their files in `%APPDATA%\DauntlessRevived\`:
 
 A one-time setup, safe to run again. It checks the game exe against its pin, copies the two DLLs
 into `Archon\Binaries\Win64` (checked before and after copying; taken from the kit's `dll\` folder,
-or from `..\UndauntedLauncher\assets\` in a checkout), and warns when the Visual C++ runtime
+or from `..\DauntlessUnbrokenLauncher\assets\` in a checkout), and warns when the Visual C++ runtime
 (`MSVCP140.dll`, `VCRUNTIME140_1.dll`) is missing. Then it checks that the host answers on its port,
 registers once (only when `account.key` does not exist yet), checks that the key works and saves
 `settings.json`.
@@ -812,7 +812,7 @@ Tests: `node --test tools/dashboard.test.mjs`.
 
 ### summarize-performance.mjs
 
-Run `node tools/summarize-performance.mjs "C:\DauntlessRevived\data\logs\performance\performance-2026-09-28.csv"`
+Run `node tools/summarize-performance.mjs "C:\DauntlessUnbroken\data\logs\performance\performance-2026-09-28.csv"`
 from a checkout with Node.js 24. Pass additional CSV paths to combine days from the same host.
 The tool only reads files and prints JSON; it does not contact or modify the server. Invalid rows
 fail with a nonzero exit code. Input must use the kit sampler's unquoted CSV format.
@@ -837,11 +837,11 @@ Builds the friend-kit zip.
 |:----------|:-----|:--------|:-------------|
 | `-Out` | folder | `C:\dr\dist` (the original host's layout; pass your own) | Where the kit folder and the zip go. |
 
-It stages `<Out>\DauntlessRevived-FriendKit\` (deleted first if it exists) with `setup.ps1`,
+It stages `<Out>\DauntlessUnbroken-FriendKit\` (deleted first if it exists) with `setup.ps1`,
 `play.ps1`, `Setup.cmd`, `Play Dauntless.cmd`, `README.txt`, `THIRD-PARTY-NOTICES.txt`, the two DLLs
-in `dll\` (copied from `UndauntedLauncher\assets` and checked against their pins), `LICENSE.txt`, a
+in `dll\` (copied from `DauntlessUnbrokenLauncher\assets` and checked against their pins), `LICENSE.txt`, a
 `SOURCE.txt` and a `SHA256SUMS.txt`. Then it zips everything to
-`<Out>\DauntlessRevived-FriendKit-<7-character commit>.zip` and prints the zip's path and SHA-256.
+`<Out>\DauntlessUnbroken-FriendKit-<7-character commit>.zip` and prints the zip's path and SHA-256.
 
 `SOURCE.txt` names the repository and the exact commit, which is the AGPL source offer for players.
 The repository address is your `origin` remote without `.git`, so check that `origin` points at the
@@ -880,7 +880,7 @@ A link from the FAQ data to a page that does not exist is also an error, and so 
 
 ### make-game-manifest.js
 
-Builds the content manifest, `UndauntedContent/data/dauntless-1.4.4.json`, from the verified game
+Builds the content manifest, `DauntlessUnbrokenContent/data/dauntless-1.4.4.json`, from the verified game
 zip. The content server serves only the files in it, and the launcher compiles the same file in and
 refuses any other file. Run it only when the manifest must change.
 
@@ -892,7 +892,7 @@ node tools/make-game-manifest.js --zip <BaseGame144.zip> [--out <file>] [--compa
 | Argument | Default | What it does |
 |:---------|:--------|:-------------|
 | `--zip <file>` | **required** | The verified 1.4.4 zip. |
-| `--out <file>` | `UndauntedContent/data/dauntless-1.4.4.json` | Where the manifest goes. |
+| `--out <file>` | `DauntlessUnbrokenContent/data/dauntless-1.4.4.json` | Where the manifest goes. |
 | `--compare-dir <folder>` | none | Afterwards, checks an extracted install against the new manifest: every file's size, and full hashes of the exe and a few others. Read-only. |
 | `--compare-all` | off | With `--compare-dir`: hashes every file. |
 | `--zip-sha256 <hex>` | the pinned zip hash | The hash the zip must have. |
@@ -902,8 +902,8 @@ It checks each entry's CRC-32 and size against the zip's own records, that every
 same rule the content server applies), that no two paths differ only in letter case, that
 `Version.txt` names the 1.4.4 build and that the exe matches its pin. It prints the file count, the
 total bytes and the manifest's own SHA-256. It runs at low priority, reads the zip twice (about 21 GB
-of reads), exits with `1` on any failure, and needs `yauzl`: run `npm ci` in `UndauntedContent` or
-`UndauntedLauncher` first. After regenerating the manifest, rebuild the launcher.
+of reads), exits with `1` on any failure, and needs `yauzl`: run `npm ci` in `DauntlessUnbrokenContent` or
+`DauntlessUnbrokenLauncher` first. After regenerating the manifest, rebuild the launcher.
 
 ## CI workflows and tools {#ci-workflows-and-tools}
 
@@ -915,8 +915,8 @@ and run the tools from a checkout. What each CI job checks, and how launcher rel
 
 | Workflow | Runs on | Inputs | What it does |
 |:---------|:--------|:-------|:-------------|
-| `.github/workflows/ci.yml` (**CI**) | Every push to any branch, every pull request, and Actions > **CI** > **Run workflow** | none | Builds and tests the four server packages, the launcher and the server kit, checks the docs and the repository, and keeps the launcher's release files for 7 days (not for pull requests from forks). Then, on a push to `dauntless-revived` in `mixutin/dauntless-revived` that passed every check, it publishes the launcher version if that version has no release yet, unless `LAUNCHER_AUTO_RELEASE` is `false`. |
-| `.github/workflows/launcher-release.yml` (**Launcher release**) | Actions > **Launcher release** > **Run workflow** on `dauntless-revived`; called by `ci.yml` | None by hand. `ci.yml` passes `version` (it must equal the `UndauntedLauncher/package.json` version at that commit) and `artifact` (the release files it built). | Publishes the launcher version as the release `launcher-v<version>`, creates that tag, attests the build provenance of every file, and points the `launcher-updates` feed at it. Run by hand, it builds and tests the commit itself; for a version that is published already, it only brings the feed up to it. It refuses to run on any branch but `dauntless-revived`, the default branch. |
+| `.github/workflows/ci.yml` (**CI**) | Every push to any branch, every pull request, and Actions > **CI** > **Run workflow** | none | Builds and tests the four server packages, the launcher and the server kit, checks the docs and the repository, and keeps the launcher's release files for 7 days (not for pull requests from forks). Then, on a push to `dauntless-unbroken` in `Vvoidddd/dauntless-unbroken` that passed every check, it publishes the launcher version if that version has no release yet, unless `LAUNCHER_AUTO_RELEASE` is `false`. |
+| `.github/workflows/launcher-release.yml` (**Launcher release**) | Actions > **Launcher release** > **Run workflow** on `dauntless-unbroken`; called by `ci.yml` | None by hand. `ci.yml` passes `version` (it must equal the `DauntlessUnbrokenLauncher/package.json` version at that commit) and `artifact` (the release files it built). | Publishes the launcher version as the release `launcher-v<version>`, creates that tag, attests the build provenance of every file, and points the `launcher-updates` feed at it. Run by hand, it builds and tests the commit itself; for a version that is published already, it only brings the feed up to it. It refuses to run on any branch but `dauntless-unbroken`, the default branch. |
 
 ### tools/ci/check-repo.js {#check-repojs}
 
@@ -933,12 +933,12 @@ The repository hygiene check. Without arguments it checks every tracked file:
 - no file identical to a file of the 1.4.4 game (by the hashes in the game manifest);
 - nothing inside a file that is shaped like a secret: an account key, a JWT, a private key (also
   base64-encoded), a Tailscale key or a GitHub token;
-- the two DLLs in `UndauntedLauncher/assets/` match their pins in the launcher and the server kit,
-  and the launcher version in `UndauntedLauncher/package.json` is valid.
+- the two DLLs in `DauntlessUnbrokenLauncher/assets/` match their pins in the launcher and the server kit,
+  and the launcher version in `DauntlessUnbrokenLauncher/package.json` is valid.
 
 | Argument | What it does |
 |:---------|:-------------|
-| `--history <revision range>` | Also checks every file version that the commits in the range added or changed, for example `origin/dauntless-revived..HEAD` before a push. `--history HEAD` checks the whole history. A secret that was committed and deleted again is still in the history, so the key has to be replaced. |
+| `--history <revision range>` | Also checks every file version that the commits in the range added or changed, for example `origin/dauntless-unbroken..HEAD` before a push. `--history HEAD` checks the whole history. A secret that was committed and deleted again is still in the history, so the key has to be replaced. |
 
 It never prints what a match contains, only the file, the line and the kind of match. Exit code `0`
 means nothing was found, `1` a problem, `2` a usage error. It has no dependencies, so it needs no
@@ -962,15 +962,15 @@ A usage error, or a `<version>` that is not a launcher version where one is requ
 
 ### collect-release.ps1 {#collect-releaseps1}
 
-From `UndauntedLauncher`, after `npm run make`:
+From `DauntlessUnbrokenLauncher`, after `npm run make`:
 
 ```powershell
 pwsh -NoProfile -File scripts\collect-release.ps1
 ```
 
 It takes no parameters. It empties `release\` and copies into it what a launcher release publishes:
-`DauntlessRevivedLauncher-Setup.exe`, the Squirrel update files (`RELEASES` and the full `.nupkg`) and
-the portable zip, renamed `DauntlessRevivedLauncher-<version>-win32-x64.zip`. Then it writes
+`DauntlessUnbrokenLauncher-Setup.exe`, the Squirrel update files (`RELEASES` and the full `.nupkg`) and
+the portable zip, renamed `DauntlessUnbrokenLauncher-<version>-win32-x64.zip`. Then it writes
 `SHA256SUMS.txt` for all of them and prints it. It stops if one of the files is missing. CI and the
 release workflow run it; `release\` is git-ignored.
 
@@ -980,17 +980,17 @@ Run each one in its package folder after `npm ci`. Arguments for the script itse
 for example `npm run verify -- --quick`. Which tests use which ports, and which suites must not run
 at the same time, is in [Developer guide]({{ dev_page.url | relative_url }}).
 
-**UndauntedMetagame**
+**DauntlessUnbrokenMetagame**
 
 | Script | Runs | What it does |
 |:-------|:-----|:-------------|
 | `npm run dev` | `tsx watch --env-file=.env src/server.ts` | Runs from source and restarts on changes. Fails without a `.env` in the folder. |
-| `npm run build` | `tsc`, then `postbuild` | Compiles to `dist\`. `postbuild` runs `scripts/write-build-info.js`, which writes `dist\build-info.json` with the commit, the package version and the build time. The commit comes from git, with `-dirty` when `UndauntedMetagame` has changes, or is `unknown` without git (as in the kit's builds). `GIT_COMMIT` and `SERVER_VERSION` in `.env` override it at run time. |
+| `npm run build` | `tsc`, then `postbuild` | Compiles to `dist\`. `postbuild` runs `scripts/write-build-info.js`, which writes `dist\build-info.json` with the commit, the package version and the build time. The commit comes from git, with `-dirty` when `DauntlessUnbrokenMetagame` has changes, or is `unknown` without git (as in the kit's builds). `GIT_COMMIT` and `SERVER_VERSION` in `.env` override it at run time. |
 | `npm start` | `node --env-file=.env dist/server.js` | Runs the build. Fails without a `.env`. Start it from the package folder: the database migrations are found relative to the working directory. |
 | `npm run db:generate` | `drizzle-kit generate` | Writes a new migration to `src/drizzle` after a change to `src/db/schema.ts`. Reads `DB_FILENAME` from `.env`. |
 | `npm test` | `tsc -p tsconfig.test.json`, then `node --test` | Deletes `build\`, compiles the tests and runs them. |
 
-**UndauntedDeployServer**
+**DauntlessUnbrokenDeployServer**
 
 | Script | Runs | What it does |
 |:-------|:-----|:-------------|
@@ -999,7 +999,7 @@ at the same time, is in [Developer guide]({{ dev_page.url | relative_url }}).
 | `npm start` | `node --env-file=.env dist/server.js` | Runs the build. Fails without a `.env`. |
 | `npm test` | as in the metagame | Compiles and runs the tests. |
 
-**UndauntedGateway**
+**DauntlessUnbrokenGateway**
 
 | Script | Runs | What it does |
 |:-------|:-----|:-------------|
@@ -1026,7 +1026,7 @@ Administrators and the gateway's account can read. The Windows server kit runs t
 need it only for a gateway you set up by hand. Exit code `2` means a usage error, and `1` any other
 failure.
 
-**UndauntedContent**
+**DauntlessUnbrokenContent**
 
 | Script | Runs | What it does |
 |:-------|:-----|:-------------|
@@ -1036,13 +1036,13 @@ failure.
 | `npm test` | `tsc -p tsconfig.test.json`, then `node --test` | Deletes `build\`, compiles the unit tests and runs them. |
 | `npm run test:integration` | `tsc`, `tsc -p tsconfig.test.json`, then `node --test --test-concurrency=1` | Builds the server, then runs it against a real install (`CONTENT_IT_GAME_DIR`, default `C:\D144\Dauntless`; skipped when there is no 1.4.4 install there) with a mock metagame, on ports 62002 and 62003 (`CONTENT_IT_PORT`, `CONTENT_IT_MOCK_PORT`). |
 
-**UndauntedLauncher**
+**DauntlessUnbrokenLauncher**
 
 | Script | Runs | What it does |
 |:-------|:-----|:-------------|
 | `npm start` | `electron-forge start` | Runs the launcher in development. |
 | `npm run package` | `electron-forge package --platform win32` | Packages the app without an installer. |
-| `npm run make` | `electron-forge make --platform win32` | Builds `DauntlessRevivedLauncher-Setup.exe` (Squirrel) and a zip. |
+| `npm run make` | `electron-forge make --platform win32` | Builds `DauntlessUnbrokenLauncher-Setup.exe` (Squirrel) and a zip. |
 | `npm run typecheck` | `tsc --noEmit -p tsconfig.json` | Type-checks without building. |
 | `npm test [-- <filter>]` | `node scripts/run-tests.mjs` | Compiles the tests into `.test-build\` and runs them one file at a time. With a filter, only test files whose name contains it. |
 | `npm run icon [-- --check]` | `node scripts/make-icon.mjs` | Copies the launcher's icons (`assets/icon.ico`, `assets/icon.png`) and the logo and emblem images its window shows (`src/renderer/brand/`) from `brand/`, where `python3 brand/build.py` makes them. With `--check` it only compares, and exits with 1 if a copy is missing or out of date; the unit tests run that. |
@@ -1054,11 +1054,11 @@ Node.js 24.19.0 on a server.
 
 | Script | Run as | What it does |
 |:-------|:-------|:-------------|
-| `UndauntedMetagame/scripts/write-build-info.js [out folder]` | the `postbuild` step; tests pass another folder | Writes `build-info.json` (default folder: `dist`). |
-| `UndauntedMetagame/scripts/make-hunt-titles.js` | `node scripts/make-hunt-titles.js` in `UndauntedMetagame` | Rebuilds `src/vendor/hunt_titles.json`, the hunt names that `ServerStatus` shows, from the deploy server's hunt tables in `UndauntedDeployServer/src/vendor`. Rerun it after those tables change. |
-| `UndauntedGateway/tools/make-cert.js` | `npm run make-cert -- ...` | See above. |
-| `UndauntedLauncher/scripts/run-tests.mjs`, `make-icon.mjs` | `npm test`, `npm run icon` | See above. |
-| `UndauntedLauncher/scripts/collect-release.ps1` | `pwsh -NoProfile -File scripts\collect-release.ps1` in `UndauntedLauncher`, after `npm run make` | Collects the release files in `release\`; see [collect-release.ps1](#collect-releaseps1). |
+| `DauntlessUnbrokenMetagame/scripts/write-build-info.js [out folder]` | the `postbuild` step; tests pass another folder | Writes `build-info.json` (default folder: `dist`). |
+| `DauntlessUnbrokenMetagame/scripts/make-hunt-titles.js` | `node scripts/make-hunt-titles.js` in `DauntlessUnbrokenMetagame` | Rebuilds `src/vendor/hunt_titles.json`, the hunt names that `ServerStatus` shows, from the deploy server's hunt tables in `DauntlessUnbrokenDeployServer/src/vendor`. Rerun it after those tables change. |
+| `DauntlessUnbrokenGateway/tools/make-cert.js` | `npm run make-cert -- ...` | See above. |
+| `DauntlessUnbrokenLauncher/scripts/run-tests.mjs`, `make-icon.mjs` | `npm test`, `npm run icon` | See above. |
+| `DauntlessUnbrokenLauncher/scripts/collect-release.ps1` | `pwsh -NoProfile -File scripts\collect-release.ps1` in `DauntlessUnbrokenLauncher`, after `npm run make` | Collects the release files in `release\`; see [collect-release.ps1](#collect-releaseps1). |
 
 ## Scripts printed in the guides
 
@@ -1076,5 +1076,5 @@ their parameters are documented where they are printed:
 | `seed-progression.js` | [Seeding a player]({{ upgrade_page.url | relative_url }}#seeding-a-player) | `<admin key file> list`, or `<admin key file> <UserId> grandfather` or `fresh`; the `METAGAME` variable sets the metagame address (default `http://127.0.0.1:61000`) |
 
 The guides also mention the original host's own `stack.ps1` and `backup.ps1` in `C:\dr\tools`. Those
-are not published. On a kit server, `Stack.ps1` and `Backup-DauntlessServer.ps1` do the same jobs,
+are not published. On a kit server, `Stack.ps1` and `Backup-DauntlessUnbrokenServer.ps1` do the same jobs,
 but they work only on a server installed with the kit.

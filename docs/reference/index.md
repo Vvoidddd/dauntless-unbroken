@@ -3,7 +3,7 @@ title: Reference
 nav_order: 3
 has_children: true
 has_toc: false
-description: "Reference for Dauntless Revived: every setting, port, HTTP route, file, game setting and script, with defaults and who sets them, checked against the code."
+description: "Reference for Dauntless Unbroken: every setting, port, HTTP route, file, game setting and script, with defaults and who sets them, checked against the code."
 lang: en
 ref: reference/index
 ---
@@ -22,7 +22,7 @@ ref: reference/index
 
 # Reference
 
-These pages list the facts about the Dauntless Revived servers and scripts: every setting, port,
+These pages list the facts about the Dauntless Unbroken servers and scripts: every setting, port,
 route, file and parameter, with its default, the values it takes and who sets it. Each fact was
 checked against the code. Where a guide and the code disagreed, the code won and the guide was
 corrected.
@@ -55,12 +55,12 @@ Components are named by their folder in the repository.
 
 | Folder | What it is | Settings | Routes and scripts |
 |:-------|:-----------|:---------|:-------|
-| `UndauntedMetagame/` | The backend the game talks to: accounts, characters, inventory, progression, matchmaking, parties, and the management API. | [Metagame]({{ config_page.url | relative_url }}#metagame) | [Game routes]({{ api_page.url | relative_url }}#game-routes), [management API]({{ api_page.url | relative_url }}#undaunted-api) |
-| `UndauntedDeployServer/` | Starts and watches the game servers: Ramsgate, the Training Dojo and one per hunt. | [Deploy server]({{ config_page.url | relative_url }}#deploy-server) | [Deploy server]({{ api_page.url | relative_url }}#deploy-server) |
-| `UndauntedInternalServer/` | The DLL that turns a copy of the 1.4.4 client into a game server and points clients at the metagame. | [Game settings]({{ gamesettings_page.url | relative_url }}#dlls) | none |
-| `UndauntedGateway/` | Public mode only: the TLS gateway, the one port open to everyone, and the allowlist helper that opens the game ports for players who logged in. | [Gateway]({{ config_page.url | relative_url }}#gateway), [allowlist helper]({{ config_page.url | relative_url }}#allowlist-helper) | [Gateway]({{ api_page.url | relative_url }}#gateway), [allowlist helper]({{ api_page.url | relative_url }}#allowlist-helper) |
-| `UndauntedContent/` | Serves the game files, news and art pack to the launcher. | [Content server]({{ config_page.url | relative_url }}#content-server) | [Content server]({{ api_page.url | relative_url }}#content-server) |
-| `UndauntedLauncher/` | The friend launcher: invites, account key, game download and repair, and the local relay in public mode. | [Launcher]({{ config_page.url | relative_url }}#launcher) | [Launcher relay]({{ api_page.url | relative_url }}#launcher-relay) |
+| `DauntlessUnbrokenMetagame/` | The backend the game talks to: accounts, characters, inventory, progression, matchmaking, parties, and the management API. | [Metagame]({{ config_page.url | relative_url }}#metagame) | [Game routes]({{ api_page.url | relative_url }}#game-routes), [management API]({{ api_page.url | relative_url }}#dauntless-unbroken-api) |
+| `DauntlessUnbrokenDeployServer/` | Starts and watches the game servers: Ramsgate, the Training Dojo and one per hunt. | [Deploy server]({{ config_page.url | relative_url }}#deploy-server) | [Deploy server]({{ api_page.url | relative_url }}#deploy-server) |
+| `DauntlessUnbrokenInternalServer/` | The DLL that turns a copy of the 1.4.4 client into a game server and points clients at the metagame. | [Game settings]({{ gamesettings_page.url | relative_url }}#dlls) | none |
+| `DauntlessUnbrokenGateway/` | Public mode only: the TLS gateway, the one port open to everyone, and the allowlist helper that opens the game ports for players who logged in. | [Gateway]({{ config_page.url | relative_url }}#gateway), [allowlist helper]({{ config_page.url | relative_url }}#allowlist-helper) | [Gateway]({{ api_page.url | relative_url }}#gateway), [allowlist helper]({{ api_page.url | relative_url }}#allowlist-helper) |
+| `DauntlessUnbrokenContent/` | Serves the game files, news and art pack to the launcher. | [Content server]({{ config_page.url | relative_url }}#content-server) | [Content server]({{ api_page.url | relative_url }}#content-server) |
+| `DauntlessUnbrokenLauncher/` | The friend launcher: invites, account key, game download and repair, and the local relay in public mode. | [Launcher]({{ config_page.url | relative_url }}#launcher) | [Launcher relay]({{ api_page.url | relative_url }}#launcher-relay) |
 | `deploy/windows-server/` | The Windows server kit: installs, runs, updates and backs up everything on a Windows Server 2019 machine. | [What the kit writes]({{ config_page.url | relative_url }}#server-kit) | [Kit scripts]({{ scripts_page.url | relative_url }}#windows-server-kit) |
 | `friend-kit/` | PowerShell scripts for a friend joining a private-mode (Tailscale) server without the launcher. | [Client side]({{ config_page.url | relative_url }}#client-side) | [Friend kit scripts]({{ scripts_page.url | relative_url }}#friend-kit) |
 
@@ -73,7 +73,7 @@ reads, with its default. Copy it to `.env` and fill in what you need; the
 - **Secrets** are marked as secret: account keys (`UUK_...`), the game-server key, the signing keys,
   the gateway and allowlist secrets, and the TLS key. Never share them and never commit them. The
   examples on these pages are placeholders.
-- `C:\DauntlessRevived` is the kit's default install root, written `<root>` where the root can be
+- `C:\DauntlessUnbroken` is the kit's default install root, written `<root>` where the root can be
   another folder. `C:\dr\...` paths are the original host's layout, which the setup guides use as
   their example; use your own folders.
 - Example addresses come from the ranges reserved for documentation (`203.0.113.x`,

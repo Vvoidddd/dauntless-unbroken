@@ -2,7 +2,7 @@
 title: Hosting-kumppani
 parent: Asennus
 nav_order: 2
-description: "EU Gamehost -kumppanuus ja Dauntless Revivedille suositellut hosting-esimerkit."
+description: "EU Gamehost -kumppanuus ja Dauntless Unbrokenille suositellut hosting-esimerkit."
 lang: fi
 ref: setup/hosting-partner
 ---
@@ -11,9 +11,9 @@ ref: setup/hosting-partner
 
 ![EU Gamehost]({{ "/assets/eugamehost-partner.png" | relative_url }})
 
-**EU Gamehost on Dauntless Revivedin kumppani ja projektin suosittelema hosting-palvelu.** Tämä sivu on kumppani-/mainossisältöä, ei riippumaton hosting-benchmark.
+**EU Gamehost on Dauntless Unbrokenin kumppani ja projektin suosittelema hosting-palvelu.** Tämä sivu on kumppani-/mainossisältöä, ei riippumaton hosting-benchmark.
 
-## Dauntless Revived -pakettisuositukset
+## Dauntless Unbroken -pakettisuositukset
 
 Suositukset alkavat omista mittauksistamme: Ramsgate käyttää noin **1,1 Gt RAM**, metsästyspalvelin noin **0,9 Gt**, Training Dojo noin **0,9 Gt** ja Node-ohjaustaso noin **130 Mt**. Kun kaikki oletusmetsästysportit ovat käytössä ja client ajetaan samalla hostilla, kevyen kuorman kokonaisarvio on noin **9,5 Gt**. Taistelun CPU-kuormaa suurella pelaajamäärällä ei ole vielä kattavasti mitattu.
 
@@ -35,4 +35,4 @@ EU Gamehost mainostaa julkisilla gaming VDS -sivuillaan tällä hetkellä **30 T
 
 Yllä olevat julkiset pakettitiedot ja peruskuukausihinnat tarkistettiin **2.10.2026**. Kampanjahinnat, varasto, sijainnit, käyttöjärjestelmävaihtoehdot ja tarkka laitteisto voivat muuttua, joten tarkista live-sivu ennen tilausta.
 
-> **Kumppanuus / mainos:** EU Gamehost on Dauntless Revivedin kumppani. Pakettivalinnat ovat projektin suosituksia, jotka perustuvat omiin Dauntless Revived -mittauksiimme ja palveluntarjoajan julkaisemiin tietoihin. Ne eivät takaa tiettyä pelaajakapasiteettia eivätkä ole riippumaton hosting-vertailu.
+> **Kumppanuus / mainos:** EU Gamehost on Dauntless Unbrokenin kumppani. Pakettivalinnat ovat projektin suosituksia, jotka perustuvat omiin Dauntless Unbroken -mittauksiimme ja palveluntarjoajan julkaisemiin tietoihin. Ne eivät takaa tiettyä pelaajakapasiteettia eivätkä ole riippumaton hosting-vertailu.

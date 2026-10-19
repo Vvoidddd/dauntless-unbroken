@@ -13,7 +13,7 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
   `>> ` in front of their name, in red, gold or purple (picked in the Mod Menu).
 
 - **PS5Icons**: PlayStation 5 button prompts and a DualSense picture for the Controls screen. They
-  are not a UE4SS mod: the client DLL (`UndauntedInternalServer.dll`) shows them while a DualSense
+  are not a UE4SS mod: the client DLL (`DauntlessUnbroken.dll`) shows them while a DualSense
   is connected. Based on "PS5 Button Icons and Controls" by Zacksly (CC BY 3.0, modified; see
   `PS5Icons/LICENSE.txt`).
 
@@ -21,7 +21,7 @@ They only change what you see on your own screen. The game works without them.
 
 ## How they get installed
 
-- **Launcher**: on install, repair and before every launch (`UndauntedLauncher/src/main/client-mods.ts`).
+- **Launcher**: on install, repair and before every launch (`DauntlessUnbrokenLauncher/src/main/client-mods.ts`).
 - **Friend kit**: `friend-kit/setup.ps1` (skip with `-NoMods`).
 
 Both install only files whose SHA-256 matches `manifest.json`, and check them again after copying.

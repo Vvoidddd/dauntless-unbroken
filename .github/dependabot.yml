@@ -18,7 +18,7 @@ updates:
           - "*"
 
   - package-ecosystem: npm
-    directory: /UndauntedMetagame
+    directory: /DauntlessUnbrokenMetagame
     schedule:
       interval: monthly
     open-pull-requests-limit: 3
@@ -31,7 +31,7 @@ updates:
           - patch
 
   - package-ecosystem: npm
-    directory: /UndauntedGateway
+    directory: /DauntlessUnbrokenGateway
     schedule:
       interval: monthly
     open-pull-requests-limit: 3
@@ -44,7 +44,7 @@ updates:
           - patch
 
   - package-ecosystem: npm
-    directory: /UndauntedContent
+    directory: /DauntlessUnbrokenContent
     schedule:
       interval: monthly
     open-pull-requests-limit: 3
@@ -57,7 +57,7 @@ updates:
           - patch
 
   - package-ecosystem: npm
-    directory: /UndauntedDeployServer
+    directory: /DauntlessUnbrokenDeployServer
     schedule:
       interval: monthly
     open-pull-requests-limit: 3
@@ -70,7 +70,7 @@ updates:
           - patch
 
   - package-ecosystem: npm
-    directory: /UndauntedLauncher
+    directory: /DauntlessUnbrokenLauncher
     schedule:
       interval: monthly
     open-pull-requests-limit: 3

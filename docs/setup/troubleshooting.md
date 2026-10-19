@@ -2,7 +2,7 @@
 title: Troubleshooting
 parent: Setup
 nav_order: 5
-description: "Problems we hit running the Dauntless 1.4.4 client against a Dauntless Revived server, with causes and fixes: port clashes, login, blurry graphics, Defender and git."
+description: "Problems we hit running the Dauntless 1.4.4 client against a Dauntless Unbroken server, with causes and fixes: port clashes, login, blurry graphics, Defender and git."
 lang: en
 ref: setup/troubleshooting
 ---
@@ -19,7 +19,7 @@ ref: setup/troubleshooting
 # Troubleshooting
 {: .no_toc }
 
-These are the problems we actually hit while setting up Dauntless Revived, with their causes and fixes.
+These are the problems we actually hit while setting up Dauntless Unbroken, with their causes and fixes.
 A few entries at the end come from reading the code and haven't bitten us yet; those are marked. The
 setup itself is in [Host a server]({{ host_page.url | relative_url }}). Unless an entry says otherwise, it is about client build
 **1.4.4**. Entries about **2.1.1** are kept because the same machine often has both builds.
@@ -42,8 +42,8 @@ setup itself is in [Host a server]({{ host_page.url | relative_url }}). Unless a
 | Game-server console windows | Opened by the server DLL; they show the server's own output. Ramsgate's and the Dojo's are visible. Hunt servers are started with their window hidden. |
 | Client console window | Opened by the DLL in client mode and kept hidden. To see it, turn on Settings > Launcher > Troubleshooting > "Show the log window" in the launcher (it sets `DR_SHOW_CONSOLE=1` for the game). **With it on, if no console window appears when the client starts, the DLLs are not loaded.** |
 | `%LOCALAPPDATA%\Archon\Saved\Crashes\` | Crash reports. See [Crash forensics]({{ crashes_page.url | relative_url }}) for reading them. |
-| `C:\DauntlessRevived\data\logs\` (Windows server kit) | The same logs as `metagame.out.log` and `deploy.out.log`, plus the gateway's access log (`gateway.out.log`) and the supervisor's `supervisor.log`. |
-| `%APPDATA%\Dauntless Revived Launcher\logs\launcher.log` | The friend launcher: joins, connection problems, downloads and the game's command line (with the key hidden). |
+| `C:\DauntlessUnbroken\data\logs\` (Windows server kit) | The same logs as `metagame.out.log` and `deploy.out.log`, plus the gateway's access log (`gateway.out.log`) and the supervisor's `supervisor.log`. |
+| `%APPDATA%\Dauntless Unbroken Launcher\logs\launcher.log` | The friend launcher: joins, connection problems, downloads and the game's command line (with the key hidden). |
 
 Every log file, its format and how it is rotated: [Files and data]({{ files_page.url | relative_url }}#logs).
 
@@ -138,7 +138,7 @@ fatal: remote helper 'https' aborted session
 
 **Cause.** The Windows 260-character path limit. The working folder's path was already long, and the
 repository adds up to 94 more characters. The deepest names are in
-`UndauntedInternalServer/SDK/`, a generated SDK of 4,000+ files. Git's own files under `.git` add more
+`DauntlessUnbrokenInternalServer/SDK/`, a generated SDK of 4,000+ files. Git's own files under `.git` add more
 still. Adding `-c core.longpaths=true` did **not** fix it: the `$GIT_DIR` error comes from the
 repository location itself being too long.
 
@@ -213,7 +213,7 @@ off, and the launcher removes the line 0.1.0 wrote on the next launch. The airsh
 scene.
 
 **An experiment you can try.** Vvoidddd added an opt-in setting to the launcher
-([#7](https://github.com/mixutin/dauntless-revived/pull/7)): in Settings > Graphics, **Auto
+([#7](https://github.com/Vvoidddd/dauntless-unbroken/pull/7)): in Settings > Graphics, **Auto
 exposure** has a **Basic adaptive (experimental)** choice. It writes
 `r.EyeAdaptation.MethodOverride=2` to `Engine.ini`, which the 1.4.4 game executable (the
 hash-pinned `Dauntless-Win64-Shipping.exe`) describes as "Auto Basic": a simpler way of measuring
@@ -291,7 +291,7 @@ overlay, and logs in with a key issued by our own metagame.
 
 ## Windows Defender and the unsigned DLLs {#windows-defender-and-the-unsigned-dlls}
 
-**Background.** `dxgi.dll` and `UndauntedInternalServer.dll` are unsigned. A proxy DLL that hooks a
+**Background.** `dxgi.dll` and `DauntlessUnbroken.dll` are unsigned. A proxy DLL that hooks a
 game is the kind of thing heuristic antivirus flags. On our PC, Defender reported **no detections**
 after we copied them in. We checked with:
 
@@ -313,7 +313,7 @@ Get-MpThreatDetection -ErrorAction SilentlyContinue | Where-Object { $_.InitialD
   as coming from the internet. After checking the hashes, `Unblock-File` on the two DLLs clears that
   mark.
 
-The lasting fix is to build `UndauntedInternalServer.dll` from source and replace `dxgi.dll` with our
+The lasting fix is to build `DauntlessUnbroken.dll` from source and replace `dxgi.dll` with our
 own small proxy. The source of `dxgi.dll` is not in the Undaunted repository and, as far as we know,
 has not been published. Both are on the [roadmap]({{ roadmap_page.url | relative_url }}).
 
@@ -342,7 +342,7 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 Check the native module:
 
 ```powershell
-Test-Path C:\dr\undaunted\UndauntedMetagame\node_modules\better-sqlite3\build\Release\better_sqlite3.node
+Test-Path C:\dr\undaunted\DauntlessUnbrokenMetagame\node_modules\better-sqlite3\build\Release\better_sqlite3.node
 ```
 
 **If that prints `False`,** the metagame can't open its database. Review and approve only that

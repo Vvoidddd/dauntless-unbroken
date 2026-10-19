@@ -8,7 +8,7 @@ registration codes through the existing backend API. Stopping the dashboard does
 In PowerShell, use the actual path of the existing administrator account key:
 
 ```powershell
-$env:DASHBOARD_OWNER_KEY_FILE = 'C:\DauntlessRevived\data\keys\owner.key'
+$env:DASHBOARD_OWNER_KEY_FILE = 'C:\DauntlessUnbroken\data\keys\owner.key'
 $env:DASHBOARD_BACKEND = 'http://127.0.0.1:61000'
 node tools/dashboard.mjs
 ```
@@ -30,7 +30,7 @@ only trusted server operators should use this page.
 After updating the server code, run elevated on the VPS:
 
 ```powershell
-C:\DauntlessRevived\bin\Install-OwnerDashboard.ps1 -OpenOnLogon
+C:\DauntlessUnbroken\bin\Install-OwnerDashboard.ps1 -OpenOnLogon
 ```
 
 This installs a separate **LocalService** scheduled task at boot, gives it read access to the
@@ -76,7 +76,7 @@ The **Players & Accounts** directory links usernames and UIDs to short key
 fingerprints, not recoverable passwords. A stolen valid key can still authenticate:
 keep keys private and use the launcher's backup/recovery options carefully.
 
-Set `DASHBOARD_SERVER_CONFIG=C:\DauntlessRevived\data\config\server.json` before starting the
+Set `DASHBOARD_SERVER_CONFIG=C:\DauntlessUnbroken\data\config\server.json` before starting the
 dashboard to enable public-mode invites. After unlocking, enter an optional label and 1–100 uses,
 then press **Generate invite** and **Copy link**. The address, port and certificate fingerprint
 come from this operator-controlled configuration, not browser input. Share the join link, never

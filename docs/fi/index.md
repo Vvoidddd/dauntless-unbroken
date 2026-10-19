@@ -1,10 +1,10 @@
 ---
-title: Dauntless Revived suomeksi
+title: Dauntless Unbroken suomeksi
 nav_order: 100
 has_children: true
 has_toc: false
 permalink: /fi/
-description: "Dauntless Revived on yksityinen palvelin, jolla Dauntlessia voi taas pelata: aito 1.4.4-versio ja muokattu Undaunted. Mikä toimii ja miten sen saa käyttöön."
+description: "Dauntless Unbroken on yksityinen palvelin, jolla Dauntlessia voi taas pelata: aito 1.4.4-versio ja muokattu Undaunted. Mikä toimii ja miten sen saa käyttöön."
 lang: fi
 ref: index
 locale: fi_FI
@@ -16,11 +16,11 @@ locale: fi_FI
 {% assign roadmap_page = site.pages | where: "path", "fi/roadmap.md" | first %}
 {% assign legal_page = site.pages | where: "path", "fi/legal.md" | first %}
 
-# Dauntless Revived
+# Dauntless Unbroken
 
 **Dauntless** on Phoenix Labsin tekemä tietokonepeli, jossa pelaajat metsästävät yhdessä suuria
 hirviöitä. Pelin viralliset palvelimet (tietokoneet, jotka pyörittivät peliä verkossa) suljettiin
-**30.5.2025**. Peliä voi silti yhä pelata yksityisellä palvelimella. Dauntless Revived on yksi
+**30.5.2025**. Peliä voi silti yhä pelata yksityisellä palvelimella. Dauntless Unbroken on yksi
 sellainen: yksityinen ja ei-kaupallinen hanke, joka säilyttää pelin ja herättää sen henkiin. Siinä
 käytetään aitoa **Dauntless 1.4.4** -peliohjelmaa (lokakuulta 2020). Palvelimena on muokattu versio
 avoimen lähdekoodin [Undaunted](https://github.com/SyST3MDeV/Undaunted)-palvelimesta, jonka ovat
@@ -38,7 +38,7 @@ molemmista versioista, on kirjoitettu tälle sivustolle.
 - Palvelin on pieni ja yksityinen. Se on tehty muutamalle ystävälle, ei kaikille avoimeksi.
 - Jos sinulla on oma kopio pelistä, voit pystyttää oman palvelimen tämän sivuston ohjeilla.
 
-> **Vastuuvapaus.** Dauntless Revived on epävirallinen fanien tekemä hanke. Se **ei liity Phoenix
+> **Vastuuvapaus.** Dauntless Unbroken on epävirallinen fanien tekemä hanke. Se **ei liity Phoenix
 > Labsiin eikä Epic Gamesiin, eivätkä ne ole hyväksyneet tai tukeneet sitä**. ”Dauntless” ja siihen
 > liittyvät nimet ovat omistajiensa tavaramerkkejä. **Tällä sivustolla ja lähdekoodissa ei ole
 > pelin tiedostoja**: ei ohjelmatiedostoja, ei pak-paketteja, ei grafiikkaa eikä pelin asetuksia, eikä
@@ -54,7 +54,7 @@ molemmista versioista, on kirjoitettu tälle sivustolle.
 
 ## Patreon-tukijat
 
-Suuri kiitos kaikille, jotka tukevat Dauntless Revivediä Patreonissa. Tuki on vapaaehtoista eikä anna pelillisiä etuja.
+Suuri kiitos kaikille, jotka tukevat Dauntless Unbrokeniä Patreonissa. Tuki on vapaaehtoista eikä anna pelillisiä etuja.
 
 - **nasagi** — kiitos Patreon-tukijaksi liittymisestä ja projektin tukemisesta. ❤️
 
@@ -77,7 +77,7 @@ vuokratulla koneella pyörivällä palvelimella. Seuraavaksi on vuorossa testi t
 | Tavaroiden ja varustesarjojen tallennus | Toimii (yksin); lisäpaikkojen käyttöliittymätesti puuttuu | Materiaalit, Ramsit (pelin raha, todennäköisesti `CURRENCY_NOTES`-pino), valmistetut ja saadut varusteet sekä hahmon tiedot (tehtävien eteneminen, opetusjakson tila, liput, ulkonäkö) tallennetaan SQLite-tietokantaan. Taustapalvelu tallentaa kaikkien kuuden asiakaspaikan avaukset, aktiivisen paikan ja erilliset varustesarjat; pelissä on kokeiltu vain paikkaa 0. Metsästyksistä saatu saalis tallentuu, ja tiedot säilyvät uudelleenkäynnistyksissä. |
 | Slayer-taso, mestaruus ja Hunt Pass | Toimii (yksin), oletuksena päällä | Oikea eteneminen (progression): Slayer-taso, aseiden ja hirviöiden mestaruus (mastery) ja Hunt Pass (kauden palkintorata) alkavat alusta (Slayer-taso 1) ja tallentuvat. Jokaisella tilillä on Elite Hunt Pass, ja tasopalkinnot annetaan kerran. Slayer-tasoa, aseiden mestaruutta ja Hunt Passia on testattu pelissä kertakäyttöisellä testitilillä, myös koko palvelimen uudelleenkäynnistyksen yli. Vuokratulla palvelimella 22.9.2026 omistajan uusi tili nousi Slayer-tasolle 3 ja sai aseen mestaruutta ja hirviön mestaruutta (taso 2; hirviön mestaruus nähtiin pelissä ensimmäistä kertaa), ja pelipalvelin vahvisti tasopalkinnot. `PROGRESSION_MODE=stub` palauttaa alkuperäisen projektin kiinteän tason 50. |
 | Palvelin vuokratulla koneella | Käynnissä | [Windows-palvelinpaketti]({{ '/fi/setup/windows-server.html' | relative_url }}) asennettiin vuokratulle Windows Server 2019 -virtuaalipalvelimelle julkiseen tilaan 21.–22.9.2026. Siellä tarkistettu: palvelinkokonaisuus käynnistyy koneen käynnistyessä paketin palvelutilillä, Ramsgate pyörii ja lähettää elonmerkkejä (heartbeat), yhdyskäytävä vastaa internetistä kiinnitetyllä varmenteella, ja tunnin välein otettava varmuuskopio toimii. Oikealle palvelimelle asentaminen paljasti kolme ongelmaa, joita hiekkalaatikkotestit eivät voineet löytää, ja ne kaikki on korjattu paketissa: palvelutilin kuvauksen 48 merkin enimmäispituus, Windows-levykuva, joka ei hyväksy ilman tallennettua salasanaa ajettavia ajastettuja tehtäviä (”S4U”) muille kuin ylläpitäjille, ja palveluntarjoajan levykuva, joka piti Windowsin palomuurin pois päältä käytäntöarvoilla. Ensimmäisessä oikeassa testissä (22.9.2026) opetussaari ja Training Dojo käynnistyivät tarvittaessa, kolme pelipalvelinta pyöri yhtä aikaa, ja sallittujen lista avasi UDP-peliportit pelaajalle ja sulki ne, kun hän lähti. Useita tallennusten versioristiriitoja torjuttiin suunnitellusti (vanhempia tai kahdentuneita koko tilannekuvan tallennuksia), ja uusin tallennus säilyi. |
-| Kaverikäynnistin | Julkaistu | CI julkaisi ensimmäisen version, 0.1.0:n, [GitHubin julkaisuihin](https://github.com/mixutin/dauntless-revived/releases/latest) `SHA256SUMS.txt`-tiedoston ja käännöksen alkuperätodistuksen (build provenance attestation) kanssa. Asennetut käynnistimet päivittävät itsensä. Omistaja latasi version 0.1.0 sieltä, rekisteröityi kutsulla vuokratulle palvelimelle ja latasi pelin (noin 11 Gt) yhdyskäytävän kautta. CI:n samana yönä julkaisema versio 0.1.1 ei enää laita pelin automaattista valotusta pois; se oli tehnyt Ramsgatesta ja yökohtauksista aivan liian pimeitä. Versiolla 0.1.1 Ramsgate näyttää normaalilta, ja pimeä ilmalaiva ennen metsästystä on palannut ([lisätietoa]({{ '/fi/setup/troubleshooting.html' | relative_url }}#airship-dark-windows-blown-out)). Käynnistintä ei ole vielä allekirjoitettu: omistajan koneella SmartScreen esti asennusohjelman kokonaan, ja tarkistus `SHA256SUMS.txt`-tiedostoa vasten ja eston poistaminen toimivat ([ohje]({{ '/fi/setup/friends.html' | relative_url }})). |
+| Kaverikäynnistin | Julkaistu | CI julkaisi ensimmäisen version, 0.1.0:n, [GitHubin julkaisuihin](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest) `SHA256SUMS.txt`-tiedoston ja käännöksen alkuperätodistuksen (build provenance attestation) kanssa. Asennetut käynnistimet päivittävät itsensä. Omistaja latasi version 0.1.0 sieltä, rekisteröityi kutsulla vuokratulle palvelimelle ja latasi pelin (noin 11 Gt) yhdyskäytävän kautta. CI:n samana yönä julkaisema versio 0.1.1 ei enää laita pelin automaattista valotusta pois; se oli tehnyt Ramsgatesta ja yökohtauksista aivan liian pimeitä. Versiolla 0.1.1 Ramsgate näyttää normaalilta, ja pimeä ilmalaiva ennen metsästystä on palannut ([lisätietoa]({{ '/fi/setup/troubleshooting.html' | relative_url }}#airship-dark-windows-blown-out)). Käynnistintä ei ole vielä allekirjoitettu: omistajan koneella SmartScreen esti asennusohjelman kokonaan, ja tarkistus `SHA256SUMS.txt`-tiedostoa vasten ja eston poistaminen toimivat ([ohje]({{ '/fi/setup/friends.html' | relative_url }})). |
 
 Palvelinkoneella (tietokone, jolla palvelin pyörii) mitattu kulutus oli: Ramsgate-palvelin noin 1,1 Gt
 keskusmuistia (RAM) ja noin 0,2 suoritinydintä, jokainen metsästyspalvelin noin 0,9 Gt, ja pelaajan
@@ -105,7 +105,7 @@ oma peliohjelma 1,5–2,3 Gt (suurempi luku Cinematic-grafiikka-asetuksilla).
   [Kaverit, ryhmät ja killat]({{ '/fi/findings/social.html' | relative_url }}).
 - **Tekstichat.** Rakennettu ja testattu ilman peliä: Ramsgaten, metsästysten, ryhmän ja killan chat
   sekä kuiskaukset käyttäjänimin, metagamen itsensä sisällä. Se on oletuksena pois päältä, kunnes kaksi
-  pelaajaa on kokeillut sitä vuokratulla palvelimella. Käytä sillä välin [Dauntless Revived Discordia](https://discord.gg/ZJRprHzsgu). Yksityiskohdat ovat
+  pelaajaa on kokeillut sitä vuokratulla palvelimella. Käytä sillä välin [Dauntless Unbroken Discordia](https://discord.gg/ZJRprHzsgu). Yksityiskohdat ovat
   sivulla [Tekstichat]({{ '/fi/findings/chat.html' | relative_url }}).
 - **Palkkiotehtävät (bounties), odotusajat (cooldowns) ja Escalation.** Oikean etenemisen kanssa
   palkkiotehtävät ja odotusajat tallentuvat tilikohtaisesti, mutta palkkiotehtävän valitsemista ja
@@ -123,7 +123,7 @@ oma peliohjelma 1,5–2,3 Gt (suurempi luku Cinematic-grafiikka-asetuksilla).
 
 [Tiekartassa]({{ roadmap_page.url | relative_url }}) on järjestys, jossa aiomme edetä, sekä oikeissa
 pelikerroissa nähdyt virheet. Kaikki ei voi palata. Äänichat toimi Vivoxilla, joka on maksullinen
-ulkopuolinen palvelu, joten käytä sen sijaan [Dauntless Revived Discordia](https://discord.gg/ZJRprHzsgu). Marraskuun 2020 jälkeen julkaistu sisältö ei
+ulkopuolinen palvelu, joten käytä sen sijaan [Dauntless Unbroken Discordia](https://discord.gg/ZJRprHzsgu). Marraskuun 2020 jälkeen julkaistu sisältö ei
 ole versiossa 1.4.4.
 
 ---
@@ -151,7 +151,7 @@ ole versiossa 1.4.4.
 
 | Osa | Mikä se on | Missä se pyörii |
 |---|---|---|
-| Peliohjelma (client) | Muokkaamaton Dauntless 1.4.4 -ohjelmatiedosto ja sen viereen laitetut kaksi Undauntedin DLL-tiedostoa: `dxgi.dll`-välittäjä (proxy), joka lataa `UndauntedInternalServer.dll`-tiedoston. Se ohjaa peliohjelman taustapalvelukutsut metagameen tavallisena HTTP-liikenteenä | Jokaisen pelaajan tietokone |
+| Peliohjelma (client) | Muokkaamaton Dauntless 1.4.4 -ohjelmatiedosto ja sen viereen laitetut kaksi Undauntedin DLL-tiedostoa: `dxgi.dll`-välittäjä (proxy), joka lataa `DauntlessUnbroken.dll`-tiedoston. Se ohjaa peliohjelman taustapalvelukutsut metagameen tavallisena HTTP-liikenteenä | Jokaisen pelaajan tietokone |
 | Metagame | Undauntedin TypeScriptillä kirjoitettu taustapalvelu: tilit, hahmot, tavarat, varustesarjat ja pelaajien yhteen sovittaminen (matchmaking) | Palvelinkone, TCP 61000 |
 | Deploy-palvelin | Käynnistää pelipalvelinprosessit ja valvoo niitä | Palvelinkone, TCP 61001, vain koneen sisäinen osoite eli loopback (siinä ei ole tunnistautumista) |
 | Pelipalvelimet | Lisää kopioita samasta peliohjelmasta, jotka DLL kääntää palvelintilaan: yksi pysyvä Ramsgate-palvelin ja lisäksi yksi jokaista metsästystä varten | Palvelinkone, UDP 8770–8777 |
@@ -169,9 +169,9 @@ toistettu tavaratapahtuma tehdään vain kerran, ja tallennusten historiasta voi
 versioon. Sen jälkeen olemme lisänneet käyttäjänimet ja kutsukoodit, oikeuksien tarkistuksen jokaiseen
 reittiin, palvelimen puolen ryhmät, kaverilistan ja killat, sisältöpalvelimen, julkisen tilan yhdyskäytävän,
 Undauntedin käynnistimen pohjalta tehdyn kaverikäynnistimen ja Windows-palvelinpaketin.
-Käynnistimessä, pelin tervetulotekstissä ja palvelimen viesteissä lukee Dauntless Revived; kansiot,
-palvelin-DLL:n tiedostonimi, rajapinnan reitit ja otsakkeet pitävät toistaiseksi Undaunted-nimet.
-[README]({{ site.github.repository_url }}/blob/dauntless-revived/README.fi.md#muutokset-alkuperäiseen-undauntediin)
+Käynnistimessä, pelin tervetulotekstissä ja palvelimen viesteissä lukee Dauntless Unbroken; kansiot,
+palvelin-DLL:n tiedostonimi, rajapinnan reitit ja otsakkeet pitävät toistaiseksi dauntless-unbroken-nimet.
+[README]({{ site.github.repository_url }}/blob/main/README.fi.md#muutokset-alkuperäiseen-undauntediin)
 luettelee jokaisen muutoksen, ja [tiekartta]({{ roadmap_page.url | relative_url }}) kertoo, mitä on
 tulossa.
 

@@ -1,9 +1,9 @@
 ---
 title: Skriptit ja parametrit
 parent: Tekninen viite
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 6
-description: "Kaikki Dauntless Revivedin ajettavat skriptit: Windows-palvelinpaketti, kaveripaketti, tools/ ja npm-skriptit, jokainen parametri oletusarvoineen ja esimerkkeineen."
+description: "Kaikki Dauntless Unbrokenin ajettavat skriptit: Windows-palvelinpaketti, kaveripaketti, tools/ ja npm-skriptit, jokainen parametri oletusarvoineen ja esimerkkeineen."
 lang: fi
 ref: reference/scripts
 locale: fi_FI
@@ -59,17 +59,17 @@ Nämä säännöt koskevat jokaista kansion `deploy/windows-server/` skriptiä.
   kuin paketti ajaa omat skriptinsä:
   `powershell -NoProfile -ExecutionPolicy Bypass -File <skripti> <parametrit>`.
 - **Missä skriptit ovat.** Asennetulla palvelimella aja ne kansiosta `<root>\bin` (oletuksena
-  `C:\DauntlessRevived\bin`). Tällä sivulla `<root>` tarkoittaa asennuskansiota. Asennusohjelma
-  kopioi paketin sinne, ja `Update-DauntlessServer.ps1` päivittää kopion uudesta koodista.
+  `C:\DauntlessUnbroken\bin`). Tällä sivulla `<root>` tarkoittaa asennuskansiota. Asennusohjelma
+  kopioi paketin sinne, ja `Update-DauntlessUnbrokenServer.ps1` päivittää kopion uudesta koodista.
   `staging\kit` on vain lähetyskansio, jota `Deploy-Remote.ps1` käyttää.
-- **`-Root`.** `Stack.ps1`, `Update-DauntlessServer.ps1`, `Backup-DauntlessServer.ps1`,
+- **`-Root`.** `Stack.ps1`, `Update-DauntlessUnbrokenServer.ps1`, `Backup-DauntlessUnbrokenServer.ps1`,
   `New-Invite.ps1`, `Get-ServerStatus.ps1`, `Set-Chat.ps1` ja `Write-PerformanceLog.ps1` ottavat parametrin
   `-Root <asennuskansio>`. Ilman sitä
   ne käyttävät omaa kansiotaan ylempää kansiota, jos siinä on `data\config\server.json`, kuten
-  kansion `<root>\bin` kohdalla on. Muuten ne käyttävät kansiota `C:\DauntlessRevived`.
+  kansion `<root>\bin` kohdalla on. Muuten ne käyttävät kansiota `C:\DauntlessUnbroken`.
   Asennusohjelma ottaa sen sijaan parametrin `-InstallRoot`.
-- **`-WhatIf` ja `-Confirm`** toimivat skripteissä `Deploy-Remote.ps1`, `Install-DauntlessServer.ps1`,
-  `Update-DauntlessServer.ps1`, `Stack.ps1`, `Backup-DauntlessServer.ps1` ja `New-Invite.ps1`.
+- **`-WhatIf` ja `-Confirm`** toimivat skripteissä `Deploy-Remote.ps1`, `Install-DauntlessUnbrokenServer.ps1`,
+  `Update-DauntlessUnbrokenServer.ps1`, `Stack.ps1`, `Backup-DauntlessUnbrokenServer.ps1` ja `New-Invite.ps1`.
   `-WhatIf` luettelee muutokset tekemättä niitä. `Get-ServerStatus.ps1` ei muuta mitään, eikä siinä
   ole `-WhatIf`-valitsinta.
 - **Paluukoodit.** `0` tarkoittaa onnistumista ja `1` epäonnistumista. Epäonnistuminen tulostaa
@@ -90,13 +90,13 @@ Mitkä skriptit tarvitsevat ylläpitäjänä avatun PowerShellin ("Suorita järj
 
 | Skripti | Ylläpitäjänä? |
 |:--------|:--------------|
-| `Install-DauntlessServer.ps1` | Kyllä. `-Sandbox`:n kanssa se vain varoittaa. |
-| `Update-DauntlessServer.ps1` | Kyllä, paitsi `-Sandbox`-asennuksessa. |
+| `Install-DauntlessUnbrokenServer.ps1` | Kyllä. `-Sandbox`:n kanssa se vain varoittaa. |
+| `Update-DauntlessUnbrokenServer.ps1` | Kyllä, paitsi `-Sandbox`-asennuksessa. |
 | `Stack.ps1` | Asennetulla palvelimella `start`, `stop` ja `restart` toimivat ajastettujen tehtävien kautta ja tarvitsevat sen, samoin `-Direct`. `status` toimii ilmankin, mutta se voi näyttää paikalla olevat pelaajat vain, jos se pystyy lukemaan omistajan avaimen, ja siihen tarvitaan ylläpitäjän oikeudet. |
 | `New-Invite.ps1` | Kyllä: se lukee tiedoston `data\keys\owner.key`. |
 | `Set-Chat.ps1` | Kyllä, paitsi `-Sandbox`-asennuksessa: se kirjoittaa tiedoston `metagame.env` uudelleen ja käynnistää kokonaisuuden uudelleen. |
 | `Get-ServerStatus.ps1` | Palvelimella, jos haluat pelaajalistan: se lukee omistajan avaimen. Ei tarvita `-KeyFile`:n kanssa. |
-| `Backup-DauntlessServer.ps1` | Aja se ylläpitäjänä, tai anna varmuuskopiotehtävän ajaa se palvelutilillä. Tili, joka ei voi lukea jotakin tiedostoa, ohittaa sen ja mainitsee sen tulosteessa. |
+| `Backup-DauntlessUnbrokenServer.ps1` | Aja se ylläpitäjänä, tai anna varmuuskopiotehtävän ajaa se palvelutilillä. Tili, joka ei voi lukea jotakin tiedostoa, ohittaa sen ja mainitsee sen tulosteessa. |
 | `Write-PerformanceLog.ps1` | Asennetulla palvelimella kyllä: ilman ylläpitäjän oikeuksia se ei näe pelipalvelimia (ne pyörivät palvelutilillä) eikä pysty lukemaan omistajan avainta pelaajamääriä varten. `-Sandbox`-asennuksessa ei. |
 | `Deploy-Remote.ps1` | Ei. Se pyörii omalla koneellasi tavallisella käyttäjätililläsi. Palvelimen SSH-tilin on oltava ylläpitäjä. |
 
@@ -105,17 +105,17 @@ Mitkä skriptit tarvitsevat ylläpitäjänä avatun PowerShellin ("Suorita järj
 | Skripti | Missä ajetaan | Mitä se tekee |
 |:--------|:--------------|:--------------|
 | `Deploy-Remote.ps1` | Oma koneesi | Lähettää paketin, koodin, varmuuskopion ja pelizipin pelkällä avaimella toimivan SSH:n yli ja ajaa sitten asennusohjelman tai päivityksen. Tekee myös kutsuja ja näyttää tilan. |
-| `Install-DauntlessServer.ps1` | Palvelin | Asentaa, korjaa tai palauttaa palvelimen julkisessa tai yksityisessä tilassa. Sen voi ajaa uudelleen turvallisesti. |
-| `Update-DauntlessServer.ps1` | Palvelin | Uusi palvelinkoodi käännettynä pyörivän palvelimen rinnalle, terveystarkistuksella ja automaattisella paluulla edelliseen versioon. |
+| `Install-DauntlessUnbrokenServer.ps1` | Palvelin | Asentaa, korjaa tai palauttaa palvelimen julkisessa tai yksityisessä tilassa. Sen voi ajaa uudelleen turvallisesti. |
+| `Update-DauntlessUnbrokenServer.ps1` | Palvelin | Uusi palvelinkoodi käännettynä pyörivän palvelimen rinnalle, terveystarkistuksella ja automaattisella paluulla edelliseen versioon. |
 | `Stack.ps1` | Palvelin | `status`, `start`, `stop`, `restart` ja `supervise` (ajastettujen tehtävien sisällä). |
 | `New-Invite.ps1` | Palvelin | Luo kutsukoodin ja tulostaa kutsurivin. Myös luettelee ja peruu koodeja. |
 | `Get-ServerStatus.ps1` | Palvelin tai mikä tahansa kone | Ketkä ovat paikalla ja mitkä maailmat ja metsästykset ovat käynnissä. |
-| `Backup-DauntlessServer.ps1` | Palvelin | Varmuuskopio heti, vanhojen kopioiden karsinnalla. |
+| `Backup-DauntlessUnbrokenServer.ps1` | Palvelin | Varmuuskopio heti, vanhojen kopioiden karsinnalla. |
 | `Set-Chat.ps1` | Palvelin | Kytkee pelin tekstichatin päälle tai pois (julkinen tila) ja käynnistää kokonaisuuden uudelleen. |
 | `backup-hidden.vbs` | Palvelin | Ajaa varmuuskopion ilman ikkunaa (tuntitehtävän käytössä). |
 | `Write-PerformanceLog.ps1` | Palvelin | Suorituskykymittaus heti, tai minuutin välein hiekkalaatikossa. Asennetulla palvelimella kokonaisuuden valvoja ottaa mittauksen jo minuutin välein. |
 | `Receive-Upload.ps1` | Palvelin | Osissa tehtävän lähetyksen palvelinpää. `Deploy-Remote.ps1` kutsuu sitä; sinä et. |
-| `DauntlessServer.Common.ps1`, `DauntlessServer.Performance.ps1` | Molemmat | Yhteiset apufunktiot, jotka skriptit lataavat: kiinnitykset, kutsut, kiinnitetty HTTPS, prosessit; suorituskykymittari. |
+| `DauntlessUnbrokenServer.Common.ps1`, `DauntlessUnbrokenServer.Performance.ps1` | Molemmat | Yhteiset apufunktiot, jotka skriptit lataavat: kiinnitykset, kutsut, kiinnitetty HTTPS, prosessit; suorituskykymittari. |
 | `lib\dr-db.js`, `lib\dr-keys.js`, `lib\verify-game.js` | Palvelin | Node-apuohjelmat, joita skriptit kutsuvat. |
 | `tests\Test-*.ps1` | Kehityskone | Paketin omat testit. |
 
@@ -139,7 +139,7 @@ kiinnittää palvelimen isäntäavaimen `known_hosts`-tiedostoon. Komennot ajeta
    Vain Administrators ja SYSTEM voivat avata sen, ja se poistetaan onnistuneen asennuksen jälkeen.
 4. `-GameZip`:n kanssa se lähettää pelizipin osissa kansioon `staging\upload`. Valmis
    `BaseGame144.zip` jää sinne korjauksia varten.
-5. Se ajaa `Install-DauntlessServer.ps1`:n ja näyttää sen tulosteen sitä mukaa.
+5. Se ajaa `Install-DauntlessUnbrokenServer.ps1`:n ja näyttää sen tulosteen sitä mukaa.
 6. Se tulostaa tuloksen. Julkisessa tilassa se tarkistaa lisäksi yhdyskäytävän omalta koneeltasi
    kiinnitetyllä varmenteella ja muistuttaa, että palveluntarjoajan palomuurissa on sallittava
    saapuva TCP yhdyskäytävän porttiin ja UDP 8770-8777 mistä tahansa osoitteesta. UDP:tä se ei voi
@@ -156,15 +156,15 @@ kiinnittää palvelimen isäntäavaimen `known_hosts`-tiedostoon. Komennot ajeta
 | `-KnownHostsFile` | polku ilman välilyöntejä | `known_hosts` `-KeyFile`:n kansiossa | Mihin palvelimen isäntäavain kiinnitetään. Ensimmäinen yhteys tallentaa sen (`StrictHostKeyChecking=accept-new`), ja jokaisen myöhemmän yhteyden on täsmättävä siihen. |
 | `-HostKeyFingerprint` | `SHA256:` ja 43 base64-merkkiä (etuliitteen voi jättää pois) | ei mitään | Ensimmäistä yhteyttä varten. Skripti hakee palvelimen isäntäavaimet `ssh-keyscan`:illa, vaatii niistä yhden, jolla on tämä sormenjälki, ja kiinnittää sen. Ilman tätä ensimmäinen yhteys, jossa on myös `-RestoreFrom`, torjutaan, koska varmuuskopiossa on kaikki avaimet. Ota sormenjälki palveluntarjoajan konsolista. |
 
-**Mitä asennetaan** (välitetään `Install-DauntlessServer.ps1`:lle)
+**Mitä asennetaan** (välitetään `Install-DauntlessUnbrokenServer.ps1`:lle)
 
 | Parametri | Tyyppi | Oletus | Mitä se tekee |
 |:----------|:-------|:-------|:--------------|
 | `-Mode` | `Public` tai `Private` | `Public` | Palvelimen tila. Välitetään aina asennusajossa: katso alta "Olemassa olevan palvelimen uudelleenasennus". |
-| `-InstallRoot` | absoluuttinen polku ilman välilyöntejä | `C:\DauntlessRevived` | Asennuskansio palvelimella. |
+| `-InstallRoot` | absoluuttinen polku ilman välilyöntejä | `C:\DauntlessUnbroken` | Asennuskansio palvelimella. |
 | `-OwnerName` | 3-16 kirjainta, numeroa tai `_` | ei mitään | Uuden palvelimen ylläpitäjätili. Asennus tarvitsee `-OwnerName`:n tai `-RestoreFrom`:n, ellei anneta `-UploadOnly`:a. |
-| `-RestoreFrom` | paikallinen varmuuskopiokansio, jolla on pelkkä nimi, kuten `2026-10-01_200000` | ei mitään | Siirtää olemassa olevan palvelimen: tietokannan ja jokaisen avaimen. Kansiossa on oltava `undaunted.db`, `secrets\metagame.env` ja `secrets\deployserver.env`. Lähetyksen jälkeen tiedostojen määrää ja tietokannan tiivistettä verrataan. **Salainen: kansiossa on kaikki avaimet; älä koskaan jaa, älä koskaan committoi.** Se kulkee vain SSH-yhteyden sisällä. |
-| `-ServerName` | 1-64 merkkiä: ei rivinvaihtoja, ohjausmerkkejä, lainausmerkkejä (`"`), kenoviivoja tai tekstin suuntaa muuttavia merkkejä, eikä välilyöntejä kummassakaan päässä (asennusohjelman sääntö) | ei välitetä | Nimi, jonka kaverit näkevät. Kun se jätetään pois, asennusohjelma käyttää omaa oletustaan, `Dauntless Revived`. |
+| `-RestoreFrom` | paikallinen varmuuskopiokansio, jolla on pelkkä nimi, kuten `2026-10-01_200000` | ei mitään | Siirtää olemassa olevan palvelimen: tietokannan ja jokaisen avaimen. Kansiossa on oltava `dauntless-unbroken.db`, `secrets\metagame.env` ja `secrets\deployserver.env`. Lähetyksen jälkeen tiedostojen määrää ja tietokannan tiivistettä verrataan. **Salainen: kansiossa on kaikki avaimet; älä koskaan jaa, älä koskaan committoi.** Se kulkee vain SSH-yhteyden sisällä. |
+| `-ServerName` | 1-64 merkkiä: ei rivinvaihtoja, ohjausmerkkejä, lainausmerkkejä (`"`), kenoviivoja tai tekstin suuntaa muuttavia merkkejä, eikä välilyöntejä kummassakaan päässä (asennusohjelman sääntö) | ei välitetä | Nimi, jonka kaverit näkevät. Kun se jätetään pois, asennusohjelma käyttää omaa oletustaan, `Dauntless Unbroken`. |
 | `-PublicHost` | IPv4-osoite tai DNS-nimi | `-Server` | Julkinen tila: osoite, johon kaverit ottavat yhteyden. Välitetään aina julkisessa tilassa. |
 | `-GatewayPort` | 1-65535 | `443` | Julkinen tila: yhdyskäytävän TCP-portti. Välitetään aina julkisessa tilassa. |
 | `-AdminIp` | IPv4-osoite tai `IPv4/etuliite`, jossa etuliite on 8-32; yksi tai useampi | ei mitään | Osoitteet, joista etätyöpöytä sallitaan. Ilman tätä ja ilman `-KeepRdpOpen`:ia skripti varoittaa, että asennusohjelma laittaa internetille avoimet etätyöpöytäsäännöt pois päältä. |
@@ -183,8 +183,8 @@ kiinnittää palvelimen isäntäavaimen `known_hosts`-tiedostoon. Komennot ajeta
 | `-Ref` | haara, tagi tai commit | `friends-v1` (`$DRRepo.PinnedRef`) | Ref `-Source GitHub`:ia varten. |
 | `-WorkingTree` | valitsin | pois | Lähettää nykyiset tiedostosi `HEAD`:n sijaan: seuratut ja seuraamattomat tiedostot, joita git ei ohita, paitsi kansiot `node_modules`, `dist`, `build`, `out` ja `.vite`, kaikki `.env`- ja `.env.*`-tiedostot paitsi `.env.example`, sekä `*.key`, `*.pem`, `*.db`, `*.db-journal`, `*.db-wal`, `*.db-shm` ja `*.log`. Commit kirjataan muodossa `<commit>-worktree`. Ei yhdistettävissä `-Source GitHub`:iin. |
 
-Julkisessa tilassa `HEAD`:n lähetys torjutaan, jos `HEAD`:sta puuttuu `UndauntedGateway` tai
-`UndauntedContent`. Tarkistus tehdään paketin lähetyksen jälkeen mutta ennen kuin koodi,
+Julkisessa tilassa `HEAD`:n lähetys torjutaan, jos `HEAD`:sta puuttuu `DauntlessUnbrokenGateway` tai
+`DauntlessUnbrokenContent`. Tarkistus tehdään paketin lähetyksen jälkeen mutta ennen kuin koodi,
 varmuuskopio ja pelizip lähetetään. Committoi työsi tai lisää `-WorkingTree`. Committoimattomia
 muutoksia ei asenneta ilman `-WorkingTree`:tä, ja skripti varoittaa niistä.
 
@@ -192,8 +192,8 @@ muutoksia ei asenneta ilman `-WorkingTree`:tä, ja skripti varoittaa niistä.
 
 | Parametri | Tyyppi | Mitä se tekee |
 |:----------|:-------|:--------------|
-| (ei mitään) | | Asennus: lähettää kaiken ja ajaa `Install-DauntlessServer.ps1`:n. |
-| `-Update` | valitsin | Lähettää paketin ja koodin ja ajaa sitten `Update-DauntlessServer.ps1 -Root <InstallRoot>` lähetetyllä zipillä, tai `-Source GitHub`:n kanssa `-Ref`:llä. `-GameZip`, `-GameZipUrl`, `-RestoreFrom` ja `-OwnerName` torjutaan. |
+| (ei mitään) | | Asennus: lähettää kaiken ja ajaa `Install-DauntlessUnbrokenServer.ps1`:n. |
+| `-Update` | valitsin | Lähettää paketin ja koodin ja ajaa sitten `Update-DauntlessUnbrokenServer.ps1 -Root <InstallRoot>` lähetetyllä zipillä, tai `-Source GitHub`:n kanssa `-Ref`:llä. `-GameZip`, `-GameZipUrl`, `-RestoreFrom` ja `-OwnerName` torjutaan. |
 | `-Status` | valitsin | Ajaa palvelimella `<InstallRoot>\bin\Stack.ps1 status` ja `Get-ServerStatus.ps1`. Paluukoodi on niiden. |
 | `-InviteFor` | teksti ilman ohjausmerkkejä, lainausmerkkejä, takahipsuja tai `$`-merkkiä | Ajaa palvelimella `New-Invite.ps1 -For <teksti>`, tulostaa kutsurivin ja tarkistaa sen sitten omalta koneeltasi komennolla `Get-ServerStatus.ps1 -Invite`. |
 | `-Chat` yksinään | `On` tai `Off` | Ilman asennusparametreja (`-OwnerName`, `-RestoreFrom`, `-GameZip`, `-GameZipUrl`, `-ServerName`, `-AdminIp`, `-Ref`, `-WorkingTree`, `-UploadOnly`) ajaa palvelimella `<InstallRoot>\bin\Set-Chat.ps1 -On` tai `-Off` eikä lähetä mitään. Kokonaisuus käynnistyy uudelleen, joten tee se, kun kukaan ei pelaa. Torjutaan yhdessä parametrien `-Update`, `-Status` tai `-InviteFor` kanssa. |
@@ -215,7 +215,7 @@ uudelleen:
   ilman `-Mode Private`:a, siitä tulee julkisen tilan palvelin.
 - Julkisessa tilassa `-PublicHost` (oletus: `-Server`) ja `-GatewayPort` (oletus `443`) välitetään
   aina. Ne korvaavat sen, mitä palvelimelle on tallennettu.
-- `-ServerName` välitetään vain, kun annat sen, ja asennusohjelman oletus on `Dauntless Revived`.
+- `-ServerName` välitetään vain, kun annat sen, ja asennusohjelman oletus on `Dauntless Unbroken`.
   Uudelleenasennus ilman sitä nimeää palvelimen uudelleen.
 - `-InteractiveSession`:ia ei muisteta. Uudelleenasennus ilman sitä laittaa automaattisen
   kirjautumisen taas pois.
@@ -243,7 +243,7 @@ Koodimuutoksiin käytä `-Update`:a. Se ei aja asennusohjelmaa, joten mikään t
 .\deploy\windows-server\Deploy-Remote.ps1 -Server 203.0.113.7 -Chat On
 ```
 
-### Install-DauntlessServer.ps1 {#install-dauntlessserverps1}
+### Install-DauntlessUnbrokenServer.ps1 {#install-dauntlessserverps1}
 
 Ajetaan palvelimella ylläpitäjänä avatussa PowerShellissä. `Deploy-Remote.ps1` ajaa sen kansiosta
 `<root>\staging\kit`, ja voit ajaa sen myös itse. Jokaisen vaiheen voi toistaa turvallisesti: uusi
@@ -251,7 +251,7 @@ ajo korjaa tai viimeistelee asennuksen ja jättää rauhaan sen, mikä on jo kun
 kohdassa [Mitä asennus tekee]({{ winserver_page.url | relative_url }}#what-the-installer-does).
 
 Asennusohjelma kieltäytyy toimimasta, kun jokin kokonaisuuden osa on käynnissä. Pysäytä kokonaisuus
-ensin komennolla `Stack.ps1 stop`, tai käytä koodipäivityksiin `Update-DauntlessServer.ps1`:ä.
+ensin komennolla `Stack.ps1 stop`, tai käytä koodipäivityksiin `Update-DauntlessUnbrokenServer.ps1`:ä.
 Esitarkistus vaatii ylläpitäjän oikeudet, 64-bittisen Windowsin (koontiversio 17763 tai uudempi)
 työpöytäkokemuksella, vähintään 7,5 Gt muistia Windowsin ilmoittamana, 40 Gt:n levytilavarauksen
 (hiekkalaatikossa 2 Gt; samalla asemalla oleva pelizip ja jo asennettu peli lasketaan mukaan),
@@ -266,8 +266,8 @@ pysäyttää silti ajon.
 | `-Mode` | `Public` tai `Private` | Uusi asennus: `Public`. Uusi ajo: asennettu tila. Vanha `server.json`, jossa ei ole tilaa, lasketaan tilaksi `Private`. | `Public`: TLS-yhdyskäytävä, v2-kutsut. `Private`: Tailscale, v1-kutsut. |
 | `-PublicHost` | IPv4-osoite tai DNS-nimi | Tallennettu `PublicHost`. Muuten verkkokorttien ainoa julkinen IPv4-osoite; asennusohjelma pysähtyy, jos sellaista ei ole tai niitä on useampi. Hiekkalaatikossa `127.0.0.1`. | Julkinen tila: osoite, johon kaverit ottavat yhteyden. Se menee kutsuihin ja varmenteeseen. Pelipalvelimet ilmoittavat pelaajille sen IPv4-osoitteen. Sen on osoitettava julkiseen IPv4-osoitteeseen, paitsi hiekkalaatikossa. Anna se, jos palvelin on 1:1-NATin takana. |
 | `-GatewayPort` | 1-65535 (hiekkalaatikossa 62000-62499) | Tallennettu yhdyskäytävän portti, muuten `443` (hiekkalaatikossa `62443`) | Julkinen tila: yhdyskäytävän TCP-portti, ainoa julkinen TCP-portti. |
-| `-ServerName` | 1-64 merkkiä: ei rivinvaihtoja, ohjausmerkkejä, lainausmerkkejä (`"`), kenoviivoja tai tekstin suuntaa muuttavia merkkejä, eikä välilyöntejä kummassakaan päässä | `Dauntless Revived` | Nimi, jonka kaverit näkevät kutsuissa ja käynnistimessä. **Uusi ajo ei muista sitä:** ajo ilman sitä palauttaa nimeksi `Dauntless Revived`. |
-| `-InstallRoot` | polku | `C:\DauntlessRevived` | Minne kaikki asennetaan. Pakollinen `-Sandbox`:n kanssa. |
+| `-ServerName` | 1-64 merkkiä: ei rivinvaihtoja, ohjausmerkkejä, lainausmerkkejä (`"`), kenoviivoja tai tekstin suuntaa muuttavia merkkejä, eikä välilyöntejä kummassakaan päässä | `Dauntless Unbroken` | Nimi, jonka kaverit näkevät kutsuissa ja käynnistimessä. **Uusi ajo ei muista sitä:** ajo ilman sitä palauttaa nimeksi `Dauntless Unbroken`. |
+| `-InstallRoot` | polku | `C:\DauntlessUnbroken` | Minne kaikki asennetaan. Pakollinen `-Sandbox`:n kanssa. |
 
 **Pelitiedostot** (käytä yhtä kolmesta)
 
@@ -287,11 +287,11 @@ kiinnitetyillä tiivisteillä.
 |:----------|:-------|:-------|:--------------|
 | `-SourceZip` | lähdekoodizipin polku (`git archive`) | ei mitään | Kääntää lähetetystä zipistä. Tämän `Deploy-Remote.ps1` lähettää. |
 | `-SourceCommit` | 7-40 heksamerkkiä, valinnaisesti päätteellä `-dirty` tai `-worktree` | `zip-` ja zipin SHA-256:n 12 ensimmäistä heksamerkkiä | Nimeää `-SourceZip`:n commitin versioraportteja varten. |
-| `-SourceDir` | kansio, jossa on `UndauntedMetagame\package.json` | ei mitään | Kääntää paikallisesta kansiosta. Git-kopiossa commit luetaan gitistä, päätteellä `-dirty`, kun muutoksia on. |
+| `-SourceDir` | kansio, jossa on `DauntlessUnbrokenMetagame\package.json` | ei mitään | Kääntää paikallisesta kansiosta. Git-kopiossa commit luetaan gitistä, päätteellä `-dirty`, kun muutoksia on. |
 | `-Ref` | haara, tagi tai commit: kirjaimia, numeroita, `.`, `_`, `/`, `-` (1-100) | Katso alta | Lataa tämän refin GitHubista ja kääntää sen. |
 
 Ilman mitään näistä kolmesta asennusohjelma kääntää sen repositoriokopion, josta se ajetaan, jos se
-ajetaan sellaisesta (kun `..\..\UndauntedMetagame\package.json` on olemassa). Muuten se kääntää
+ajetaan sellaisesta (kun `..\..\DauntlessUnbrokenMetagame\package.json` on olemassa). Muuten se kääntää
 GitHubista `$DRRepo.PinnedRef`:n eli `friends-v1`:n. **Varo:** uusi ajo kansiosta `<root>\bin` ei
 tapahdu repositoriokopiossa, joten ilman lähdeparametria se lataa `friends-v1`:n. Säilyttääksesi
 asennetun koodin asenna uudelleen `Deploy-Remote.ps1`:llä, joka lähettää koodin uudelleen, tai anna
@@ -299,8 +299,8 @@ asennetun koodin asenna uudelleen `Deploy-Remote.ps1`:llä, joka lähettää koo
 uudelleen, ellei sen nimi pääty `-dirty`- tai `-worktree`-päätteeseen tai ole `unknown`.
 Kääntäminen kopioi lähdekoodin kansioon `<root>\app.new` (ilman `node_modules`-kansioita,
 käännöstuloksia, `.git`-kansiota, `.env`-tiedostoja, avaimia, varmenteita, tietokantoja ja lokeja),
-ajaa `npm ci`:n ja `npm run build`:in neljässä palvelinpaketissa (`UndauntedMetagame`,
-`UndauntedDeployServer`, `UndauntedContent` ja `UndauntedGateway`; käynnistintä ei käännetä) ja
+ajaa `npm ci`:n ja `npm run build`:in neljässä palvelinpaketissa (`DauntlessUnbrokenMetagame`,
+`DauntlessUnbrokenDeployServer`, `DauntlessUnbrokenContent` ja `DauntlessUnbrokenGateway`; käynnistintä ei käännetä) ja
 vaihtaa sen sitten käyttöön. Vanha käännös jää talteen nimellä `app.prev`.
 
 **Omistaja, palautus ja varmenne**
@@ -366,20 +366,20 @@ palvelimen uudelleen, jos se poisti käytäntöarvon, joka piti Windowsin palomu
 
 ```powershell
 # Puretusta paketista palvelimella: uusi julkinen palvelin
-.\Install-DauntlessServer.ps1 -GameZip D:\BaseGame144.zip -PublicHost 203.0.113.7 -AdminIp 198.51.100.20 -OwnerName Slayer
+.\Install-DauntlessUnbrokenServer.ps1 -GameZip D:\BaseGame144.zip -PublicHost 203.0.113.7 -AdminIp 198.51.100.20 -OwnerName Slayer
 
 # Kaikki, mitä se muuttaisi, muuttamatta mitään
-.\Install-DauntlessServer.ps1 -Mode Public -GameZipUrl https://example.org/BaseGame144.zip -OwnerName Slayer -WhatIf
+.\Install-DauntlessUnbrokenServer.ps1 -Mode Public -GameZipUrl https://example.org/BaseGame144.zip -OwnerName Slayer -WhatIf
 
 # Yksityisen tilan palvelin, joka laittaa MagicDNS-nimensä kutsuihin
-.\Install-DauntlessServer.ps1 -Mode Private -GameZip D:\BaseGame144.zip -OwnerName Slayer -AdvertiseHost dauntless-server.example.ts.net
+.\Install-DauntlessUnbrokenServer.ps1 -Mode Private -GameZip D:\BaseGame144.zip -OwnerName Slayer -AdvertiseHost dauntless-server.example.ts.net
 
 # Uusi ajo asennetulla palvelimella: etätyöpöytä rajataan uuteen osoitteeseen (pysäytä kokonaisuus ensin)
-C:\DauntlessRevived\bin\Stack.ps1 stop
-C:\DauntlessRevived\bin\Install-DauntlessServer.ps1 -Ref <asennettu commit> -ServerName "Lauantain Ramsgate" -AdminIp 198.51.100.21
+C:\DauntlessUnbroken\bin\Stack.ps1 stop
+C:\DauntlessUnbroken\bin\Install-DauntlessUnbrokenServer.ps1 -Ref <asennettu commit> -ServerName "Lauantain Ramsgate" -AdminIp 198.51.100.21
 ```
 
-### Update-DauntlessServer.ps1 {#update-dauntlessserverps1}
+### Update-DauntlessUnbrokenServer.ps1 {#update-dauntlessserverps1}
 
 Ajetaan palvelimella ylläpitäjänä. Se vaihtaa vain palvelinkoodin. `.env`-tiedostot, avaimet,
 varmenne, pelitiedostot ja palomuuri pysyvät ennallaan; niitä varten aja asennusohjelma uudelleen.
@@ -399,7 +399,7 @@ varmenne, pelitiedostot ja palomuuri pysyvät ennallaan; niitä varten aja asenn
 | `-Ref` | haara, tagi tai commit | `friends-v1` | Lataa tämän refin GitHubista. Tämä on oletusparametrijoukko: ilman yhtään lähdeparametria päivitys kääntää `friends-v1`:n, joka voi olla vanhempi kuin se, mitä palvelin ajaa. **Nimeä lähde aina.** |
 | `-SourceZip` | polku | ei mitään | Kääntää lähdekoodizipistä. `Deploy-Remote.ps1 -Update` välittää tämän. |
 | `-SourceCommit` | 7-40 heksamerkkiä, valinnaisesti päätteellä `-dirty` tai `-worktree` | `zip-<zipin SHA-256:n 12 heksamerkkiä>` | `-SourceZip`:n commit. |
-| `-SourceDir` | kansio, jossa on `UndauntedMetagame\package.json` | ei mitään | Kääntää paikallisesta kansiosta. |
+| `-SourceDir` | kansio, jossa on `DauntlessUnbrokenMetagame\package.json` | ei mitään | Kääntää paikallisesta kansiosta. |
 | `-Rollback` | valitsin | pois | Vaihtaa käsin takaisin `app.prev`:iin: pysäytys (varmuuskopion kanssa), `app` nimetään `app.rolledback`:ksi ja `app.prev` `app`:ksi, kirjattu commit palautetaan, kansion `<root>\bin` skriptit päivitetään, käynnistys ilman uutta varmuuskopiota ja tarkistus. |
 | `-Force` | valitsin | pois | Kääntää uudelleen, vaikka sama commit on jo asennettu. Commit, jonka nimi päättyy `-dirty`- tai `-worktree`-päätteeseen, käännetään aina uudelleen. |
 | `-HealthTimeoutSec` | sekunteja | `180` | Kuinka kauan uuden käännöksen annetaan tulla toimintakuntoon ennen automaattista paluuta edelliseen. |
@@ -423,9 +423,9 @@ vielä tallennettua etenemistä, päivitys toistaa varoituksen ja linkin päivit
 tarkistus ei koskaan kaada päivitystä.
 
 ```powershell
-C:\DauntlessRevived\bin\Update-DauntlessServer.ps1 -Ref <tagi tai commit>
-C:\DauntlessRevived\bin\Update-DauntlessServer.ps1 -SourceZip C:\DauntlessRevived\staging\source\source-<12 heksamerkkiä>.zip -SourceCommit <commit>
-C:\DauntlessRevived\bin\Update-DauntlessServer.ps1 -Rollback
+C:\DauntlessUnbroken\bin\Update-DauntlessUnbrokenServer.ps1 -Ref <tagi tai commit>
+C:\DauntlessUnbroken\bin\Update-DauntlessUnbrokenServer.ps1 -SourceZip C:\DauntlessUnbroken\staging\source\source-<12 heksamerkkiä>.zip -SourceCommit <commit>
+C:\DauntlessUnbroken\bin\Update-DauntlessUnbrokenServer.ps1 -Rollback
 ```
 
 ### Stack.ps1 {#stackps1}
@@ -459,10 +459,10 @@ osan käynnistämistä `Stack.ps1` poistaa omasta ympäristöstään jokaisen tu
 muuttujan, jotta tiedoston arvot voittavat.
 
 ```powershell
-C:\DauntlessRevived\bin\Stack.ps1                     # status
-C:\DauntlessRevived\bin\Stack.ps1 restart -Only gateway
-C:\DauntlessRevived\bin\Stack.ps1 stop
-C:\DauntlessRevived\bin\Stack.ps1 start
+C:\DauntlessUnbroken\bin\Stack.ps1                     # status
+C:\DauntlessUnbroken\bin\Stack.ps1 restart -Only gateway
+C:\DauntlessUnbroken\bin\Stack.ps1 stop
+C:\DauntlessUnbroken\bin\Stack.ps1 start
 ```
 
 ### New-Invite.ps1 {#new-inviteps1}
@@ -489,8 +489,8 @@ skriptin tekemällä koodilla), tarkistaa, että koodi on palvelimen listalla, j
 kutsurivin takaisin samalla tiukalla jäsentimellä, jota käynnistin käyttää, ja tulostaa yhden rivin:
 
 ```text
-dauntless-revived://join?v=2&mode=public&host=203.0.113.7&port=443&fp=<64 heksamerkkiä>&code=ABCD-EFGH-JKLM&name=Lauantain%20Ramsgate
-dauntless-revived://join?v=1&host=100.x.y.z&port=61000&code=ABCD-EFGH-JKLM&name=Koti&share=<URL-koodattu jakolinkki>
+dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=<64 heksamerkkiä>&code=ABCD-EFGH-JKLM&name=Lauantain%20Ramsgate
+dauntless-unbroken://join?v=1&host=100.x.y.z&port=61000&code=ABCD-EFGH-JKLM&name=Koti&share=<URL-koodattu jakolinkki>
 ```
 
 `v=2` on julkinen tila: `fp` on yhdyskäytävän varmenteen SHA-256, ja käynnistin hyväksyy sen
@@ -499,10 +499,10 @@ tilin, joten lähetä se yksityisesti. Julkinen tila kieltäytyy tekemästä kut
 ei enää vastaa `server.json`-tiedostoon tallennettua sormenjälkeä.
 
 ```powershell
-C:\DauntlessRevived\bin\New-Invite.ps1 -For friend1
-C:\DauntlessRevived\bin\New-Invite.ps1 -Uses 3 -For "Lauantain porukka"
-C:\DauntlessRevived\bin\New-Invite.ps1 -List
-C:\DauntlessRevived\bin\New-Invite.ps1 -Revoke ABCD-EFGH-JKLM
+C:\DauntlessUnbroken\bin\New-Invite.ps1 -For friend1
+C:\DauntlessUnbroken\bin\New-Invite.ps1 -Uses 3 -For "Lauantain porukka"
+C:\DauntlessUnbroken\bin\New-Invite.ps1 -List
+C:\DauntlessUnbroken\bin\New-Invite.ps1 -Revoke ABCD-EFGH-JKLM
 ```
 
 ### Get-ServerStatus.ps1 {#get-serverstatusps1}
@@ -532,8 +532,8 @@ epäonnistuu, koska palvelin näyttää eri varmenteen, skripti kertoo sen: joko
 uuden varmenteen tai joku on välissä.
 
 ```powershell
-C:\DauntlessRevived\bin\Get-ServerStatus.ps1
-.\Get-ServerStatus.ps1 -Invite 'dauntless-revived://join?v=2&mode=public&host=203.0.113.7&port=443&fp=...&code=...&name=...' -KeyFile .\account.key
+C:\DauntlessUnbroken\bin\Get-ServerStatus.ps1
+.\Get-ServerStatus.ps1 -Invite 'dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=...&code=...&name=...' -KeyFile .\account.key
 .\Get-ServerStatus.ps1 -Server 203.0.113.7:443 -Fingerprint <64 heksamerkkiä> -Json
 ```
 
@@ -548,7 +548,7 @@ PowerShellin, paitsi `-Sandbox`-asennuksessa.
 | Parametri | Tyyppi | Oletus | Mitä se tekee |
 |:----------|:-------|:-------|:--------------|
 | `-On` / `-Off` | valitsin, toinen niistä **pakollinen** | | Uusi tila. |
-| `-Root` | polku | `C:\DauntlessRevived` | Asennuskansio. |
+| `-Root` | polku | `C:\DauntlessUnbroken` | Asennuskansio. |
 
 Se kirjoittaa tiedostoon `metagame.env` asetukset `CHAT=1` tai `0`, `CHAT_BIND_HOST=127.0.0.1` ja
 `CHAT_PORT` (61099, hiekkalaatikossa 62099) sekä tiedostoon `server.json` kohdan `"Chat"`. Sitten se
@@ -561,16 +561,16 @@ kirjoitti muualle tiedostoon `metagame.env`, ei vaikuta. Uudelleenkäynnistys pu
 matchmaking-jonot, jotka ovat vain muistissa: aja se, kun kukaan ei pelaa. Omalta koneelta
 `Deploy-Remote.ps1 -Server <osoite> -Chat On` ajaa sen SSH:n kautta. Jos palvelin on asennettu ennen
 chattia, skripti tulee päivityksen mukana, joten päivitä ensin. Pohjana on Vvoidddd:n ensimmäinen
-chat-kytkin ([#9](https://github.com/mixutin/dauntless-revived/pull/9)).
+chat-kytkin ([#9](https://github.com/Vvoidddd/dauntless-unbroken/pull/9)).
 
 ```powershell
-C:\DauntlessRevived\bin\Set-Chat.ps1 -On
-C:\DauntlessRevived\bin\Set-Chat.ps1 -Off
+C:\DauntlessUnbroken\bin\Set-Chat.ps1 -On
+C:\DauntlessUnbroken\bin\Set-Chat.ps1 -Off
 ```
 
-### Backup-DauntlessServer.ps1 ja backup-hidden.vbs {#backup-dauntlessserverps1-and-backup-hiddenvbs}
+### Backup-DauntlessUnbrokenServer.ps1 ja backup-hidden.vbs {#backup-dauntlessserverps1-and-backup-hiddenvbs}
 
-`Backup-DauntlessServer.ps1` kopioi kaiken palautukseen tarvittavan kansioon
+`Backup-DauntlessUnbrokenServer.ps1` kopioi kaiken palautukseen tarvittavan kansioon
 `<root>\backups\yyyy-MM-dd_HHmmss\`: tietokannan (otettu SQLiten online backup -rajapinnalla ja
 tarkistettu), `server.json`-tiedoston, uutistiedoston, metagamen, deploy-palvelimen,
 sisältöpalvelimen ja yhdyskäytävän `.env`-tiedostot, jokaisen `*.key`-tiedoston sekä yhdyskäytävän
@@ -596,8 +596,8 @@ mitään: `wscript.exe backup-hidden.vbs [asennuskansio]`. Ilman argumenttia ase
 kansiota ylempi kansio. Se palauttaa varmuuskopion paluukoodin.
 
 ```powershell
-C:\DauntlessRevived\bin\Backup-DauntlessServer.ps1
-C:\DauntlessRevived\bin\Backup-DauntlessServer.ps1 -Hourly 96 -Daily 60
+C:\DauntlessUnbroken\bin\Backup-DauntlessUnbrokenServer.ps1
+C:\DauntlessUnbroken\bin\Backup-DauntlessUnbrokenServer.ps1 -Hourly 96 -Daily 60
 ```
 
 ### Write-PerformanceLog.ps1 {#write-performancelogps1}
@@ -609,7 +609,7 @@ pelipalvelin, joka on käynnistetty tämän asennuksen pelikansiosta. Rivit lis�
 `<root>\data\logs\performance\performance-<UTC-päivä>.csv`; sarakkeet ovat sivulla
 [Tiedostot ja data]({{ files_page.url | relative_url }}#performance-log). Parametria `-KeepDays`
 vanhemmat tiedostot poistetaan. Pohjana on Vvoidddd:n ensimmäinen mittari
-([#6](https://github.com/mixutin/dauntless-revived/pull/6)).
+([#6](https://github.com/Vvoidddd/dauntless-unbroken/pull/6)).
 
 Asennetulla palvelimella kokonaisuuden valvoja ottaa mittauksen jo minuutin välein (katso
 `supervise` kohdassa [Stack.ps1](#stackps1)). Aja tämä skripti siis, kun haluat yhden mittauksen heti
@@ -649,7 +649,7 @@ joka epäonnistuu (esimerkiksi metagame ei ole käynnissä), jättää soluunsa 
 kirjoitetaan silti. Paluukoodi on `1`, kun `-Once` ei pystynyt kirjoittamaan mittaustaan.
 
 ```powershell
-C:\DauntlessRevived\bin\Write-PerformanceLog.ps1 -Once
+C:\DauntlessUnbroken\bin\Write-PerformanceLog.ps1 -Once
 .\Write-PerformanceLog.ps1 -Root C:\dr\sandbox-ws2019\root -IntervalSeconds 30
 ```
 
@@ -681,8 +681,8 @@ Paketin skriptit kutsuvat näitä palvelimen `node.exe`:llä. Aja niitä käsin 
 | `node verify-game.js <manifest.json> <pelikansio> [--quick]` | Tarkistaa jokaisen luettelossa olevan tiedoston koon ja SHA-256:n (`--quick`: vain koon). Ylimääräiset tiedostot ohitetaan. Paluukoodi `0`: kaikki täsmäävät, `1`: poikkeama, `2`: käyttövirhe, vaarallinen polku luettelossa tai lukuvirhe. |
 
 `dr-db.js` lataa `better-sqlite3`:n metagamen omasta `node_modules`-kansiosta ja päättyy
-paluukoodilla `1` missä tahansa virheessä. `<metagame-kansio>` on `<root>\app\UndauntedMetagame` ja
-tietokanta on `<root>\data\undaunted.db`.
+paluukoodilla `1` missä tahansa virheessä. `<metagame-kansio>` on `<root>\app\DauntlessUnbrokenMetagame` ja
+tietokanta on `<root>\data\dauntless-unbroken.db`.
 
 ### Palautus, paluu edelliseen versioon ja poistaminen {#restore-rollback-and-uninstall}
 
@@ -690,8 +690,8 @@ Näille ei ole erillisiä skriptejä:
 
 | Tehtävä | Miten |
 |:--------|:------|
-| Palauta varmuuskopio tai siirrä palvelin | `Install-DauntlessServer.ps1 -RestoreFrom <varmuuskopiokansio>`, tai omalta koneeltasi `Deploy-Remote.ps1 -RestoreFrom <paikallinen varmuuskopiokansio>`. Kansiossa on oltava `undaunted.db`, `secrets\metagame.env` ja `secrets\deployserver.env`. Tietokanta tarkistetaan ensin, eikä olemassa olevaa tietokantaa koskaan korvata: poista se ensin, jos tarkoitus on korvata se. Varmuuskopion `metagame.env`- ja `deployserver.env`-tiedostojen asetukset voittavat olemassa olevat. Tunnusten allekirjoitusavaimet, pelipalvelimen avain, `*.key`-tiedostot (olemassa olevat säilytetään) ja yhdyskäytävän varmenne tulevat mukana, joten jo annetut kutsut toimivat edelleen. Varmuuskopion varmennetta käytetään vain, jos tällä palvelimella ei vielä ole varmennetta eikä `-NewCertificate`-valitsinta ole annettu. Yhdyskäytävän ja sallittujen listan salaisuuksia ei oteta varmuuskopiosta: ne säilyvät tai tehdään uusina. Sekä `Backup-DauntlessServer.ps1`:n että projektin oman palvelinkoneen `backup.ps1`:n tekemät varmuuskopiot kelpaavat. |
-| Palaa edelliseen käännökseen | `Update-DauntlessServer.ps1 -Rollback`. |
+| Palauta varmuuskopio tai siirrä palvelin | `Install-DauntlessUnbrokenServer.ps1 -RestoreFrom <varmuuskopiokansio>`, tai omalta koneeltasi `Deploy-Remote.ps1 -RestoreFrom <paikallinen varmuuskopiokansio>`. Kansiossa on oltava `dauntless-unbroken.db`, `secrets\metagame.env` ja `secrets\deployserver.env`. Tietokanta tarkistetaan ensin, eikä olemassa olevaa tietokantaa koskaan korvata: poista se ensin, jos tarkoitus on korvata se. Varmuuskopion `metagame.env`- ja `deployserver.env`-tiedostojen asetukset voittavat olemassa olevat. Tunnusten allekirjoitusavaimet, pelipalvelimen avain, `*.key`-tiedostot (olemassa olevat säilytetään) ja yhdyskäytävän varmenne tulevat mukana, joten jo annetut kutsut toimivat edelleen. Varmuuskopion varmennetta käytetään vain, jos tällä palvelimella ei vielä ole varmennetta eikä `-NewCertificate`-valitsinta ole annettu. Yhdyskäytävän ja sallittujen listan salaisuuksia ei oteta varmuuskopiosta: ne säilyvät tai tehdään uusina. Sekä `Backup-DauntlessUnbrokenServer.ps1`:n että projektin oman palvelinkoneen `backup.ps1`:n tekemät varmuuskopiot kelpaavat. |
+| Palaa edelliseen käännökseen | `Update-DauntlessUnbrokenServer.ps1 -Rollback`. |
 | Poistaminen | Käsin ajettavat komennot: [Poistaminen]({{ winserver_page.url | relative_url }}#uninstall). |
 
 ### Paketin testit {#kit-tests}
@@ -706,7 +706,7 @@ tiedostojen `*.ps1`, `*.vbs` ja `*.md` rivinvaihdot CRLF-muodossa myös `git arc
 
 | Skripti | Parametrit | Mitä se testaa |
 |:--------|:-----------|:---------------|
-| `tests\Test-KitUnit.ps1` | `-WorkDir` (oletus `%TEMP%\dr-kit-unit`; tyhjennetään alussa, poistetaan lopussa); `-Port` (62000-62499, oletus `62450`; suorituskykytesti käyttää myös sitä seuraavaa porttia) | Jokainen paketin skripti jäsentyy PowerShell 5.1:ssä ja on pelkkää ASCIIta; kutsurivit v1 ja v2 ja kaikki, mikä pitää torjua; osoitteet ja `.env`-säännöt; varmenteiden sormenjäljet; TLS-kiinnitys paikallista testipalvelinta vasten; `Get-ServerStatus.ps1` avaimen kanssa ja ilman; avaintiedostot; lähetysapuri; suorituskykymittari (suoritinlaskut, roolit porttialueesta, kiinteä otsikkorivi, päivätiedostot ja niiden karsinta, pelaajamäärät korvikemetagamesta ilman nimiä tai avaimia tiedostossa, desimaalipiste suomenkielisessä Windowsissa sekä liitoskohdan ja kovan linkin torjunta); chat-asetukset (`CHAT_PORT` sama kuin yhdyskäytävän WebSocket-portti tavallisessa asennuksessa ja hiekkalaatikossa, `-Chat` verrattuna tiedostoon `server.json`, avainten säilyminen uudessa ajossa ja `chat`-tilarivi). Tarvitsee `node`:n `PATH`:issa ja `npm ci`:n kansiossa `UndauntedGateway`. |
+| `tests\Test-KitUnit.ps1` | `-WorkDir` (oletus `%TEMP%\dr-kit-unit`; tyhjennetään alussa, poistetaan lopussa); `-Port` (62000-62499, oletus `62450`; suorituskykytesti käyttää myös sitä seuraavaa porttia) | Jokainen paketin skripti jäsentyy PowerShell 5.1:ssä ja on pelkkää ASCIIta; kutsurivit v1 ja v2 ja kaikki, mikä pitää torjua; osoitteet ja `.env`-säännöt; varmenteiden sormenjäljet; TLS-kiinnitys paikallista testipalvelinta vasten; `Get-ServerStatus.ps1` avaimen kanssa ja ilman; avaintiedostot; lähetysapuri; suorituskykymittari (suoritinlaskut, roolit porttialueesta, kiinteä otsikkorivi, päivätiedostot ja niiden karsinta, pelaajamäärät korvikemetagamesta ilman nimiä tai avaimia tiedostossa, desimaalipiste suomenkielisessä Windowsissa sekä liitoskohdan ja kovan linkin torjunta); chat-asetukset (`CHAT_PORT` sama kuin yhdyskäytävän WebSocket-portti tavallisessa asennuksessa ja hiekkalaatikossa, `-Chat` verrattuna tiedostoon `server.json`, avainten säilyminen uudessa ajossa ja `chat`-tilarivi). Tarvitsee `node`:n `PATH`:issa ja `npm ci`:n kansiossa `DauntlessUnbrokenGateway`. |
 | `tests\Test-DeployRemote.ps1` | `-WorkDir` (oletus `%TEMP%\dr-deploy-test`; tyhjennetään alussa, poistetaan lopussa) | `Deploy-Remote.ps1` ilman palvelinta: parametrien torjunnat, `-WhatIf`, paketin, lähdekoodin ja varmuuskopion lähetys, osissa tehtävä lähetys katkenneella yhteydellä ja vahingoittuneilla osilla sekä `-Chat` (välitetään asennusohjelmalle tai yksinään `Set-Chat.ps1`). Ei verkkoa, ei SSH-avainta. |
 | `tests\Test-Sandbox.ps1` | `-SandboxDir` (oletus `C:\dr\sandbox-ws2019`; kansion nimessä on oltava `sandbox`, koska kansio poistetaan, ja sen on oltava työkopion ulkopuolella, koska asennusohjelma kopioi työkopion); `-KeepSandbox`; `-SkipRestore` | Täysi julkisen tilan `-Sandbox`-asennus chat päällä väliaikaiseen kansioon, sitten kutsut, tila, yhdyskäytävän torjunnat, rekisteröityminen yhdyskäytävän kautta, pelin chat-yhteys yhdyskäytävän kautta (101), päivitys ja paluu edelliseen, `Set-Chat.ps1 -Off` (taas 502), suorituskykymittaus, varmuuskopio, palautus toiseen kansioon ja siivous. Tarvitsee vapaat portit 62000, 62002, 62005, 62099 ja 62443 ja kääntää koodin `npm ci`:llä. Loki kopioidaan tiedostoon `%TEMP%\dr-sandbox-test.log`, ellei annettu `-KeepSandbox`. |
 
@@ -718,24 +718,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\
 
 ### Paketin vakiot {#kit-constants}
 
-Kiinteät arvot tiedostossa `deploy/windows-server/DauntlessServer.Common.ps1`. Portit voi vaihtaa
+Kiinteät arvot tiedostossa `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`. Portit voi vaihtaa
 asennuskohtaisesti, nimiä ei.
 
 | Vakio | Arvo | Käyttö |
 |:------|:-----|:-------|
 | `$DRNames.ServiceUser` | `dauntless` | Vähäisin oikeuksin toimiva paikallinen tili, joka ajaa kokonaisuutta. |
-| `$DRNames.StackTask` | `Dauntless Revived stack` | Ajastettu tehtävä: `Stack.ps1 supervise` tilillä `dauntless` minuutti koneen käynnistymisen jälkeen (tai `-InteractiveSession`:n kanssa tilin kirjautuessa). |
-| `$DRNames.AllowlistTask` | `Dauntless Revived allowlist` | Ajastettu tehtävä, julkinen tila: `Stack.ps1 supervise -Only allowlist` SYSTEM-tilillä koneen käynnistyessä. |
-| `$DRNames.BackupTask` | `Dauntless Revived backup` | Ajastettu tehtävä: `backup-hidden.vbs` tilillä `dauntless` tunnin välein. |
-| `$DRNames.FirewallGroup` | `Dauntless Revived` | Paketin palomuurisääntöjen ryhmä. |
-| `$DRNames.AllowlistRule` | `Dauntless Revived game ports (allowlist)` | UDP-peliporttisäännön näyttönimi. |
-| `$DRNames.AllowlistRuleName` | `DauntlessRevived-GamePorts-Allowlist` | Saman säännön nimi. Sen on vastattava tiedostoa `UndauntedGateway/src/allowlist/firewall.ts`. |
+| `$DRNames.StackTask` | `Dauntless Unbroken stack` | Ajastettu tehtävä: `Stack.ps1 supervise` tilillä `dauntless` minuutti koneen käynnistymisen jälkeen (tai `-InteractiveSession`:n kanssa tilin kirjautuessa). |
+| `$DRNames.AllowlistTask` | `Dauntless Unbroken allowlist` | Ajastettu tehtävä, julkinen tila: `Stack.ps1 supervise -Only allowlist` SYSTEM-tilillä koneen käynnistyessä. |
+| `$DRNames.BackupTask` | `Dauntless Unbroken backup` | Ajastettu tehtävä: `backup-hidden.vbs` tilillä `dauntless` tunnin välein. |
+| `$DRNames.FirewallGroup` | `Dauntless Unbroken` | Paketin palomuurisääntöjen ryhmä. |
+| `$DRNames.AllowlistRule` | `Dauntless Unbroken game ports (allowlist)` | UDP-peliporttisäännön näyttönimi. |
+| `$DRNames.AllowlistRuleName` | `DauntlessUnbroken-GamePorts-Allowlist` | Saman säännön nimi. Sen on vastattava tiedostoa `DauntlessUnbrokenGateway/src/allowlist/firewall.ts`. |
 | `$DRDefaultPorts` | metagame 61000, deploy 61001, content 61002, gateway 443, allowlist 61005 | Oletus-TCP-portit. |
 | `$DRSandboxPorts` | metagame 62000, deploy 62001, content 62002, gateway 62443, allowlist 62005 | `-Sandbox`-asennuksen TCP-portit. |
 | `$DRRelayPort` | 61000 | Kaverikäynnistimen välittimen portti. Julkinen tila lähettää jokaiselle pelaajalle QoS-osoitteen `http://127.0.0.1:61000/QoS`, joten portti on kiinteä. |
 | `$DRChatPort` | 61099 | Chat-portti (XMPP) palvelutilin `Engine.ini`-tiedostossa ja yhdyskäytävän WebSocket-kohde (hiekkalaatikossa 62099). |
 | `$DRUdpBegin`, `$DRUdpEnd` | 8770, 8777 | Pelipalvelinten UDP-porttialue. |
-| `$DRRepo.Url` | `https://github.com/mixutin/dauntless-revived` | Mistä asennusohjelma ja päivitys lataavat koodin, ja lähdekoodilinkki, jonka metagame ilmoittaa. |
+| `$DRRepo.Url` | `https://github.com/Vvoidddd/dauntless-unbroken` | Mistä asennusohjelma ja päivitys lataavat koodin, ja lähdekoodilinkki, jonka metagame ilmoittaa. |
 | `$DRRepo.PinnedRef` | `friends-v1` | Ref, joka käännetään, kun lähdettä ei nimetä. |
 
 **Kiinnitetyt tiivisteet.** Jokainen arvo on kopioitu useaan tiedostoon. Muuta ne kaikki yhdessä.
@@ -743,9 +743,9 @@ asennuskohtaisesti, nimiä ei.
 | Mikä | SHA-256 | Kiinnitetty myös tiedostoissa |
 |:-----|:--------|:------------------------------|
 | Pelizip, 1.4.4 (`BaseGame144.zip`, 10 479 214 119 tavua) | `556B9A648A5E5E7E11B6F8DD3D80FF8E88FCEB0D3448297AAF47CE7BF756BC6D` | `friend-kit/setup.ps1`, `tools/make-game-manifest.js` |
-| `Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe` | `D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-game-manifest.js`, `UndauntedLauncher/src/main/constants.ts`, sisältöluettelo |
-| `dxgi.dll` | `9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-friend-kit.ps1`, `UndauntedLauncher/src/main/constants.ts` |
-| `UndauntedInternalServer.dll` | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` | samat tiedostot kuin `dxgi.dll`:llä |
+| `Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe` | `D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-game-manifest.js`, `DauntlessUnbrokenLauncher/src/main/constants.ts`, sisältöluettelo |
+| `dxgi.dll` | `f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c` | `friend-kit/setup.ps1`, `friend-kit/play.ps1`, `tools/make-friend-kit.ps1`, `DauntlessUnbrokenLauncher/src/main/constants.ts` |
+| `DauntlessUnbroken.dll` | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` | samat tiedostot kuin `dxgi.dll`:llä |
 | Node.js 24.19.0 MSI (`node-v24.19.0-x64.msi`) | `F0F66C2A80C08A30A5AB5179EE9EA9E45F9B46289436A8CC87FF833B852DB351` | vain paketissa; sen on vastattava myös nodejs.org:n `SHASUMS256.txt`-tiedostoa |
 | Tailscale 1.102.4 MSI (yksityinen tila) | `80EB007E39DFEBE17299FA1A09C79A8E1D934F76E0246C0817EBE3AF675B7EF6` | vain paketissa; sen on vastattava myös julkaistua `.sha256`-tiedostoa |
 
@@ -766,7 +766,7 @@ palvelin näyttää ulospäin vain TLS-yhdyskäytävänsä; sellaisen palvelimen
 käynnistintä. Kaverin ohje on [Liity kaverina]({{ friends_page.url | relative_url }}), ja
 `tools/make-friend-kit.ps1` rakentaa zipin.
 
-Molemmat skriptit pitävät tiedostonsa kansiossa `%APPDATA%\DauntlessRevived\`:
+Molemmat skriptit pitävät tiedostonsa kansiossa `%APPDATA%\DauntlessUnbroken\`:
 
 - `account.key`: kaverin tiliavain. **Salainen: se on pelaajan salasana; älä koskaan jaa, älä
   koskaan committoi, ja varmuuskopioi se.**
@@ -777,7 +777,7 @@ Molemmat skriptit pitävät tiedostonsa kansiossa `%APPDATA%\DauntlessRevived\`:
 Kertaluonteinen asennus, jonka voi ajaa turvallisesti uudelleen. Se tarkistaa pelin exe-tiedoston
 kiinnitettyä tiivistettä vasten, kopioi kaksi DLL-tiedostoa kansioon `Archon\Binaries\Win64`
 (tarkistetaan ennen kopiointia ja sen jälkeen; otetaan paketin `dll\`-kansiosta tai
-repositoriokopiossa kansiosta `..\UndauntedLauncher\assets\`) ja varoittaa, jos Visual C++
+repositoriokopiossa kansiosta `..\DauntlessUnbrokenLauncher\assets\`) ja varoittaa, jos Visual C++
 -ajonaikainen kirjasto (`MSVCP140.dll`, `VCRUNTIME140_1.dll`) puuttuu. Sitten se tarkistaa, että
 palvelinkone vastaa portissaan, rekisteröityy kerran (vain jos `account.key`-tiedostoa ei vielä ole),
 tarkistaa, että avain toimii, ja tallentaa `settings.json`-tiedoston.
@@ -845,7 +845,7 @@ HTTP-viive ei ole pelin ping. Käynnistys nollaa historian. Testit: `node --test
 ### summarize-performance.mjs
 
 Aja repositorion juuressa Node.js 24:llä:
-`node tools/summarize-performance.mjs "C:\DauntlessRevived\data\logs\performance\performance-2026-09-28.csv"`.
+`node tools/summarize-performance.mjs "C:\DauntlessUnbroken\data\logs\performance\performance-2026-09-28.csv"`.
 Voit antaa useita saman palvelimen CSV-tiedostoja. Työkalu lukee tiedostot ja tulostaa JSON-raportin;
 se ei ota yhteyttä palvelimeen eikä muuta tiedostoja. Virheellinen rivi keskeyttää ajon virhekoodiin.
 Syötteen on oltava palvelinpaketin mittaajan tuottamaa lainausmerkitöntä CSV:tä.
@@ -871,12 +871,12 @@ Rakentaa kaveripaketin zipin.
 |:----------|:-------|:-------|:--------------|
 | `-Out` | kansio | `C:\dr\dist` (projektin oman palvelinkoneen rakenne; anna omasi) | Minne pakettikansio ja zip tulevat. |
 
-Se kokoaa kansion `<Out>\DauntlessRevived-FriendKit\` (poistetaan ensin, jos se on olemassa), jossa
+Se kokoaa kansion `<Out>\DauntlessUnbroken-FriendKit\` (poistetaan ensin, jos se on olemassa), jossa
 ovat `setup.ps1`, `play.ps1`, `Setup.cmd`, `Play Dauntless.cmd`, `README.txt`,
 `THIRD-PARTY-NOTICES.txt`, kaksi DLL-tiedostoa kansiossa `dll\` (kopioitu kansiosta
-`UndauntedLauncher\assets` ja tarkistettu kiinnitettyjä tiivisteitä vasten), `LICENSE.txt`,
+`DauntlessUnbrokenLauncher\assets` ja tarkistettu kiinnitettyjä tiivisteitä vasten), `LICENSE.txt`,
 `SOURCE.txt` ja `SHA256SUMS.txt`. Sitten se pakkaa kaiken tiedostoon
-`<Out>\DauntlessRevived-FriendKit-<7-merkkinen commit>.zip` ja tulostaa zipin polun ja SHA-256:n.
+`<Out>\DauntlessUnbroken-FriendKit-<7-merkkinen commit>.zip` ja tulostaa zipin polun ja SHA-256:n.
 
 `SOURCE.txt` nimeää repositorion ja tarkan commitin; se on AGPL:n edellyttämä lähdekoodin tarjous
 pelaajille. Repositorion osoite on `origin`-etärepositoriosi osoite ilman `.git`-päätettä, joten
@@ -918,7 +918,7 @@ sivun, jota ei ole olemassa.
 
 ### make-game-manifest.js {#make-game-manifestjs}
 
-Rakentaa sisältöluettelon `UndauntedContent/data/dauntless-1.4.4.json` tarkistetusta pelizipistä.
+Rakentaa sisältöluettelon `DauntlessUnbrokenContent/data/dauntless-1.4.4.json` tarkistetusta pelizipistä.
 Sisältöpalvelin jakaa vain siinä luetellut tiedostot, ja käynnistin kääntää saman tiedoston
 sisäänsä ja torjuu kaikki muut tiedostot. Aja se vain, kun luettelon täytyy muuttua.
 
@@ -930,7 +930,7 @@ node tools/make-game-manifest.js --zip <BaseGame144.zip> [--out <file>] [--compa
 | Argumentti | Oletus | Mitä se tekee |
 |:-----------|:-------|:--------------|
 | `--zip <file>` | **pakollinen** | Tarkistettu 1.4.4-zip. |
-| `--out <file>` | `UndauntedContent/data/dauntless-1.4.4.json` | Minne luettelo kirjoitetaan. |
+| `--out <file>` | `DauntlessUnbrokenContent/data/dauntless-1.4.4.json` | Minne luettelo kirjoitetaan. |
 | `--compare-dir <folder>` | ei mitään | Tarkistaa lopuksi puretun asennuksen uutta luetteloa vasten: jokaisen tiedoston koon sekä exe-tiedoston ja muutaman muun tiedoston täydet tiivisteet. Vain lukee. |
 | `--compare-all` | pois | `--compare-dir`:n kanssa: laskee tiivisteen jokaisesta tiedostosta. |
 | `--zip-sha256 <hex>` | kiinnitetty zipin tiiviste | Tiiviste, joka zipillä on oltava. |
@@ -942,7 +942,7 @@ kirjainkoon osalta, että `Version.txt` nimeää 1.4.4-koontiversion ja että ex
 tiivistettä. Se tulostaa tiedostojen määrän, tavujen kokonaismäärän ja luettelon oman SHA-256:n. Se
 pyörii matalalla prioriteetilla, lukee zipin kahdesti (noin 21 Gt luettavaa), päättyy paluukoodilla
 `1` missä tahansa virheessä ja tarvitsee `yauzl`-kirjaston: aja ensin `npm ci` kansiossa
-`UndauntedContent` tai `UndauntedLauncher`. Kun olet tuottanut luettelon uudelleen, käännä
+`DauntlessUnbrokenContent` tai `DauntlessUnbrokenLauncher`. Kun olet tuottanut luettelon uudelleen, käännä
 käynnistin uudelleen.
 
 ## CI-työnkulut ja -työkalut {#ci-workflows-and-tools}
@@ -955,8 +955,8 @@ muuttuja `LAUNCHER_AUTO_RELEASE`, joka pysäyttää automaattiset julkaisut, on 
 
 | Työnkulku | Milloin se ajetaan | Syötteet | Mitä se tekee |
 |:----------|:-------------------|:---------|:--------------|
-| `.github/workflows/ci.yml` (**CI**) | Jokaisella pushilla mihin tahansa haaraan, jokaisella pull requestilla ja Actions > **CI** > **Run workflow** | ei mitään | Kääntää ja testaa neljä palvelinohjelmaa, käynnistimen ja Windows-palvelinpaketin, tarkistaa dokumentaation ja repositorion sekä säilyttää käynnistimen julkaisutiedostot 7 päivää (ei forkeista tulevissa pull requesteissa). Kun `mixutin/dauntless-revived`-repositorion `dauntless-revived`-haaraan tehty push on läpäissyt kaikki tarkistukset, se julkaisee sen jälkeen käynnistimen version, jos versiolla ei ole vielä julkaisua, paitsi jos `LAUNCHER_AUTO_RELEASE` on `false`. |
-| `.github/workflows/launcher-release.yml` (**Launcher release**) | Actions > **Launcher release** > **Run workflow** `dauntless-revived`-haaralle; `ci.yml` kutsuu sitä | Käsin ei mitään. `ci.yml` antaa `version`-arvon (sen on oltava sama kuin `UndauntedLauncher/package.json`-tiedoston versio kyseisessä commitissa) ja `artifact`-arvon (sen kääntämät julkaisutiedostot). | Julkaisee käynnistimen version julkaisuna `launcher-v<versio>`, luo sen tagin, tekee jokaiselle tiedostolle allekirjoitetun käännöksen alkuperätodistuksen (build provenance attestation) ja osoittaa `launcher-updates`-kanavan siihen. Käsin ajettuna se kääntää ja testaa commitin itse; jo julkaistulla versiolla se vain päivittää kanavan siihen. Se kieltäytyy toimimasta muussa haarassa kuin `dauntless-revived`, joka on oletushaara. |
+| `.github/workflows/ci.yml` (**CI**) | Jokaisella pushilla mihin tahansa haaraan, jokaisella pull requestilla ja Actions > **CI** > **Run workflow** | ei mitään | Kääntää ja testaa neljä palvelinohjelmaa, käynnistimen ja Windows-palvelinpaketin, tarkistaa dokumentaation ja repositorion sekä säilyttää käynnistimen julkaisutiedostot 7 päivää (ei forkeista tulevissa pull requesteissa). Kun `Vvoidddd/dauntless-unbroken`-repositorion `dauntless-unbroken`-haaraan tehty push on läpäissyt kaikki tarkistukset, se julkaisee sen jälkeen käynnistimen version, jos versiolla ei ole vielä julkaisua, paitsi jos `LAUNCHER_AUTO_RELEASE` on `false`. |
+| `.github/workflows/launcher-release.yml` (**Launcher release**) | Actions > **Launcher release** > **Run workflow** `dauntless-unbroken`-haaralle; `ci.yml` kutsuu sitä | Käsin ei mitään. `ci.yml` antaa `version`-arvon (sen on oltava sama kuin `DauntlessUnbrokenLauncher/package.json`-tiedoston versio kyseisessä commitissa) ja `artifact`-arvon (sen kääntämät julkaisutiedostot). | Julkaisee käynnistimen version julkaisuna `launcher-v<versio>`, luo sen tagin, tekee jokaiselle tiedostolle allekirjoitetun käännöksen alkuperätodistuksen (build provenance attestation) ja osoittaa `launcher-updates`-kanavan siihen. Käsin ajettuna se kääntää ja testaa commitin itse; jo julkaistulla versiolla se vain päivittää kanavan siihen. Se kieltäytyy toimimasta muussa haarassa kuin `dauntless-unbroken`, joka on oletushaara. |
 
 ### tools/ci/check-repo.js {#check-repojs}
 
@@ -976,12 +976,12 @@ tiedoston:
   perusteella);
 - ei tiedostojen sisällä mitään salaisuuden näköistä: tiliavainta, JWT:tä, yksityistä avainta (myös
   base64-koodattuna), Tailscale-avainta eikä GitHub-tunnistetta;
-- kansion `UndauntedLauncher/assets/` kaksi DLL-tiedostoa vastaavat kiinnityksiään käynnistimessä ja
-  palvelinpaketissa, ja `UndauntedLauncher/package.json`-tiedoston käynnistinversio on kelvollinen.
+- kansion `DauntlessUnbrokenLauncher/assets/` kaksi DLL-tiedostoa vastaavat kiinnityksiään käynnistimessä ja
+  palvelinpaketissa, ja `DauntlessUnbrokenLauncher/package.json`-tiedoston käynnistinversio on kelvollinen.
 
 | Argumentti | Mitä se tekee |
 |:-----------|:--------------|
-| `--history <revision range>` | Tarkistaa lisäksi jokaisen tiedostoversion, jonka välin commitit lisäsivät tai muuttivat, esimerkiksi `origin/dauntless-revived..HEAD` ennen pushia. `--history HEAD` tarkistaa koko historian. Commitoitu ja taas poistettu salaisuus on yhä historiassa, joten avain on vaihdettava. |
+| `--history <revision range>` | Tarkistaa lisäksi jokaisen tiedostoversion, jonka välin commitit lisäsivät tai muuttivat, esimerkiksi `origin/dauntless-unbroken..HEAD` ennen pushia. `--history HEAD` tarkistaa koko historian. Commitoitu ja taas poistettu salaisuus on yhä historiassa, joten avain on vaihdettava. |
 
 Se ei koskaan tulosta osuman sisältöä, vain tiedoston, rivin ja osuman lajin. Paluukoodi `0` tarkoittaa,
 ettei mitään löytynyt, `1` ongelmaa ja `2` käyttövirhettä. Sillä ei ole riippuvuuksia, joten se ei
@@ -1006,15 +1006,15 @@ päättyy paluukoodilla `2`.
 
 ### collect-release.ps1 {#collect-releaseps1}
 
-Kansiossa `UndauntedLauncher`, komennon `npm run make` jälkeen:
+Kansiossa `DauntlessUnbrokenLauncher`, komennon `npm run make` jälkeen:
 
 ```powershell
 pwsh -NoProfile -File scripts\collect-release.ps1
 ```
 
 Sillä ei ole parametreja. Se tyhjentää kansion `release\` ja kopioi sinne sen, minkä käynnistimen
-julkaisu julkaisee: `DauntlessRevivedLauncher-Setup.exe`, Squirrelin päivitystiedostot (`RELEASES` ja
-täysi `.nupkg`) sekä siirrettävän zip-version nimellä `DauntlessRevivedLauncher-<versio>-win32-x64.zip`.
+julkaisu julkaisee: `DauntlessUnbrokenLauncher-Setup.exe`, Squirrelin päivitystiedostot (`RELEASES` ja
+täysi `.nupkg`) sekä siirrettävän zip-version nimellä `DauntlessUnbrokenLauncher-<versio>-win32-x64.zip`.
 Sitten se kirjoittaa niistä kaikista `SHA256SUMS.txt`-tiedoston ja tulostaa sen. Se pysähtyy, jos jokin
 tiedostoista puuttuu. CI ja julkaisutyönkulku ajavat sen; git ohittaa kansion `release\`.
 
@@ -1024,17 +1024,17 @@ Aja kukin npm-paketin kansiossa `npm ci`:n jälkeen. Skriptin omat argumentit tu
 esimerkiksi `npm run verify -- --quick`. Mitkä testit käyttävät mitäkin portteja ja mitä
 testisarjoja ei saa ajaa yhtä aikaa, kerrotaan sivulla [Kehittäjän opas]({{ dev_page.url | relative_url }}).
 
-**UndauntedMetagame**
+**DauntlessUnbrokenMetagame**
 
 | Skripti | Ajaa | Mitä se tekee |
 |:--------|:-----|:--------------|
 | `npm run dev` | `tsx watch --env-file=.env src/server.ts` | Ajaa lähdekoodista ja käynnistyy uudelleen muutoksista. Epäonnistuu, jos kansiossa ei ole `.env`-tiedostoa. |
-| `npm run build` | `tsc`, sitten `postbuild` | Kääntää kansioon `dist\`. `postbuild` ajaa `scripts/write-build-info.js`:n, joka kirjoittaa tiedostoon `dist\build-info.json` commitin, npm-paketin version ja käännösajan. Commit tulee gitistä, päätteellä `-dirty`, kun kansiossa `UndauntedMetagame` on muutoksia, tai se on `unknown` ilman gitiä (kuten palvelinpaketin käännöksissä). `.env`-tiedoston `GIT_COMMIT` ja `SERVER_VERSION` ohittavat sen ajon aikana. |
+| `npm run build` | `tsc`, sitten `postbuild` | Kääntää kansioon `dist\`. `postbuild` ajaa `scripts/write-build-info.js`:n, joka kirjoittaa tiedostoon `dist\build-info.json` commitin, npm-paketin version ja käännösajan. Commit tulee gitistä, päätteellä `-dirty`, kun kansiossa `DauntlessUnbrokenMetagame` on muutoksia, tai se on `unknown` ilman gitiä (kuten palvelinpaketin käännöksissä). `.env`-tiedoston `GIT_COMMIT` ja `SERVER_VERSION` ohittavat sen ajon aikana. |
 | `npm start` | `node --env-file=.env dist/server.js` | Ajaa käännetyn version. Epäonnistuu ilman `.env`-tiedostoa. Käynnistä se npm-paketin kansiosta: tietokannan migraatiot etsitään työhakemiston suhteen. |
 | `npm run db:generate` | `drizzle-kit generate` | Kirjoittaa uuden migraation kansioon `src/drizzle`, kun tiedostoa `src/db/schema.ts` on muutettu. Lukee `DB_FILENAME`:n `.env`-tiedostosta. |
 | `npm test` | `tsc -p tsconfig.test.json`, sitten `node --test` | Poistaa kansion `build\`, kääntää testit ja ajaa ne. |
 
-**UndauntedDeployServer**
+**DauntlessUnbrokenDeployServer**
 
 | Skripti | Ajaa | Mitä se tekee |
 |:--------|:-----|:--------------|
@@ -1043,7 +1043,7 @@ testisarjoja ei saa ajaa yhtä aikaa, kerrotaan sivulla [Kehittäjän opas]({{ d
 | `npm start` | `node --env-file=.env dist/server.js` | Ajaa käännetyn version. Epäonnistuu ilman `.env`-tiedostoa. |
 | `npm test` | kuten metagamessa | Kääntää ja ajaa testit. |
 
-**UndauntedGateway**
+**DauntlessUnbrokenGateway**
 
 | Skripti | Ajaa | Mitä se tekee |
 |:--------|:-----|:--------------|
@@ -1071,7 +1071,7 @@ vain Administrators ja yhdyskäytävää ajava tili voivat lukea. Windows-palvel
 työkalun itse; tarvitset sitä vain käsin pystyttämääsi yhdyskäytävään. Paluukoodi `2` tarkoittaa
 käyttövirhettä ja `1` mitä tahansa muuta virhettä.
 
-**UndauntedContent**
+**DauntlessUnbrokenContent**
 
 | Skripti | Ajaa | Mitä se tekee |
 |:--------|:-----|:--------------|
@@ -1081,13 +1081,13 @@ käyttövirhettä ja `1` mitä tahansa muuta virhettä.
 | `npm test` | `tsc -p tsconfig.test.json`, sitten `node --test` | Poistaa kansion `build\`, kääntää yksikkötestit ja ajaa ne. |
 | `npm run test:integration` | `tsc`, `tsc -p tsconfig.test.json`, sitten `node --test --test-concurrency=1` | Kääntää palvelimen ja ajaa sitä oikeaa asennusta vasten (`CONTENT_IT_GAME_DIR`, oletus `C:\D144\Dauntless`; ohitetaan, jos siellä ei ole 1.4.4-asennusta) metagamea jäljittelevän testipalvelimen kanssa porteissa 62002 ja 62003 (`CONTENT_IT_PORT`, `CONTENT_IT_MOCK_PORT`). |
 
-**UndauntedLauncher**
+**DauntlessUnbrokenLauncher**
 
 | Skripti | Ajaa | Mitä se tekee |
 |:--------|:-----|:--------------|
 | `npm start` | `electron-forge start` | Ajaa käynnistintä kehitystilassa. |
 | `npm run package` | `electron-forge package --platform win32` | Paketoi sovelluksen ilman asennusohjelmaa. |
-| `npm run make` | `electron-forge make --platform win32` | Rakentaa `DauntlessRevivedLauncher-Setup.exe`:n (Squirrel) ja zipin. |
+| `npm run make` | `electron-forge make --platform win32` | Rakentaa `DauntlessUnbrokenLauncher-Setup.exe`:n (Squirrel) ja zipin. |
 | `npm run typecheck` | `tsc --noEmit -p tsconfig.json` | Tarkistaa tyypit kääntämättä. |
 | `npm test [-- <suodatin>]` | `node scripts/run-tests.mjs` | Kääntää testit kansioon `.test-build\` ja ajaa ne tiedosto kerrallaan. Suodattimen kanssa vain ne testitiedostot, joiden nimessä suodatin esiintyy. |
 | `npm run icon [-- --check]` | `node scripts/make-icon.mjs` | Kopioi käynnistimen kuvakkeet (`assets/icon.ico`, `assets/icon.png`) ja sen ikkunassa näkyvät logo- ja tunnuskuvat (`src/renderer/brand/`) kansiosta `brand/`, jossa `python3 brand/build.py` tekee ne. Valitsimella `--check` se vain vertaa ja päättyy koodiin 1, jos jokin kopio puuttuu tai on vanhentunut; yksikkötestit ajavat sen. |
@@ -1099,11 +1099,11 @@ Palvelinpaketti asentaa palvelimelle Node.js:n version 24.19.0.
 
 | Skripti | Miten ajetaan | Mitä se tekee |
 |:--------|:--------------|:--------------|
-| `UndauntedMetagame/scripts/write-build-info.js [kohdekansio]` | `postbuild`-vaiheena; testit antavat toisen kansion | Kirjoittaa `build-info.json`-tiedoston (oletuskansio: `dist`). |
-| `UndauntedMetagame/scripts/make-hunt-titles.js` | `node scripts/make-hunt-titles.js` kansiossa `UndauntedMetagame` | Rakentaa uudelleen tiedoston `src/vendor/hunt_titles.json`, eli metsästysten nimet, jotka `ServerStatus` näyttää, deploy-palvelimen metsästystaulukoista kansiossa `UndauntedDeployServer/src/vendor`. Aja se uudelleen, kun ne taulukot muuttuvat. |
-| `UndauntedGateway/tools/make-cert.js` | `npm run make-cert -- ...` | Katso yllä. |
-| `UndauntedLauncher/scripts/run-tests.mjs`, `make-icon.mjs` | `npm test`, `npm run icon` | Katso yllä. |
-| `UndauntedLauncher/scripts/collect-release.ps1` | `pwsh -NoProfile -File scripts\collect-release.ps1` kansiossa `UndauntedLauncher`, komennon `npm run make` jälkeen | Kokoaa julkaisutiedostot kansioon `release\`; katso [collect-release.ps1](#collect-releaseps1). |
+| `DauntlessUnbrokenMetagame/scripts/write-build-info.js [kohdekansio]` | `postbuild`-vaiheena; testit antavat toisen kansion | Kirjoittaa `build-info.json`-tiedoston (oletuskansio: `dist`). |
+| `DauntlessUnbrokenMetagame/scripts/make-hunt-titles.js` | `node scripts/make-hunt-titles.js` kansiossa `DauntlessUnbrokenMetagame` | Rakentaa uudelleen tiedoston `src/vendor/hunt_titles.json`, eli metsästysten nimet, jotka `ServerStatus` näyttää, deploy-palvelimen metsästystaulukoista kansiossa `DauntlessUnbrokenDeployServer/src/vendor`. Aja se uudelleen, kun ne taulukot muuttuvat. |
+| `DauntlessUnbrokenGateway/tools/make-cert.js` | `npm run make-cert -- ...` | Katso yllä. |
+| `DauntlessUnbrokenLauncher/scripts/run-tests.mjs`, `make-icon.mjs` | `npm test`, `npm run icon` | Katso yllä. |
+| `DauntlessUnbrokenLauncher/scripts/collect-release.ps1` | `pwsh -NoProfile -File scripts\collect-release.ps1` kansiossa `DauntlessUnbrokenLauncher`, komennon `npm run make` jälkeen | Kokoaa julkaisutiedostot kansioon `release\`; katso [collect-release.ps1](#collect-releaseps1). |
 
 ## Ohjeissa olevat skriptit {#scripts-printed-in-the-guides}
 
@@ -1122,5 +1122,5 @@ tiedostoja, ja niiden parametrit kuvataan siellä, missä skripti on:
 
 Ohjeissa mainitaan myös projektin oman palvelinkoneen `stack.ps1` ja `backup.ps1` kansiossa
 `C:\dr\tools`. Niitä ei ole julkaistu. Palvelinpaketilla asennetulla palvelimella `Stack.ps1` ja
-`Backup-DauntlessServer.ps1` tekevät samat työt, mutta ne toimivat vain palvelimella, joka on
+`Backup-DauntlessUnbrokenServer.ps1` tekevät samat työt, mutta ne toimivat vain palvelimella, joka on
 asennettu paketilla.

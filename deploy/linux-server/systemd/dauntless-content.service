@@ -1,5 +1,5 @@
 [Unit]
-Description=Dauntless Revived content server
+Description=Dauntless Unbroken content server
 After=network-online.target dauntless-metagame.service
 Wants=network-online.target
 Requires=dauntless-metagame.service
@@ -7,8 +7,8 @@ Requires=dauntless-metagame.service
 [Service]
 Type=simple
 User=@USER@
-WorkingDirectory=@ROOT@/UndauntedContent
-ExecStart=@NODE@ --env-file=@CONFIG@/content.env @ROOT@/UndauntedContent/dist/server.js
+WorkingDirectory=@ROOT@/DauntlessUnbrokenContent
+ExecStart=@NODE@ --env-file=@CONFIG@/content.env @ROOT@/DauntlessUnbrokenContent/dist/server.js
 Restart=on-failure
 RestartSec=3
 KillSignal=SIGTERM

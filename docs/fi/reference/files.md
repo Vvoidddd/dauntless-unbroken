@@ -1,9 +1,9 @@
 ---
 title: Tiedostot ja data
 parent: Tekninen viite
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 4
-description: "Missä Dauntless Revived pitää tiedostonsa: repositorio, käsin pystytetyn palvelinkoneen kansiot, palvelinpaketin asennuskansio, SQLite-tietokanta, lokit, varmuuskopiot ja käynnistin."
+description: "Missä Dauntless Unbroken pitää tiedostonsa: repositorio, käsin pystytetyn palvelinkoneen kansiot, palvelinpaketin asennuskansio, SQLite-tietokanta, lokit, varmuuskopiot ja käynnistin."
 lang: fi
 ref: reference/files
 locale: fi_FI
@@ -25,7 +25,7 @@ locale: fi_FI
 # Tiedostot ja data
 {: .no_toc }
 
-Tälle sivulle on koottu, missä Dauntless Revivedin jokainen tiedosto on: repositorio ja mitä siitä
+Tälle sivulle on koottu, missä Dauntless Unbrokenin jokainen tiedosto on: repositorio ja mitä siitä
 käännetään minnekin, kehityskoneen tai käsin pystytetyn palvelinkoneen kansiot, Windows-palvelinpaketin
 asennuskansio ja se, kuka saa lukea ja kirjoittaa mitäkin kansiota, SQLite-tietokanta taulu taululta,
 lokitiedostot ja niiden muodot, varmuuskopiot sekä se, mitä käynnistin säilyttää kaverin koneella.
@@ -51,17 +51,17 @@ Repositorion `.gitignore` pitää jo gitin ulkopuolella `.env`-tiedostot, `*.key
 
 | Tiedosto | Missä | Mikä tekee siitä salaisen |
 |:---------|:------|:--------------------------|
-| Metagamen asetukset | `UndauntedMetagame\.env` (kehityskone tai käsin pystytetty palvelinkone); `C:\DauntlessRevived\data\config\metagame.env` (palvelinpaketti) | Yksityinen avain, jolla istuntotunnisteet allekirjoitetaan: sen haltija voi kirjautua sisään minä tahansa tilinä. Julkisessa tilassa myös yhdyskäytävän salaisuus. |
-| Deploy-palvelimen asetukset | `UndauntedDeployServer\.env`; paketti: `data\config\deployserver.env` | Pelipalvelinavain. |
-| Yhdyskäytävän ja sallittujen listan asetukset | `UndauntedGateway\.env` (kehityskone); paketti: `data\config\gateway.env`, `data\config\allowlist.env` | Yhdyskäytävän salaisuus ja sallittujen listan salaisuus. |
+| Metagamen asetukset | `DauntlessUnbrokenMetagame\.env` (kehityskone tai käsin pystytetty palvelinkone); `C:\DauntlessUnbroken\data\config\metagame.env` (palvelinpaketti) | Yksityinen avain, jolla istuntotunnisteet allekirjoitetaan: sen haltija voi kirjautua sisään minä tahansa tilinä. Julkisessa tilassa myös yhdyskäytävän salaisuus. |
+| Deploy-palvelimen asetukset | `DauntlessUnbrokenDeployServer\.env`; paketti: `data\config\deployserver.env` | Pelipalvelinavain. |
+| Yhdyskäytävän ja sallittujen listan asetukset | `DauntlessUnbrokenGateway\.env` (kehityskone); paketti: `data\config\gateway.env`, `data\config\allowlist.env` | Yhdyskäytävän salaisuus ja sallittujen listan salaisuus. |
 | `owner.key` | `C:\dr\data\owner.key` (käsin pystytetty palvelinkone); paketti: `data\keys\owner.key` | Ylläpitäjätilin avain. Se on sellaisen tilin salasana, joka voi luoda kutsuja ja käyttää jokaista ylläpitoreittiä. |
 | `gameserver.key` | `C:\dr\data\gameserver.key`; paketti: `data\keys\gameserver.key` | Avain, jolla pelipalvelimet kirjoittavat tallennuksia, etenemistä ja palkintoja. |
 | `gateway-key.pem` | paketti: `data\tls\gateway-key.pem` (julkinen tila) | Yhdyskäytävän varmenteen yksityinen avain. Jokainen kutsu on kiinnitetty tähän varmenteeseen. |
 | SSH-avain palvelimelle | `C:\dr\data\ssh\dauntless_deploy` (`Deploy-Remote.ps1`:n oletus) | Ylläpitäjän SSH-pääsy vuokraamallesi palvelimelle. |
 | Avaimenvaihdon tulos | `C:\dr\data\rekey-<UserId>.txt` | Pelaajan uusi tiliavain selväkielisenä. Poista tiedosto, kun olet antanut avaimen pelaajalle. |
-| Varmuuskopiot | paketti: `C:\DauntlessRevived\backups\`; käsin pystytetty palvelinkone: missä ikinä niitä säilytätkin | Niissä on kaikki yllä luetellut sekä tietokanta. |
-| Käynnistimen avaintiedostot | kaverin kone: `%APPDATA%\Dauntless Revived Launcher\keys\*.key` | Pelaajan tiliavain, salattuna kyseiselle Windows-käyttäjälle. |
-| Avaimen varmuuskopio ja kaveripaketin avain | kaverin kone: tallennettu `Dauntless Revived key - <käyttäjänimi>.txt`; kaveripaketin `%APPDATA%\DauntlessRevived\account.key` | Pelaajan tiliavain selväkielisenä. |
+| Varmuuskopiot | paketti: `C:\DauntlessUnbroken\backups\`; käsin pystytetty palvelinkone: missä ikinä niitä säilytätkin | Niissä on kaikki yllä luetellut sekä tietokanta. |
+| Käynnistimen avaintiedostot | kaverin kone: `%APPDATA%\Dauntless Unbroken Launcher\keys\*.key` | Pelaajan tiliavain, salattuna kyseiselle Windows-käyttäjälle. |
+| Avaimen varmuuskopio ja kaveripaketin avain | kaverin kone: tallennettu `Dauntless Unbroken key - <käyttäjänimi>.txt`; kaveripaketin `%APPDATA%\DauntlessUnbroken\account.key` | Pelaajan tiliavain selväkielisenä. |
 
 Yksityisiä mutta eivät samalla tavalla salaisia ovat tietokanta (käyttäjänimet, tallennukset, avainten
 SHA-256-tiivisteet ja hetken aikaa myös selväkieliset avaimet, katso [Tilit ja avaimet](#accounts-and-keys)),
@@ -72,17 +72,17 @@ joilta sallit etätyöpöydän, joten älä julkaise sitäkään.
 ## Repositorio {#the-repository}
 
 Repositorio on [Undauntedin](https://github.com/SyST3MDeV/Undaunted) fork, ja työhaara on
-`dauntless-revived`. Osien kansiot ovat säilyttäneet alkuperäisen projektin `Undaunted...`-nimet;
-niiden npm-pakettien nimet ovat muotoa `dauntless-revived-*` (esimerkiksi `dauntless-revived-metagame`).
+`dauntless-unbroken`. Osien kansiot ovat säilyttäneet alkuperäisen projektin `Undaunted...`-nimet;
+niiden npm-pakettien nimet ovat muotoa `dauntless-unbroken-*` (esimerkiksi `dauntless-unbroken-metagame`).
 
 | Kansio | Mitä siinä on | Käännöstulos (gitin ohittama) |
 |:-------|:--------------|:------------------------------|
-| `UndauntedMetagame/` | Taustapalvelu, jonka kanssa peli keskustelee (TypeScript, Express): tilit, tallennukset, eteneminen, matchmaking, ryhmät, kaverit, killat, `/undaunted/api`-ylläpitorajapinta ja pelin tekstichat (`src/realtime/`, XMPP-kuuntelija samassa prosessissa, päällä kun `CHAT=1`). `src/db/schema.ts` määrittelee tietokannan, `src/drizzle/` sisältää sen migraatiot ja `src/vendor/` pelin `progression_config.json`-tiedoston, generoidun `hunt_titles.json`-tiedoston sekä Harmonicin 1.4.4-forkin datan: `escalation/seasons.json` (Escalationin kausiluettelo), `store_catalog.json` (ilmaisen kaupan tarjoukset) ja `store_item_kinds.json` (miten kukin kaupan tavara annetaan). `test/data/store_art_skus.json` luettelee testiä varten kaupan tarjoustunnukset, joiden ruutukuva on 2:1. Käännös kopioi kansion `src/vendor/` kansioon `dist/vendor/`. Kansiossa `scripts/` ovat `write-build-info.js` ja `make-hunt-titles.js`. | `dist/` (jossa `dist/build-info.json`), `build/` (testit), `node_modules/` |
-| `UndauntedDeployServer/` | Käynnistää ja valvoo pelipalvelinprosesseja (Ramsgate, Training Dojo, metsästykset). `src/vendor/` sisältää metsästystaulukot. | `dist/`, `build/` |
-| `UndauntedGateway/` | Vain julkinen tila: TLS-yhdyskäytävä (`dist/server.js`) ja sallittujen listan apuri (`dist/allowlist/server.js`). `tools/make-cert.js` tekee yhdyskäytävän varmenteen. | `dist/`, `build/` |
-| `UndauntedContent/` | Sisältöpalvelin: pelitiedostot, uutiset ja kuvapaketti rekisteröityneille käynnistimille. `data/dauntless-1.4.4.json` on pelin tiedostoluettelo (manifest, 410 tiedostoa), joka käännetään myös käynnistimen sisään. | `dist/`, `build/` |
-| `UndauntedLauncher/` | Tämän forkin käynnistin kavereille (Electron). `assets/` sisältää kuvakkeet (kopiot kansiosta `brand/launcher/`) ja kaksi kiinnitettyä valmiiksi käännettyä DLL-tiedostoa, `dxgi.dll` ja `UndauntedInternalServer.dll`, jotka jokainen asennustapa asentaa (palvelinkone, palvelinpaketti, kaveripaketti ja käynnistin). Kansiossa `src/renderer/brand/` ovat kopiot ikkunassa näkyvistä logo- ja tunnuskuvista. Kansiossa `scripts/` ovat testien ajaja, brändikuvien kopioija (`make-icon.mjs`) ja `collect-release.ps1`. | `.vite/` (`npm start`), `out/` (`npm run package` ja `npm run make`), `.test-build/` (testit), `release/` (julkaisutiedostot, jotka `scripts/collect-release.ps1` kokoaa komennon `npm run make` jälkeen: asennusohjelma, Squirrelin päivitystiedostot, zip ja `SHA256SUMS.txt`). |
-| `UndauntedInternalServer/` | Palvelin-DLL:n C++-lähdekoodi: Visual Studio -ratkaisu, `dllmain.cpp` (jossa on osoitetaulukko, josta `Game.ini` generoidaan), pelimoottorin otsaketiedostot kansiossa `SDK/` sekä `MinHook/`. Mikään tämän repositorion skripti tai työnkulku ei käännä sitä; kaikki käyttävät valmiiksi käännettyjä DLL-tiedostoja kansiosta `UndauntedLauncher/assets/`. MinHookin include-korjauksesta (syyskuu 2026) alkaen se kääntyy Visual Studio 2022 Build Toolsilla (Release, x64), mutta täällä käännettyä DLL:ää ei jaeta. | Visual Studion tuotokset (`x64/`, `*.dll` ja vastaavat) |
+| `DauntlessUnbrokenMetagame/` | Taustapalvelu, jonka kanssa peli keskustelee (TypeScript, Express): tilit, tallennukset, eteneminen, matchmaking, ryhmät, kaverit, killat, `/undaunted/api`-ylläpitorajapinta ja pelin tekstichat (`src/realtime/`, XMPP-kuuntelija samassa prosessissa, päällä kun `CHAT=1`). `src/db/schema.ts` määrittelee tietokannan, `src/drizzle/` sisältää sen migraatiot ja `src/vendor/` pelin `progression_config.json`-tiedoston, generoidun `hunt_titles.json`-tiedoston sekä Harmonicin 1.4.4-forkin datan: `escalation/seasons.json` (Escalationin kausiluettelo), `store_catalog.json` (ilmaisen kaupan tarjoukset) ja `store_item_kinds.json` (miten kukin kaupan tavara annetaan). `test/data/store_art_skus.json` luettelee testiä varten kaupan tarjoustunnukset, joiden ruutukuva on 2:1. Käännös kopioi kansion `src/vendor/` kansioon `dist/vendor/`. Kansiossa `scripts/` ovat `write-build-info.js` ja `make-hunt-titles.js`. | `dist/` (jossa `dist/build-info.json`), `build/` (testit), `node_modules/` |
+| `DauntlessUnbrokenDeployServer/` | Käynnistää ja valvoo pelipalvelinprosesseja (Ramsgate, Training Dojo, metsästykset). `src/vendor/` sisältää metsästystaulukot. | `dist/`, `build/` |
+| `DauntlessUnbrokenGateway/` | Vain julkinen tila: TLS-yhdyskäytävä (`dist/server.js`) ja sallittujen listan apuri (`dist/allowlist/server.js`). `tools/make-cert.js` tekee yhdyskäytävän varmenteen. | `dist/`, `build/` |
+| `DauntlessUnbrokenContent/` | Sisältöpalvelin: pelitiedostot, uutiset ja kuvapaketti rekisteröityneille käynnistimille. `data/dauntless-1.4.4.json` on pelin tiedostoluettelo (manifest, 410 tiedostoa), joka käännetään myös käynnistimen sisään. | `dist/`, `build/` |
+| `DauntlessUnbrokenLauncher/` | Tämän forkin käynnistin kavereille (Electron). `assets/` sisältää kuvakkeet (kopiot kansiosta `brand/launcher/`) ja kaksi kiinnitettyä valmiiksi käännettyä DLL-tiedostoa, `dxgi.dll` ja `DauntlessUnbroken.dll`, jotka jokainen asennustapa asentaa (palvelinkone, palvelinpaketti, kaveripaketti ja käynnistin). Kansiossa `src/renderer/brand/` ovat kopiot ikkunassa näkyvistä logo- ja tunnuskuvista. Kansiossa `scripts/` ovat testien ajaja, brändikuvien kopioija (`make-icon.mjs`) ja `collect-release.ps1`. | `.vite/` (`npm start`), `out/` (`npm run package` ja `npm run make`), `.test-build/` (testit), `release/` (julkaisutiedostot, jotka `scripts/collect-release.ps1` kokoaa komennon `npm run make` jälkeen: asennusohjelma, Squirrelin päivitystiedostot, zip ja `SHA256SUMS.txt`). |
+| `DauntlessUnbrokenInternalServer/` | Palvelin-DLL:n C++-lähdekoodi: Visual Studio -ratkaisu, `dllmain.cpp` (jossa on osoitetaulukko, josta `Game.ini` generoidaan), pelimoottorin otsaketiedostot kansiossa `SDK/` sekä `MinHook/`. Mikään tämän repositorion skripti tai työnkulku ei käännä sitä; kaikki käyttävät valmiiksi käännettyjä DLL-tiedostoja kansiosta `DauntlessUnbrokenLauncher/assets/`. MinHookin include-korjauksesta (syyskuu 2026) alkaen se kääntyy Visual Studio 2022 Build Toolsilla (Release, x64), mutta täällä käännettyä DLL:ää ei jaeta. | Visual Studion tuotokset (`x64/`, `*.dll` ja vastaavat) |
 | `deploy/windows-server/` | Windows-palvelinpaketti: skriptit, `lib/` (Node-apurit `dr-db.js`, `dr-keys.js` ja `verify-game.js`) ja `tests/`. | ei mitään |
 | `friend-kit/` | Kutsuttujen kavereiden asennus- ja pelaamisskriptit, vain Tailscalen kautta pelaamiseen. | `tools/make-friend-kit.ps1` rakentaa zip-tiedoston repositorion ulkopuolelle |
 | `tools/` | `build-llms.js`, `sync-roadmap.js`, `make-friend-kit.ps1`, `make-game-manifest.js` sekä kansiossa `ci/` CI:n käyttämät `check-repo.js` (repositorion tarkistus) ja `launcher-version.js` (käynnistimen versiosäännöt). | ei mitään |
@@ -107,12 +107,12 @@ ja aja työkalu uudelleen.
 |:---------|:-------|:------|:-------------------|
 | `docs/roadmap.md` | `node tools/sync-roadmap.js` | `ROADMAP.md` | muutat `ROADMAP.md`-tiedostoa. Suomenkielinen `docs/fi/roadmap.md` on käsin kirjoitettu tiivistelmä, ei generoitu. |
 | `docs/llms.txt`, `docs/llms-full.txt` | `node tools/build-llms.js` (`sync-roadmap.js`-ajon jälkeen) | Dokumentaatiosivujen front matter ja teksti sekä `docs/_data/faq_*.yml` | lisäät sivun, muutat otsikkoa tai kuvausta tai muutat englanninkielisen sivun tekstiä (`llms-full.txt` sisältää jokaisen englanninkielisen sivun kokonaan). |
-| `UndauntedMetagame/src/vendor/hunt_titles.json` | `node scripts/make-hunt-titles.js` kansiossa `UndauntedMetagame` | Deploy-palvelimen `player_hunts_table.json` ja `matchmaker_hunts_table.json` | deploy-palvelimen metsästystaulukot muuttuvat. |
-| `UndauntedContent/data/dauntless-1.4.4.json` | `node tools/make-game-manifest.js --zip <BaseGame144.zip>` | Tarkistettu pelin zip-tiedosto | käytännössä ei koskaan: versio on kiinnitetty. Jos se muuttuu, käännä myös käynnistin uudelleen, sillä sen sisään käännetään sama tiedosto. |
-| `UndauntedMetagame/src/drizzle/*.sql` ja `meta/` | `npm run db:generate` kansiossa `UndauntedMetagame` | `src/db/schema.ts` | muutat skeemaa. Committoi uusi migraatio samaan committiin skeeman muutoksen kanssa. |
+| `DauntlessUnbrokenMetagame/src/vendor/hunt_titles.json` | `node scripts/make-hunt-titles.js` kansiossa `DauntlessUnbrokenMetagame` | Deploy-palvelimen `player_hunts_table.json` ja `matchmaker_hunts_table.json` | deploy-palvelimen metsästystaulukot muuttuvat. |
+| `DauntlessUnbrokenContent/data/dauntless-1.4.4.json` | `node tools/make-game-manifest.js --zip <BaseGame144.zip>` | Tarkistettu pelin zip-tiedosto | käytännössä ei koskaan: versio on kiinnitetty. Jos se muuttuu, käännä myös käynnistin uudelleen, sillä sen sisään käännetään sama tiedosto. |
+| `DauntlessUnbrokenMetagame/src/drizzle/*.sql` ja `meta/` | `npm run db:generate` kansiossa `DauntlessUnbrokenMetagame` | `src/db/schema.ts` | muutat skeemaa. Committoi uusi migraatio samaan committiin skeeman muutoksen kanssa. |
 
-Myös `UndauntedMetagame/dist/build-info.json` on generoitu (`npm run build` kirjaa siihen commitin,
-jonka perässä on `-dirty`, jos `UndauntedMetagame`-kansiossa on committoimattomia muutoksia, sekä
+Myös `DauntlessUnbrokenMetagame/dist/build-info.json` on generoitu (`npm run build` kirjaa siihen commitin,
+jonka perässä on `-dirty`, jos `DauntlessUnbrokenMetagame`-kansiossa on committoimattomia muutoksia, sekä
 version ja käännösajan), mutta sitä ei committoida.
 
 ## Kehityskone tai käsin pystytetty palvelinkone {#a-developer-or-hand-built-host}
@@ -122,11 +122,11 @@ pakota näihin polkuihin: niitä käyttävät vain ohjeet ja muutaman skriptin o
 
 | Polku | Mikä se on |
 |:------|:-----------|
-| `C:\dr\undaunted\` | Repositorion kopio ([Pystytä palvelin, vaihe 4]({{ host_page.url | relative_url }}#fork)). Asetukset ovat tiedostoissa `UndauntedMetagame\.env` ja `UndauntedDeployServer\.env`, jotka git ohittaa. **Salaisuuksia: älä koskaan jaa niitä äläkä committoi niitä.** Käynnistä jokainen palvelin sen oman kansion sisältä: metagame löytää migraationsa suhteellisella polulla `./src/drizzle`. |
-| `C:\dr\data\` | Ajonaikainen data repositorion ulkopuolella: `undaunted.db` (`DB_FILENAME=C:/dr/data/undaunted.db`), `owner.key` ja `gameserver.key` (**salaisuuksia: älä koskaan jaa niitä äläkä committoi niitä**), lokit `metagame.log`, `metagame.err`, `deploy.log` ja `deploy.err` sekä pid-tiedostot `metagame.pid`, `deploy.pid` ja `client.pid`. Lokit korvautuvat jokaisella käynnistyksellä, koska ohje käynnistää palvelimet komennolla `Start-Process -RedirectStandardOutput`. |
+| `C:\dr\undaunted\` | Repositorion kopio ([Pystytä palvelin, vaihe 4]({{ host_page.url | relative_url }}#fork)). Asetukset ovat tiedostoissa `DauntlessUnbrokenMetagame\.env` ja `DauntlessUnbrokenDeployServer\.env`, jotka git ohittaa. **Salaisuuksia: älä koskaan jaa niitä äläkä committoi niitä.** Käynnistä jokainen palvelin sen oman kansion sisältä: metagame löytää migraationsa suhteellisella polulla `./src/drizzle`. |
+| `C:\dr\data\` | Ajonaikainen data repositorion ulkopuolella: `dauntless-unbroken.db` (`DB_FILENAME=C:/dr/data/dauntless-unbroken.db`), `owner.key` ja `gameserver.key` (**salaisuuksia: älä koskaan jaa niitä äläkä committoi niitä**), lokit `metagame.log`, `metagame.err`, `deploy.log` ja `deploy.err` sekä pid-tiedostot `metagame.pid`, `deploy.pid` ja `client.pid`. Lokit korvautuvat jokaisella käynnistyksellä, koska ohje käynnistää palvelimet komennolla `Start-Process -RedirectStandardOutput`. |
 | `C:\dr\data\rekey-<UserId>.txt` | Uusi tiliavain, jonka sivun [Palvelin ryhmälle]({{ admin_page.url | relative_url }}) avaimenvaihtoskripti on tehnyt. **Salaisuus**: anna se pelaajalle kahden kesken ja poista tiedosto sitten. |
 | `C:\dr\data\ssh\` | `dauntless_deploy` (vuokrapalvelimen SSH-avain) ja `known_hosts`, `Deploy-Remote.ps1`:n oletukset. **Avain on salaisuus: älä koskaan jaa sitä äläkä committoi sitä.** |
-| `C:\dr\backups\` | Tietokannan kopiot, jotka sivun [Palvelin ryhmälle]({{ admin_page.url | relative_url }}#back-up-the-database) varmuuskopioskripti ottaa käynnissä olevasta tietokannasta (`undaunted-YYYYMMDDHHMM.db`). |
+| `C:\dr\backups\` | Tietokannan kopiot, jotka sivun [Palvelin ryhmälle]({{ admin_page.url | relative_url }}#back-up-the-database) varmuuskopioskripti ottaa käynnissä olevasta tietokannasta (`dauntless-unbroken-YYYYMMDDHHMM.db`). |
 | `C:\dr\tools\` | Palvelinkoneen omat apuskriptit, jotka ohjeet näyttävät kokonaan mutta joita ei ole repositoriossa: `make-gameini.ps1`, `play.ps1` ja meidän koneellamme `stack.ps1`. |
 | `C:\D144\Dauntless\` | Tarkistettu 1.4.4-peli ja kaksi DLL-tiedostoa sen kansiossa `Archon\Binaries\Win64\` ([Pystytä palvelin, vaihe 3]({{ host_page.url | relative_url }}#short-install-path)). |
 | `C:\dr\dist\` | Skriptin `tools\make-friend-kit.ps1` oletustulostekansio. |
@@ -134,23 +134,23 @@ pakota näihin polkuihin: niitä käyttävät vain ohjeet ja muutaman skriptin o
 | `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\` | Tämän Windows-käyttäjän pelin käyttäjäasetukset: `Engine.ini`, `Game.ini` ja `GameUserSettings.ini`. Katso [Pelin asetukset]({{ gamesettings_page.url | relative_url }}). |
 
 Kun `LOG_BODIES=1` on asetettu mutta `BODY_LOG_FILE` ei ole, metagame kirjoittaa `bodies.log`-tiedoston
-työhakemistoonsa, joka on `C:\dr\undaunted\UndauntedMetagame`. **Mikään `.gitignore`-sääntö ei kata
+työhakemistoonsa, joka on `C:\dr\undaunted\DauntlessUnbrokenMetagame`. **Mikään `.gitignore`-sääntö ei kata
 tätä tiedostoa.** Aseta `BODY_LOG_FILE=C:/dr/data/bodies.log` tai poista tiedosto ennen kuin committoit.
 Metagamen yksikkötestit käyttävät jokaiselle testitiedostolle uutta tietokantaa väliaikaisessa
-`undaunted-test-*`-kansiossa ja poistavat sen lopuksi.
+`dauntless-unbroken-test-*`-kansiossa ja poistavat sen lopuksi.
 
 Kun yhdyskäytävä tai sallittujen listan apuri ajetaan repositorion kopiosta (`npm start`,
-`npm run start:allowlist`), ne lukevat tiedoston `UndauntedGateway\.env`, jossa ovat yhdyskäytävän ja
+`npm run start:allowlist`), ne lukevat tiedoston `DauntlessUnbrokenGateway\.env`, jossa ovat yhdyskäytävän ja
 sallittujen listan salaisuudet (**salaisuus: älä koskaan jaa sitä äläkä committoi sitä**; git ohittaa
 sen). Ilman asetuksia `ALLOWLIST_AUDIT_LOG` ja `ALLOWLIST_STATE_FILE` apuri kirjoittaa tiedostot
 `allowlist-audit.log` ja `allowlist-state.json` työhakemistoonsa; yhdyskäytävän `.gitignore` kattaa
-molemmat. Sisältöpalvelimen `UndauntedContent\.env` ei sisällä salaisuuksia.
+molemmat. Sisältöpalvelimen `DauntlessUnbrokenContent\.env` ei sisällä salaisuuksia.
 
-## Windows-palvelinpaketti: `C:\DauntlessRevived` {#kit-install-root}
+## Windows-palvelinpaketti: `C:\DauntlessUnbroken` {#kit-install-root}
 
-Paketti asentaa kaiken yhden juurikansion alle. Se on `C:\DauntlessRevived`, ellei `-InstallRoot` määrää
+Paketti asentaa kaiken yhden juurikansion alle. Se on `C:\DauntlessUnbroken`, ellei `-InstallRoot` määrää
 toisin. Kansioon `<juuri>\bin` asennetut skriptit löytävät juuren itse (`bin`-kansion yläkansio, kun
-siellä on `data\config\server.json`); muualta ajettuina ne käyttävät kansiota `C:\DauntlessRevived` tai
+siellä on `data\config\server.json`); muualta ajettuina ne käyttävät kansiota `C:\DauntlessUnbroken` tai
 `-Root`-parametria. Asentaminen, päivittäminen ja poistaminen neuvotaan sivulla
 [Windows-palvelin]({{ winserver_page.url | relative_url }}).
 
@@ -165,11 +165,11 @@ murrettu pelipalvelin ei voi muuttaa sitä, mitä ylläpitäjä seuraavaksi ajaa
 
 | Polku | Mitä siinä on | `dauntless` saa | Kirjoittaja |
 |:------|:--------------|:----------------|:------------|
-| `C:\DauntlessRevived\` | Juuri. Kaikki sen alla perii sen käyttöoikeudet, ellei toisin mainita. | lukea | asennusohjelma |
-| `bin\` | Kopio paketista: `*.ps1`, `*.vbs`, `*.md` ja `lib\*.js`. Ajastetut tehtävät ajavat täältä tiedostot `Stack.ps1` ja `backup-hidden.vbs`. | lukea | asennusohjelma; `Update-DauntlessServer.ps1` päivittää sen uudesta koodista |
-| `app\` | Käännetty palvelinkoodi: repositorio ilman `.git`-kansiota, `node_modules`-kansioita, käännöstuloksia, `.env`-tiedostoja, avaimia, varmenteita, tietokantoja, lokeja, DLL:n pelimoottorin otsaketiedostoja ja MinHookia, minkä jälkeen `npm ci` ja `npm run build` ajetaan kansioissa UndauntedMetagame, UndauntedDeployServer, UndauntedContent ja UndauntedGateway. `app\VERSION.json` kirjaa commitin, refin, lähteen, lähdekoodin osoitteen ja asennusajan. Jokainen osa pyörii oma kansionsa työhakemistonaan. | lukea | asennusohjelma ja päivitysohjelma |
+| `C:\DauntlessUnbroken\` | Juuri. Kaikki sen alla perii sen käyttöoikeudet, ellei toisin mainita. | lukea | asennusohjelma |
+| `bin\` | Kopio paketista: `*.ps1`, `*.vbs`, `*.md` ja `lib\*.js`. Ajastetut tehtävät ajavat täältä tiedostot `Stack.ps1` ja `backup-hidden.vbs`. | lukea | asennusohjelma; `Update-DauntlessUnbrokenServer.ps1` päivittää sen uudesta koodista |
+| `app\` | Käännetty palvelinkoodi: repositorio ilman `.git`-kansiota, `node_modules`-kansioita, käännöstuloksia, `.env`-tiedostoja, avaimia, varmenteita, tietokantoja, lokeja, DLL:n pelimoottorin otsaketiedostoja ja MinHookia, minkä jälkeen `npm ci` ja `npm run build` ajetaan kansioissa DauntlessUnbrokenMetagame, DauntlessUnbrokenDeployServer, DauntlessUnbrokenContent ja DauntlessUnbrokenGateway. `app\VERSION.json` kirjaa commitin, refin, lähteen, lähdekoodin osoitteen ja asennusajan. Jokainen osa pyörii oma kansionsa työhakemistonaan. | lukea | asennusohjelma ja päivitysohjelma |
 | `app.new\` | Keskeneräinen käännös. Jos jokin päivityksen vaihe epäonnistuu, uusi käännös jää tähän. | lukea | asennusohjelma ja päivitysohjelma |
-| `app.prev\` | Edellinen käännös komentoa `Update-DauntlessServer.ps1 -Rollback` varten. | lukea | asennusohjelma ja päivitysohjelma |
+| `app.prev\` | Edellinen käännös komentoa `Update-DauntlessUnbrokenServer.ps1 -Rollback` varten. | lukea | asennusohjelma ja päivitysohjelma |
 | `app.failed\` | Käännös, joka ei läpäissyt päivitysohjelman toimintatarkistusta ja jonka päivitysohjelma perui automaattisesti. | lukea | päivitysohjelma |
 | `app.rolledback\` | Käännös, josta palasit käsin `-Rollback`-valinnalla. | lukea | päivitysohjelma |
 | `game\Dauntless\` | Tarkistettu 1.4.4-peli ja kaksi kiinnitettyä DLL-tiedostoa sen kansiossa `Archon\Binaries\Win64\`. Deploy-palvelin käynnistää pelipalvelimet siitä, ja sisältöpalvelin jakaa sen käynnistimille. Zip-tiedostoa purettaessa tiedostot menevät kansioon `<juuri>\game.partial\`, joka nimetään valmistuttuaan `game\`-kansioksi. `-GameDir`-parametrilla peli jää omaan kansioosi, joka säilyttää omat käyttöoikeutensa ja saa lisäksi lukuoikeuden `dauntless`-tilille. | lukea | asennusohjelma |
@@ -178,7 +178,7 @@ murrettu pelipalvelin ei voi muuttaa sitä, mitä ylläpitäjä seuraavaksi ajaa
 | `data\config\allowlist.env` | Sallittujen listan apurin asetukset ja sallittujen listan salaisuus. | ei pääsyä | asennusohjelma |
 | `data\keys\` | `owner.key` (ylläpitäjätilin avain) ja `gameserver.key` sekä muut varmuuskopiosta palautetut `*.key`-tiedostot. `signing.tmp` ja `tailscale-authkey.tmp` ovat olemassa vain asennusvaiheen ajan; jos asennus keskeytetään väkisin siinä kohdassa, poista ne. **Salaisuuksia: älä koskaan jaa niitä äläkä committoi niitä.** | lukea | asennusohjelma |
 | `data\tls\` | Julkinen tila: `gateway-cert.pem` ja `gateway-key.pem` (avain on **salaisuus: älä koskaan jaa sitä äläkä committoi sitä**). `*.new`-tiedostot ovat olemassa vain uutta varmennetta tehtäessä. | lukea | asennusohjelma |
-| `data\undaunted.db` | [Tietokanta](#the-database). | muokata | metagame |
+| `data\dauntless-unbroken.db` | [Tietokanta](#the-database). | muokata | metagame |
 | `data\logs\` | Osien lokit, `supervisor.log`, `bodies.log`, varmuuskopion tietokantaloki, `install\` (katso [Lokit](#logs)) ja `performance\`, [suorituskykyloki](#performance-log). | muokata | `Stack.ps1` (myös suorituskykyloki), varmuuskopio, asennusohjelma |
 | `data\run\` | `<osa>.pid` metagamelle, sisältöpalvelimelle, deploy-palvelimelle ja yhdyskäytävälle sekä `stopped.flag`. Niin kauan kuin `stopped.flag` on olemassa (`Stack.ps1 stop` luo sen, `start` ja `restart` poistavat sen), palvelinkokonaisuuden valvoja ei käynnistä mitään uudelleen. | muokata | `Stack.ps1` |
 | `data\branding\` | Kuvapaketti, jonka sisältöpalvelin antaa käynnistimille: kuvat ja valinnainen `branding.json` (katso [Uutiset ja kuvapaketti](#news-and-art-pack)). Tyhjä asennuksen jälkeen. | muokata | sinä |
@@ -208,7 +208,7 @@ osoitteesi. Osien omat asetukset ovat `.env`-tiedostoissa; katso
 | `Version` | `2`. | ei vielä mikään |
 | `Mode` | `Public` tai `Private`. Julkista tilaa vanhempi asennus, jossa ei ole `Mode`-arvoa, lasketaan `Private`-tilaksi. | `Stack.ps1`, `New-Invite.ps1`, päivitysohjelma, `Get-ServerStatus.ps1`, `Deploy-Remote.ps1`, asennusohjelman uudelleenajot |
 | `ServerName` | Nimi kutsuissa ja tilatulosteessa. | `New-Invite.ps1`, `Stack.ps1`, `Deploy-Remote.ps1` |
-| `Sandbox` | `true` `-Sandbox`-testiasennuksessa. | `Stack.ps1`, `Update-DauntlessServer.ps1`, `New-Invite.ps1` |
+| `Sandbox` | `true` `-Sandbox`-testiasennuksessa. | `Stack.ps1`, `Update-DauntlessUnbrokenServer.ps1`, `New-Invite.ps1` |
 | `BindAddress` | Osoite, jossa metagame ja sisältöpalvelin kuuntelevat: julkisessa tilassa `127.0.0.1`, yksityisessä tilassa Tailscale-IPv4-osoite. | `Stack.ps1`, `New-Invite.ps1`, päivitysohjelma, `Get-ServerStatus.ps1` |
 | `PublicHost` | Julkinen tila: kutsuissa oleva osoite. Tyhjä yksityisessä tilassa. | `New-Invite.ps1`, `Stack.ps1` (tilatuloste), `Deploy-Remote.ps1`, asennusohjelman uudelleenajot |
 | `PublicIp` | Julkinen tila: osoitteen `PublicHost` IPv4-osoite. Tyhjä yksityisessä tilassa. | ei mikään (tiedoksi) |
@@ -273,15 +273,15 @@ Kaikki pysyvä on yhdessä SQLite-tiedostossa, metagamen `DB_FILENAME`-asetuksen
 
 | Kokoonpano | Tiedosto |
 |:-----------|:---------|
-| Käsin pystytetty palvelinkone (ohjeiden mukaan) | `C:\dr\data\undaunted.db`, asetettuna `DB_FILENAME=C:/dr/data/undaunted.db` |
-| Windows-palvelinpaketti | `C:\DauntlessRevived\data\undaunted.db` |
+| Käsin pystytetty palvelinkone (ohjeiden mukaan) | `C:\dr\data\dauntless-unbroken.db`, asetettuna `DB_FILENAME=C:/dr/data/dauntless-unbroken.db` |
+| Windows-palvelinpaketti | `C:\DauntlessUnbroken\data\dauntless-unbroken.db` |
 | `DB_FILENAME` puuttuu tai on tyhjä | Väliaikainen tietokanta, joka **poistetaan, kun metagame sulkeutuu**: jokainen tili ja tallennus menetetään. |
 | Suhteellinen polku | Tulkitaan suhteessa metagamen työhakemistoon. Kansion on oltava olemassa. |
 
 Tiedosto käyttää SQLiten oletusarvoista rollback journal -lokia, joten pysäytetty metagame jättää
-jälkeensä yhden itsenäisen `undaunted.db`-tiedoston (`undaunted.db-journal` ilmestyy vain kirjoituksen
+jälkeensä yhden itsenäisen `dauntless-unbroken.db`-tiedoston (`dauntless-unbroken.db-journal` ilmestyy vain kirjoituksen
 ajaksi). Asetuksella `DB_WAL=1` se käyttää sen sijaan WAL-tilaa, jolloin tuoreet kirjoitukset voivat
-olla sen vieressä tiedostossa `undaunted.db-wal`; pelkkä pysäytetyn tiedoston kopio jää silloin niistä
+olla sen vieressä tiedostossa `dauntless-unbroken.db-wal`; pelkkä pysäytetyn tiedoston kopio jää silloin niistä
 paitsi. WAL-tilaan jäänyt tiedosto palautetaan tavalliseen tilaan seuraavassa käynnistyksessä, jos
 `DB_WAL=1` ei ole asetettu. [Asetukset]({{ config_page.url | relative_url }}) selittää molemmat asetukset.
 
@@ -289,7 +289,7 @@ paitsi. WAL-tilaan jäänyt tiedosto palautetaan tavalliseen tilaan seuraavassa 
 
 Metagame ajaa jokaisella käynnistyksellä kaikki odottavat migraatiot kansiosta `src/drizzle/`, ennen
 kuin se vastaa mihinkään. Polku on suhteellinen sen työhakemistoon, joten käynnistä se
-`UndauntedMetagame`-kansiosta (paketti tekee niin). Kaikki odottavat migraatiot ajetaan yhdessä
+`DauntlessUnbrokenMetagame`-kansiosta (paketti tekee niin). Kaikki odottavat migraatiot ajetaan yhdessä
 transaktiossa: jos yksi epäonnistuu, yhtäkään ei tehdä eikä metagame käynnisty. drizzle kirjaa
 ajamansa migraatiot omaan tauluunsa `__drizzle_migrations`; älä koskaan muokkaa sitä, koska drizzle
 päättää sen perusteella, mitkä migraatiot on vielä ajettava. **Metagame ei ota varmuuskopiota ennen
@@ -468,7 +468,7 @@ käyttäjänimiä ja julkisessa tilassa pelaajien IP-osoitteita, joten lue loki 
 | Kirjoittaja | Muoto |
 |:------------|:------|
 | Metagame, deploy-palvelin | pino. Asetuksella `NODE_ENV=production` (paketissa aina päällä) yksi JSON-objekti riviä kohden: `level` (30 info, 40 warn, 50 error, 60 fatal), `time` (millisekunteja vuoden 1970 alusta), `pid`, `hostname`, `msg`. Kaikki tasot menevät vakiotulosteeseen (standard output). Ilman `production`-arvoa rivit ovat luettavia ja värillisiä. Metagamen pyyntörivit ovat muotoa `METHOD /path gs=0` (pelaaja) tai `gs=1` (pelipalvelin), ja yhdyskäytävän takana perässä on lisäksi ` via=gateway ip=<pelaajan osoite>`. `LOG_LEVEL` ja `LOG_REQUESTS` ovat sivulla [Asetukset]({{ config_page.url | relative_url }}). |
-| Yhdyskäytävä, sallittujen listan apuri, sisältöpalvelin | Yksi JSON-objekti riviä kohden: `t` (ISO-aika), `level` (`debug`, `info`, `warn` tai `error`), `msg` ja lisäkentät. Varoitukset ja virheet menevät virhetulosteeseen (standard error), muut vakiotulosteeseen. Yhdyskäytävän `request`-rivit ovat sen pääsyloki; kentät on kuvattu [yhdyskäytävän README-tiedostossa]({{ site.github.repository_url }}/blob/dauntless-revived/UndauntedGateway/README.md#access-log) (englanniksi). |
+| Yhdyskäytävä, sallittujen listan apuri, sisältöpalvelin | Yksi JSON-objekti riviä kohden: `t` (ISO-aika), `level` (`debug`, `info`, `warn` tai `error`), `msg` ja lisäkentät. Varoitukset ja virheet menevät virhetulosteeseen (standard error), muut vakiotulosteeseen. Yhdyskäytävän `request`-rivit ovat sen pääsyloki; kentät on kuvattu [yhdyskäytävän README-tiedostossa]({{ site.github.repository_url }}/blob/main/DauntlessUnbrokenGateway/README.md#access-log) (englanniksi). |
 | Pelipalvelimet, peliohjelma | Ei lokitiedostoa. Pelipalvelin tulostaa vain omaan konsoli-ikkunaansa (Ramsgaten ja Training Dojon ikkunat jäävät näkyviin; deploy-palvelin käynnistää metsästysten pelipalvelimet ikkuna piilotettuna). Peliohjelma kirjoittaa vain kaatumisraportteja kansioon `%LOCALAPPDATA%\Archon\Saved\Crashes\` (katso [Vianetsintä]({{ trouble_page.url | relative_url }})). |
 | Käynnistin | Tekstirivejä: ISO-aika, `INFO`, `WARN` tai `ERROR` ja viesti. |
 
@@ -491,7 +491,7 @@ käyttäjänimiä ja julkisessa tilassa pelaajien IP-osoitteita, joten lue loki 
 ### Suorituskykyloki {#performance-log}
 
 Tiekartan kohta 4.12; pohjana on Vvoidddd:n ensimmäinen mittari
-([#6](https://github.com/mixutin/dauntless-revived/pull/6)). CSV-tiedosto otsikkorivillä, ASCII,
+([#6](https://github.com/Vvoidddd/dauntless-unbroken/pull/6)). CSV-tiedosto otsikkorivillä, ASCII,
 CRLF-rivinvaihdot, jokaisessa luvussa desimaalipiste (Windowsin kielestä riippumatta) ja ajat
 UTC-aikana muodossa `yyyy-MM-ddTHH:mm:ssZ`. Mittaus on yksi `host`-rivi ja yksi rivi prosessia
 kohden, kaikilla sama `timestamp_utc`. Solu, joka ei koske riviä tai jota ei pystytty lukemaan, on
@@ -523,20 +523,20 @@ silti, milloin palvelimella on kiireistä, joten pidä se omana tietonasi. Miten
   `Start-Process`-uudelleenohjaus, uusi tiedosto jokaisella käynnistyksellä.
   [Vianetsintä]({{ trouble_page.url | relative_url }}) näyttää, miten ne luetaan tavallisena tekstinä.
 - `npm start` tai `npm run dev` päätteessä: tuloste jää päätteeseen.
-- Käynnistin: `%APPDATA%\Dauntless Revived Launcher\logs\launcher.log`, joka nimetään uudelleen
+- Käynnistin: `%APPDATA%\Dauntless Unbroken Launcher\logs\launcher.log`, joka nimetään uudelleen
   `launcher.old.log`-tiedostoksi, kun se ylittää 2 MiB (yksi vanha tiedosto säilytetään).
 
 ## Varmuuskopiot {#backups}
 
 ### Windows-palvelinpaketti {#windows-server-kit-1}
 
-`Backup-DauntlessServer.ps1` tekee jokaisesta varmuuskopiosta oman kansion, `backups\yyyy-MM-dd_HHmmss\`.
+`Backup-DauntlessUnbrokenServer.ps1` tekee jokaisesta varmuuskopiosta oman kansion, `backups\yyyy-MM-dd_HHmmss\`.
 Kansioiden nimet järjestyvät aikajärjestykseen. **Varmuuskopio sisältää palvelimen kaikki salaisuudet:
 älä koskaan jaa sitä, älä koskaan committoi sitä, ja kopioi se palvelimelta pois vain salattuna.**
 
 | Varmuuskopiokansiossa | Mikä se on |
 |:----------------------|:-----------|
-| `undaunted.db` | Tietokanta, kopioituna SQLiten online backup -rajapinnalla (turvallinen metagamen pyöriessä) ja sen jälkeen tarkistettuna `integrity_check`-tarkistuksella. Jos tarkistus epäonnistuu, kansio poistetaan ja varmuuskopiointi epäonnistuu. |
+| `dauntless-unbroken.db` | Tietokanta, kopioituna SQLiten online backup -rajapinnalla (turvallinen metagamen pyöriessä) ja sen jälkeen tarkistettuna `integrity_check`-tarkistuksella. Jos tarkistus epäonnistuu, kansio poistetaan ja varmuuskopiointi epäonnistuu. |
 | `server.json` | Paketin tila. |
 | `news.json` | Käynnistimen uutiset. |
 | `secrets\metagame.env`, `deployserver.env`, `content.env`, `gateway.env` | Asetukset, joissa ovat istuntotunnisteiden allekirjoitusavaimet, pelipalvelinavain ja yhdyskäytävän salaisuudet. |
@@ -548,7 +548,7 @@ tekee uuden), `data\allowlist\`, lokit, **kuvapaketti kansiossa `data\branding\`
 kopio), pelitiedostot, käännetty koodi eikä palvelutilin `Game.ini`- ja `Engine.ini`-tiedostot
 (asennusohjelma kirjoittaa ne uudelleen).
 
-**Milloin.** Tunnin välein (ajastettu tehtävä ”Dauntless Revived backup” palvelutilinä, kello 00.05
+**Milloin.** Tunnin välein (ajastettu tehtävä ”Dauntless Unbroken backup” palvelutilinä, kello 00.05
 alkaen); ennen kuin metagame käynnistyy (`Stack.ps1` kieltäytyy käynnistämästä sitä ilman
 varmuuskopiota, ellet anna valintaa `-NoBackup`, ja valvojan tekemä uudelleenkäynnistys jättää
 varmuuskopion väliin, jos uusin varmuuskopio on alle 10 minuuttia vanha); pysäytyksen jälkeen; ennen
@@ -556,12 +556,12 @@ kuin päivitys vaihtaa käännöksen; ja kerran asennuksen lopussa.
 
 **Säilytys.** Jokainen ajo säilyttää 48 uusinta varmuuskopiota (tunnin välein otetut sekä käynnistysten
 ja pysäytysten yhteydessä otetut yhteensä) sekä uusimman varmuuskopion kultakin niistä 30 viimeisimmästä
-päivästä, joilta varmuuskopio löytyy, ja poistaa loput. `Backup-DauntlessServer.ps1 -Hourly <n> -Daily <n>`
+päivästä, joilta varmuuskopio löytyy, ja poistaa loput. `Backup-DauntlessUnbrokenServer.ps1 -Hourly <n> -Daily <n>`
 käyttää muita lukuja kyseisellä ajokerralla; ajastettu tehtävä käyttää aina oletuksia.
 
-**Palautus.** `Install-DauntlessServer.ps1 -RestoreFrom <varmuuskopiokansio>` (tai omalta koneeltasi
-`Deploy-Remote.ps1 -RestoreFrom`). Kansiossa on oltava `undaunted.db`, `secrets\metagame.env` ja
-`secrets\deployserver.env`. Olemassa olevaa `data\undaunted.db`-tiedostoa ei kirjoiteta yli (poista se
+**Palautus.** `Install-DauntlessUnbrokenServer.ps1 -RestoreFrom <varmuuskopiokansio>` (tai omalta koneeltasi
+`Deploy-Remote.ps1 -RestoreFrom`). Kansiossa on oltava `dauntless-unbroken.db`, `secrets\metagame.env` ja
+`secrets\deployserver.env`. Olemassa olevaa `data\dauntless-unbroken.db`-tiedostoa ei kirjoiteta yli (poista se
 ensin), ja jo olemassa olevat avaintiedostot säilytetään. Sama komento hyväksyy myös alkuperäisen
 palvelinkoneemme `backup.ps1`-skriptin varmuuskopiot, joissa on sama rakenne. Katso
 [Windows-palvelin]({{ winserver_page.url | relative_url }}#varmuuskopiot).
@@ -579,7 +579,7 @@ tiliavain katoaa, sen pelaaja ei pääse enää sisään.
 ### Käynnistin {#the-launcher}
 
 Käynnistin säilyttää tietonsa Electronin käyttäjäkohtaisessa kansiossa, joka on nimetty tuotteen
-mukaan: `%APPDATA%\Dauntless Revived Launcher\`. Mitään siellä ei ole tarkoitettu muokattavaksi käsin.
+mukaan: `%APPDATA%\Dauntless Unbroken Launcher\`. Mitään siellä ei ole tarkoitettu muokattavaksi käsin.
 
 | Polku | Mikä se on |
 |:------|:-----------|
@@ -593,10 +593,10 @@ Muualla koneella:
 
 | Polku | Mikä se on |
 |:------|:-----------|
-| `%LOCALAPPDATA%\DauntlessRevived\Game\` | Oletuspelikansio: 410 tiedostoa, noin 10,9 Gt, sekä kaksi DLL-tiedostoa kansiossa `Archon\Binaries\Win64\`. ”Vaihda kansio…” valitsee toisen (absoluuttinen polku, enintään 150 merkkiä). Kansiota, jossa peli jo on (pelin juurikansio, jossa on `Archon\`, sen yläkansio `BaseGame144`, jossa on `Dauntless`-kansio, tai pelin sisällä oleva `Archon` tai `Archon\Binaries\Win64`), käytetään sinä pelinä, ja se torjutaan, jos pelin juurikansion polku on yli 150 merkkiä pitkä; jos jokin muu kansio ei ole tyhjä, peli asennetaan sen `DauntlessRevived`-alikansioon. ”Minulla on jo pelitiedostot” ottaa liitetyn asematunnuksella alkavan polun tai selatun kansion, tunnistaa samat rakenteet, torjuu verkko- (`\\kone\jako`), laite- ja suhteelliset polut ennen kuin katsoo niihin, sallii enintään 150 merkin pituisen pelin juurikansion ja tarkistaa sitten jokaisen tiedoston (Korjaa). Latauksen aikana tiedoston nimi on `<nimi>.part`; kopioitavana olevan DLL:n nimi on `<nimi>.new`. |
-| `Dauntless Revived key - <käyttäjänimi>.txt` | Avaimen varmuuskopio, jonka tallennat Asetuksista valitsemaasi kansioon (oletuksena Tiedostot eli Documents). Jos käyttäjänimi ei ole tiedossa, nimi on `Dauntless Revived key.txt`. **Selväkielinen salaisuus: kuka tahansa, jolla se on, voi pelata sinuna. Älä koskaan jaa sitä; säilytä sitä salasanojen hallinnassa tai USB-tikulla.** |
+| `%LOCALAPPDATA%\DauntlessUnbroken\Game\` | Oletuspelikansio: 410 tiedostoa, noin 10,9 Gt, sekä kaksi DLL-tiedostoa kansiossa `Archon\Binaries\Win64\`. ”Vaihda kansio…” valitsee toisen (absoluuttinen polku, enintään 150 merkkiä). Kansiota, jossa peli jo on (pelin juurikansio, jossa on `Archon\`, sen yläkansio `BaseGame144`, jossa on `Dauntless`-kansio, tai pelin sisällä oleva `Archon` tai `Archon\Binaries\Win64`), käytetään sinä pelinä, ja se torjutaan, jos pelin juurikansion polku on yli 150 merkkiä pitkä; jos jokin muu kansio ei ole tyhjä, peli asennetaan sen `DauntlessUnbroken`-alikansioon. ”Minulla on jo pelitiedostot” ottaa liitetyn asematunnuksella alkavan polun tai selatun kansion, tunnistaa samat rakenteet, torjuu verkko- (`\\kone\jako`), laite- ja suhteelliset polut ennen kuin katsoo niihin, sallii enintään 150 merkin pituisen pelin juurikansion ja tarkistaa sitten jokaisen tiedoston (Korjaa). Latauksen aikana tiedoston nimi on `<nimi>.part`; kopioitavana olevan DLL:n nimi on `<nimi>.new`. |
+| `Dauntless Unbroken key - <käyttäjänimi>.txt` | Avaimen varmuuskopio, jonka tallennat Asetuksista valitsemaasi kansioon (oletuksena Tiedostot eli Documents). Jos käyttäjänimi ei ole tiedossa, nimi on `Dauntless Unbroken key.txt`. **Selväkielinen salaisuus: kuka tahansa, jolla se on, voi pelata sinuna. Älä koskaan jaa sitä; säilytä sitä salasanojen hallinnassa tai USB-tikulla.** |
 | `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\` | `Engine.ini`, jonka kaksi hallittua osiota käynnistin kirjoittaa uudelleen ennen jokaista PELAA-painallusta, ja `GameUserSettings.ini`, jonka `sg.*Quality`-rivit se asettaa vain, kun pakotat grafiikkatason. Molemmat kirjoitetaan väliaikaisen `.dr-tmp`-tiedoston kautta. Katso [Pelin asetukset]({{ gamesettings_page.url | relative_url }}). |
-| `%LOCALAPPDATA%\DauntlessRevivedLauncher\` | Käynnistinohjelma, johon Squirrel-asennusohjelma sen tavallisesti asentaa (siirrettävä zip-versio toimii siellä, minne sen purat). Kaksi kiinnitettyä DLL-tiedostoa tulevat mukana sen `resources`-kansiossa. |
+| `%LOCALAPPDATA%\DauntlessUnbrokenLauncher\` | Käynnistinohjelma, johon Squirrel-asennusohjelma sen tavallisesti asentaa (siirrettävä zip-versio toimii siellä, minne sen purat). Kaksi kiinnitettyä DLL-tiedostoa tulevat mukana sen `resources`-kansiossa. |
 
 ### Kaveripaketti {#the-friend-kit}
 
@@ -605,8 +605,8 @@ käyttää eri kansiota kuin käynnistin:
 
 | Polku | Mikä se on |
 |:------|:-----------|
-| `%APPDATA%\DauntlessRevived\account.key` | Tiliavain selväkielisenä. `setup.ps1` kirjoittaa sen, ja `play.ps1` välittää sen pelille. **Salaisuus: älä koskaan jaa sitä; varmuuskopioi se itse.** |
-| `%APPDATA%\DauntlessRevived\settings.json` | Palvelinkoneen osoite ja pelikansio, jotta `play.ps1` ei tarvitse parametreja. Ei salaisuuksia. |
+| `%APPDATA%\DauntlessUnbroken\account.key` | Tiliavain selväkielisenä. `setup.ps1` kirjoittaa sen, ja `play.ps1` välittää sen pelille. **Salaisuus: älä koskaan jaa sitä; varmuuskopioi se itse.** |
+| `%APPDATA%\DauntlessUnbroken\settings.json` | Palvelinkoneen osoite ja pelikansio, jotta `play.ps1` ei tarvitse parametreja. Ei salaisuuksia. |
 | Pelikansio (`-Game`, oletus `C:\D144\Dauntless`) | `setup.ps1` kopioi kaksi tarkistettua DLL-tiedostoa kansioon `Archon\Binaries\Win64\`. |
 | `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\` | `play.ps1` kirjoittaa uudelleen samat `Engine.ini`-osiot kuin käynnistin sekä `-Graphics`-parametrin kanssa `GameUserSettings.ini`-tiedoston grafiikkarivit. |
 

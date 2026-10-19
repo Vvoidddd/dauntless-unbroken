@@ -1,5 +1,5 @@
 [Unit]
-Description=Dauntless Revived public TLS gateway
+Description=Dauntless Unbroken public TLS gateway
 After=network-online.target dauntless-metagame.service dauntless-content.service dauntless-allowlist.service
 Wants=network-online.target
 Requires=dauntless-metagame.service dauntless-content.service dauntless-allowlist.service
@@ -7,8 +7,8 @@ Requires=dauntless-metagame.service dauntless-content.service dauntless-allowlis
 [Service]
 Type=simple
 User=@USER@
-WorkingDirectory=@ROOT@/UndauntedGateway
-ExecStart=@NODE@ --env-file=@CONFIG@/gateway.env @ROOT@/UndauntedGateway/dist/server.js
+WorkingDirectory=@ROOT@/DauntlessUnbrokenGateway
+ExecStart=@NODE@ --env-file=@CONFIG@/gateway.env @ROOT@/DauntlessUnbrokenGateway/dist/server.js
 Restart=on-failure
 RestartSec=3
 KillSignal=SIGTERM

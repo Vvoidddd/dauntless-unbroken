@@ -2,7 +2,7 @@
 title: OpenBSD server
 parent: Setup
 nav_order: 8
-description: "Run the Dauntless Revived control plane natively on OpenBSD 7.9 with PF and rc.d, using a separate Linux Proton/Wine game worker."
+description: "Run the Dauntless Unbroken control plane natively on OpenBSD 7.9 with PF and rc.d, using a separate Linux Proton/Wine game worker."
 lang: en
 ref: setup/openbsd-server
 ---
@@ -137,7 +137,7 @@ A live install refuses to edit PF unless you explicitly pass `--configure-pf`.
 
 ## PF rules
 
-Public mode creates a dedicated `dauntless-revived` PF anchor containing:
+Public mode creates a dedicated `dauntless-unbroken` PF anchor containing:
 
 - a persistent `<dauntless_revived_players>` table;
 - TCP 443 redirect to the unprivileged gateway on `127.0.0.1:61443`;
@@ -177,8 +177,8 @@ doas ./deploy/openbsd-server/stack.ksh restart deploy
 ## Create an invite
 
 ```sh
-doas -u _dauntless node /opt/dauntless-revived/deploy/unix-common/new-invite.mjs \
-  --config /etc/dauntless-revived \
+doas -u _dauntless node /opt/dauntless-unbroken/deploy/unix-common/new-invite.mjs \
+  --config /etc/dauntless-unbroken \
   --name FriendName
 ```
 

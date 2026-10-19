@@ -1,7 +1,7 @@
 ---
 title: Näin moninpeli toimii
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 6
 lang: fi
 ref: findings/multiplayer
@@ -72,10 +72,10 @@ on käännetty mukaan, mutta tavallinen asiakasohjelma ei koskaan kutsu sitä.
 
 | Osa | Kieli | Tehtävä |
 |---|---|---|
-| `UndauntedLauncher` | Electron | Tarkistaa ohjelmatiedoston SHA-256-tiivisteen, kopioi kaksi DLL-tiedostoa kansioon `Archon\Binaries\Win64` ennen jokaista käynnistystä ja käynnistää asiakasohjelman pelaajan tiliavaimella |
-| `UndauntedMetagame` | TypeScript, SQLite (Drizzle) | Taustapalvelu: kirjautuminen, hahmot, tavaraluettelo, varustukset (loadouts), edistyminen, matchmaking-jono, ylläpidon rajapinta (admin API) |
-| `UndauntedDeployServer` | TypeScript (Express) | Käynnistää ja valvoo pelipalvelinprosesseja |
-| `UndauntedInternalServer.dll` | C++ (MinHook, Dumper-7-SDK) | Ladataan jokaiseen peliprosessiin, myös asiakasohjelmaan. Toimii palvelintilassa tai asiakastilassa. |
+| `DauntlessUnbrokenLauncher` | Electron | Tarkistaa ohjelmatiedoston SHA-256-tiivisteen, kopioi kaksi DLL-tiedostoa kansioon `Archon\Binaries\Win64` ennen jokaista käynnistystä ja käynnistää asiakasohjelman pelaajan tiliavaimella |
+| `DauntlessUnbrokenMetagame` | TypeScript, SQLite (Drizzle) | Taustapalvelu: kirjautuminen, hahmot, tavaraluettelo, varustukset (loadouts), edistyminen, matchmaking-jono, ylläpidon rajapinta (admin API) |
+| `DauntlessUnbrokenDeployServer` | TypeScript (Express) | Käynnistää ja valvoo pelipalvelinprosesseja |
+| `DauntlessUnbroken.dll` | C++ (MinHook, Dumper-7-SDK) | Ladataan jokaiseen peliprosessiin, myös asiakasohjelmaan. Toimii palvelintilassa tai asiakastilassa. |
 | `dxgi.dll` | valmiiksi käännetty välitys-DLL (proxy) | Lataa DLL:n prosessiin |
 
 ### DLL:n lataaminen: `dxgi.dll`-välitys-DLL {#loading-the-dll-the-dxgidll-proxy}
@@ -171,7 +171,7 @@ Muut palvelinpuolen koukut:
 - Tavupaikkaus, jonka nimi on "Fixup Ramsgate Crash", saa yhden kykysyötteiden taulukon näyttämään
   tyhjältä.
 
-**Miten palvelin puhuu taustapalvelulle.** Palvelintila lisää `x-undaunted-gameserver-apikey`-otsakkeen
+**Miten palvelin puhuu taustapalvelulle.** Palvelintila lisää `x-dauntless-unbroken-gameserver-apikey`-otsakkeen
 jokaiseen prosessin tekemään HTTP-pyyntöön. Metagame (Undauntedin taustapalvelu) hyväksyy tämän
 otsakkeen, ja jos pyynnössä on myös pelaajan bearer-tunniste, se kirjaa pyynnön sen pelaajan
 nimiin. Palvelintila **ei** ohjaa päätepisteiden URL-osoitteita uudelleen, eikä upstream-koodista
@@ -383,7 +383,7 @@ osoitteessa `0x1453e4ef0`, `GIsClient`-kirjoitus osoitteessa `0x140c0f683`, `Ini
 - **Välitys-DLL:n lähdekoodi.** `dxgi.dll`-välitys-DLL:n lähdekoodia ei ole julkaistu. Aiomme
   kirjoittaa oman.
 - **Valmiiksi käännetyt tiedostot.** Emme ole varmistaneet, että valmiiksi käännetty
-  `UndauntedInternalServer.dll` on käännetty julkaistusta lähdekoodista. Kiinnitämme käyttämiemme
+  `DauntlessUnbroken.dll` on käännetty julkaistusta lähdekoodista. Kiinnitämme käyttämiemme
   valmiiden DLL-tiedostojen tiivisteet ja aiomme kääntää ne itse lähdekoodista.
 - **Kaksinkertainen kyvyn aktivointi.** Palvelimen RPC-koukku aktivoi kyvyn suoraan ja kutsuu sitten
   myös alkuperäistä RPC:tä. Sitä, aktivoiko tämä kyvyt kahdesti, ei ole testattu.

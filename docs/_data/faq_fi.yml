@@ -6,7 +6,7 @@
   q: "Voiko Dauntlessia vielä pelata, kun viralliset palvelimet on suljettu?"
   a: >-
     Voi, yksityisellä palvelimella. Pelin viralliset palvelimet (tietokoneet, jotka pyörittivät peliä
-    verkossa) suljettiin 30.5.2025, eikä peliä voi pelata ollenkaan ilman palvelinta. Dauntless Revived
+    verkossa) suljettiin 30.5.2025, eikä peliä voi pelata ollenkaan ilman palvelinta. Dauntless Unbroken
     korvaa ne. Jos sinulla on oma kopio pelin versiosta 1.4.4, voit pystyttää palvelimen ja pelata.
     Tähän mennessä peliä on pelannut yksi pelaaja: palvelinkoneella (kirjautuminen, opetusjakso,
     Ramsgaten kaupunki, Training Dojo -harjoitussali, metsästykset ja varusteiden valmistus toimivat)
@@ -17,12 +17,12 @@
 - id: onko-yksityispalvelinta
   q: "Onko Dauntlessille olemassa yksityistä palvelinta?"
   a: >-
-    On. Dauntless Revived on yksityinen palvelin, joka perustuu
+    On. Dauntless Unbroken on yksityinen palvelin, joka perustuu
     [Undaunted](https://github.com/SyST3MDeV/Undaunted)-projektiin. Undaunted on gwogin ja muiden
     tekijöiden avoimen lähdekoodin Dauntless-palvelin (avoin lähdekoodi tarkoittaa, että ohjelman koodi
-    on kaikkien luettavissa). Dauntless Revived ei ole julkinen palvelin, jolle kuka tahansa voisi tulla.
+    on kaikkien luettavissa). Dauntless Unbroken ei ole julkinen palvelin, jolle kuka tahansa voisi tulla.
     Sitä pyöritetään muutamalle kaverille. Kuka tahansa voi kuitenkin pystyttää oman palvelimen
-    [lähdekoodin](https://github.com/mixutin/dauntless-revived) avulla. Samaa tekee myös
+    [lähdekoodin](https://github.com/Vvoidddd/dauntless-unbroken) avulla. Samaa tekee myös
     [Mystic Paradox](https://github.com/pranav158/Mystic-Paradox) -projekti pelin versiolle 1.12.0.
 
 - id: mika-versio
@@ -71,7 +71,7 @@
     varmistaa, että kopiosi on aito ja muuttamaton.
 
 - id: liittyyko-phoenix-labsiin
-  q: "Liittyykö Dauntless Revived Phoenix Labsiin tai Epic Gamesiin?"
+  q: "Liittyykö Dauntless Unbroken Phoenix Labsiin tai Epic Gamesiin?"
   a: >-
     Ei liity. Se on epävirallinen fanien harrastusprojekti, eikä sillä tavoitella rahaa. Phoenix Labs tai
     Epic Games eivät ole tehneet, hyväksyneet tai tukeneet sitä. ”Dauntless” on omistajiensa tavaramerkki.
@@ -102,7 +102,7 @@
     välitavoitteeseen M2 [tiekartalla](fi/roadmap.md) (suunnitelma tulevista töistä).
 
 - id: mika-on-undaunted
-  q: "Mikä on Undaunted, ja miten Dauntless Revived eroaa siitä?"
+  q: "Mikä on Undaunted, ja miten Dauntless Unbroken eroaa siitä?"
   a: >-
     [Undaunted](https://github.com/SyST3MDeV/Undaunted) on gwogin (Gregory Morford) ja muiden tekijöiden
     avoimen lähdekoodin projekti, joka teki tämän kaiken mahdolliseksi. Heidän työtään ovat ne osat,
@@ -147,4 +147,4 @@
     Voit. Lähdekoodi, [tiekartta](fi/roadmap.md) ja [löydökset](fi/findings/index.md) ovat kaikkien
     luettavissa. Voit lukea niitä, kokeilla ja tehdä oman version. Jos huomaat virheen tällä sivustolla
     tai tiedät, miten jokin alkuperäisen taustapalvelun osa toimi, kerro siitä avaamalla ilmoitus
-    (issue) [GitHubissa](https://github.com/mixutin/dauntless-revived).
+    (issue) [GitHubissa](https://github.com/Vvoidddd/dauntless-unbroken).

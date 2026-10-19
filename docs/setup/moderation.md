@@ -1,7 +1,7 @@
 # Account and IP bans
 
 Launcher 0.1.29 shows the server's ban reason and **Go to support**, which opens
-https://discord.gg/dauntlessrevived. Manual region choices remain manual; fresh
+https://discord.gg/dauntlessunbroken. Manual region choices remain manual; fresh
 settings select Automatic and compare two TCP handshakes per available region.
 TCP latency is an estimate, not in-game ping or a guarantee of available capacity.
 

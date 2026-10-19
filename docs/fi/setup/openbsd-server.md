@@ -1,9 +1,9 @@
 ---
 title: OpenBSD-palvelin
 parent: Asennus
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 8
-description: "Dauntless Revivedin natiivi OpenBSD 7.9 -ohjauspuoli PF:llä ja rc.d:llä sekä erillinen Linux/Proton/Wine-pelityöntekijä."
+description: "Dauntless Unbrokenin natiivi OpenBSD 7.9 -ohjauspuoli PF:llä ja rc.d:llä sekä erillinen Linux/Proton/Wine-pelityöntekijä."
 lang: fi
 ref: setup/openbsd-server
 locale: fi_FI

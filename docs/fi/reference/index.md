@@ -1,10 +1,10 @@
 ---
 title: Tekninen viite
-parent: Dauntless Revived suomeksi
+parent: Dauntless Unbroken suomeksi
 nav_order: 3
 has_children: true
 has_toc: false
-description: "Dauntless Revivedin tekninen viite: jokainen asetus, portti, HTTP-reitti, tiedosto, pelin asetus ja skripti oletusarvoineen, tarkistettuna koodia vasten."
+description: "Dauntless Unbrokenin tekninen viite: jokainen asetus, portti, HTTP-reitti, tiedosto, pelin asetus ja skripti oletusarvoineen, tarkistettuna koodia vasten."
 lang: fi
 ref: reference/index
 locale: fi_FI
@@ -24,7 +24,7 @@ locale: fi_FI
 
 # Tekninen viite
 
-Näillä sivuilla on Dauntless Revivedin palvelinten ja skriptien tarkat tiedot: jokainen asetus,
+Näillä sivuilla on Dauntless Unbrokenin palvelinten ja skriptien tarkat tiedot: jokainen asetus,
 portti, reitti, tiedosto ja parametri, sen oletusarvo, sallitut arvot ja se, kuka sen asettaa. Jokainen
 tieto on tarkistettu koodia vasten. Jos ohje ja koodi olivat eri mieltä, koodi voitti ja ohje
 korjattiin.
@@ -58,12 +58,12 @@ Osat on nimetty niiden repositoriokansion mukaan.
 
 | Kansio | Mikä se on | Asetukset | Reitit ja skriptit |
 |:-------|:-----------|:----------|:-------------------|
-| `UndauntedMetagame/` | Taustapalvelu, jonka kanssa peli keskustelee: tilit, hahmot, tavarat, eteneminen, pelaajien yhteen sovittaminen (matchmaking), ryhmät ja hallintarajapinta. | [Metagame]({{ config_page.url | relative_url }}#metagame) | [Pelin reitit]({{ api_page.url | relative_url }}#game-routes), [hallintarajapinta]({{ api_page.url | relative_url }}#undaunted-api) |
-| `UndauntedDeployServer/` | Käynnistää ja valvoo pelipalvelimet: Ramsgaten, Training Dojon ja yhden kutakin metsästystä kohden. | [Deploy-palvelin]({{ config_page.url | relative_url }}#deploy-server) | [Deploy-palvelin]({{ api_page.url | relative_url }}#deploy-server) |
-| `UndauntedInternalServer/` | DLL, joka tekee 1.4.4-peliohjelman kopiosta pelipalvelimen ja ohjaa peliohjelmat metagameen. | [Pelin asetukset]({{ gamesettings_page.url | relative_url }}#dlls) | ei reittejä |
-| `UndauntedGateway/` | Vain julkisessa tilassa: salattu yhdyskäytävä, ainoa kaikille avoin portti, ja sallittujen listan apuri, joka avaa peliportit kirjautuneille pelaajille. | [Yhdyskäytävä]({{ config_page.url | relative_url }}#gateway), [apuri]({{ config_page.url | relative_url }}#allowlist-helper) | [Yhdyskäytävä]({{ api_page.url | relative_url }}#gateway), [apuri]({{ api_page.url | relative_url }}#allowlist-helper) |
-| `UndauntedContent/` | Jakaa käynnistimelle pelitiedostot, uutiset ja kuvapaketin. | [Sisältöpalvelin]({{ config_page.url | relative_url }}#content-server) | [Sisältöpalvelin]({{ api_page.url | relative_url }}#content-server) |
-| `UndauntedLauncher/` | Kavereiden käynnistin: kutsut, tiliavain, pelin lataus ja korjaus sekä julkisen tilan paikallinen välitin. | [Käynnistin]({{ config_page.url | relative_url }}#launcher) | [Käynnistimen välitin]({{ api_page.url | relative_url }}#launcher-relay) |
+| `DauntlessUnbrokenMetagame/` | Taustapalvelu, jonka kanssa peli keskustelee: tilit, hahmot, tavarat, eteneminen, pelaajien yhteen sovittaminen (matchmaking), ryhmät ja hallintarajapinta. | [Metagame]({{ config_page.url | relative_url }}#metagame) | [Pelin reitit]({{ api_page.url | relative_url }}#game-routes), [hallintarajapinta]({{ api_page.url | relative_url }}#dauntless-unbroken-api) |
+| `DauntlessUnbrokenDeployServer/` | Käynnistää ja valvoo pelipalvelimet: Ramsgaten, Training Dojon ja yhden kutakin metsästystä kohden. | [Deploy-palvelin]({{ config_page.url | relative_url }}#deploy-server) | [Deploy-palvelin]({{ api_page.url | relative_url }}#deploy-server) |
+| `DauntlessUnbrokenInternalServer/` | DLL, joka tekee 1.4.4-peliohjelman kopiosta pelipalvelimen ja ohjaa peliohjelmat metagameen. | [Pelin asetukset]({{ gamesettings_page.url | relative_url }}#dlls) | ei reittejä |
+| `DauntlessUnbrokenGateway/` | Vain julkisessa tilassa: salattu yhdyskäytävä, ainoa kaikille avoin portti, ja sallittujen listan apuri, joka avaa peliportit kirjautuneille pelaajille. | [Yhdyskäytävä]({{ config_page.url | relative_url }}#gateway), [apuri]({{ config_page.url | relative_url }}#allowlist-helper) | [Yhdyskäytävä]({{ api_page.url | relative_url }}#gateway), [apuri]({{ api_page.url | relative_url }}#allowlist-helper) |
+| `DauntlessUnbrokenContent/` | Jakaa käynnistimelle pelitiedostot, uutiset ja kuvapaketin. | [Sisältöpalvelin]({{ config_page.url | relative_url }}#content-server) | [Sisältöpalvelin]({{ api_page.url | relative_url }}#content-server) |
+| `DauntlessUnbrokenLauncher/` | Kavereiden käynnistin: kutsut, tiliavain, pelin lataus ja korjaus sekä julkisen tilan paikallinen välitin. | [Käynnistin]({{ config_page.url | relative_url }}#launcher) | [Käynnistimen välitin]({{ api_page.url | relative_url }}#launcher-relay) |
 | `deploy/windows-server/` | Windows-palvelinpaketti: asentaa, ajaa, päivittää ja varmuuskopioi kaiken Windows Server 2019 -koneella. | [Mitä paketti kirjoittaa]({{ config_page.url | relative_url }}#server-kit) | [Paketin skriptit]({{ scripts_page.url | relative_url }}#windows-server-kit) |
 | `friend-kit/` | PowerShell-skriptit kaverille, joka liittyy yksityisen tilan (Tailscale) palvelimelle ilman käynnistintä. | [Peliohjelman puoli]({{ config_page.url | relative_url }}#client-side) | [Kaveripaketin skriptit]({{ scripts_page.url | relative_url }}#friend-kit) |
 
@@ -76,7 +76,7 @@ oletusarvoineen. Kopioi se nimelle `.env` ja täytä tarvitsemasi kohdat. Sivu
 - **Salaisuudet** on merkitty salaisiksi: tiliavaimet (`UUK_...`), pelipalvelimen avain,
   allekirjoitusavaimet, yhdyskäytävän ja sallittujen listan salaisuudet sekä TLS-avain. Älä koskaan
   jaa niitä äläkä tallenna niitä versionhallintaan. Sivujen esimerkit ovat paikkamerkkejä.
-- `C:\DauntlessRevived` on palvelinpaketin oletusasennuskansio. Sen paikalla lukee `<juuri>`, kun
+- `C:\DauntlessUnbroken` on palvelinpaketin oletusasennuskansio. Sen paikalla lukee `<juuri>`, kun
   kansio voi olla muukin. `C:\dr\...`-polut ovat alkuperäisen palvelinkoneen kansioita, joita
   asennusohjeet käyttävät esimerkkinä; käytä omia kansioitasi.
 - Esimerkkiosoitteet ovat dokumentaatiota varten varatuista osoitteista (`203.0.113.x`,

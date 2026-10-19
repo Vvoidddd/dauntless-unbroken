@@ -31,7 +31,7 @@ Rollback regional routing by setting `AUS_REGION=0` and removing the main deploy
 
 Launcher 0.1.23 forwards `huntRegion` through the preload IPC bridge; earlier region-enabled versions could discard the selection and redraw Main. The preload regression executes the actual bridge and checks both region values survive a settings reload.
 
-When moving a worker's game directory, inspect the application filter as well as UDP ports and remote addresses on `DauntlessRevived-GamePorts-Allowlist`. An existing program-specific rule can still point to the old executable even while the allowlist helper reports healthy. Set its program to the deployed `GAMESERVER_BINARY_PATH` (or preserve an intentionally unrestricted application filter); do not clear the authenticated remote-address restrictions. The helper updates ports/addresses but preserves existing application filters.
+When moving a worker's game directory, inspect the application filter as well as UDP ports and remote addresses on `DauntlessUnbroken-GamePorts-Allowlist`. An existing program-specific rule can still point to the old executable even while the allowlist helper reports healthy. Set its program to the deployed `GAMESERVER_BINARY_PATH` (or preserve an intentionally unrestricted application filter); do not clear the authenticated remote-address restrictions. The helper updates ports/addresses but preserves existing application filters.
 
 Verify actual native `connections` after the change. A successful CITY assignment, a bound UDP socket, and healthy backend/allowlist processes alone do not prove that players can reach a world.
 

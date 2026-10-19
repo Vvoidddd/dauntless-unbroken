@@ -11,7 +11,7 @@
 param([string]$WorkDir = (Join-Path $env:TEMP 'dr-deploy-test'))
 $ErrorActionPreference = 'Stop'
 $Kit = Split-Path $PSScriptRoot -Parent
-. (Join-Path $Kit 'DauntlessServer.Common.ps1')
+. (Join-Path $Kit 'DauntlessUnbrokenServer.Common.ps1')
 $Deploy = Join-Path $Kit 'Deploy-Remote.ps1'
 
 $script:Pass = 0; $script:Fail = 0
@@ -39,7 +39,7 @@ New-RandomFile $zip (36MB + 12345) 1
 $zipHash = (Get-DRSha256 $zip).ToLowerInvariant()
 $backup = Join-Path $WorkDir '2026-10-01_200000'
 New-Item -ItemType Directory -Force -Path (Join-Path $backup 'secrets') | Out-Null
-New-RandomFile (Join-Path $backup 'undaunted.db') 200000 2
+New-RandomFile (Join-Path $backup 'dauntless-unbroken.db') 200000 2
 Set-Content -LiteralPath (Join-Path $backup 'secrets\metagame.env') -Value 'TEST_ONLY=1' -Encoding ASCII
 Set-Content -LiteralPath (Join-Path $backup 'secrets\deployserver.env') -Value 'TEST_ONLY=1' -Encoding ASCII
 $dummyKey = Join-Path $WorkDir 'not_a_key'
@@ -58,7 +58,7 @@ try {
         'backup without deployserver.env'         = @(($t + @('-RestoreFrom', (Join-Path $backup 'secrets'))), 'is missing')
         'update with a game zip'                  = @(($t + @('-Update', '-GameZip', $zip)), 'belong to an install')
         'two actions'                             = @(($t + @('-Update', '-Status')), 'Use one of')
-        'install root with a space'               = @(($t + @('-OwnerName', 'Tester', '-InstallRoot', 'C:\Dauntless Revived')), 'without spaces')
+        'install root with a space'               = @(($t + @('-OwnerName', 'Tester', '-InstallRoot', 'C:\Dauntless Unbroken')), 'without spaces')
         'admin ip "any"'                          = @(($t + @('-OwnerName', 'Tester', '-AdminIp', 'any')), 'IPv4 address or IPv4/prefix')
         'working tree with GitHub source'         = @(($t + @('-OwnerName', 'Tester', '-Source', 'GitHub', '-WorkingTree')), 'does not go with')
         'missing key file'                        = @(@('-Server', 'test.invalid', '-OwnerName', 'Tester', '-KeyFile', (Join-Path $WorkDir 'nope')), 'SSH key not found')
@@ -71,7 +71,7 @@ try {
         Check "refuses: $k" ($r.Code -eq 1 -and $r.Text -match [regex]::Escape($cases[$k][1])) (($r.Out | Where-Object { $_ -match 'FAIL' }) -join ' | ')
     }
     $w = Run @('-Server', '203.0.113.7', '-KeyFile', $dummyKey, '-GameZip', $zip, '-RestoreFrom', $backup, '-AdminIp', '198.51.100.20', '-WhatIf')
-    Check '-WhatIf prints the plan without connecting' ($w.Code -eq 0 -and $w.Text -match 'nothing is connected' -and $w.Text -match 'upload .*BaseGame144\.zip in 256 MB parts' -and $w.Text -match 'Administrators and SYSTEM only' -and $w.Text -match 'Install-DauntlessServer\.ps1 -Mode Public') (($w.Out | Select-Object -Last 6) -join ' | ')
+    Check '-WhatIf prints the plan without connecting' ($w.Code -eq 0 -and $w.Text -match 'nothing is connected' -and $w.Text -match 'upload .*BaseGame144\.zip in 256 MB parts' -and $w.Text -match 'Administrators and SYSTEM only' -and $w.Text -match 'Install-DauntlessUnbrokenServer\.ps1 -Mode Public') (($w.Out | Select-Object -Last 6) -join ' | ')
 
     Write-Host '== upload to a stand-in server folder'
     $base = $t + @('-GameZip', $zip, '-TestZipSha256', $zipHash, '-ChunkSizeMB', '8', '-RestoreFrom', $backup, '-OwnerName', 'Tester', '-ServerName', 'Test server', '-AdminIp', '198.51.100.20,198.51.100.21')
@@ -83,7 +83,7 @@ try {
     $srcZip = @(Get-ChildItem -LiteralPath (Join-Path $remote 'staging\source') -Filter 'source-*.zip')
     Check 'the source zip (git archive) arrived' ($srcZip.Count -eq 1 -and $r1.Text -match 'server code uploaded and checked')
     $restored = Join-Path $remote "staging\restore\$(Split-Path $backup -Leaf)"
-    Check 'the backup arrived' ((Test-Path -LiteralPath (Join-Path $restored 'undaunted.db')) -and (Test-Path -LiteralPath (Join-Path $restored 'secrets\deployserver.env')))
+    Check 'the backup arrived' ((Test-Path -LiteralPath (Join-Path $restored 'dauntless-unbroken.db')) -and (Test-Path -LiteralPath (Join-Path $restored 'secrets\deployserver.env')))
     $acl = Get-Acl -LiteralPath (Join-Path $remote 'staging\restore')
     $who = @($acl.Access | ForEach-Object { $_.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value } | Sort-Object -Unique)
     Check 'the backup folder is closed to other accounts' ($acl.AreAccessRulesProtected -and -not ($who | Where-Object { $_ -notin 'S-1-5-32-544', 'S-1-5-18', (Get-DRCurrentSid) })) ($who -join ',')
@@ -94,7 +94,7 @@ try {
     $final = Join-Path $up 'BaseGame144.zip'
     Check 'the zip on the server has the right SHA-256' ((Test-Path -LiteralPath $final) -and (Get-DRSha256 $final).ToLowerInvariant() -eq $zipHash)
     Check 'no parts left behind' (@(Get-ChildItem -LiteralPath $up -Filter 'part*').Count -eq 0)
-    $cmdLine = @($r2.Out | Where-Object { $_ -match "^\s+& '.*Install-DauntlessServer\.ps1'" }) | Select-Object -Last 1
+    $cmdLine = @($r2.Out | Where-Object { $_ -match "^\s+& '.*Install-DauntlessUnbrokenServer\.ps1'" }) | Select-Object -Last 1
     Check 'the installer command is complete' ($cmdLine -match "-Mode 'Public'" -and $cmdLine -match "-GameZip '[^']*BaseGame144\.zip'" -and $cmdLine -match "-SourceZip '[^']*source-[0-9a-f]{12}\.zip' -SourceCommit '[0-9a-f]{40}'" -and $cmdLine -match "-RestoreFrom '[^']*2026-10-01_200000'" -and $cmdLine -match "-OwnerName 'Tester'" -and $cmdLine -match "-ServerName 'Test server'" -and $cmdLine -match "-PublicHost 'test.invalid' -GatewayPort 443" -and $cmdLine -match "-AdminIp '198.51.100.20','198.51.100.21'") $cmdLine
     $tokens = $null; $errors = $null
     [void][Management.Automation.Language.Parser]::ParseInput(($cmdLine.Trim()), [ref]$tokens, [ref]$errors)
@@ -102,7 +102,7 @@ try {
 
     $r3 = Run ($base + @('-Chat', 'On'))
     Check 'a repeated run has nothing left to upload' ($r3.Code -eq 0 -and $r3.Text -match 'already on the server and verified' -and $r3.Text -notmatch 'verified on the server \(')
-    $chatLine = @($r3.Out | Where-Object { $_ -match "^\s+& '.*Install-DauntlessServer\.ps1'" }) | Select-Object -Last 1
+    $chatLine = @($r3.Out | Where-Object { $_ -match "^\s+& '.*Install-DauntlessUnbrokenServer\.ps1'" }) | Select-Object -Last 1
     Check '-Chat On goes to the installer' ($chatLine -match "-Chat 'On'") $chatLine
 
     Write-Host '== chat on its own'
@@ -131,7 +131,7 @@ try {
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         $z = [IO.Compression.ZipFile]::OpenRead($wz.FullName)
         try { $names = @($z.Entries | ForEach-Object { $_.FullName }) } finally { $z.Dispose() }
-        Check 'the working tree zip has the server packages' (($names -contains 'UndauntedMetagame/package.json') -and ($names -contains 'deploy/windows-server/Install-DauntlessServer.ps1'))
+        Check 'the working tree zip has the server packages' (($names -contains 'DauntlessUnbrokenMetagame/package.json') -and ($names -contains 'deploy/windows-server/Install-DauntlessUnbrokenServer.ps1'))
         $leak = @($names | Where-Object { $_ -match '(^|/)\.env($|\.)' -and $_ -notmatch '\.env\.example$' -or $_ -match '\.(key|pem|db)$' -or $_ -match '(^|/)node_modules/' -or $_ -match '(^|/)dist/' })
         Check 'no .env, key, database, node_modules or dist in it' ($leak.Count -eq 0) (($leak | Select-Object -First 5) -join ', ')
     }

@@ -2,7 +2,7 @@
 title: Developer guide
 parent: Reference
 nav_order: 7
-description: "How to work on Dauntless Revived: prerequisites, building and testing each package, running the stack and the launcher locally, CI, and where the code lives."
+description: "How to work on Dauntless Unbroken: prerequisites, building and testing each package, running the stack and the launcher locally, CI, and where the code lives."
 lang: en
 ref: reference/development
 ---
@@ -55,12 +55,12 @@ in [Ports and network]({{ ports_page.url | relative_url }}).
 
 ```powershell
 New-Item -ItemType Directory -Force C:\dr | Out-Null
-git -c core.longpaths=true clone https://github.com/mixutin/dauntless-revived.git C:\dr\undaunted
+git -c core.longpaths=true clone https://github.com/Vvoidddd/dauntless-unbroken.git C:\dr\undaunted
 git -C C:\dr\undaunted config core.longpaths true
-git -C C:\dr\undaunted checkout dauntless-revived
+git -C C:\dr\undaunted checkout dauntless-unbroken
 ```
 
-`dauntless-revived` is the default branch: pull requests go to it, and the docs site is published
+`dauntless-unbroken` is the default branch: pull requests go to it, and the docs site is published
 from its `docs/` folder. Keep the clone at a short path: the server DLL's generated SDK alone has over
 4,000 files, and a clone into a deeply nested folder has failed with "Filename too long"
 ([Troubleshooting]({{ trouble_page.url | relative_url }}#git-filename-too-long)).
@@ -68,17 +68,17 @@ from its `docs/` folder. Keep the clone at a short path: the server DLL's genera
 ### What is in the repository {#layout}
 
 The `Undaunted*` folder names come from upstream Undaunted and are kept as they are. The npm packages
-inside them are named `dauntless-revived-metagame`, `dauntless-revived-deploy-server`,
-`dauntless-revived-content`, `dauntless-revived-gateway` and `dauntless-revived-launcher`.
+inside them are named `dauntless-unbroken-metagame`, `dauntless-unbroken-deploy-server`,
+`dauntless-unbroken-content`, `dauntless-unbroken-gateway` and `dauntless-unbroken-launcher`.
 
 | Folder | What it is | Language and tools |
 |---|---|---|
-| `UndauntedMetagame/` | The backend the game talks to: accounts and keys, characters, inventory, loadouts, progression, parties, friends, guilds, matchmaking, the admin API, and the game's text chat (an XMPP listener in the same process, on when `CHAT=1`). | TypeScript, Express 5, SQLite through `better-sqlite3` and Drizzle |
-| `UndauntedDeployServer/` | Starts and watches the game-server processes when the metagame asks. It has no authentication and answers loopback callers only. | TypeScript, Express 5 |
-| `UndauntedContent/` | Serves the verified 1.4.4 game files, the host's art pack and news to the launcher. | TypeScript, Node's own `http` |
-| `UndauntedGateway/` | Public mode: the TLS gateway (the server's only public TCP port) and the allowlist helper (one Windows Firewall rule for the game's UDP ports). | TypeScript, Node's own `https`; `node-forge` for the certificate tool |
-| `UndauntedLauncher/` | The Dauntless Revived Launcher that friends install: invites, registration, downloads, the local relay, starting the game. `assets/` holds the two prebuilt DLLs the game needs. | TypeScript, Electron, Electron Forge and Vite |
-| `UndauntedInternalServer/` | The C++ source of the server DLL, from upstream, with a generated SDK. | C++, Visual Studio 2022 |
+| `DauntlessUnbrokenMetagame/` | The backend the game talks to: accounts and keys, characters, inventory, loadouts, progression, parties, friends, guilds, matchmaking, the admin API, and the game's text chat (an XMPP listener in the same process, on when `CHAT=1`). | TypeScript, Express 5, SQLite through `better-sqlite3` and Drizzle |
+| `DauntlessUnbrokenDeployServer/` | Starts and watches the game-server processes when the metagame asks. It has no authentication and answers loopback callers only. | TypeScript, Express 5 |
+| `DauntlessUnbrokenContent/` | Serves the verified 1.4.4 game files, the host's art pack and news to the launcher. | TypeScript, Node's own `http` |
+| `DauntlessUnbrokenGateway/` | Public mode: the TLS gateway (the server's only public TCP port) and the allowlist helper (one Windows Firewall rule for the game's UDP ports). | TypeScript, Node's own `https`; `node-forge` for the certificate tool |
+| `DauntlessUnbrokenLauncher/` | The Dauntless Unbroken Launcher that friends install: invites, registration, downloads, the local relay, starting the game. `assets/` holds the two prebuilt DLLs the game needs. | TypeScript, Electron, Electron Forge and Vite |
+| `DauntlessUnbrokenInternalServer/` | The C++ source of the server DLL, from upstream, with a generated SDK. | C++, Visual Studio 2022 |
 | `deploy/windows-server/` | The Windows Server kit: install, update, backup, invites, the stack supervisor, and its tests in `tests/`. | Windows PowerShell 5.1, Node helpers in `lib/` |
 | `friend-kit/` | The manual scripts for friends without the launcher (`setup.ps1`, `play.ps1`). | PowerShell |
 | `tools/` | The docs generators, the content manifest generator and the friend kit builder ([Scripts and parameters]({{ scripts_page.url | relative_url }})), and in `tools/ci/` the repository check and the launcher version rules CI uses ([below](#ci)). | Node, PowerShell |
@@ -93,7 +93,7 @@ Each Node package is installed, built and tested on its own, from its own folder
 you get exactly the versions in that package's `package-lock.json`:
 
 ```powershell
-Set-Location C:\dr\undaunted\UndauntedMetagame
+Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
 npm ci --no-audit --no-fund
 npm run build
 npm test
@@ -101,11 +101,11 @@ npm test
 
 | Package | Build | Test | Other scripts |
 |---|---|---|---|
-| `UndauntedMetagame` | `npm run build`: TypeScript into `dist/`, then `scripts/write-build-info.js` writes `dist/build-info.json` (commit, version, build time) | `npm test` | `npm run dev` (restarts when you change a source file), `npm start`, `npm run db:generate` |
-| `UndauntedDeployServer` | `npm run build` (into `dist/`) | `npm test` | `npm run dev`, `npm start` |
-| `UndauntedGateway` | `npm run build` (into `dist/`) | `npm test` | `npm start` (the gateway), `npm run start:allowlist` (the helper), `npm run make-cert` |
-| `UndauntedContent` | `npm run build` (into `dist/`) | `npm test`, `npm run test:integration` | `npm start`, `npm run verify` (hashes a game folder against the manifest) |
-| `UndauntedLauncher` | `npm run make` (the installer and a zip, in `out/make/`), `npm run package` (the app folder only) | `npm run typecheck`, `npm test` | `npm start`, `npm run icon` |
+| `DauntlessUnbrokenMetagame` | `npm run build`: TypeScript into `dist/`, then `scripts/write-build-info.js` writes `dist/build-info.json` (commit, version, build time) | `npm test` | `npm run dev` (restarts when you change a source file), `npm start`, `npm run db:generate` |
+| `DauntlessUnbrokenDeployServer` | `npm run build` (into `dist/`) | `npm test` | `npm run dev`, `npm start` |
+| `DauntlessUnbrokenGateway` | `npm run build` (into `dist/`) | `npm test` | `npm start` (the gateway), `npm run start:allowlist` (the helper), `npm run make-cert` |
+| `DauntlessUnbrokenContent` | `npm run build` (into `dist/`) | `npm test`, `npm run test:integration` | `npm start`, `npm run verify` (hashes a game folder against the manifest) |
+| `DauntlessUnbrokenLauncher` | `npm run make` (the installer and a zip, in `out/make/`), `npm run package` (the app folder only) | `npm run typecheck`, `npm test` | `npm start`, `npm run icon` |
 
 `dist/`, `build/` and the launcher's `out/`, `.vite/` and `.test-build/` are git-ignored. Build them
 yourself and never commit them. After a pull, run `npm run build` again before `npm start`: `npm start`
@@ -114,7 +114,7 @@ source file was removed or renamed.
 
 The build info names the exact source that is running, in `GET /undaunted/api/ServerStatus` and
 `/dauntless-status` ([HTTP API]({{ api_page.url | relative_url }})). A build from a folder with
-uncommitted changes under `UndauntedMetagame/` gets `-dirty` after the commit. `GIT_COMMIT` in the
+uncommitted changes under `DauntlessUnbrokenMetagame/` gets `-dirty` after the commit. `GIT_COMMIT` in the
 metagame's `.env` overrides the recorded commit. `npm run dev` runs the sources without a build, so it
 has no build info: the status routes then show the commit as `unknown` unless `GIT_COMMIT` is set.
 
@@ -132,7 +132,7 @@ files whose name contains `relay`.
 
 | Package | What the tests cover | Good to know |
 |---|---|---|
-| Metagame | Accounts and usernames, what each kind of key may do, characters and save history, the database and its migrations (a database at migration 0013 full of rows keeps every row through the new ones), inventory transactions, loadouts and slots, progression (the default, real mode and stub mode, rank math, the upgrade notice, the retry guard, the config folder), Escalation, the free store, entitlements, cooldowns and bounties, parties, friends, Slayer Links, guilds, chat and friends' presence, matchmaking and its failures, the body log, server status. The cases ported from Harmonic's fork (`*ported.test.ts`, `escalation`, `freestore`, `matchmakingfailure`, `slayerlinks`) name the original file and line in a comment. | Each file gets its own empty database in `%TEMP%\undaunted-test-*`, a throwaway signing key pair, `AUTH_MODE=APIKEY` and `NODE_ENV=production`. Logs are silent; set `TEST_LOG_LEVEL` (for example `debug`) to see them. |
+| Metagame | Accounts and usernames, what each kind of key may do, characters and save history, the database and its migrations (a database at migration 0013 full of rows keeps every row through the new ones), inventory transactions, loadouts and slots, progression (the default, real mode and stub mode, rank math, the upgrade notice, the retry guard, the config folder), Escalation, the free store, entitlements, cooldowns and bounties, parties, friends, Slayer Links, guilds, chat and friends' presence, matchmaking and its failures, the body log, server status. The cases ported from Harmonic's fork (`*ported.test.ts`, `escalation`, `freestore`, `matchmakingfailure`, `slayerlinks`) name the original file and line in a comment. | Each file gets its own empty database in `%TEMP%\dauntless-unbroken-test-*`, a throwaway signing key pair, `AUTH_MODE=APIKEY` and `NODE_ENV=production`. Logs are silent; set `TEST_LOG_LEVEL` (for example `debug`) to see them. |
 | Deploy server | Game-server kinds and the list the metagame reads, the checks on a matchmaking request, loopback-only access, Ramsgate and the Dojo started again on demand with one launch, a missing game binary and a failed startup (with a stand-in spawn) | `TEST_LOG_LEVEL` works here too. |
 | Gateway | TLS and the pinned fingerprint, routing and refusals, forwarding headers, size and rate limits, WebSocket proxying, the allowlist feed and helper, both entry points as real processes | The helper always runs in dry-run mode: the tests never change the firewall. |
 | Content server | Settings, paths, ranges, the key cache, limits, the manifest, art pack and news, the request handler | `npm run test:integration` needs a real install ([below](#content-integration-test)). |
@@ -141,7 +141,7 @@ files whose name contains `relay`.
 To run one metagame test file, build the tests once and call Node from the package folder:
 
 ```powershell
-Set-Location C:\dr\undaunted\UndauntedMetagame
+Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
 npx tsc -p tsconfig.test.json
 node --test build/test/party.test.js
 ```
@@ -156,7 +156,7 @@ and the sandbox both use 62002. **Run one suite at a time on a PC.** The full li
 ### Content server integration test {#content-integration-test}
 
 ```powershell
-Set-Location C:\dr\undaunted\UndauntedContent
+Set-Location C:\dr\undaunted\DauntlessUnbrokenContent
 $env:CONTENT_IT_GAME_DIR = "C:\D144\Dauntless"   # the default; the folder that contains Archon\
 npm run test:integration
 ```
@@ -182,7 +182,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\
 
 | Script | What it checks | Needs | Parameters |
 |---|---|---|---|
-| `Test-KitUnit.ps1` | Every kit script parses in PowerShell 5.1 and is ASCII only; invite strings v1 and v2, including everything that must be refused; certificate fingerprints; TLS pinning against a local test server; `Get-ServerStatus.ps1` with and without an account key; account key files; the chunked-upload helper; the performance sampler. | `npm ci` in `UndauntedGateway` first: it runs the gateway's certificate tool. | `-WorkDir` (default `%TEMP%\dr-kit-unit`, deleted at the end), `-Port` (default 62450; 62000-62499; the performance check also uses the port above it) |
+| `Test-KitUnit.ps1` | Every kit script parses in PowerShell 5.1 and is ASCII only; invite strings v1 and v2, including everything that must be refused; certificate fingerprints; TLS pinning against a local test server; `Get-ServerStatus.ps1` with and without an account key; account key files; the chunked-upload helper; the performance sampler. | `npm ci` in `DauntlessUnbrokenGateway` first: it runs the gateway's certificate tool. | `-WorkDir` (default `%TEMP%\dr-kit-unit`, deleted at the end), `-Port` (default 62450; 62000-62499; the performance check also uses the port above it) |
 | `Test-DeployRemote.ps1` | `Deploy-Remote.ps1` without a server: argument handling, then the kit, source, backup and game-zip uploads into a local folder that stands in for the server. An interrupted upload that resumes, a part damaged in transit or after it was checked, a second run with nothing left to do, and an upload of the working tree with no `.env`, key, database, `node_modules` or `dist` in it. | Git. No network, no SSH key. | `-WorkDir` (default `%TEMP%\dr-deploy-test`, deleted at the end) |
 | `Test-Sandbox.ps1` | A real `-Sandbox` install of this checkout in public mode, into a scratch folder with a stand-in game folder: `-WhatIf` first, then the install (it builds the four server packages, which takes a few minutes), invites, status and registration through the gateway with the pinned certificate, the gateway's refusals, an update and a rollback, status, backup and stop, and a second install restored from that backup. Then it stops everything and deletes the folder. It also checks that a stack running on 61000/61001 was left alone. The deploy server and the game never run in the sandbox. | Free loopback ports 62000, 62002, 62005 and 62443 (it stops if one is taken); the npm registry, for `npm ci` | `-SandboxDir` (default `C:\dr\sandbox-ws2019`; the folder name must contain `sandbox`, because the folder is deleted), `-KeepSandbox` (keep the folder and the stopped install), `-SkipRestore` (skip the second install) |
 
@@ -210,11 +210,11 @@ backs up before every start; a hand-started metagame does not.)
 
 | Component | Settings file | Start with | Needs first | Only needed for |
 |---|---|---|---|---|
-| Metagame | `UndauntedMetagame\.env`. It must exist. | `npm run dev` or `npm start` | nothing | everything |
-| Deploy server | `UndauntedDeployServer\.env`. It must exist. | `npm run dev` or `npm start` | the metagame with a registered game-server key; a verified 1.4.4 install with the two DLLs; the user `Game.ini` ([host step 8]({{ host_page.url | relative_url }}#game-ini)) | starting game servers: Ramsgate, the Training Dojo, hunts |
-| Content server | `UndauntedContent\.env`, read if it exists. `CONTENT_GAME_DIR` has no default. | `npm start` | the metagame (it checks account keys there); a verified 1.4.4 install | the launcher's downloads |
-| Allowlist helper | `UndauntedGateway\.env`, read if it exists. `ALLOWLIST_DRY_RUN` and `ALLOWLIST_SECRET` have no default. | `npm run start:allowlist` | nothing | public mode |
-| Gateway | `UndauntedGateway\.env`, read if it exists. The certificate, its key and both secrets have no default. | `npm start` | the metagame, the content server, the allowlist helper, a certificate | public mode |
+| Metagame | `DauntlessUnbrokenMetagame\.env`. It must exist. | `npm run dev` or `npm start` | nothing | everything |
+| Deploy server | `DauntlessUnbrokenDeployServer\.env`. It must exist. | `npm run dev` or `npm start` | the metagame with a registered game-server key; a verified 1.4.4 install with the two DLLs; the user `Game.ini` ([host step 8]({{ host_page.url | relative_url }}#game-ini)) | starting game servers: Ramsgate, the Training Dojo, hunts |
+| Content server | `DauntlessUnbrokenContent\.env`, read if it exists. `CONTENT_GAME_DIR` has no default. | `npm start` | the metagame (it checks account keys there); a verified 1.4.4 install | the launcher's downloads |
+| Allowlist helper | `DauntlessUnbrokenGateway\.env`, read if it exists. `ALLOWLIST_DRY_RUN` and `ALLOWLIST_SECRET` have no default. | `npm run start:allowlist` | nothing | public mode |
+| Gateway | `DauntlessUnbrokenGateway\.env`, read if it exists. The certificate, its key and both secrets have no default. | `npm start` | the metagame, the content server, the allowlist helper, a certificate | public mode |
 
 The metagame's and the deploy server's scripts load `.env` with Node's `--env-file`, and Node stops
 if the file is missing. The gateway's and the content server's scripts load it only if it exists
@@ -238,13 +238,13 @@ New-Item -ItemType Directory -Force C:\dr\dev | Out-Null
 PORT=61000
 BIND_HOST=127.0.0.1
 AUTH_MODE=APIKEY
-DB_FILENAME=C:/dr/dev/undaunted-dev.db
+DB_FILENAME=C:/dr/dev/dauntless-unbroken-dev.db
 TARGET_CHANGELIST=239827
 QOS_TARGET_URL=http://127.0.0.1:61000/QoS
 MATCHMAKING_MODE=DEPLOYSERVER
 DEPLOYSERVER_URL=127.0.0.1:61001
 REGISTRATION_MODE=OPEN
-"@ | Set-Content C:\dr\undaunted\UndauntedMetagame\.env -Encoding ascii
+"@ | Set-Content C:\dr\undaunted\DauntlessUnbrokenMetagame\.env -Encoding ascii
 ```
 
 Then append the signing keys (next section): without them the metagame stops at start. Always set
@@ -277,7 +277,7 @@ and never reuse development ones on a real server.
 |---|---|---|
 | `AUTH_SIGNING_PRIVKEY_B64` (with `AUTH_SIGNING_PUBKEY_B64`) | The metagame. The private key signs every 24-hour session token, so anyone who has it can log in as any account. | The command below |
 | Game-server key | The metagame (it stores only a SHA-256), the deploy server (`METAGAME_API_KEY`) and every game server's command line | [Host step 9]({{ host_page.url | relative_url }}#metagame): queue it in the database, then restart the metagame |
-| Account keys (`UUK_...`) | The account's password: the login, and the `x-undaunted-user-api-key` header | Returned once by `POST /undaunted/api/Register`; the server keeps only a SHA-256 ([host step 10]({{ host_page.url | relative_url }}#admin-account)) |
+| Account keys (`UUK_...`) | The account's password: the login, and the `x-dauntless-unbroken-user-api-key` header | Returned once by `POST /undaunted/api/Register`; the server keeps only a SHA-256 ([host step 10]({{ host_page.url | relative_url }}#admin-account)) |
 | `GATEWAY_SECRET` | The metagame and the gateway, the same value in both: 32 to 256 printable characters without spaces | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `ALLOWLIST_SECRET` | The gateway and the allowlist helper, the same value in both. Use a separate value, not the gateway secret. | The same command |
 | Gateway TLS key (`gateway-key.pem`) | The gateway | `make-cert`, [below](#public-mode-locally). Keep it outside the repository. |
@@ -287,7 +287,7 @@ The signing key pair, appended to the metagame's `.env` without printing it (the
 `>>`: in Windows PowerShell 5.1, `>>` writes UTF-16, which Node can't read as a `.env` file.
 
 ```powershell
-Set-Location C:\dr\undaunted\UndauntedMetagame
+Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
 node -e "const c=require('crypto');const k=c.generateKeyPairSync('rsa',{modulusLength:2048,privateKeyEncoding:{type:'pkcs8',format:'pem'},publicKeyEncoding:{type:'spki',format:'pem'}});console.log('AUTH_SIGNING_PRIVKEY_B64='+Buffer.from(k.privateKey).toString('base64'));console.log('AUTH_SIGNING_PUBKEY_B64='+Buffer.from(k.publicKey).toString('base64'))" | Add-Content .env -Encoding ascii
 ```
 
@@ -309,7 +309,7 @@ stays the same.
 
 ### Start order {#start-order}
 
-1. **Metagame.** From `UndauntedMetagame`, `npm run dev`, or `npm run build` and then `npm start`.
+1. **Metagame.** From `DauntlessUnbrokenMetagame`, `npm run dev`, or `npm run build` and then `npm start`.
    The first start creates the database and runs every migration. Every start registers the keys
    waiting in the database's queue tables. Start it from its own folder (the npm scripts do): the
    migrations are found through the relative path `./src/drizzle`.
@@ -334,15 +334,15 @@ The easiest way to try public mode is `Test-Sandbox.ps1` ([above](#kit-tests)): 
 certificate, the secrets, the gateway and the helper on spare ports and removes everything
 afterwards. To run it by hand:
 
-1. **Certificate.** In `UndauntedGateway` (after `npm ci`), run
+1. **Certificate.** In `DauntlessUnbrokenGateway` (after `npm ci`), run
    `node tools/make-cert.js --host 127.0.0.1 --out C:\dr\dev\tls`. It writes `gateway-cert.pem` and
    `gateway-key.pem` and prints the fingerprint for the invite's `fp=`. The key file is a secret:
    never share it, never commit it.
-2. **Gateway and helper.** Copy `UndauntedGateway\.env.example` to `.env`. It is already set up for
+2. **Gateway and helper.** Copy `DauntlessUnbrokenGateway\.env.example` to `.env`. It is already set up for
    one PC: `GATEWAY_BIND=127.0.0.1` on port 61443, `ALLOWLIST_DRY_RUN=1`, and
    `ALLOWLIST_ALLOW_PRIVATE=1` (otherwise the helper refuses a player address of `127.0.0.1`). Fill in
    `GATEWAY_CERT`, `GATEWAY_KEY` and both secrets. The helper writes `allowlist-audit.log` and
-   `allowlist-state.json` into `UndauntedGateway\` (both git-ignored) unless you set
+   `allowlist-state.json` into `DauntlessUnbrokenGateway\` (both git-ignored) unless you set
    `ALLOWLIST_AUDIT_LOG` and `ALLOWLIST_STATE_FILE`.
    **Never set `ALLOWLIST_DRY_RUN=0` on a development PC:** that changes Windows Firewall for real,
    and the helper then needs administrator rights.
@@ -351,9 +351,9 @@ afterwards. To run it by hand:
    warns at start; that is only a warning.
 4. **Relay port.** While the game runs, the launcher's relay needs `127.0.0.1:61000`, which your
    metagame already uses, so the launcher's PLAY would fail with `relay_port_busy`. Start the launcher
-   with `DAUNTLESS_REVIVED_RELAY_PORT` set to another port ([below](#launcher-dev)).
+   with `DAUNTLESS_UNBROKEN_RELAY_PORT` set to another port ([below](#launcher-dev)).
 5. **Invite.** Write a v2 invite by hand:
-   `dauntless-revived://join?v=2&mode=public&host=127.0.0.1&port=<gateway port>&fp=<fingerprint>&code=<code>&name=Dev`.
+   `dauntless-unbroken://join?v=2&mode=public&host=127.0.0.1&port=<gateway port>&fp=<fingerprint>&code=<code>&name=Dev`.
 
 Every gateway and helper setting, with its range, is in
 [Configuration]({{ config_page.url | relative_url }}). What the gateway lets through is in
@@ -362,7 +362,7 @@ Every gateway and helper setting, with its range, is in
 ### The launcher in development {#launcher-dev}
 
 ```powershell
-Set-Location C:\dr\undaunted\UndauntedLauncher
+Set-Location C:\dr\undaunted\DauntlessUnbrokenLauncher
 npm ci
 npm start
 ```
@@ -371,46 +371,46 @@ npm start
 the page from Vite's development server. A development run differs from an installed launcher:
 
 - DevTools are available.
-- It does not register the `dauntless-revived:` link handler, so paste invites on the Play page.
+- It does not register the `dauntless-unbroken:` link handler, so paste invites on the Play page.
 - It never looks for or installs updates.
-- It takes the two DLLs from `UndauntedLauncher\assets\` instead of its installed resources. They are
+- It takes the two DLLs from `DauntlessUnbrokenLauncher\assets\` instead of its installed resources. They are
   checked against the pinned hashes either way.
 
 What does not change: a development run is named after the same `productName` as the installed
-launcher, so it uses the same `%APPDATA%\Dauntless Revived Launcher\` folder (settings, saved account
+launcher, so it uses the same `%APPDATA%\Dauntless Unbroken Launcher\` folder (settings, saved account
 keys, log) as an installed launcher of the same Windows user. Close an installed launcher before
 `npm start`. The launcher remembers one server and one game folder: a test server you join in a
 development run is also the server the installed launcher opens next time.
 
 **Against your local stack (private mode).** A v1 invite may point at loopback:
-`dauntless-revived://join?v=1&host=127.0.0.1&port=61000&code=DEVTEST1&name=Dev`. A v1 host must be a
+`dauntless-unbroken://join?v=1&host=127.0.0.1&port=61000&code=DEVTEST1&name=Dev`. A v1 host must be a
 loopback address, a Tailscale address (100.64.0.0/10) or a `*.ts.net` name, because v1 is plain HTTP.
 With `REGISTRATION_MODE=OPEN` the code is not checked, but the invite must still carry one (4 to 64
 letters, digits or `-`). Downloads need `CONTENT_PORT` on the metagame and a running content server.
 The launcher accepts only a content server whose manifest is identical to the one compiled into it,
 and only files that match it.
 
-**`DAUNTLESS_REVIVED_RELAY_PORT`** moves the public-mode relay off 61000, for example when your own
+**`DAUNTLESS_UNBROKEN_RELAY_PORT`** moves the public-mode relay off 61000, for example when your own
 metagame holds that port. Values from 1024 to 65535 are used, anything else is ignored, and the
 launcher logs the override. The server's `QOS_TARGET_URL` must use the same port. Friends never set
 it.
 
 ```powershell
-$env:DAUNTLESS_REVIVED_RELAY_PORT = "61100"
+$env:DAUNTLESS_UNBROKEN_RELAY_PORT = "61100"
 npm start
 ```
 
 Where the launcher keeps its settings, the encrypted account keys and its log is in
 [Files and data]({{ files_page.url | relative_url }}). How releases are built and published is in
-`UndauntedLauncher/README.md`; releases are built by GitHub Actions, not on a developer PC.
+`DauntlessUnbrokenLauncher/README.md`; releases are built by GitHub Actions, not on a developer PC.
 
 ### The server DLL {#server-dll}
 
-The source is in `UndauntedInternalServer/` (upstream's C++ with a generated SDK; open
-`UndauntedInternalServer.sln` in Visual Studio 2022 and build `Release|x64`). Nothing in the
+The source is in `DauntlessUnbrokenInternalServer/` (upstream's C++ with a generated SDK; open
+`DauntlessUnbrokenInternalServer.sln` in Visual Studio 2022 and build `Release|x64`). Nothing in the
 repository builds it. The game and every game server run the prebuilt copies in
-`UndauntedLauncher/assets/`, and their SHA-256 hashes are pinned in the launcher
-(`src/main/constants.ts`), the server kit (`DauntlessServer.Common.ps1`), the friend kit
+`DauntlessUnbrokenLauncher/assets/`, and their SHA-256 hashes are pinned in the launcher
+(`src/main/constants.ts`), the server kit (`DauntlessUnbrokenServer.Common.ps1`), the friend kit
 (`setup.ps1`, `play.ps1`, `tools/make-friend-kit.ps1`) and the docs. A DLL you build yourself
 won't have the pinned hash, so all of them refuse it. Replacing it means changing every pin in one
 change. The DLL works only with the 1.4.4 exe
@@ -434,7 +434,7 @@ this page:
 
 The content server's integration test is the exception: it needs a real game install, so CI does
 not run it. To run the hygiene check yourself before a push:
-`node tools/ci/check-repo.js --history origin/dauntless-revived..HEAD` (without `--history` it checks
+`node tools/ci/check-repo.js --history origin/dauntless-unbroken..HEAD` (without `--history` it checks
 the files only). It never prints what it found inside a file. Its arguments are in
 [Scripts and parameters]({{ scripts_page.url | relative_url }}#ci-workflows-and-tools).
 
@@ -446,17 +446,17 @@ each npm package monthly.
 ### Launcher releases {#launcher-releases}
 
 A launcher release is the GitHub release `launcher-v<version>` for the version in
-`UndauntedLauncher/package.json`, published from `dauntless-revived` only. Installed launchers update
+`DauntlessUnbrokenLauncher/package.json`, published from `dauntless-unbroken` only. Installed launchers update
 to it. To release, raise that version. Then:
 
-- **Automatically (on by default).** When a push to `dauntless-revived` passes every job above, is
+- **Automatically (on by default).** When a push to `dauntless-unbroken` passes every job above, is
   still the head of the branch, and its launcher version has no `launcher-v<version>` release yet, CI
   publishes the installer it built and tested in that run, through
   `.github/workflows/launcher-release.yml`. This happens only in the repository
-  `mixutin/dauntless-revived`, never in a fork. To pause it, set the repository variable
+  `Vvoidddd/dauntless-unbroken`, never in a fork. To pause it, set the repository variable
   `LAUNCHER_AUTO_RELEASE` to `false`
   ([Configuration]({{ config_page.url | relative_url }}#ci-settings)).
-- **By hand.** Actions > **Launcher release** > **Run workflow** on `dauntless-revived` builds that
+- **By hand.** Actions > **Launcher release** > **Run workflow** on `dauntless-unbroken` builds that
   commit and publishes its version. This works while automatic releases are paused too. For a version
   that is published already, it only brings the self-update feed (the `launcher-updates` release) up
   to it.
@@ -464,9 +464,9 @@ to it. To release, raise that version. Then:
 A version is published only if it is newer than every earlier one, and it is never replaced. A
 prerelease version (such as `0.2.0-beta.1`) becomes a GitHub prerelease that installed launchers do
 not update to. The details are in the "Checks" section of
-[CONTRIBUTING.md]({{ site.github.repository_url }}/blob/dauntless-revived/CONTRIBUTING.md) and in
+[CONTRIBUTING.md]({{ site.github.repository_url }}/blob/main/CONTRIBUTING.md) and in
 "Releases and updates" in
-[UndauntedLauncher/README.md]({{ site.github.repository_url }}/blob/dauntless-revived/UndauntedLauncher/README.md).
+[DauntlessUnbrokenLauncher/README.md]({{ site.github.repository_url }}/blob/main/DauntlessUnbrokenLauncher/README.md).
 
 ---
 
@@ -476,10 +476,10 @@ not update to. The details are in the "Checks" section of
 |---|---|---|
 | `docs/roadmap.md` | `node tools/sync-roadmap.js` | `ROADMAP.md` changes. Never edit `docs/roadmap.md` by hand. |
 | `docs/llms.txt`, `docs/llms-full.txt` | `node tools/build-llms.js` | Any English page or the FAQ data changes (`llms-full.txt` holds the text of every English page; `llms.txt` lists every page with its title and description). |
-| `UndauntedMetagame/src/drizzle/*.sql` and `meta/` | `npm run db:generate` in `UndauntedMetagame` | `src/db/schema.ts` changes. It reads `.env`. Commit the new migration with the schema change. |
-| `UndauntedMetagame/src/vendor/hunt_titles.json` | `node UndauntedMetagame/scripts/make-hunt-titles.js` | The deploy server's hunt tables in `UndauntedDeployServer/src/vendor/` change. |
-| `UndauntedContent/data/dauntless-1.4.4.json` | `node tools/make-game-manifest.js --zip <game zip>`, after `npm ci` in `UndauntedContent` (for its zip reader) | Practically never: it describes the pinned 1.4.4 build. The launcher compiles this same file in, so rebuild the launcher afterwards. |
-| `UndauntedLauncher/assets/icon.png`, `icon.ico` and `src/renderer/brand/*.png` | `npm run icon` in `UndauntedLauncher`, which copies them from `brand/` (`python3 brand/build.py` makes them there) | The launcher icons in `brand/launcher/` or the emblem sizes in `brand/web/` change. The launcher's unit tests fail while a copy is out of date. |
+| `DauntlessUnbrokenMetagame/src/drizzle/*.sql` and `meta/` | `npm run db:generate` in `DauntlessUnbrokenMetagame` | `src/db/schema.ts` changes. It reads `.env`. Commit the new migration with the schema change. |
+| `DauntlessUnbrokenMetagame/src/vendor/hunt_titles.json` | `node DauntlessUnbrokenMetagame/scripts/make-hunt-titles.js` | The deploy server's hunt tables in `DauntlessUnbrokenDeployServer/src/vendor/` change. |
+| `DauntlessUnbrokenContent/data/dauntless-1.4.4.json` | `node tools/make-game-manifest.js --zip <game zip>`, after `npm ci` in `DauntlessUnbrokenContent` (for its zip reader) | Practically never: it describes the pinned 1.4.4 build. The launcher compiles this same file in, so rebuild the launcher afterwards. |
+| `DauntlessUnbrokenLauncher/assets/icon.png`, `icon.ico` and `src/renderer/brand/*.png` | `npm run icon` in `DauntlessUnbrokenLauncher`, which copies them from `brand/` (`python3 brand/build.py` makes them there) | The launcher icons in `brand/launcher/` or the emblem sizes in `brand/web/` change. The launcher's unit tests fail while a copy is out of date. |
 
 Run the two docs generators with `sync-roadmap.js` first: `build-llms.js` reads the roadmap page it
 writes. Neither takes arguments; both find the repository root themselves. CI runs both and fails if
@@ -499,7 +499,7 @@ The arguments of the tools are in [Scripts and parameters]({{ scripts_page.url |
 
 - Every English page `docs/<path>.md` has a Finnish twin `docs/fi/<path>.md`. Both have the same
   `ref` in their front matter, which pairs them for the language switch; `lang` is `en` or `fi`.
-  Finnish pages also set `locale: fi_FI` and sit under "Dauntless Revived suomeksi" in the
+  Finnish pages also set `locale: fi_FI` and sit under "Dauntless Unbroken suomeksi" in the
   navigation: as their `parent`, or as their `grand_parent` when the page is in a section.
 - `description` is what search results and link previews show: keep it to 120-160 characters.
 - Link to another page through the page variable at the top of the page, not a hard-coded URL. Finnish
@@ -520,7 +520,7 @@ The arguments of the tools are in [Scripts and parameters]({{ scripts_page.url |
 ## Contribution rules {#contributing}
 
 The short version is in
-[CONTRIBUTING.md]({{ site.github.repository_url }}/blob/dauntless-revived/CONTRIBUTING.md).
+[CONTRIBUTING.md]({{ site.github.repository_url }}/blob/main/CONTRIBUTING.md).
 In practice:
 
 - **Start with a Discussion**, and name the [roadmap]({{ roadmap_page.url | relative_url }}) step if
@@ -533,7 +533,7 @@ In practice:
   hygiene check refuses such files too, but only after the push. If a secret was committed, say so,
   and replace the key. It stays in the history of every clone.
 - **Keep captured bodies out of the tree.** `LOG_BODIES=1` writes `bodies.log` into the folder the
-  metagame runs from (`UndauntedMetagame\` with the npm scripts) unless `BODY_LOG_FILE` says
+  metagame runs from (`DauntlessUnbrokenMetagame\` with the npm scripts) unless `BODY_LOG_FILE` says
   otherwise, and `*.log` is not ignored there. Point it outside the repository, for example
   `BODY_LOG_FILE=C:/dr/dev/bodies.log`. The file holds what players sent.
 - **Test on a throwaway account.** Never try a new server response on a real player's account first: a
@@ -552,7 +552,7 @@ In practice:
 - **Never log a key or a token.** The logs mask known key and token shapes; don't rely on that.
 - **Small pull requests**, with what you changed, how you tested it and the roadmap step.
 - **Security problems** go through private vulnerability reporting, not issues
-  ([SECURITY.md]({{ site.github.repository_url }}/blob/dauntless-revived/SECURITY.md)).
+  ([SECURITY.md]({{ site.github.repository_url }}/blob/main/SECURITY.md)).
 - **License.** AGPL-3.0-only, like upstream Undaunted. Keep existing copyright and license notices.
 
 ---
@@ -561,7 +561,7 @@ In practice:
 
 Paths in each table are relative to the folder named above it.
 
-**`UndauntedMetagame/src/`**
+**`DauntlessUnbrokenMetagame/src/`**
 
 | Subsystem | Code | Notes |
 |---|---|---|
@@ -571,29 +571,29 @@ Paths in each table are relative to the folder named above it.
 | Database | `db.ts`, `db/schema.ts`, `drizzle/` | Migrations run at every start, in journal order; the applied ones are recorded in the `__drizzle_migrations` table. `DB_WAL` is applied in `db.ts`. |
 | Where a request came from | `middleware/RequestOrigin.ts` | Public mode: the gateway secret, the player's address, `AUTH_MODE=NONE` refusals. |
 | Keys and login | `controllers/auth.ts`, `controllers/apikeys.ts`, `routes/eos.ts`, `routes/login.ts`, `middleware/Has*.ts` | `eos.ts` holds the token login. |
-| Accounts, invites, usernames | `controllers/accounts.ts`, `controllers/login.ts`, `routes/undauntedapi.ts`, `controllers/undauntedapi.ts` | The `/undaunted/api` routes ([HTTP API]({{ api_page.url | relative_url }})). |
-| Characters and save history | `controllers/character.ts`, `controllers/savehistory.ts`, `routes/character.ts` | Rollbacks are admin routes in `routes/undauntedapi.ts`. |
+| Accounts, invites, usernames | `controllers/accounts.ts`, `controllers/login.ts`, `routes/unbrokenapi.ts`, `controllers/unbrokenapi.ts` | The `/undaunted/api` routes ([HTTP API]({{ api_page.url | relative_url }})). |
+| Characters and save history | `controllers/character.ts`, `controllers/savehistory.ts`, `routes/character.ts` | Rollbacks are admin routes in `routes/unbrokenapi.ts`. |
 | Progression | `controllers/progressionmode.ts` (real or stub, `PROGRESSION_MODE`), `controllers/realprogression.ts` (tracks, objectives, grants and their retry guard, rank confirmations and the optional confirm entitlements, the admin seed, the upgrade notice), `controllers/progressionconfig.ts` (the one loader of the progression config: the bundled `vendor/progression_config.json`, `PROGRESSION_CONFIG_DIR`, `ACTIVE_HUNT_PASS`), `controllers/progressionrank.ts` (rank math), `controllers/progressionevents.ts` (audit rows), `controllers/progression.ts` (encountered content and breadcrumbs), `routes/progression.ts`, `middleware/RealProgressionOnly.ts` | `routes/progression.ts` answers both the real and the stub shapes, and logs requests under `/progression` that no route answers. Tables in migration `0011_real_progression.sql`. |
 | Hunt Pass, entitlements, bounties, cooldowns | `routes/system.ts`, `controllers/entitlements.ts`, `controllers/bounties.ts`, `controllers/cooldowns.ts` | Part of real progression. |
 | Escalation | `controllers/escalationConfig.ts` (the season registry `vendor/escalation/seasons.json`, checked at load), `controllers/escalation.ts` (reads, the save rules, the audit rows), `routes/escalation.ts` (the stub and the real routes, `ESCALATION_MODE`) | Ported from Harmonic's fork. Tables in migration `0014_escalation.sql`. [Escalation]({{ '/findings/escalation.html' | relative_url }}); tests `test/escalation.test.ts`. |
 | Loadouts and loadout slots | `controllers/loadout.ts`, `routes/loadout.ts` | Slots exist for real-progression accounts only. |
 | Inventory, currency and store | `controllers/inventory.ts` (transactions, overspends, retries; `ApplyInventoryTransactionInTx` runs inside a caller's transaction, `RunInventoryTransaction` wraps it for `POST /inventory`), `routes/inventory.ts`, `controllers/store.ts` (the currency sheet and the held currencies), `controllers/activecharacter.ts` (the account's character saved last), `controllers/freestore.ts` (the free store: catalogue, tokens, redeem), `routes/store.ts` | The store is ported from Harmonic's fork, off unless `STORE=free`; data in `vendor/store_catalog.json` and `vendor/store_item_kinds.json`, table in migration `0015_store_purchases.sql`. Tests `test/freestore.test.ts`, `test/inventorytx.test.ts`. |
-| Parties | `controllers/party.ts` (in memory), `routes/party.ts`, `middleware/PlayerAuth.ts` | A party's hunt goes through `controllers/matchmaking.ts`; `PartyInvite` is in `routes/undauntedapi.ts`. |
-| Friends and blocks | `controllers/friends.ts` (stored in SQLite, migration `0012_friends_and_blocks.sql`; `AddFriendshipListener` tells the chat server about accepted and ended friendships), `routes/friends.ts` (the Epic-style friends service the client calls) | `Friends` is in `routes/undauntedapi.ts`. |
+| Parties | `controllers/party.ts` (in memory), `routes/party.ts`, `middleware/PlayerAuth.ts` | A party's hunt goes through `controllers/matchmaking.ts`; `PartyInvite` is in `routes/unbrokenapi.ts`. |
+| Friends and blocks | `controllers/friends.ts` (stored in SQLite, migration `0012_friends_and_blocks.sql`; `AddFriendshipListener` tells the chat server about accepted and ended friendships), `routes/friends.ts` (the Epic-style friends service the client calls) | `Friends` is in `routes/unbrokenapi.ts`. |
 | Slayer Links | `controllers/slayerlinks.ts` (the rules, the reply shapes, with the executable's addresses), `routes/slayerlinks.ts` (the eight routes, `SLAYER_LINKS`) | Contract from Harmonic's fork, corrected. Tables in migration `0016_slayer_links.sql`. Tests `test/slayerlinks.test.ts`. |
-| Guilds | `controllers/guild.ts` (stored in SQLite, migration `0013_guilds.sql`; the rules and reply shapes), `routes/guild.ts` (the eleven v2 routes, in registration order), `middleware/GameServerKeyAuth.ts` (the game-server-only create) | `GuildInvite`, `Guilds` and `DisbandGuild` are in `routes/undauntedapi.ts`. `test/socialclient.ts` models how the client parses the social replies; `test/guildhttp.test.ts` and `test/socialflow.test.ts` use it. |
+| Guilds | `controllers/guild.ts` (stored in SQLite, migration `0013_guilds.sql`; the rules and reply shapes), `routes/guild.ts` (the eleven v2 routes, in registration order), `middleware/GameServerKeyAuth.ts` (the game-server-only create) | `GuildInvite`, `Guilds` and `DisbandGuild` are in `routes/unbrokenapi.ts`. `test/socialclient.ts` models how the client parses the social replies; `test/guildhttp.test.ts` and `test/socialflow.test.ts` use it. |
 | Chat (XMPP) | `realtime/chat.ts` (the WebSocket listener, SASL login with the player token, sessions and their limits, pings, whispers; `ReadChatConfig` and `StartChat`, which `server.ts` calls only with `CHAT=1`), `realtime/muc.ts` (rooms: joins, leaves, the fan-out of room lines, party and guild membership checks, the 60 s sweep), `realtime/chatnick.ts` (the client's URL encoding and the room nickname rules), `realtime/xmpp.ts` (parsing, escaping, JIDs, token buckets, the trace redaction), `realtime/presence.ts` (friends' online status with `CHAT_PRESENCE=1`: who hears whom, the relays, the friends-list push, and the rule that no stanza outside a room reaches a player from their own account) | Membership and blocks come from `GetPartyOf` in `controllers/party.ts`, `IsGuildMember` in `controllers/guild.ts` and `BlockersAmong` in `controllers/friends.ts`. [Text chat]({{ '/findings/chat.html' | relative_url }}) explains why each answer has its shape. Tests: `test/chat.test.ts` (end to end over WebSocket), `test/chatmodel.test.ts` and `test/chatclient.ts` (a model of how the 1.4.4 client reads chat), `test/chathttp.test.ts` with `test/chatenv.ts` (names through the real account routes), `test/chatwire.ts` (a raw client shaped like the game's), `test/presence.test.ts`, and `test/chatinvariant.ts` (checks every stanza of those files against the own-account rule). |
 | Matchmaking | `controllers/matchmaking.ts` (queues, candidate status, parties, the call to the deploy server), `routes/matchmaking.ts` | |
 | Server status | `controllers/serverstatus.ts`, `middleware/SoftAccountAuth.ts`, `/dauntless-status` in `routes/system.ts` | |
 
-**`UndauntedDeployServer/src/`**
+**`DauntlessUnbrokenDeployServer/src/`**
 
 | Subsystem | Code | Notes |
 |---|---|---|
 | Game servers | `controllers/gameservers.ts` (ports, Ramsgate and the Dojo with one shared launch per world and the liveness check, starting processes and their `error` and `exit` listeners, the test hooks), `controllers/watchdog.ts`, `routes/gameservers.ts` | Loopback callers only. Tests `test/persistentworlds.test.ts` with `test/deployenv.ts` (a stand-in spawn). |
 | Matchmaking | `controllers/matchmaker.ts`, `controllers/matchmakinginput.ts` (a second check of everything that ends up on a game server's command line), `routes/matchmaker.ts`, `vendor/*_table.json` | |
 
-**`UndauntedGateway/`**
+**`DauntlessUnbrokenGateway/`**
 
 | Subsystem | Code | Notes |
 |---|---|---|
@@ -602,13 +602,13 @@ Paths in each table are relative to the folder named above it.
 | Allowlist feed and helper | `src/feed.ts` (tells the helper who logged in), `src/allowlist/` (`server.ts`, `config.ts`, `helper.ts`, `state.ts`, `sync.ts`, `firewall.ts`) | |
 | Certificate tool | `tools/make-cert.js` | |
 
-**`UndauntedContent/`**: `src/server.ts` and `src/config.ts` (start and settings), `src/app.ts`
+**`DauntlessUnbrokenContent/`**: `src/server.ts` and `src/config.ts` (start and settings), `src/app.ts`
 (routes), `src/auth.ts` (key check against the metagame),
 `src/paths.ts`, `src/range.ts`, `src/limits.ts`, `src/gamedir.ts`, `src/manifest.ts`,
 `src/branding.ts`, `src/news.ts`, `src/verify.ts` (`npm run verify`), and the manifest in
 `data/dauntless-1.4.4.json`.
 
-**`UndauntedLauncher/src/`**
+**`DauntlessUnbrokenLauncher/src/`**
 
 | Subsystem | Code | Notes |
 |---|---|---|
@@ -624,8 +624,8 @@ Paths in each table are relative to the folder named above it.
 
 | Subsystem | Code |
 |---|---|
-| Server DLL | `UndauntedInternalServer/dllmain.cpp` (the endpoint table, client and server mode), `constants.h` |
-| Server kit | `deploy/windows-server/*.ps1`; shared pins, paths, the component table and the start order in `DauntlessServer.Common.ps1`; database, key and game-folder helpers in `lib/` |
+| Server DLL | `DauntlessUnbrokenInternalServer/dllmain.cpp` (the endpoint table, client and server mode), `constants.h` |
+| Server kit | `deploy/windows-server/*.ps1`; shared pins, paths, the component table and the start order in `DauntlessUnbrokenServer.Common.ps1`; database, key and game-folder helpers in `lib/` |
 | Friend kit | `friend-kit/`, zipped by `tools/make-friend-kit.ps1` |
 | Docs tools | `tools/sync-roadmap.js`, `tools/build-llms.js` |
-| CI | `.github/workflows/ci.yml`, `.github/workflows/launcher-release.yml`, `.github/dependabot.yml`, `tools/ci/`, `UndauntedLauncher/scripts/collect-release.ps1` |
+| CI | `.github/workflows/ci.yml`, `.github/workflows/launcher-release.yml`, `.github/dependabot.yml`, `tools/ci/`, `DauntlessUnbrokenLauncher/scripts/collect-release.ps1` |

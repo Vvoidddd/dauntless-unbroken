@@ -4,7 +4,7 @@
     and the machine's CPU, RAM, disk and network, as CSV rows every minute.
 
 .DESCRIPTION
-    On an installed server the stack supervisor (the "Dauntless Revived stack" task) already takes a
+    On an installed server the stack supervisor (the "Dauntless Unbroken stack" task) already takes a
     sample every minute, so this script is for a -Sandbox install, a stack started by hand, or one
     sample now (-Once).
 
@@ -26,7 +26,7 @@
     Based on the first performance sampler by Vvoidddd (pull request #6).
 
 .EXAMPLE
-    C:\DauntlessRevived\bin\Write-PerformanceLog.ps1 -Once
+    C:\DauntlessUnbroken\bin\Write-PerformanceLog.ps1 -Once
 .EXAMPLE
     .\Write-PerformanceLog.ps1 -Root C:\dr\sandbox-ws2019\root -IntervalSeconds 30
 #>
@@ -37,8 +37,8 @@ param(
     [ValidateRange(1, 3650)][int]$KeepDays = 30
 )
 $ErrorActionPreference = 'Stop'
-. "$PSScriptRoot\DauntlessServer.Common.ps1"
-. "$PSScriptRoot\DauntlessServer.Performance.ps1"
+. "$PSScriptRoot\DauntlessUnbrokenServer.Common.ps1"
+. "$PSScriptRoot\DauntlessUnbrokenServer.Performance.ps1"
 
 try {
     $Root = Resolve-DRRoot $Root $PSScriptRoot

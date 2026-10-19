@@ -14,7 +14,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $Kit = Split-Path $PSScriptRoot -Parent
-. (Join-Path $Kit 'DauntlessServer.Common.ps1')
+. (Join-Path $Kit 'DauntlessUnbrokenServer.Common.ps1')
 
 $script:Pass = 0; $script:Fail = 0
 function Check([string]$Name, [bool]$Ok, [string]$Detail = '') {
@@ -42,26 +42,26 @@ Check 'build PATH finds the configured Node in an old SSH session' ($buildEnv.Pa
 Check 'build environment does not change the operator PATH' ($env:Path -ceq $pathBefore)
 $fp = 'ab' * 32
 $v2 = New-DRInviteString -Mode Public -ServerHost '203.0.113.7' -Port 443 -Fingerprint $fp -Code 'ABCD-EFGH-JKLM' -Name "Alex's Ramsgate"
-Check 'v2 layout' ($v2 -ceq "dauntless-revived://join?v=2&mode=public&host=203.0.113.7&port=443&fp=$fp&code=ABCD-EFGH-JKLM&name=Alex's%20Ramsgate") $v2
+Check 'v2 layout' ($v2 -ceq "dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=$fp&code=ABCD-EFGH-JKLM&name=Alex's%20Ramsgate") $v2
 $p = ConvertFrom-DRInviteString $v2
 Check 'v2 round trip' ($p.Version -eq 2 -and $p.Mode -eq 'public' -and $p.Host -eq '203.0.113.7' -and $p.Port -eq 443 -and $p.Fingerprint -eq $fp -and $p.Code -eq 'ABCD-EFGH-JKLM' -and $p.Name -eq "Alex's Ramsgate")
 $v1 = New-DRInviteString -Mode Private -ServerHost '100.101.102.103' -Port 61000 -Code 'ABCD-EFGH-JKLM' -Name 'Home' -ShareUrl 'https://login.tailscale.com/admin/invite/abc'
 $p1 = ConvertFrom-DRInviteString $v1
 Check 'v1 round trip' ($p1.Version -eq 1 -and $p1.Mode -eq 'private' -and $p1.Port -eq 61000 -and $p1.Share -eq 'https://login.tailscale.com/admin/invite/abc' -and $null -eq $p1.Fingerprint)
-Check 'v2 DNS host' ((ConvertFrom-DRInviteString "dauntless-revived://join?v=2&mode=public&host=play.example.org&port=8443&fp=$fp&code=abcd&name=x").Host -eq 'play.example.org')
-Check 'v2 host is lower-cased' ((ConvertFrom-DRInviteString "dauntless-revived://join?v=2&mode=public&host=Play.Example.ORG&port=443&fp=$fp&code=abcd&name=x").Host -eq 'play.example.org')
-Check 'join/? form accepted' ((ParseError "dauntless-revived://join/?v=2&mode=public&host=1.2.3.4&port=443&fp=$fp&code=abcd&name=x") -eq '')
-$base = "dauntless-revived://join?v=2&mode=public&host=203.0.113.7&port=443&fp=$fp&code=ABCD-EFGH&name=x"
+Check 'v2 DNS host' ((ConvertFrom-DRInviteString "dauntless-unbroken://join?v=2&mode=public&host=play.example.org&port=8443&fp=$fp&code=abcd&name=x").Host -eq 'play.example.org')
+Check 'v2 host is lower-cased' ((ConvertFrom-DRInviteString "dauntless-unbroken://join?v=2&mode=public&host=Play.Example.ORG&port=443&fp=$fp&code=abcd&name=x").Host -eq 'play.example.org')
+Check 'join/? form accepted' ((ParseError "dauntless-unbroken://join/?v=2&mode=public&host=1.2.3.4&port=443&fp=$fp&code=abcd&name=x") -eq '')
+$base = "dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=$fp&code=ABCD-EFGH&name=x"
 $bad = [ordered]@{
-    'v2 without fp'              = @("dauntless-revived://join?v=2&mode=public&host=1.2.3.4&port=443&code=abcd&name=x", 'fp')
+    'v2 without fp'              = @("dauntless-unbroken://join?v=2&mode=public&host=1.2.3.4&port=443&code=abcd&name=x", 'fp')
     'v2 upper-case fp'           = @(($base -replace "fp=$fp", ('fp=' + $fp.ToUpperInvariant())), 'fp')
     'v2 short fp'                = @(($base -replace "fp=$fp", ('fp=' + $fp.Substring(1))), 'fp')
     'v2 non-hex fp'              = @(($base -replace "fp=$fp", ('fp=' + ('g' * 64))), 'fp')
     'v2 mode=private'            = @(($base -replace 'mode=public', 'mode=private'), 'mode')
     'v2 without mode'            = @(($base -replace 'mode=public&', ''), 'mode')
     'v2 with share'              = @("$base&share=https%3A%2F%2Flogin.tailscale.com%2Fx", 'params')
-    'v1 with fp'                 = @("dauntless-revived://join?v=1&host=100.64.0.1&port=61000&fp=$fp&code=abcd&name=x", 'params')
-    'v1 with mode'               = @('dauntless-revived://join?v=1&mode=public&host=100.64.0.1&port=61000&code=abcd&name=x', 'params')
+    'v1 with fp'                 = @("dauntless-unbroken://join?v=1&host=100.64.0.1&port=61000&fp=$fp&code=abcd&name=x", 'params')
+    'v1 with mode'               = @('dauntless-unbroken://join?v=1&mode=public&host=100.64.0.1&port=61000&code=abcd&name=x', 'params')
     'unknown parameter'          = @("$base&extra=1", 'params')
     'duplicate parameter'        = @("$base&code=WXYZ", 'params')
     'empty pair'                 = @("$base&", 'params')
@@ -79,7 +79,7 @@ $bad = [ordered]@{
     'name with a control char'   = @(($base -replace 'name=x', 'name=a%07b'), 'name')
     'name with a bidi override'  = @(($base -replace 'name=x', 'name=a%E2%80%AEb'), 'name')
     'name empty'                 = @(($base -replace 'name=x', 'name=%20'), 'name')
-    'other scheme'               = @(($base -replace '^dauntless-revived', 'https'), 'not_invite')
+    'other scheme'               = @(($base -replace '^dauntless-unbroken', 'https'), 'not_invite')
     'empty'                      = @('   ', 'empty')
 }
 foreach ($k in $bad.Keys) { $e = ParseError $bad[$k][0]; Check "rejects: $k" ($e -eq $bad[$k][1]) "got '$e'" }
@@ -104,12 +104,12 @@ Check '.env round trip' ($back['A'] -eq '1' -and $back['SERVER_NAME'] -eq 'Two w
 Check '.env unchanged write reports no change' (-not (Write-DREnv $envFile ([ordered]@{ A = '1'; SERVER_NAME = 'Two words'; C = 'x=y' }) @('header')))
 
 Write-Host '== certificate fingerprint and TLS pinning'
-$gw = Join-Path (Split-Path $Kit -Parent | Split-Path -Parent) 'UndauntedGateway'
+$gw = Join-Path (Split-Path $Kit -Parent | Split-Path -Parent) 'DauntlessUnbrokenGateway'
 $makeCert = Join-Path $gw 'tools\make-cert.js'
 $node = (Get-Command node.exe).Source
 $server = $null
 if (-not (Test-Path -LiteralPath (Join-Path $gw 'node_modules\node-forge'))) {
-    Check 'UndauntedGateway\node_modules present (npm ci there first)' $false
+    Check 'DauntlessUnbrokenGateway\node_modules present (npm ci there first)' $false
 } else {
     $cert = Join-Path $WorkDir 'cert.pem'; $key = Join-Path $WorkDir 'key.pem'
     $out = & $node $makeCert --host 127.0.0.1 --host test.invalid --cert $cert --key $key --json 2>&1 | Out-String
@@ -132,10 +132,10 @@ const s = https.createServer({ cert: fs.readFileSync(process.argv[2]), key: fs.r
     res.writeHead(404, { 'content-type': 'application/json' });
     return res.end(JSON.stringify({ name: 'pin test', path: req.url }));
   }
-  const full = req.headers['x-undaunted-user-api-key'] === known;
+  const full = req.headers['x-dauntless-unbroken-user-api-key'] === known;
   const at = new Date(Date.now() - 600000).toISOString();
   res.writeHead(200, { 'content-type': 'application/json' });
-  res.end(JSON.stringify({ name: 'pin test', online: true, version: '1.0.0', commit: 'abc1234', sourceUrl: 'https://github.com/mixutin/dauntless-revived', registration: 'INVITECODE',
+  res.end(JSON.stringify({ name: 'pin test', online: true, version: '1.0.0', commit: 'abc1234', sourceUrl: 'https://github.com/Vvoidddd/dauntless-unbroken', registration: 'INVITECODE',
     playersOnline: full ? 2 : 0,
     players: full ? [{ name: 'Aurora', where: 'city', instance: 'c1' }, { name: 'Borealis', where: 'hunt', instance: 'h1' }] : [],
     instances: full ? [{ id: 'c1', kind: 'city', title: 'Ramsgate', map: 'ramsgate_01', behemoth: null, players: 1, maxPlayers: 32, startedAt: at },
@@ -168,7 +168,7 @@ s.listen(Number(process.argv[4]), '127.0.0.1', () => console.log('listening'));
         $keyFile = Join-Path $WorkDir 'account.key'
         [IO.File]::WriteAllText($keyFile, "$testKey`r`n")
         $backupFile = Join-Path $WorkDir 'key-backup.txt'
-        [IO.File]::WriteAllText($backupFile, "Dauntless Revived account key`r`n`r`nServer: pin test (127.0.0.1:$Port)`r`nUsername: Aurora`r`nKey: $testKey`r`n`r`nKeep this file private.`r`n")
+        [IO.File]::WriteAllText($backupFile, "Dauntless Unbroken account key`r`n`r`nServer: pin test (127.0.0.1:$Port)`r`nUsername: Aurora`r`nKey: $testKey`r`n`r`nKeep this file private.`r`n")
         $wrongFile = Join-Path $WorkDir 'wrong.key'
         [IO.File]::WriteAllText($wrongFile, 'UUK_' + ('0' * 48))
         $none = GetStatus @()
@@ -228,8 +228,8 @@ Check 'Assemble completes with the right SHA-256' ($a.complete -and (Get-DRSha25
 Write-DRText -Path (Join-Path $up 'upload.json.incoming') -Text (@{ name = 'test.zip'; size = $data.Length; sha256 = $whole; chunkSize = $chunk; chunks = $hashes } | ConvertTo-Json -Compress)
 Check 'Begin after completion reports complete' ((Recv 'Begin').complete)
 
-Write-Host '== performance sampler (DauntlessServer.Performance.ps1)'
-. (Join-Path $Kit 'DauntlessServer.Performance.ps1')
+Write-Host '== performance sampler (DauntlessUnbrokenServer.Performance.ps1)'
+. (Join-Path $Kit 'DauntlessUnbrokenServer.Performance.ps1')
 Check 'CPU: 15 s of CPU in 60 s is 25% of one core' ((Get-DRCpuCorePercent 10 25 60) -eq 25)
 Check 'CPU: two busy cores read 200%' ((Get-DRCpuCorePercent 0 120 60) -eq 200)
 Check 'CPU: no time passed -> empty' ($null -eq (Get-DRCpuCorePercent 10 25 0))
@@ -279,7 +279,7 @@ http.createServer((req, res) => {
   if (req.url === '/gameservers') {
     return res.end(JSON.stringify({ servers: [{ id: 'c1', port: 8777, kind: 'city', map: 'ramsgate', gameMode: null, behemoth: null, huntId: null, matchmakerHuntId: null, expectedPlayers: ['acct-secret-1111:x'], maxPlayers: null, startedAt: at }] }));
   }
-  const full = req.headers['x-undaunted-user-api-key'] === key;
+  const full = req.headers['x-dauntless-unbroken-user-api-key'] === key;
   res.end(JSON.stringify({ name: 'perf test', online: true, registration: 'INVITECODE', playersOnline: full ? 2 : 0,
     players: full ? [{ name: 'Aurora', where: 'city', instance: 'c1' }, { name: 'Borealis', where: 'menu', instance: null }] : [],
     instances: full ? [{ id: 'c1', kind: 'city', title: 'Ramsgate', map: 'ramsgate', behemoth: null, players: 1, maxPlayers: 32, startedAt: at }] : [],
@@ -400,7 +400,7 @@ Check 'Set-Chat -On after an install or update: metagame.env unchanged' ([IO.Fil
 [IO.File]::WriteAllText($setChatPaths.MetaEnv, "# an older header`r`n" + ($installedText -replace '(?m)^#.*\r?\n', ''))
 $setChatOut = & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $Kit 'Set-Chat.ps1') -Root $setChatRoot -On 2>&1 | Out-String
 Check 'Set-Chat -On with any other header: still "already on"' ($LASTEXITCODE -eq 0 -and $setChatOut -match 'chat is already on' -and -not (Test-Path -LiteralPath $stackMarker)) $setChatOut.Trim()
-Check 'every script writes the same header for metagame.env' (@(Select-String -LiteralPath (Join-Path $Kit 'Install-DauntlessServer.ps1'), (Join-Path $Kit 'Update-DauntlessServer.ps1'), (Join-Path $Kit 'Set-Chat.ps1') -Pattern 'Holds secrets|holds secrets').Count -eq 0)
+Check 'every script writes the same header for metagame.env' (@(Select-String -LiteralPath (Join-Path $Kit 'Install-DauntlessUnbrokenServer.ps1'), (Join-Path $Kit 'Update-DauntlessUnbrokenServer.ps1'), (Join-Path $Kit 'Set-Chat.ps1') -Pattern 'Holds secrets|holds secrets').Count -eq 0)
 # A real change: written with the shared header, the stack restarted once (the stub records it), the
 # listener found stopped (nothing listens on the sandbox chat port here)
 if (@(Get-NetTCPConnection -State Listen -LocalPort (Get-DRChatPort $true) -ErrorAction SilentlyContinue).Count -eq 0) {

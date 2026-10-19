@@ -80,7 +80,7 @@ test("OpenBSD config keeps gateway unprivileged and launches games through SSH w
     assert.equal(deploy.DR_WORKER_COMMAND, "dr-game-worker");
     assert.equal(gateway.GATEWAY_BIND, "127.0.0.1");
     assert.equal(gateway.GATEWAY_PORT, "61443");
-    assert.equal(allowlist.DR_PF_ANCHOR, "dauntless-revived");
+    assert.equal(allowlist.DR_PF_ANCHOR, "dauntless-unbroken");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

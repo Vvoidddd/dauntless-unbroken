@@ -1,4 +1,4 @@
-// Dauntless Revived - fresh token-signing keys for the metagame.
+// Dauntless Unbroken - fresh token-signing keys for the metagame.
 //
 //   node dr-keys.js signing <out file>
 //
@@ -22,7 +22,7 @@ const pair = crypto.generateKeyPairSync("rsa", {
 });
 
 // Round trip: sign and verify once so a broken pair is never written.
-const probe = Buffer.from("dauntless-revived");
+const probe = Buffer.from("dauntless-unbroken");
 const signature = crypto.sign("sha256", probe, pair.privateKey);
 if (!crypto.verify("sha256", probe, pair.publicKey, signature)) {
     console.error("dr-keys: generated key pair does not verify");

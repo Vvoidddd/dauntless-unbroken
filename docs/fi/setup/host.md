@@ -1,7 +1,7 @@
 ---
 title: Pystytä palvelin
 parent: Asennus
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 1
 description: "Vaiheittainen ohje Dauntless 1.4.4 -yksityispalvelimen pystyttämiseen Windows-koneelle: version tarkistus, kaksi DLL-tiedostoa, metagame ja deploy-palvelin."
 lang: fi
@@ -22,7 +22,7 @@ locale: fi_FI
 # Pystytä palvelin
 {: .no_toc }
 
-Näin pyöritämme Dauntless Revivedia yhdellä Windows-tietokoneella. Käytössä on aito **Dauntless
+Näin pyöritämme Dauntless Unbrokenia yhdellä Windows-tietokoneella. Käytössä on aito **Dauntless
 1.4.4** -peliohjelma (lokakuu 2020, UE4 eli Unreal Engine 4 -pelimoottori, pak v9), Undauntedin
 palvelin-DLL (peliin ladattava ohjelmakirjasto) sekä oma muokattu versiomme (fork) Undauntedin
 metagamesta ja deploy-palvelimesta. Kaikki tällä sivulla pysyy osoitteessa `127.0.0.1` (koneen
@@ -47,8 +47,8 @@ parissa selittää jonkin valinnan.
 | Osa | Mikä se on | Kuuntelee |
 |---|---|---|
 | Peliohjelma (client) | `Dauntless-Win64-Shipping.exe` ja kaksi DLL-tiedostoa. Tavallisessa client-tilassa DLL ohjaa kaikki 167 taustapalvelun osoitetta (endpoint) osoitteeseen `http://<first command-line argument>` eli komentorivin ensimmäisenä annettuun osoitteeseen | ei mitään |
-| Metagame | Node + Express + SQLite (`UndauntedMetagame`). Tilit, hahmot, tavarat, varustesetit (loadouts) ja matchmaking-jono (pelaajien yhteen sovittaminen) | TCP `127.0.0.1:61000` |
-| Deploy-palvelin | Node (`UndauntedDeployServer`). Käynnistää ja valvoo pelipalvelinprosesseja, kun metagame pyytää | TCP `127.0.0.1:61001` (älä koskaan avaa sitä ulos: siinä ei ole tunnistautumista) |
+| Metagame | Node + Express + SQLite (`DauntlessUnbrokenMetagame`). Tilit, hahmot, tavarat, varustesetit (loadouts) ja matchmaking-jono (pelaajien yhteen sovittaminen) | TCP `127.0.0.1:61000` |
+| Deploy-palvelin | Node (`DauntlessUnbrokenDeployServer`). Käynnistää ja valvoo pelipalvelinprosesseja, kun metagame pyytää | TCP `127.0.0.1:61001` (älä koskaan avaa sitä ulos: siinä ei ole tunnistautumista) |
 | Pelipalvelimet | Lisää kopioita **samasta exe-tiedostosta**, käynnistettyinä valitsimilla `-server -nullrhi`. DLL kääntää ne palvelintilaan | UDP 8770–8777 |
 
 Pelikerta etenee näin:
@@ -80,7 +80,7 @@ pelkkä peliohjelma. Se oli väärin, ja tuo sivu kertoo miksi.
 | Node.js | v24.19.0 (npm 11.17.0) | `better-sqlite3` on natiivimoduuli, joka on sidottu Node-versioon. Älä päivitä Nodea, kun ihmiset pelaavat. |
 | Git | 2.55 for Windows | Tarvitaan forkia varten. Katso polkuhuomiot vaiheessa 4. |
 | PowerShell | Windows PowerShell 5.1 (Windowsin mukana) | Jokainen tämän sivun komento on kirjoitettu versiolle 5.1. |
-| VC++-ajonaikaiset kirjastot | Microsoft Visual C++ 2015-2022, x64 | `UndauntedInternalServer.dll` tarvitsee tiedostot `MSVCP140.dll` ja `VCRUNTIME140_1.dll`. Meidän koneessamme ne olivat jo valmiina. |
+| VC++-ajonaikaiset kirjastot | Microsoft Visual C++ 2015-2022, x64 | `DauntlessUnbroken.dll` tarvitsee tiedostot `MSVCP140.dll` ja `VCRUNTIME140_1.dll`. Meidän koneessamme ne olivat jo valmiina. |
 | Levytila | Noin 12 Gt | Peli 10,9 Gt (412 tiedostoa, kun DLL-tiedostot on lisätty), fork `node_modules`-kansioineen noin 0,3 Gt ja pieni tietokanta. Arkistosta purkaminen vaatii tilapäisesti suunnilleen saman verran lisää. |
 | RAM (keskusmuisti) | Palvelinkoneessamme 32 Gt | Katso mittaukset alla. 16 Gt riittänee yhdelle pelaajalle ja palvelimille. Emme ole testanneet sitä. |
 | Näytönohjain | Mikä tahansa DirectX 11 -näytönohjain peliohjelmalle | Pelipalvelimet ajetaan valitsimella `-nullrhi`, eivätkä ne käytä näytönohjainta. |
@@ -209,7 +209,7 @@ mikään tässä tarvitse niitä.
 
 ## 4. Hae fork lyhyeen polkuun {#fork}
 
-Fork eli muokattu versiomme on kansiossa `C:\dr\undaunted`, haarassa (branch) `dauntless-revived`.
+Fork eli muokattu versiomme on kansiossa `C:\dr\undaunted`, haarassa (branch) `dauntless-unbroken`.
 Ajonaikainen data (SQLite-tietokanta, avaimet, lokit, pid-tiedostot) menee kansioon `C:\dr\data`,
 repositorion ulkopuolelle.
 
@@ -217,21 +217,21 @@ repositorion ulkopuolelle.
 New-Item -ItemType Directory -Force C:\dr, C:\dr\data | Out-Null
 git -c core.longpaths=true clone <URL of this repository> C:\dr\undaunted
 git -C C:\dr\undaunted config core.longpaths true
-git -C C:\dr\undaunted checkout dauntless-revived
+git -C C:\dr\undaunted checkout dauntless-unbroken
 git -C C:\dr\undaunted remote add upstream https://github.com/SyST3MDeV/Undaunted.git   # optional, to follow upstream
 ```
 
 Repositoriossa (koodivarastossa) on kuusi projektia (`Undaunted*`-kansiot) sekä
 Windows-palvelinpaketti, kaveripaketti ja työkalut. Palvelinkoneella käytämme näitä:
 
-- `UndauntedMetagame`: taustapalvelu.
-- `UndauntedDeployServer`: pelipalvelimien valvoja.
-- Kaksi valmiiksi käännettyä DLL-tiedostoa kansiossa `UndauntedLauncher/assets/`.
+- `DauntlessUnbrokenMetagame`: taustapalvelu.
+- `DauntlessUnbrokenDeployServer`: pelipalvelimien valvoja.
+- Kaksi valmiiksi käännettyä DLL-tiedostoa kansiossa `DauntlessUnbrokenLauncher/assets/`.
 
-Kansion `UndauntedLauncher/src` Electron-sovellus on tämän forkin käynnistin kavereille: pelaajat
+Kansion `DauntlessUnbrokenLauncher/src` Electron-sovellus on tämän forkin käynnistin kavereille: pelaajat
 liittyvät sillä palvelimelle kutsun avulla, ja se lataa pelin isännän omalta sisältöpalvelimelta.
 Tämän sivun palvelinasennus ei tarvitse sitä. Palvelin-DLL:n C++-lähdekoodi on kansiossa
-`UndauntedInternalServer`. Jokainen kansio ja se, mitä missäkin käännetään, on lueteltu sivulla
+`DauntlessUnbrokenInternalServer`. Jokainen kansio ja se, mitä missäkin käännetään, on lueteltu sivulla
 [Tiedostot ja data]({{ files_page.url | relative_url }}).
 
 Alla luotavat `.env`-tiedostot ovat gitin ohittamia (git-ignored). Älä koskaan tallenna niitä
@@ -246,19 +246,19 @@ Undauntedin mukana tulee kaksi valmiiksi käännettyä DLL-tiedostoa:
 - `dxgi.dll` on välittäjä (proxy). Windows lataa sen pelikansiosta järjestelmän oman `dxgi.dll`-tiedoston
   sijaan. Se lataa oikean `System32\dxgi.dll`-tiedoston, välittää eteenpäin kutsut
   `CreateDXGIFactory`, `CreateDXGIFactory1` ja `CreateDXGIFactory2` ja lataa
-  `UndauntedInternalServer.dll`-tiedoston. Muuta se ei tee.
-- `UndauntedInternalServer.dll`-tiedostolla on kaksi tilaa. Jos komentorivillä on `-server`, se
+  `DauntlessUnbroken.dll`-tiedoston. Muuta se ei tee.
+- `DauntlessUnbroken.dll`-tiedostolla on kaksi tilaa. Jos komentorivillä on `-server`, se
   muuttaa prosessin pelipalvelimeksi. Muuten se toimii peliohjelmana (client) ja ohjaa taustapalvelun
   osoitteet uudelleen.
 
 Kopioi ne vasta, kun niiden tiivisteet täsmäävät:
 
 ```powershell
-$A = "C:\dr\undaunted\UndauntedLauncher\assets"
+$A = "C:\dr\undaunted\DauntlessUnbrokenLauncher\assets"
 $W = "C:\D144\Dauntless\Archon\Binaries\Win64"
 $pin = @{
-  "dxgi.dll"                    = "9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F"  # 11,264 bytes
-  "UndauntedInternalServer.dll" = "520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933"  # 123,392 bytes
+  "dxgi.dll"                    = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"  # 11,264 bytes
+  "DauntlessUnbroken.dll" = "520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933"  # 123,392 bytes
 }
 foreach ($f in $pin.Keys) {
   if ((Get-FileHash "$A\$f").Hash -ne $pin[$f]) { throw "$f does not match its pinned hash - stop here" }
@@ -279,7 +279,7 @@ Hyvä tietää ennen kuin luotat niihin:
   sinun koneesi ilmoittaa.
 - Analysoimme molemmat tiedostot staattisesti (ajamatta niitä) ennen käyttöä. `dxgi.dll`-tiedoston
   `DllMain`-funktion disassemblointi (konekielen purkaminen luettavaan muotoon) näyttää, että se tekee
-  vain yllä luetellut asiat. `UndauntedInternalServer.dll`-tiedoston tuonnit (imports) ja jokainen
+  vain yllä luetellut asiat. `DauntlessUnbroken.dll`-tiedoston tuonnit (imports) ja jokainen
   siihen kovakoodattu pelin muistiosoite vastaavat julkaistua lähdekoodia tai sen generoitua SDK:ta,
   eikä sillä ole omia verkko-, rekisteri-, prosessinluonti- tai tiedostonkirjoitustuonteja.
   `dxgi.dll`-tiedoston lähdekoodi ei ole Undauntedin repositoriossa, eikä sitä tietääksemme ole
@@ -404,13 +404,13 @@ Peliohjelman koukku menee samoissa avaimissa tiedoston edelle, joten tiedosto ei
 peliohjelman kannalta. Toiselta koneelta liittyvät kaverit eivät tarvitse sitä.
 
 **Luo se DLL:n omasta osoitetaulukosta.** Älä muokkaa sitä käsin. Taulukko on tiedostossa
-`UndauntedInternalServer/dllmain.cpp`, merkintöinä muotoa
+`DauntlessUnbrokenInternalServer/dllmain.cpp`, merkintöinä muotoa
 `{L"AuthEndpoint", L"http://" + Globals::MetagameAddress + L"/game/login"}`. Tallenna tämä nimellä
 `C:\dr\tools\make-gameini.ps1`:
 
 ```powershell
 param([string]$Metagame = "127.0.0.1:61000",
-      [string]$Source = "C:\dr\undaunted\UndauntedInternalServer\dllmain.cpp",
+      [string]$Source = "C:\dr\undaunted\DauntlessUnbrokenInternalServer\dllmain.cpp",
       [string]$Out = "$env:LOCALAPPDATA\Archon\Saved\Config\WindowsClient\Game.ini")
 # Every endpoint the client-mode DLL rewrites: {L"Key", L"http://" + Globals::MetagameAddress [+ L"/path"]}
 $re = '^\s*\{L"([A-Za-z0-9_]+)", L"http://" \+ Globals::MetagameAddress(?: \+ L"([^"]*)")?\},?'
@@ -489,7 +489,7 @@ sovittamisen.
 **Asenna ja käännä.** `dist/`-kansio on gitin ohittama, joten käännät sen aina itse:
 
 ```powershell
-Set-Location C:\dr\undaunted\UndauntedMetagame
+Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
 npm ci --no-audit --no-fund
 npm run build
 Test-Path node_modules\better-sqlite3\build\Release\better_sqlite3.node   # must be True
@@ -508,14 +508,14 @@ allekirjoitusavaimet lisätään seuraavassa vaiheessa.
 PORT=61000
 BIND_HOST=127.0.0.1
 AUTH_MODE=APIKEY
-DB_FILENAME=C:/dr/data/undaunted.db
+DB_FILENAME=C:/dr/data/dauntless-unbroken.db
 TARGET_CHANGELIST=239827
 QOS_TARGET_URL=http://127.0.0.1:61000/QoS
 MATCHMAKING_MODE=DEPLOYSERVER
 DEPLOYSERVER_URL=127.0.0.1:61001
 REGISTRATION_MODE=OPEN
 NODE_ENV=production
-"@ | Set-Content C:\dr\undaunted\UndauntedMetagame\.env -Encoding ascii
+"@ | Set-Content C:\dr\undaunted\DauntlessUnbrokenMetagame\.env -Encoding ascii
 ```
 
 **Luo kirjautumistunnisteiden allekirjoitusavaimet** ja lisää ne tiedoston loppuun tulostamatta niitä.
@@ -523,7 +523,7 @@ Käytä komentoa `Add-Content -Encoding ascii`, älä `>>`-merkkejä: Windows Po
 kirjoittaa oletuksena UTF-16-muodossa, jota Node ei osaa lukea `.env`-tiedostona.
 
 ```powershell
-Set-Location C:\dr\undaunted\UndauntedMetagame
+Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
 node -e "const c=require('crypto');const k=c.generateKeyPairSync('rsa',{modulusLength:2048,privateKeyEncoding:{type:'pkcs8',format:'pem'},publicKeyEncoding:{type:'spki',format:'pem'}});console.log('AUTH_SIGNING_PRIVKEY_B64='+Buffer.from(k.privateKey).toString('base64'));console.log('AUTH_SIGNING_PUBKEY_B64='+Buffer.from(k.publicKey).toString('base64'))" | Add-Content .env -Encoding ascii
 ```
 
@@ -580,7 +580,7 @@ Ensimmäinen käynnistys luo tietokannan ja ajaa kaikki migraatiot:
 
 ```powershell
 $meta = @{ FilePath = "node"; ArgumentList = "--env-file=.env", "dist/server.js"
-           WorkingDirectory = "C:\dr\undaunted\UndauntedMetagame"; PassThru = $true; WindowStyle = "Hidden"
+           WorkingDirectory = "C:\dr\undaunted\DauntlessUnbrokenMetagame"; PassThru = $true; WindowStyle = "Hidden"
            RedirectStandardOutput = "C:\dr\data\metagame.log"; RedirectStandardError = "C:\dr\data\metagame.err" }
 $p = Start-Process @meta; Set-Content C:\dr\data\metagame.pid $p.Id
 Start-Sleep 5
@@ -592,7 +592,7 @@ Odotettu tulos:
 ```
 Registered 0 new Gameserver API Key(s) on boot!
 Registered 0 new User API Key(s) on boot!
-Dauntless Revived metagame on 127.0.0.1:61000
+Dauntless Unbroken metagame on 127.0.0.1:61000
 Progression mode: real for every account (the default)
 Clear Skies, Slayer.
 ```
@@ -601,15 +601,15 @@ Clear Skies, Slayer.
 säilyttää sen.
 
 **Luo pelipalvelinavain.** Pelipalvelimet tunnistautuvat metagameen erillisellä avaimella, joka
-lähetetään `x-undaunted-gameserver-apikey`-otsakkeessa. Metagame tallentaa siitä vain SHA-256-tiivisteen.
+lähetetään `x-dauntless-unbroken-gameserver-apikey`-otsakkeessa. Metagame tallentaa siitä vain SHA-256-tiivisteen.
 Laitat avaimen jonotauluun, ja metagame laskee sen tiivisteen ja rekisteröi sen seuraavalla
 käynnistyksellä:
 
 ```powershell
-Set-Location C:\dr\undaunted\UndauntedMetagame
+Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
 $key = node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 Set-Content C:\dr\data\gameserver.key -Value $key -Encoding ascii -NoNewline
-node -e "new (require('better-sqlite3'))(process.argv[1]).prepare('INSERT INTO gameserverapikeystoregister(key) VALUES (?)').run(process.argv[2])" C:/dr/data/undaunted.db $key
+node -e "new (require('better-sqlite3'))(process.argv[1]).prepare('INSERT INTO gameserverapikeystoregister(key) VALUES (?)').run(process.argv[2])" C:/dr/data/dauntless-unbroken.db $key
 $key = $null
 Stop-Process -Id (Get-Content C:\dr\data\metagame.pid)
 $p = Start-Process @meta; Set-Content C:\dr\data\metagame.pid $p.Id
@@ -634,8 +634,8 @@ Käytämme tässä Noden `fetch`-funktiota aikarajan kanssa emmekä `Invoke-Rest
 kansiosta, jotta `better-sqlite3` löytyy, ja korvaa `YourName` omalla nimelläsi:
 
 ```powershell
-Set-Location C:\dr\undaunted\UndauntedMetagame
-node -e "(async () => { const name = process.argv[1]; const base = 'http://127.0.0.1:61000/undaunted/api'; const r = await fetch(base + '/Register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Username: name }), signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error('Register returned HTTP ' + r.status); const { UUK } = await r.json(); require('fs').writeFileSync('C:/dr/data/owner.key', UUK); const info = await (await fetch(base + '/GetUserInfo', { headers: { 'x-undaunted-user-api-key': UUK }, signal: AbortSignal.timeout(15000) })).json(); new (require('better-sqlite3'))('C:/dr/data/undaunted.db').prepare('UPDATE users SET isAdmin = 1 WHERE userId = ?').run(info.UserId); console.log('created ' + name + ' as admin; key saved to C:/dr/data/owner.key (not shown)'); })().catch(e => { console.error(e.message); process.exit(1); })" YourName
+Set-Location C:\dr\undaunted\DauntlessUnbrokenMetagame
+node -e "(async () => { const name = process.argv[1]; const base = 'http://127.0.0.1:61000/undaunted/api'; const r = await fetch(base + '/Register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Username: name }), signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error('Register returned HTTP ' + r.status); const { UUK } = await r.json(); require('fs').writeFileSync('C:/dr/data/owner.key', UUK); const info = await (await fetch(base + '/GetUserInfo', { headers: { 'x-dauntless-unbroken-user-api-key': UUK }, signal: AbortSignal.timeout(15000) })).json(); new (require('better-sqlite3'))('C:/dr/data/dauntless-unbroken.db').prepare('UPDATE users SET isAdmin = 1 WHERE userId = ?').run(info.UserId); console.log('created ' + name + ' as admin; key saved to C:/dr/data/owner.key (not shown)'); })().catch(e => { console.error(e.message); process.exit(1); })" YourName
 ```
 
 Huomioita:
@@ -644,7 +644,7 @@ Huomioita:
   riippumatta. Muuten `Register` vastaa 400 (`username_invalid`) tai 409 (`username_taken`), ja
   skripti pysähtyy. Ylläpitäjä voi myöhemmin vaihtaa tilin nimen reitillä `RenameUser`.
 - Ylläpitorajapinta (kutsukoodit, rekisteröintitila, nimenvaihdot, tilastot paikalla olevista
-  pelaajista) ottaa tämän avaimen `x-undaunted-user-api-key`-otsakkeessa, ja vain suoraan, ei
+  pelaajista) ottaa tämän avaimen `x-dauntless-unbroken-user-api-key`-otsakkeessa, ja vain suoraan, ei
   koskaan välityspalvelimen (proxy) kautta. Sivu [Palvelin ryhmälle]({{ admin_page.url | relative_url }})
   kertoo siitä, ja [HTTP-rajapinta]({{ api_page.url | relative_url }}) luettelee jokaisen reitin.
 - Pidä `owner.key` poissa repositoriosta, kuvakaappauksista ja keskusteluista. Varmuuskopioi se
@@ -658,7 +658,7 @@ Huomioita:
 Deploy-palvelin on ohjelma, joka käynnistää pelipalvelimet ja pitää niitä silmällä.
 
 ```powershell
-Set-Location C:\dr\undaunted\UndauntedDeployServer
+Set-Location C:\dr\undaunted\DauntlessUnbrokenDeployServer
 npm ci --no-audit --no-fund
 npm run build
 $key = (Get-Content C:\dr\data\gameserver.key -Raw).Trim()
@@ -697,7 +697,7 @@ Käynnistä se:
 
 ```powershell
 $dep = @{ FilePath = "node"; ArgumentList = "--env-file=.env", "dist/server.js"
-          WorkingDirectory = "C:\dr\undaunted\UndauntedDeployServer"; PassThru = $true; WindowStyle = "Hidden"
+          WorkingDirectory = "C:\dr\undaunted\DauntlessUnbrokenDeployServer"; PassThru = $true; WindowStyle = "Hidden"
           RedirectStandardOutput = "C:\dr\data\deploy.log"; RedirectStandardError = "C:\dr\data\deploy.err" }
 $p = Start-Process @dep; Set-Content C:\dr\data\deploy.pid $p.Id
 ```
@@ -750,7 +750,7 @@ Get-CimInstance Win32_Process -Filter "Name='Dauntless-Win64-Shipping.exe'" | Fo
 
 # 5. the deploy server log
 Get-Content C:\dr\data\deploy.log | ForEach-Object { try { ($_ | ConvertFrom-Json).msg } catch { $_ } }
-#    expect: Dauntless Revived deploy server on port 61001 / Clear Skies, Slayer. / Running Gameserver Watchdog! (every 60 s)
+#    expect: Dauntless Unbroken deploy server on port 61001 / Clear Skies, Slayer. / Running Gameserver Watchdog! (every 60 s)
 ```
 
 Ramsgate-palvelimen pitäisi asettua noin 1,1 gigatavuun ja 0,2 suoritinytimeen. Pelipalvelimet
@@ -778,7 +778,7 @@ Käynnistämme pelin skriptillä `C:\dr\tools\play.ps1`. Se kirjoittaa grafiikka
 käynnistää pelin ja voi halutessasi seurata sen muistinkäyttöä. Tässä se kokonaisuudessaan:
 
 ```powershell
-# Launch the 1.4.4 client against our own Dauntless Revived backend.
+# Launch the 1.4.4 client against our own Dauntless Unbroken backend.
 #   -Graphics 4     FORCE this quality level on every launch (4 = Cinematic = max, 3 = Epic).
 #   -Graphics -1    don't force anything; use whatever you pick in the in-game menu.
 #   -Windowed       1280x720 window instead of your saved display mode.
@@ -955,7 +955,7 @@ Get-CimInstance Win32_Process -Filter "Name='Dauntless-Win64-Shipping.exe'" |
 Stop-Process -Id (Get-Content C:\dr\data\metagame.pid)
 ```
 
-Kun kaikki on pysäytetty, kopioi `C:\dr\data\undaunted.db` turvaan. Siinä on jokainen tili ja hahmo.
+Kun kaikki on pysäytetty, kopioi `C:\dr\data\dauntless-unbroken.db` turvaan. Siinä on jokainen tili ja hahmo.
 Sivulla [Palvelin ryhmälle]({{ admin_page.url | relative_url }}) on kunnollinen
 varmuuskopiointirutiini.
 
@@ -970,12 +970,12 @@ Kun vaiheet 1–12 on tehty, tämä on koko rutiini.
 | 1 | Sulje raskaat ohjelmat. Jos käytät WSL:ää, aja `wsl --shutdown`. | Useita gigatavuja RAM-muistia vapaana |
 | 2 | Varmista, ettei mitään vanhaa ole käynnissä: ei `node`-prosessia porteissa 61000/61001, ei `-server`-peliprosesseja. | Vaiheen 12 komennot 1 ja 4 eivät näytä mitään |
 | 3 | `Game.ini` on ehjä. | Vaiheen 8 kuntotarkistus: `167 / 0 / 0` |
-| 4 | Käynnistä metagame kansiosta `C:\dr\undaunted\UndauntedMetagame` (`Start-Process @meta`, vaihe 9). | Loki: `Dauntless Revived metagame on 127.0.0.1:61000` |
-| 5 | Käynnistä deploy-palvelin kansiosta `C:\dr\undaunted\UndauntedDeployServer` (`Start-Process @dep`, vaihe 11). | Loki: `Dauntless Revived deploy server on port 61001` |
+| 4 | Käynnistä metagame kansiosta `C:\dr\undaunted\DauntlessUnbrokenMetagame` (`Start-Process @meta`, vaihe 9). | Loki: `Dauntless Unbroken metagame on 127.0.0.1:61000` |
+| 5 | Käynnistä deploy-palvelin kansiosta `C:\dr\undaunted\DauntlessUnbrokenDeployServer` (`Start-Process @dep`, vaihe 11). | Loki: `Dauntless Unbroken deploy server on port 61001` |
 | 6 | Odota Ramsgatea. | Palvelimen konsoli-ikkuna aukeaa; UDP 8777 on prosessin `Dauntless-Win64-Shipping` varaama |
 | 7 | `powershell -NoProfile -ExecutionPolicy Bypass -File C:\dr\tools\play.ps1` | Metagamen lokissa näkyy `POST /account/api/oauth/token` ja sitten `POST /login` |
 | 8 | Pelaa. Älä sulje yhtään konsoli-ikkunaa. | `gs=1`-rivejä ilmestyy, kun palvelin lataa sinut |
 | 9 | Pysäytä järjestyksessä: peli, deploy-palvelin, `-server`-prosessit, metagame. | Vaihe 15 |
-| 10 | Varmuuskopioi `C:\dr\data\undaunted.db`. | Päivätty kopio on olemassa |
+| 10 | Varmuuskopioi `C:\dr\data\dauntless-unbroken.db`. | Päivätty kopio on olemassa |
 
 Jos jokin ei täsmää, katso [Vianetsintä]({{ trouble_page.url | relative_url }}).

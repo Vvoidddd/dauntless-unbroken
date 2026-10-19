@@ -1,6 +1,6 @@
 ---
 title: Löydökset
-parent: Dauntless Revived suomeksi
+parent: Dauntless Unbroken suomeksi
 nav_order: 4
 has_children: true
 has_toc: false

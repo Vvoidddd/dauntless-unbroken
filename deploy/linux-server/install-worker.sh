@@ -5,14 +5,14 @@ usage() {
   cat >&2 <<EOF
 usage: $0 --game-dir <Dauntless folder> [options]
   --source <repo>               source checkout; default repository containing this script
-  --install-root <dir>          default /opt/dauntless-revived
+  --install-root <dir>          default /opt/dauntless-unbroken
   --worker-user <user>          default dauntless
-  --env-file <file>             default /etc/dauntless-revived-worker.env
+  --env-file <file>             default /etc/dauntless-unbroken-worker.env
   --command-link <path>          default /usr/local/bin/dr-game-worker
   --proton <path>               explicit Proton/GE-Proton script (preferred)
-  --proton-data <dir>           default /var/lib/dauntless-revived-worker/proton
+  --proton-data <dir>           default /var/lib/dauntless-unbroken-worker/proton
   --wine <path>                 explicit wine/wine64 path
-  --wineprefix <dir>            default /var/lib/dauntless-revived-worker/wineprefix
+  --wineprefix <dir>            default /var/lib/dauntless-unbroken-worker/wineprefix
   --xvfb 0|1                    default 1
   --no-system-changes           do not create users or write /etc (test mode)
 EOF
@@ -21,12 +21,12 @@ EOF
 
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 source_root=$(CDPATH= cd -- "$script_dir/../.." && pwd)
-install_root=/opt/dauntless-revived
+install_root=/opt/dauntless-unbroken
 worker_user=dauntless
-env_file=/etc/dauntless-revived-worker.env
+env_file=/etc/dauntless-unbroken-worker.env
 command_link=/usr/local/bin/dr-game-worker
-wineprefix=/var/lib/dauntless-revived-worker/wineprefix
-proton_data=/var/lib/dauntless-revived-worker/proton
+wineprefix=/var/lib/dauntless-unbroken-worker/wineprefix
+proton_data=/var/lib/dauntless-unbroken-worker/proton
 game_dir=
 proton=
 wine=
@@ -72,7 +72,7 @@ source_root=$(CDPATH= cd -- "$source_root" && pwd)
 game_dir=$(CDPATH= cd -- "$game_dir" && pwd)
 if [ "$source_root" != "$install_root" ]; then
   mkdir -p "$install_root"
-  (cd "$source_root" && tar --exclude=.git --exclude="*/node_modules" --exclude="*/dist" --exclude="*/build" -cf - deploy UndauntedLauncher/assets) | (cd "$install_root" && tar -xf -)
+  (cd "$source_root" && tar --exclude=.git --exclude="*/node_modules" --exclude="*/dist" --exclude="*/build" -cf - deploy DauntlessUnbrokenLauncher/assets) | (cd "$install_root" && tar -xf -)
 fi
 chmod +x "$install_root/deploy/linux-server/worker-launch.mjs" "$install_root/deploy/linux-server/ssh-worker-command.sh" "$install_root/deploy/linux-server/prepare-game.sh"
 "$install_root/deploy/linux-server/prepare-game.sh" --game-dir "$game_dir" --repo "$install_root"

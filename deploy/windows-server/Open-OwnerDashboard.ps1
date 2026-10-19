@@ -8,4 +8,4 @@ for ($attempt = 0; $attempt -lt 15; $attempt++) {
     } catch {} finally { if ($client) { $client.Dispose() } }
     Start-Sleep -Seconds 2
 }
-Write-Warning 'Owner dashboard did not start. Check the Dauntless Revived dashboard scheduled task.'
+Write-Warning 'Owner dashboard did not start. Check the Dauntless Unbroken dashboard scheduled task.'

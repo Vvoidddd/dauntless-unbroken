@@ -1,6 +1,6 @@
 #!/bin/ksh
 daemon="@NODE@"
-daemon_flags="--env-file=@CONFIG@/metagame.env @ROOT@/UndauntedMetagame/dist/server.js"
+daemon_flags="--env-file=@CONFIG@/metagame.env @ROOT@/DauntlessUnbrokenMetagame/dist/server.js"
 daemon_user="@USER@"
 daemon_logger="daemon.info"
 rc_bg=YES

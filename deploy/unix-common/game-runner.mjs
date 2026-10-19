@@ -90,7 +90,7 @@ export function buildWineLaunch(args, env = process.env) {
   let launchEnv;
   let runtime;
   if (proton) {
-    const compatData = path.resolve(env.DR_PROTON_COMPAT_DATA ?? path.join(home, ".local", "share", "dauntless-revived", "proton"));
+    const compatData = path.resolve(env.DR_PROTON_COMPAT_DATA ?? path.join(home, ".local", "share", "dauntless-unbroken", "proton"));
     mkdirSync(compatData, { recursive: true });
     const steamRoot = steamRootFor(proton);
     command = proton;
@@ -107,7 +107,7 @@ export function buildWineLaunch(args, env = process.env) {
   } else {
     const wine = explicitWine ?? findOnPath(["wine64", "wine"], env);
     if (!wine) throw new Error("Proton or Wine was not found; set DR_PROTON_BINARY/DR_WINE_BINARY or install a runtime");
-    const prefix = path.resolve(env.DR_WINEPREFIX ?? path.join(home, ".local", "share", "dauntless-revived", "wineprefix"));
+    const prefix = path.resolve(env.DR_WINEPREFIX ?? path.join(home, ".local", "share", "dauntless-unbroken", "wineprefix"));
     mkdirSync(prefix, { recursive: true });
     command = wine;
     gameArgs = [gameExe, ...args];

@@ -30,7 +30,7 @@ function cleanName(value) {
 }
 
 const opt = args(process.argv.slice(2));
-const configDir = path.resolve(opt.config || "/etc/dauntless-revived");
+const configDir = path.resolve(opt.config || "/etc/dauntless-unbroken");
 const conf = parseEnv(path.join(configDir, "server.conf"));
 const meta = parseEnv(path.join(configDir, "metagame.env"));
 const root = conf.DR_ROOT;
@@ -42,7 +42,7 @@ const code = crypto.randomBytes(10).toString("hex");
 execFileSync(process.execPath, [
   path.join(root, "deploy", "unix-common", "dr-db.cjs"),
   "add-invite",
-  path.join(root, "UndauntedMetagame"),
+  path.join(root, "DauntlessUnbrokenMetagame"),
   meta.DB_FILENAME,
   code,
 ], { stdio: ["ignore", "ignore", "inherit"] });
@@ -61,7 +61,7 @@ if (conf.DR_MODE === "public") {
     code,
     name,
   });
-  process.stdout.write("dauntless-revived://join?" + query.toString() + "\n");
+  process.stdout.write("dauntless-unbroken://join?" + query.toString() + "\n");
 } else {
   const query = new URLSearchParams({
     v: "1",
@@ -70,5 +70,5 @@ if (conf.DR_MODE === "public") {
     code,
     name,
   });
-  process.stdout.write("dauntless-revived://join?" + query.toString() + "\n");
+  process.stdout.write("dauntless-unbroken://join?" + query.toString() + "\n");
 }

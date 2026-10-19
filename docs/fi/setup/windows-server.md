@@ -1,9 +1,9 @@
 ---
 title: Windows-palvelin
 parent: Asennus
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 6
-description: "Dauntless Revived -palvelin vuokratulle Windows Server 2019 -koneelle julkisessa tilassa: yksi salattu portti, kiinnitetty varmenne, peliportit auki vain kirjautuneille, asennus SSH:lla, kutsut ja varmuuskopiot."
+description: "Dauntless Unbroken -palvelin vuokratulle Windows Server 2019 -koneelle julkisessa tilassa: yksi salattu portti, kiinnitetty varmenne, peliportit auki vain kirjautuneille, asennus SSH:lla, kutsut ja varmuuskopiot."
 lang: fi
 ref: setup/windows-server
 locale: fi_FI
@@ -24,7 +24,7 @@ locale: fi_FI
 # Windows-palvelin
 {: .no_toc }
 
-Repositorion kansio `deploy/windows-server/` asentaa kokonaisen Dauntless Revived -palvelimen
+Repositorion kansio `deploy/windows-server/` asentaa kokonaisen Dauntless Unbroken -palvelimen
 Windows Server 2019 -koneelle, yleensä vuokrattuun virtuaalipalvelimeen, jolla on julkinen
 IP-osoite. Ajat omalla koneellasi yhden komennon. Se ottaa palvelimeen yhteyden SSH:lla, lähettää
 kaiken tarvittavan, asentaa palvelimen ja kertoo lopuksi, mitä kaverit tarvitsevat liittyäkseen.
@@ -107,7 +107,7 @@ jossa ei ole lainkaan tunnistusta) ja sallittujen listan apuri (61005).
   SSH-avainpari (esimerkiksi `ssh-keygen -t ed25519 -f C:\dr\data\ssh\dauntless_deploy`). Pidä
   yksityinen avain vain oman käyttäjätilisi luettavana.
 - Halutessasi: varmuuskopio nykyisestä palvelimestasi (kansio, jonka `backup.ps1` tai
-  `Backup-DauntlessServer.ps1` tekee). Sen avulla kaikki tilit, tallennukset ja avaimet siirtyvät
+  `Backup-DauntlessUnbrokenServer.ps1` tekee). Sen avulla kaikki tilit, tallennukset ja avaimet siirtyvät
   uudelle palvelimelle.
 
 ## Palvelimen valmistelu (kerran)
@@ -198,7 +198,7 @@ Uudelle palvelimelle, jolla ei ole vielä tietokantaa, käytä `-RestoreFrom`:n 
 
 ### Mitä asennus tekee {#what-the-installer-does}
 
-`Install-DauntlessServer.ps1`:n voi ajaa myös suoraan palvelimella (esimerkiksi etätyöpöydän
+`Install-DauntlessUnbrokenServer.ps1`:n voi ajaa myös suoraan palvelimella (esimerkiksi etätyöpöydän
 kautta). Jokaisen vaiheen voi toistaa turvallisesti, ja `-WhatIf` luettelee kaikki muutokset
 tekemättä niitä.
 
@@ -209,7 +209,7 @@ tekemättä niitä.
    DirectX June 2010 (molemmat tarkistetaan Microsoftin allekirjoituksesta). Kaikki lataukset
    käyttävät TLS 1.2:ta.
 3. **Palvelinkoodi:** käännetään komennoilla `npm ci` ja `npm run build` kansioon
-   `C:\DauntlessRevived\app`: metagame, deploy-palvelin, sisältöpalvelin sekä yhdyskäytävä ja sen apuri.
+   `C:\DauntlessUnbroken\app`: metagame, deploy-palvelin, sisältöpalvelin sekä yhdyskäytävä ja sen apuri.
 4. **Pelitiedostot:** zipin SHA-256 tarkistetaan, se puretaan Windowsin omalla `tar.exe`:llä,
    jokainen tiedosto tarkistetaan sisältöluetteloa vasten, ja kaksi palvelimen DLL-tiedostoa
    asennetaan kiinnitetyillä tiivisteillä.
@@ -255,8 +255,8 @@ luettelee ne kaikki sekä paketin kaikkien muiden skriptien parametrit.
 | `-KeepRdpOpen` | | Julkinen tila ilman `-AdminIp`:tä: jätä internetille auki olevat etätyöpöytäsäännöt auki poistamisen sijaan. |
 | `-RestoreFrom` | | Varmuuskopiokansio, jolla olemassa oleva palvelin siirretään tänne. |
 | `-OwnerName` | | Uuden palvelimen ylläpitäjätilin käyttäjänimi (3-16 kirjainta, numeroa tai `_`). |
-| `-ServerName` | `Dauntless Revived` | Nimi, jonka kaverit näkevät käynnistimessä ja pelin tervetulotekstissä. Ei muisteta: uusi ajo ilman sitä palauttaa nimeksi `Dauntless Revived`. |
-| `-InstallRoot` | `C:\DauntlessRevived` | Minne kaikki asennetaan. |
+| `-ServerName` | `Dauntless Unbroken` | Nimi, jonka kaverit näkevät käynnistimessä ja pelin tervetulotekstissä. Ei muisteta: uusi ajo ilman sitä palauttaa nimeksi `Dauntless Unbroken`. |
+| `-InstallRoot` | `C:\DauntlessUnbroken` | Minne kaikki asennetaan. |
 | `-InteractiveSession` | | Istunto 0:n varasuunnitelma, katso alempaa. Ei muisteta: uusi ajo ilman sitä laittaa automaattisen kirjautumisen pois. |
 | `-NewCertificate` | | Uusi varmenne. **Kaikki aiemmin annetut kutsut lakkaavat toimimasta.** |
 
@@ -280,7 +280,7 @@ käynnistimen välitin tarvitsee portin 61000, samaa porttia käyttää paikalli
    Ramsgaten UDP-portissa 8777.
 5. Vasta sitten lähetä kutsut kavereille.
 
-`DAUNTLESS_REVIVED_RELAY_PORT` siirtää välittimen pois portista 61000, mutta se on vain testejä varten;
+`DAUNTLESS_UNBROKEN_RELAY_PORT` siirtää välittimen pois portista 61000, mutta se on vain testejä varten;
 kaverit käyttävät aina porttia 61000.
 
 ## Ennen kuin kaverit liittyvät
@@ -293,22 +293,22 @@ Käy tämä lista läpi, kun palvelin on asennettu:
    oma sallittujen lista rajaa UDP:n jo kirjautuneisiin pelaajiin. Oma koneesi ei voi testata UDP-polkua.
 2. Rajaa palveluntarjoajalla **TCP 22** ja **TCP 3389** omaan osoitteeseesi.
 3. Jaa käynnistin. Käynnistimessä ei ole latauslinkkiä: kaverit hakevat sen osoitteesta
-   **`https://github.com/mixutin/dauntless-revived/releases/latest`**
-   (`DauntlessRevivedLauncher-Setup.exe`). Sitä ei ole allekirjoitettu, joten Windows SmartScreen
+   **`https://github.com/Vvoidddd/dauntless-unbroken/releases/latest`**
+   (`DauntlessUnbrokenLauncher-Setup.exe`). Sitä ei ole allekirjoitettu, joten Windows SmartScreen
    varoittaa ensimmäisellä kerralla: **Lisätietoja > Suorita silti**. Koneella, jossa tunnistamattomat
    sovellukset on asetettu estettäviksi, SmartScreen estää sen kokonaan eikä tarjoa Suorita silti
    -vaihtoehtoa; silloin kaveri tarkistaa tiedoston SHA-256:n saman julkaisun `SHA256SUMS.txt`-tiedostoa
    vasten ja poistaa eston (hiiren oikea > **Ominaisuudet** > **Poista esto**, tai `Unblock-File`),
    kuten sivulla [Liity kaverina]({{ friends_page.url | relative_url }}) kerrotaan. Allekirjoitus on
    tiekartan kohta 4.16. CI julkaisee jokaisen
-   `UndauntedLauncher/package.json`-tiedoston uuden version itse, kun kaikki tarkistukset menevät läpi
+   `DauntlessUnbrokenLauncher/package.json`-tiedoston uuden version itse, kun kaikki tarkistukset menevät läpi
    (repositorion muuttuja `LAUNCHER_AUTO_RELEASE` arvolla `false` pysäyttää sen), ja Actions >
-   **Launcher release** > **Run workflow** `dauntless-revived`-haaralle julkaisee käsin (ks.
+   **Launcher release** > **Run workflow** `dauntless-unbroken`-haaralle julkaisee käsin (ks.
    käynnistimen README, kohta "Julkaisut ja päivitykset"). Tai lähetä `Setup.exe` SHA-256-summineen yksityisesti.
 
 Jos kaveri **kirjautuu ja jää sitten jumiin Ramsgatea ladatessa**, palveluntarjoaja lähes varmasti estää
 UDP:n 8770-8777. Lisää yllä oleva sääntö ja tarkista palvelimen oma sallittujen lista:
-`Get-NetFirewallRule -Name DauntlessRevived-GamePorts-Allowlist | Get-NetFirewallAddressFilter`.
+`Get-NetFirewallRule -Name DauntlessUnbroken-GamePorts-Allowlist | Get-NetFirewallAddressFilter`.
 
 ## Kutsut
 
@@ -318,20 +318,20 @@ Omalta koneeltasi:
 .\deploy\windows-server\Deploy-Remote.ps1 -Server 203.0.113.7 -InviteFor Alex
 ```
 
-tai palvelimella: `C:\DauntlessRevived\bin\New-Invite.ps1 -For Alex`. Se tekee kertakäyttöisen
+tai palvelimella: `C:\DauntlessUnbroken\bin\New-Invite.ps1 -For Alex`. Se tekee kertakäyttöisen
 kutsukoodin (`-Uses` useampaan), tarkistaa ensin että yhdyskäytävä vastaa oikealla varmenteella, ja
 tulostaa yhden rivin:
 
 ```
-dauntless-revived://join?v=2&mode=public&host=203.0.113.7&port=443&fp=<64 heksamerkkiä>&code=ABCD-EFGH-JKLM&name=Lauantain%20Ramsgate
+dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=<64 heksamerkkiä>&code=ABCD-EFGH-JKLM&name=Lauantain%20Ramsgate
 ```
 
 Kaveri liittää rivin käynnistimeen. Koodilla voi luoda yhden tilin, joten lähetä se yksityisesti.
 `-List` näyttää vielä käyttämättömät koodit, `-Revoke <koodi>` poistaa koodin.
 
 Kaverit hakevat käynnistimen osoitteesta
-[github.com/mixutin/dauntless-revived/releases/latest](https://github.com/mixutin/dauntless-revived/releases/latest)
-(`DauntlessRevivedLauncher-Setup.exe`). Sitä ei ole allekirjoitettu, joten Windows voi varoittaa, ettei
+[github.com/Vvoidddd/dauntless-unbroken/releases/latest](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest)
+(`DauntlessUnbrokenLauncher-Setup.exe`). Sitä ei ole allekirjoitettu, joten Windows voi varoittaa, ettei
 sovellusta tunnisteta: **Lisätietoja > Suorita silti**. Jos Windows estää sen eikä tarjoa Suorita silti
 -vaihtoehtoa, kaveri tarkistaa sen `SHA256SUMS.txt`-tiedostoa vasten ja poistaa eston (ks.
 [Liity kaverina]({{ friends_page.url | relative_url }})). Pidä käynnistin auki pelatessasi.
@@ -350,12 +350,12 @@ Nämä ajetaan palvelimella (SSH:n kautta: `ssh -i <avain> Administrator@<palvel
 
 | Komento | Mitä se tekee |
 |:--------|:--------------|
-| `C:\DauntlessRevived\bin\Stack.ps1 status` | Jokainen osa prosesseineen ja portteineen, yhdyskäytävän TLS-tarkistus, sallittujen lista, pelipalvelimet, ajastetut tehtävät ja viimeisin varmuuskopio. |
+| `C:\DauntlessUnbroken\bin\Stack.ps1 status` | Jokainen osa prosesseineen ja portteineen, yhdyskäytävän TLS-tarkistus, sallittujen lista, pelipalvelimet, ajastetut tehtävät ja viimeisin varmuuskopio. |
 | `Stack.ps1 stop` / `start` / `restart` | Pysäyttää tai käynnistää kaiken ajastettujen tehtävien kautta. Pysäytys sulkee myös peliportit. `restart -Only gateway` käynnistää yhden osan uudelleen. |
 | `Get-ServerStatus.ps1` | Ketkä ovat paikalla ja mitkä maailmat ja metsästykset ovat käynnissä, kysyttynä yhdyskäytävän kautta kuten kaveri kysyisi. Palvelin näyttää listan vain rekisteröityneille pelaajille, joten skripti kysyy omistajan avaimella (aja se järjestelmänvalvojana). Omalta koneelta: `Get-ServerStatus.ps1 -Invite '<kutsurivi>' -KeyFile <oma account.key>`. Ilman avainta se kertoo, että lista on piilotettu. |
-| `Backup-DauntlessServer.ps1` | Varmuuskopio heti (tehdään myös tunnin välein sekä jokaisen käynnistyksen ja pysäytyksen yhteydessä). |
+| `Backup-DauntlessUnbrokenServer.ps1` | Varmuuskopio heti (tehdään myös tunnin välein sekä jokaisen käynnistyksen ja pysäytyksen yhteydessä). |
 | `Write-PerformanceLog.ps1 -Once` | Suorituskykymittaus heti (aja järjestelmänvalvojana). Kokonaisuus ottaa mittauksen itse minuutin välein kansioon `data\logs\performance\`: pelipalvelinten ja osien suoritin ja muisti, koneen suoritin, keskusmuisti, levy ja verkko sekä pelaajamäärät. Katso [Mittaa se]({{ admin_page.url | relative_url }}#measure-it). |
-| `Update-DauntlessServer.ps1 -Ref <tagi>` | Uusi palvelinkoodi, katso alta. |
+| `Update-DauntlessUnbrokenServer.ps1 -Ref <tagi>` | Uusi palvelinkoodi, katso alta. |
 | `Set-Chat.ps1 -On` / `-Off` | Kytkee pelin tekstichatin päälle tai pois; katso [Chat](#chat) alta. Käynnistää kokonaisuuden uudelleen. |
 
 Omalta koneelta `Deploy-Remote.ps1 -Server <osoite> -Status` näyttää tilanteen kirjautumatta.
@@ -374,11 +374,11 @@ uudelleen, ja uudelleenkäynnistys pudottaa ryhmät ja matchmaking-jonot, jotka 
 
 **Jos palvelin on asennettu ennen chattia, päivitä ensin.** `Set-Chat.ps1` tulee chatin sisältävän
 koodin mukana, joten vanhemmassa versiossa sitä ei vielä ole: aja
-`Deploy-Remote.ps1 -Server <osoite> -Update` (tai palvelimella `Update-DauntlessServer.ps1`) ja kytke
+`Deploy-Remote.ps1 -Server <osoite> -Update` (tai palvelimella `Update-DauntlessUnbrokenServer.ps1`) ja kytke
 chat sitten päälle. `-Chat` ei käy yhdessä valinnan `-Update` kanssa, joten ajoja ja
 uudelleenkäynnistyksiä on kaksi.
 
-- Palvelimella: `C:\DauntlessRevived\bin\Set-Chat.ps1 -On` (tai `-Off`). Se kirjoittaa tiedostoon
+- Palvelimella: `C:\DauntlessUnbroken\bin\Set-Chat.ps1 -On` (tai `-Off`). Se kirjoittaa tiedostoon
   `metagame.env` asetukset `CHAT`, `CHAT_BIND_HOST=127.0.0.1` ja `CHAT_PORT` sekä tiedostoon
   `server.json` kohdan `"Chat"`, käynnistää kokonaisuuden uudelleen tavallisine varmuuskopioineen ja
   odottaa kuuntelijaa enintään 30 sekuntia. Jos se ei onnistu, se palauttaa vanhat asetukset ja
@@ -401,7 +401,7 @@ pelaajien huoneisiin liittymiset hylätään syyllä `reason=nick-resource`, `ni
 `nick-name`, `CHAT_NICK_CHECK=log` päästää heidät sisään varoituksen kera sillä aikaa, kun raportoit
 rivin. `Set-Chat.ps1 -Off` on paluutie mistä tahansa vakavasta: peli yrittää silloin uudelleen 15-45
 sekunnin välein vaarattomasti, kuten ennen chattia. Jos vika on itse chat-koodissa,
-`Update-DauntlessServer.ps1 -Rollback` palaa päivitystä edeltäneeseen versioon; vanhempi koodi ei lue
+`Update-DauntlessUnbrokenServer.ps1 -Rollback` palaa päivitystä edeltäneeseen versioon; vanhempi koodi ei lue
 asetusta `CHAT`. Yksityisessä tilassa chattia ei vielä ole.
 
 **Kavereiden paikalla olo** on toinen kytkin, `CHAT_PRESENCE=1`, jota `Set-Chat.ps1` ei aseta: lisää
@@ -415,7 +415,7 @@ ohjeen mukaan ennen kuin jätät sen päälle; rivin poistaminen kytkee sen taas
 Paketti ei kirjoita yhtään Harmonicin forkin siirron mukana tulleista kytkimistä, joten paketin
 palvelimella ne ovat oletusarvoissaan: Slayer Links päällä; Escalation (`ESCALATION_MODE`), kauppa
 (`STORE`) ja kavereiden paikalla olo pois. Muuttaaksesi jotakin lisää rivi tiedostoon
-`C:\DauntlessRevived\data\config\metagame.env` (deploy-palvelimelle `deployserver.env`)
+`C:\DauntlessUnbroken\data\config\metagame.env` (deploy-palvelimelle `deployserver.env`)
 järjestelmänvalvojana avatulla editorilla ja käynnistä kyseinen osa uudelleen, kun kukaan ei pelaa.
 Paketti säilyttää rivin uudelleenajoissa ja päivityksissä. Mitä kukin tekee ja mitä tarkistaa ensin,
 kerrotaan sivulla [Palvelin ryhmälle]({{ admin_page.url | relative_url }}#switching-features-on).
@@ -423,10 +423,10 @@ kerrotaan sivulla [Palvelin ryhmälle]({{ admin_page.url | relative_url }}#switc
 ### Päivitykset
 
 `Deploy-Remote.ps1 -Server <osoite> -Update` lähettää nykyisen commitisi ja ajaa palvelimella
-`Update-DauntlessServer.ps1`:n. Se kääntää uuden koodin palvelimen pyöriessä, ottaa varmuuskopion,
+`Update-DauntlessUnbrokenServer.ps1`:n. Se kääntää uuden koodin palvelimen pyöriessä, ottaa varmuuskopion,
 vaihtaa uuteen ja tarkistaa, että metagame vastaa ja yhdyskäytävä vastaa kutsujen varmenteella. Jos
 tarkistus ei onnistu kolmessa minuutissa, se palaa itse edelliseen versioon.
-`Update-DauntlessServer.ps1 -Rollback` tekee saman käsin. Asetuksiin (paitsi `metagame.env`-tiedoston
+`Update-DauntlessUnbrokenServer.ps1 -Rollback` tekee saman käsin. Asetuksiin (paitsi `metagame.env`-tiedoston
 `GIT_COMMIT`-arvoon, johon kirjataan uusi commit), avaimiin, varmenteeseen,
 pelitiedostoihin eikä palvelutilin `Game.ini`- ja `Engine.ini`-tiedostoihin kosketa; niitä varten
 aja asennus uudelleen. Tee niin päivityksen jälkeen, joka muuttaa DLL:n osoitetaulukkoa, ja
@@ -445,7 +445,7 @@ ei ole `PROGRESSION_MODE`-riviä (tai rivi on tyhjä tai sen arvo on muu kuin `r
 vaihtaa alkuperäisen projektin valemaksimitasoista oikeaan etenemiseen, ja aiemmin pelanneet
 aloittavat Slayer-tasolta 1. Päivitys ei siirrä mitään. Pidä valittujen pelaajien maksimitasot
 antamalla heille lähtötaso `grandfather`, tai lisää ensin `PROGRESSION_MODE=stub` tiedostoon
-`C:\DauntlessRevived\data\config\metagame.env`, jos haluat jatkaa tyngällä. Ellei tiedostossa lue
+`C:\DauntlessUnbroken\data\config\metagame.env`, jos haluat jatkaa tyngällä. Ellei tiedostossa lue
 `real` tai `stub`, päivitysohjelma toistaa onnistuneen päivityksen jälkeen metagamen varoituksen
 pelaajista, joilla ei ole tallennettua etenemistä. Paluu edelliseen versioon ja palautus
 varmuuskopiosta noudattavat samaa sääntöä, joten erikseen asetettu rivi pitää tilan samana.
@@ -453,7 +453,7 @@ varmuuskopiosta noudattavat samaa sääntöä, joten erikseen asetettu rivi pit�
 
 ### Varmuuskopiot
 
-Varmuuskopiot ovat kansiossa `C:\DauntlessRevived\backups\<päivä>_<aika>\`: tietokanta (kopioitu
+Varmuuskopiot ovat kansiossa `C:\DauntlessUnbroken\backups\<päivä>_<aika>\`: tietokanta (kopioitu
 SQLiten online backup -rajapinnalla palvelimen pyöriessä ja tarkistettu), asetukset avaimineen,
 ylläpitäjätilin avain, yhdyskäytävän varmenne, `server.json` ja käynnistimen uutiset. Tallessa
 pidetään 48 uusinta varmuuskopiota (tunnin välein otetut sekä käynnistysten ja pysäytysten yhteydessä
@@ -478,19 +478,19 @@ lukitaan heti.
 metagamen ja sisältöpalvelimen kuuntelemaan vain Tailscale-osoitteessa ja rajaa palomuurin
 Tailscale-osoitteisiin. Tässä tilassa ei ole yhdyskäytävää eikä sallittujen listaa, ja
 `New-Invite.ps1` tekee v1-kutsuja:
-`dauntless-revived://join?v=1&host=<tailnet-osoite>&port=61000&code=...&name=...`.
+`dauntless-unbroken://join?v=1&host=<tailnet-osoite>&port=61000&code=...&name=...`.
 Koneen jakamisesta kerrotaan sivulla [Palvelin ryhmälle]({{ admin_page.url | relative_url }}).
 
 ## Tiedostot palvelimella
 
 | Polku | Mitä se on |
 |:------|:-----------|
-| `C:\DauntlessRevived\bin\` | Paketin skriptit. |
+| `C:\DauntlessUnbroken\bin\` | Paketin skriptit. |
 | `app\` (ja `app.prev\`) | Käännetty palvelinkoodi (ja edellinen versio paluuta varten). |
 | `game\Dauntless\` | Tarkistetut 1.4.4-tiedostot. |
 | `data\config\` | `server.json` ja `.env`-asetukset (salaisuuksia). Mitkä avaimet asennus kirjoittaa ja mitkä se säilyttää: [asetusten viitesivu]({{ config_page.url | relative_url }}#server-kit). |
 | `data\keys\`, `data\tls\` | Ylläpitäjätilin avain ja pelipalvelimen avain; yhdyskäytävän varmenne ja sen yksityinen avain. |
-| `data\undaunted.db` | Tietokanta: tilit ja tallennukset. |
+| `data\dauntless-unbroken.db` | Tietokanta: tilit ja tallennukset. |
 | `data\logs\` | Kaikkien osien lokit; `gateway.out.log` on pääsyloki (ei avaimia). `performance\` sisältää suorituskykylokin, yhden CSV-tiedoston päivässä (vain lukuja). |
 | `data\allowlist\` | Apurin tarkastusloki ja tila (vain ylläpitäjät ja SYSTEM voivat kirjoittaa sinne). |
 | `backups\` | Tunnin välein otetut varmuuskopiot. |
@@ -522,17 +522,17 @@ Palvelimella, ylläpitäjänä avatussa PowerShellissä. **Ota ja kopioi varmuus
 jos haluat säilyttää jotain.
 
 ```powershell
-C:\DauntlessRevived\bin\Stack.ps1 stop
-'Dauntless Revived stack', 'Dauntless Revived allowlist', 'Dauntless Revived backup' |
+C:\DauntlessUnbroken\bin\Stack.ps1 stop
+'Dauntless Unbroken stack', 'Dauntless Unbroken allowlist', 'Dauntless Unbroken backup' |
     ForEach-Object { Unregister-ScheduledTask -TaskName $_ -Confirm:$false -ErrorAction SilentlyContinue }
-# Säilytä 'Dauntless Revived - SSH (TCP 22)', jos asennusohjelma teki sen: jokainen profiili estää yhä
+# Säilytä 'Dauntless Unbroken - SSH (TCP 22)', jos asennusohjelma teki sen: jokainen profiili estää yhä
 # saapuvat yhteydet oletuksena, joten ilman tätä sääntöä SSH lakkaisi toimimasta.
-Get-NetFirewallRule -Group 'Dauntless Revived' -ErrorAction SilentlyContinue |
-    Where-Object { $_.DisplayName -ne 'Dauntless Revived - SSH (TCP 22)' } | Remove-NetFirewallRule
-Remove-NetFirewallRule -Name 'DauntlessRevived-GamePorts-Allowlist' -ErrorAction SilentlyContinue
+Get-NetFirewallRule -Group 'Dauntless Unbroken' -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName -ne 'Dauntless Unbroken - SSH (TCP 22)' } | Remove-NetFirewallRule
+Remove-NetFirewallRule -Name 'DauntlessUnbroken-GamePorts-Allowlist' -ErrorAction SilentlyContinue
 Get-CimInstance Win32_UserProfile | Where-Object { $_.LocalPath -like '*\dauntless' } | Remove-CimInstance
 Remove-LocalUser -Name dauntless
-Remove-Item -Recurse -Force C:\DauntlessRevived
+Remove-Item -Recurse -Force C:\DauntlessUnbroken
 ```
 
 Joitakin palomuurimuutoksia tämä ei peru: `-AdminIp`:hen rajattuja tai (julkinen tila ilman

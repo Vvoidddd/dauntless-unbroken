@@ -2,7 +2,7 @@
 title: Files and data
 parent: Reference
 nav_order: 4
-description: "Where Dauntless Revived keeps its files: the repository, a host's folders, the server kit's install root, the SQLite database, logs, backups and the launcher."
+description: "Where Dauntless Unbroken keeps its files: the repository, a host's folders, the server kit's install root, the SQLite database, logs, backups and the launcher."
 lang: en
 ref: reference/files
 ---
@@ -23,7 +23,7 @@ ref: reference/files
 # Files and data
 {: .no_toc }
 
-Where every file of Dauntless Revived lives: the repository and what builds where, a developer's or
+Where every file of Dauntless Unbroken lives: the repository and what builds where, a developer's or
 hand-built host's folders, the Windows server kit's install root with who may read and write each
 folder, the SQLite database table by table, the log files and their formats, backups, and what the
 launcher keeps on a friend's PC.
@@ -47,17 +47,17 @@ own key, a password manager). The repository's `.gitignore` already keeps `.env`
 
 | File | Where | What makes it secret |
 |:-----|:------|:---------------------|
-| Metagame settings | `UndauntedMetagame\.env` (developer or hand-built host); `C:\DauntlessRevived\data\config\metagame.env` (server kit) | The token-signing private key: whoever has it can sign in as any account. In public mode also the gateway secret. |
-| Deploy server settings | `UndauntedDeployServer\.env`; kit: `data\config\deployserver.env` | The game-server key. |
-| Gateway and allowlist settings | `UndauntedGateway\.env` (developer); kit: `data\config\gateway.env`, `data\config\allowlist.env` | The gateway secret and the allowlist secret. |
+| Metagame settings | `DauntlessUnbrokenMetagame\.env` (developer or hand-built host); `C:\DauntlessUnbroken\data\config\metagame.env` (server kit) | The token-signing private key: whoever has it can sign in as any account. In public mode also the gateway secret. |
+| Deploy server settings | `DauntlessUnbrokenDeployServer\.env`; kit: `data\config\deployserver.env` | The game-server key. |
+| Gateway and allowlist settings | `DauntlessUnbrokenGateway\.env` (developer); kit: `data\config\gateway.env`, `data\config\allowlist.env` | The gateway secret and the allowlist secret. |
 | `owner.key` | `C:\dr\data\owner.key` (hand-built host); kit: `data\keys\owner.key` | The admin account's key. It is the password of an account that can create invites and use every admin route. |
 | `gameserver.key` | `C:\dr\data\gameserver.key`; kit: `data\keys\gameserver.key` | The key game servers use to write saves, progression and rewards. |
 | `gateway-key.pem` | kit: `data\tls\gateway-key.pem` (public mode) | The private key of the gateway certificate that every invite pins. |
 | Deploy SSH key | `C:\dr\data\ssh\dauntless_deploy` (the default of `Deploy-Remote.ps1`) | Administrator access over SSH to your rented server. |
 | Re-key output | `C:\dr\data\rekey-<UserId>.txt` | A player's new account key in plain text. Delete it once you have handed it over. |
-| Backups | kit: `C:\DauntlessRevived\backups\`; hand-built host: wherever you keep them | They contain all of the above plus the database. |
-| Launcher key files | friend's PC: `%APPDATA%\Dauntless Revived Launcher\keys\*.key` | A player's account key, encrypted for that Windows user. |
-| Key backup and friend-kit key | friend's PC: the saved `Dauntless Revived key - <username>.txt`; the friend kit's `%APPDATA%\DauntlessRevived\account.key` | A player's account key in plain text. |
+| Backups | kit: `C:\DauntlessUnbroken\backups\`; hand-built host: wherever you keep them | They contain all of the above plus the database. |
+| Launcher key files | friend's PC: `%APPDATA%\Dauntless Unbroken Launcher\keys\*.key` | A player's account key, encrypted for that Windows user. |
+| Key backup and friend-kit key | friend's PC: the saved `Dauntless Unbroken key - <username>.txt`; the friend kit's `%APPDATA%\DauntlessUnbroken\account.key` | A player's account key in plain text. |
 
 Private, but not secret in the same way: the database (usernames, saves, SHA-256 hashes of keys, and
 for a short time plain keys, see [Accounts and keys](#accounts-and-keys)), `bodies.log`, and every log
@@ -68,17 +68,17 @@ either.
 ## The repository
 
 The repository is a fork of [Undaunted](https://github.com/SyST3MDeV/Undaunted); the working branch is
-`dauntless-revived`. The component folders keep upstream's `Undaunted...` names; the npm packages in
-them are named `dauntless-revived-*` (for example `dauntless-revived-metagame`).
+`dauntless-unbroken`. The component folders keep upstream's `Undaunted...` names; the npm packages in
+them are named `dauntless-unbroken-*` (for example `dauntless-unbroken-metagame`).
 
 | Folder | What it holds | Build output (git-ignored) |
 |:-------|:--------------|:---------------------------|
-| `UndauntedMetagame/` | The backend the game talks to (TypeScript, Express): accounts, saves, progression, matchmaking, parties, friends, guilds, the `/undaunted/api` admin API and the game's text chat (`src/realtime/`, an XMPP listener in the same process, on when `CHAT=1`). `src/db/schema.ts` defines the database, `src/drizzle/` holds its migrations, `src/vendor/` the game's `progression_config.json`, the generated `hunt_titles.json`, and the data from Harmonic's 1.4.4 fork: `escalation/seasons.json` (the Escalation season registry), `store_catalog.json` (the free store's offers) and `store_item_kinds.json` (how each store item is granted). `test/data/store_art_skus.json` lists the store SKU ids with a 2:1 tile image, for a test. The build copies `src/vendor/` to `dist/vendor/`. `scripts/` has `write-build-info.js` and `make-hunt-titles.js`. | `dist/` (with `dist/build-info.json`), `build/` (tests), `node_modules/` |
-| `UndauntedDeployServer/` | Starts and supervises the game-server processes (Ramsgate, the Training Dojo, hunts). `src/vendor/` holds the hunt tables. | `dist/`, `build/` |
-| `UndauntedGateway/` | Public mode only: the TLS gateway (`dist/server.js`) and the allowlist helper (`dist/allowlist/server.js`). `tools/make-cert.js` makes the gateway certificate. | `dist/`, `build/` |
-| `UndauntedContent/` | The content server: game files, news and the art pack for registered launchers. `data/dauntless-1.4.4.json` is the game manifest (410 files) that the launcher also compiles in. | `dist/`, `build/` |
-| `UndauntedLauncher/` | This fork's friend launcher (Electron). `assets/` holds the two pinned prebuilt DLLs, `dxgi.dll` and `UndauntedInternalServer.dll`, which every setup installs (host, server kit, friend kit and launcher), and the icons (copies from `brand/launcher/`). `src/renderer/brand/` holds copies of the logo and emblem images the window shows. `scripts/` holds the test runner, the brand image copier (`make-icon.mjs`) and `collect-release.ps1`. | `.vite/` (`npm start`), `out/` (`npm run package` and `npm run make`), `.test-build/` (tests), `release/` (the release files that `scripts/collect-release.ps1` collects after `npm run make`: the installer, the Squirrel update files, the zip and `SHA256SUMS.txt`). |
-| `UndauntedInternalServer/` | The C++ source of the server DLL: a Visual Studio solution, `dllmain.cpp` (with the endpoint table that `Game.ini` is generated from), the `SDK/` engine headers and `MinHook/`. No script or workflow in this repository builds it; everyone runs the prebuilt DLLs from `UndauntedLauncher/assets/`. Since the MinHook include fix (September 2026) it compiles with the Visual Studio 2022 Build Tools (Release, x64), but no DLL built here is shipped. | Visual Studio output (`x64/`, `*.dll` and the like) |
+| `DauntlessUnbrokenMetagame/` | The backend the game talks to (TypeScript, Express): accounts, saves, progression, matchmaking, parties, friends, guilds, the `/undaunted/api` admin API and the game's text chat (`src/realtime/`, an XMPP listener in the same process, on when `CHAT=1`). `src/db/schema.ts` defines the database, `src/drizzle/` holds its migrations, `src/vendor/` the game's `progression_config.json`, the generated `hunt_titles.json`, and the data from Harmonic's 1.4.4 fork: `escalation/seasons.json` (the Escalation season registry), `store_catalog.json` (the free store's offers) and `store_item_kinds.json` (how each store item is granted). `test/data/store_art_skus.json` lists the store SKU ids with a 2:1 tile image, for a test. The build copies `src/vendor/` to `dist/vendor/`. `scripts/` has `write-build-info.js` and `make-hunt-titles.js`. | `dist/` (with `dist/build-info.json`), `build/` (tests), `node_modules/` |
+| `DauntlessUnbrokenDeployServer/` | Starts and supervises the game-server processes (Ramsgate, the Training Dojo, hunts). `src/vendor/` holds the hunt tables. | `dist/`, `build/` |
+| `DauntlessUnbrokenGateway/` | Public mode only: the TLS gateway (`dist/server.js`) and the allowlist helper (`dist/allowlist/server.js`). `tools/make-cert.js` makes the gateway certificate. | `dist/`, `build/` |
+| `DauntlessUnbrokenContent/` | The content server: game files, news and the art pack for registered launchers. `data/dauntless-1.4.4.json` is the game manifest (410 files) that the launcher also compiles in. | `dist/`, `build/` |
+| `DauntlessUnbrokenLauncher/` | This fork's friend launcher (Electron). `assets/` holds the two pinned prebuilt DLLs, `dxgi.dll` and `DauntlessUnbroken.dll`, which every setup installs (host, server kit, friend kit and launcher), and the icons (copies from `brand/launcher/`). `src/renderer/brand/` holds copies of the logo and emblem images the window shows. `scripts/` holds the test runner, the brand image copier (`make-icon.mjs`) and `collect-release.ps1`. | `.vite/` (`npm start`), `out/` (`npm run package` and `npm run make`), `.test-build/` (tests), `release/` (the release files that `scripts/collect-release.ps1` collects after `npm run make`: the installer, the Squirrel update files, the zip and `SHA256SUMS.txt`). |
+| `DauntlessUnbrokenInternalServer/` | The C++ source of the server DLL: a Visual Studio solution, `dllmain.cpp` (with the endpoint table that `Game.ini` is generated from), the `SDK/` engine headers and `MinHook/`. No script or workflow in this repository builds it; everyone runs the prebuilt DLLs from `DauntlessUnbrokenLauncher/assets/`. Since the MinHook include fix (September 2026) it compiles with the Visual Studio 2022 Build Tools (Release, x64), but no DLL built here is shipped. | Visual Studio output (`x64/`, `*.dll` and the like) |
 | `deploy/windows-server/` | The Windows server kit: the scripts, `lib/` (Node helpers `dr-db.js`, `dr-keys.js`, `verify-game.js`) and `tests/`. | none |
 | `friend-kit/` | The Tailscale-only setup and play scripts for invited friends. | `tools/make-friend-kit.ps1` builds the zip outside the repository |
 | `tools/` | `build-llms.js`, `sync-roadmap.js`, `make-friend-kit.ps1`, `make-game-manifest.js`, and in `ci/` what CI uses: `check-repo.js` (the repository check) and `launcher-version.js` (the launcher version rules). | none |
@@ -102,12 +102,12 @@ the tool again.
 |:-----|:--------|:-----|:------------------|
 | `docs/roadmap.md` | `node tools/sync-roadmap.js` | `ROADMAP.md` | you change `ROADMAP.md`. The Finnish `docs/fi/roadmap.md` is a hand-written summary, not generated. |
 | `docs/llms.txt`, `docs/llms-full.txt` | `node tools/build-llms.js` (after `sync-roadmap.js`) | The front matter and text of the docs pages, and `docs/_data/faq_*.yml` | you add a page, change a title or description, or change the text of an English page (`llms-full.txt` holds every English page in full). |
-| `UndauntedMetagame/src/vendor/hunt_titles.json` | `node scripts/make-hunt-titles.js`, in `UndauntedMetagame` | The deploy server's `player_hunts_table.json` and `matchmaker_hunts_table.json` | the deploy server's hunt tables change. |
-| `UndauntedContent/data/dauntless-1.4.4.json` | `node tools/make-game-manifest.js --zip <BaseGame144.zip>` | The verified game zip | practically never: the build is pinned. If it changes, rebuild the launcher, which compiles the same file in. |
-| `UndauntedMetagame/src/drizzle/*.sql` and `meta/` | `npm run db:generate`, in `UndauntedMetagame` | `src/db/schema.ts` | you change the schema. Commit the new migration with the schema change. |
+| `DauntlessUnbrokenMetagame/src/vendor/hunt_titles.json` | `node scripts/make-hunt-titles.js`, in `DauntlessUnbrokenMetagame` | The deploy server's `player_hunts_table.json` and `matchmaker_hunts_table.json` | the deploy server's hunt tables change. |
+| `DauntlessUnbrokenContent/data/dauntless-1.4.4.json` | `node tools/make-game-manifest.js --zip <BaseGame144.zip>` | The verified game zip | practically never: the build is pinned. If it changes, rebuild the launcher, which compiles the same file in. |
+| `DauntlessUnbrokenMetagame/src/drizzle/*.sql` and `meta/` | `npm run db:generate`, in `DauntlessUnbrokenMetagame` | `src/db/schema.ts` | you change the schema. Commit the new migration with the schema change. |
 
-`UndauntedMetagame/dist/build-info.json` is also generated (by `npm run build`: the commit, with
-`-dirty` if `UndauntedMetagame` has uncommitted changes, the version and the build time), but it is
+`DauntlessUnbrokenMetagame/dist/build-info.json` is also generated (by `npm run build`: the commit, with
+`-dirty` if `DauntlessUnbrokenMetagame` has uncommitted changes, the version and the build time), but it is
 not committed.
 
 ## A developer or hand-built host
@@ -117,11 +117,11 @@ what the guides and a few script defaults use.
 
 | Path | What it is |
 |:-----|:-----------|
-| `C:\dr\undaunted\` | The repository checkout ([Host a server, step 4]({{ host_page.url | relative_url }}#fork)). The settings are in `UndauntedMetagame\.env` and `UndauntedDeployServer\.env`, both git-ignored. **Secret: never share, never commit.** Start each server from its own package folder: the metagame finds its migrations through the relative path `./src/drizzle`. |
-| `C:\dr\data\` | Runtime data, outside the repository: `undaunted.db` (`DB_FILENAME=C:/dr/data/undaunted.db`), `owner.key` and `gameserver.key` (**secret: never share, never commit**), the logs `metagame.log`, `metagame.err`, `deploy.log` and `deploy.err`, and the pid files `metagame.pid`, `deploy.pid` and `client.pid`. The logs are replaced at every start, because the guide starts the servers with `Start-Process -RedirectStandardOutput`. |
+| `C:\dr\undaunted\` | The repository checkout ([Host a server, step 4]({{ host_page.url | relative_url }}#fork)). The settings are in `DauntlessUnbrokenMetagame\.env` and `DauntlessUnbrokenDeployServer\.env`, both git-ignored. **Secret: never share, never commit.** Start each server from its own package folder: the metagame finds its migrations through the relative path `./src/drizzle`. |
+| `C:\dr\data\` | Runtime data, outside the repository: `dauntless-unbroken.db` (`DB_FILENAME=C:/dr/data/dauntless-unbroken.db`), `owner.key` and `gameserver.key` (**secret: never share, never commit**), the logs `metagame.log`, `metagame.err`, `deploy.log` and `deploy.err`, and the pid files `metagame.pid`, `deploy.pid` and `client.pid`. The logs are replaced at every start, because the guide starts the servers with `Start-Process -RedirectStandardOutput`. |
 | `C:\dr\data\rekey-<UserId>.txt` | A new account key made by the re-key script in [Run it for a group]({{ admin_page.url | relative_url }}). **Secret**: hand it over privately, then delete it. |
 | `C:\dr\data\ssh\` | `dauntless_deploy` (the SSH key for a rented server) and `known_hosts`, the defaults of `Deploy-Remote.ps1`. **The key is secret: never share, never commit.** |
-| `C:\dr\backups\` | Database copies from the live backup script in [Run it for a group]({{ admin_page.url | relative_url }}#back-up-the-database) (`undaunted-YYYYMMDDHHMM.db`). |
+| `C:\dr\backups\` | Database copies from the live backup script in [Run it for a group]({{ admin_page.url | relative_url }}#back-up-the-database) (`dauntless-unbroken-YYYYMMDDHHMM.db`). |
 | `C:\dr\tools\` | The host's own helper scripts that the guides show in full but that are not in the repository: `make-gameini.ps1`, `play.ps1`, and on our host `stack.ps1`. |
 | `C:\D144\Dauntless\` | The verified 1.4.4 game, with the two DLLs in `Archon\Binaries\Win64\` ([Host a server, step 3]({{ host_page.url | relative_url }}#short-install-path)). |
 | `C:\dr\dist\` | Default output folder of `tools\make-friend-kit.ps1`. |
@@ -129,21 +129,21 @@ what the guides and a few script defaults use.
 | `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\` | The game's user config for this Windows user: `Engine.ini`, `Game.ini` and `GameUserSettings.ini`. See [Game settings]({{ gamesettings_page.url | relative_url }}). |
 
 With `LOG_BODIES=1` and no `BODY_LOG_FILE`, the metagame writes `bodies.log` into its working
-directory, which is `C:\dr\undaunted\UndauntedMetagame`. **No `.gitignore` rule covers that file.** Set
+directory, which is `C:\dr\undaunted\DauntlessUnbrokenMetagame`. **No `.gitignore` rule covers that file.** Set
 `BODY_LOG_FILE=C:/dr/data/bodies.log`, or delete the file before you commit. The metagame's unit tests
-use a fresh database in a temporary `undaunted-test-*` folder per test file and delete it afterwards.
+use a fresh database in a temporary `dauntless-unbroken-test-*` folder per test file and delete it afterwards.
 
 The gateway and the allowlist helper, run from a checkout (`npm start`, `npm run start:allowlist`),
-both read `UndauntedGateway\.env`, which holds the gateway and allowlist secrets (**secret: never share,
+both read `DauntlessUnbrokenGateway\.env`, which holds the gateway and allowlist secrets (**secret: never share,
 never commit**; it is git-ignored). Without `ALLOWLIST_AUDIT_LOG` and `ALLOWLIST_STATE_FILE` the helper
 writes `allowlist-audit.log` and `allowlist-state.json` into its working directory; the gateway's
-`.gitignore` covers both. The content server's `UndauntedContent\.env` holds no secrets.
+`.gitignore` covers both. The content server's `DauntlessUnbrokenContent\.env` holds no secrets.
 
-## Windows server kit: `C:\DauntlessRevived` {#kit-install-root}
+## Windows server kit: `C:\DauntlessUnbroken` {#kit-install-root}
 
-The kit installs everything under one root, `C:\DauntlessRevived` unless `-InstallRoot` says
+The kit installs everything under one root, `C:\DauntlessUnbroken` unless `-InstallRoot` says
 otherwise. The installed scripts in `<root>\bin` find the root by themselves (the folder above `bin`
-when it holds `data\config\server.json`); from anywhere else they use `C:\DauntlessRevived` or `-Root`.
+when it holds `data\config\server.json`); from anywhere else they use `C:\DauntlessUnbroken` or `-Root`.
 How to install, update and uninstall is on [Windows server kit]({{ winserver_page.url | relative_url }}).
 
 ### Who may read and write what
@@ -156,11 +156,11 @@ but cannot change them, so a compromised game server cannot change what an admin
 
 | Path | What it holds | `dauntless` may | Written by |
 |:-----|:--------------|:----------------|:-----------|
-| `C:\DauntlessRevived\` | The root. Everything below inherits its permissions unless listed. | read | the installer |
-| `bin\` | A copy of the kit: `*.ps1`, `*.vbs`, `*.md` and `lib\*.js`. The scheduled tasks run `Stack.ps1` and `backup-hidden.vbs` from here. | read | the installer; `Update-DauntlessServer.ps1` refreshes it from the new code |
-| `app\` | The built server code: the repository without `.git`, `node_modules`, build output, `.env` files, keys, certificates, databases, logs and the DLL's engine headers and MinHook, then `npm ci` and `npm run build` in UndauntedMetagame, UndauntedDeployServer, UndauntedContent and UndauntedGateway. `app\VERSION.json` records the commit, ref, source, source URL and install time. Each component runs with its package folder as working directory. | read | the installer and the updater |
+| `C:\DauntlessUnbroken\` | The root. Everything below inherits its permissions unless listed. | read | the installer |
+| `bin\` | A copy of the kit: `*.ps1`, `*.vbs`, `*.md` and `lib\*.js`. The scheduled tasks run `Stack.ps1` and `backup-hidden.vbs` from here. | read | the installer; `Update-DauntlessUnbrokenServer.ps1` refreshes it from the new code |
+| `app\` | The built server code: the repository without `.git`, `node_modules`, build output, `.env` files, keys, certificates, databases, logs and the DLL's engine headers and MinHook, then `npm ci` and `npm run build` in DauntlessUnbrokenMetagame, DauntlessUnbrokenDeployServer, DauntlessUnbrokenContent and DauntlessUnbrokenGateway. `app\VERSION.json` records the commit, ref, source, source URL and install time. Each component runs with its package folder as working directory. | read | the installer and the updater |
 | `app.new\` | A build in progress. After a failed update step it keeps the new build. | read | the installer and the updater |
-| `app.prev\` | The previous build, for `Update-DauntlessServer.ps1 -Rollback`. | read | the installer and the updater |
+| `app.prev\` | The previous build, for `Update-DauntlessUnbrokenServer.ps1 -Rollback`. | read | the installer and the updater |
 | `app.failed\` | A build that failed the updater's health check and was rolled back automatically. | read | the updater |
 | `app.rolledback\` | The build you left with a manual `-Rollback`. | read | the updater |
 | `game\Dauntless\` | The verified 1.4.4 game, with the two pinned DLLs in `Archon\Binaries\Win64\`. The deploy server starts the game servers from it; the content server serves it to launchers. While the zip is unpacked, the files go to `<root>\game.partial\`, which is renamed to `game\` when it is done. With `-GameDir` the game stays in your folder, which keeps its own permissions plus read access for `dauntless`. | read | the installer |
@@ -169,7 +169,7 @@ but cannot change them, so a compromised game server cannot change what an admin
 | `data\config\allowlist.env` | The allowlist helper's settings, with the allowlist secret. | no access | the installer |
 | `data\keys\` | `owner.key` (the admin account's key) and `gameserver.key`, plus any other `*.key` restored from a backup. `signing.tmp` and `tailscale-authkey.tmp` exist only while an install step runs; if an install is killed there, delete them. **Secret: never share, never commit.** | read | the installer |
 | `data\tls\` | Public mode: `gateway-cert.pem` and `gateway-key.pem` (the key is **secret: never share, never commit**). `*.new` files exist only while a new certificate is made. | read | the installer |
-| `data\undaunted.db` | [The database](#the-database). | modify | the metagame |
+| `data\dauntless-unbroken.db` | [The database](#the-database). | modify | the metagame |
 | `data\logs\` | The component logs, `supervisor.log`, `bodies.log`, the backup's database log, `install\` (see [Logs](#logs)) and `performance\`, the [performance log](#performance-log). | modify | `Stack.ps1` (the performance log too), the backup, the installer |
 | `data\run\` | `<component>.pid` for the metagame, content server, deploy server and gateway, and `stopped.flag`. While `stopped.flag` exists (set by `Stack.ps1 stop`, removed by `start` and `restart`), the stack supervisor restarts nothing. | modify | `Stack.ps1` |
 | `data\branding\` | The art pack the content server hands to launchers: images and an optional `branding.json` (see [News and art pack](#news-and-art-pack)). Empty after an install. | modify | you |
@@ -197,7 +197,7 @@ empty value means "use the coded default". It holds no secrets, but
 | `Version` | `2`. | nothing yet |
 | `Mode` | `Public` or `Private`. An install from before public mode, with no `Mode`, counts as `Private`. | `Stack.ps1`, `New-Invite.ps1`, the updater, `Get-ServerStatus.ps1`, `Deploy-Remote.ps1`, installer re-runs |
 | `ServerName` | The name in invites and in the status output. | `New-Invite.ps1`, `Stack.ps1`, `Deploy-Remote.ps1` |
-| `Sandbox` | `true` for a `-Sandbox` test install. | `Stack.ps1`, `Update-DauntlessServer.ps1`, `New-Invite.ps1` |
+| `Sandbox` | `true` for a `-Sandbox` test install. | `Stack.ps1`, `Update-DauntlessUnbrokenServer.ps1`, `New-Invite.ps1` |
 | `BindAddress` | Where the metagame and content server listen: `127.0.0.1` in public mode, the Tailscale IPv4 address in private mode. | `Stack.ps1`, `New-Invite.ps1`, the updater, `Get-ServerStatus.ps1` |
 | `PublicHost` | Public mode: the address in invites. Empty in private mode. | `New-Invite.ps1`, `Stack.ps1` (status), `Deploy-Remote.ps1`, installer re-runs |
 | `PublicIp` | Public mode: the IPv4 address of `PublicHost`. Empty in private mode. | nothing (for your information) |
@@ -259,21 +259,21 @@ Everything durable is in one SQLite file, the metagame's `DB_FILENAME`:
 
 | Setup | File |
 |:------|:-----|
-| Hand-built host (the guides) | `C:\dr\data\undaunted.db`, set as `DB_FILENAME=C:/dr/data/undaunted.db` |
-| Windows server kit | `C:\DauntlessRevived\data\undaunted.db` |
+| Hand-built host (the guides) | `C:\dr\data\dauntless-unbroken.db`, set as `DB_FILENAME=C:/dr/data/dauntless-unbroken.db` |
+| Windows server kit | `C:\DauntlessUnbroken\data\dauntless-unbroken.db` |
 | `DB_FILENAME` unset or empty | A temporary database that is **deleted when the metagame exits**: every account and save is lost. |
 | A relative path | Resolved against the metagame's working directory. The folder must exist. |
 
 The file uses SQLite's default rollback journal, so a stopped metagame leaves one self-contained
-`undaunted.db` (an `undaunted.db-journal` appears only during a write). With `DB_WAL=1` it uses WAL
-mode instead, and recent writes can sit in `undaunted.db-wal` next to it; a copy of the stopped file
+`dauntless-unbroken.db` (an `dauntless-unbroken.db-journal` appears only during a write). With `DB_WAL=1` it uses WAL
+mode instead, and recent writes can sit in `dauntless-unbroken.db-wal` next to it; a copy of the stopped file
 alone then misses them. A file left in WAL mode is switched back at the next start without
 `DB_WAL=1`. [Configuration]({{ config_page.url | relative_url }}) explains both settings.
 
 ### Migrations
 
 The metagame applies every pending migration from `src/drizzle/` at each start, before it answers
-anything. The path is relative to its working directory, so start it from the `UndauntedMetagame`
+anything. The path is relative to its working directory, so start it from the `DauntlessUnbrokenMetagame`
 folder (the kit does). All pending migrations run in one transaction: if one fails, none is applied
 and the metagame does not start. drizzle records what it applied in its own table,
 `__drizzle_migrations`; never edit it, because drizzle decides from it which migrations still have to
@@ -448,7 +448,7 @@ usernames and, in public mode, players' IP addresses, so read a log before you s
 | Written by | Format |
 |:-----------|:-------|
 | Metagame, deploy server | pino. With `NODE_ENV=production` (always on the kit), one JSON object per line: `level` (30 info, 40 warn, 50 error, 60 fatal), `time` (milliseconds since 1970), `pid`, `hostname`, `msg`. Every level goes to standard output. Without `production`, readable coloured lines. The metagame's request lines read `METHOD /path gs=0` (a player) or `gs=1` (a game server), plus ` via=gateway ip=<player address>` behind the gateway. `LOG_LEVEL` and `LOG_REQUESTS` are on [Configuration]({{ config_page.url | relative_url }}). |
-| Gateway, allowlist helper, content server | One JSON object per line: `t` (ISO time), `level` (`debug`, `info`, `warn` or `error`), `msg` and extra fields. Warnings and errors go to standard error, the rest to standard output. The gateway's `request` lines are its access log; the fields are in the [gateway README]({{ site.github.repository_url }}/blob/dauntless-revived/UndauntedGateway/README.md#access-log). |
+| Gateway, allowlist helper, content server | One JSON object per line: `t` (ISO time), `level` (`debug`, `info`, `warn` or `error`), `msg` and extra fields. Warnings and errors go to standard error, the rest to standard output. The gateway's `request` lines are its access log; the fields are in the [gateway README]({{ site.github.repository_url }}/blob/main/DauntlessUnbrokenGateway/README.md#access-log). |
 | Game servers, game client | No log file. A game server prints only to its own console window (Ramsgate and the Training Dojo keep theirs visible; the deploy server starts hunt servers with the window hidden). The client writes crash reports only, to `%LOCALAPPDATA%\Archon\Saved\Crashes\` (see [Troubleshooting]({{ trouble_page.url | relative_url }})). |
 | Launcher | Text lines: ISO time, `INFO`, `WARN` or `ERROR`, message. |
 
@@ -471,7 +471,7 @@ usernames and, in public mode, players' IP addresses, so read a log before you s
 ### Performance log
 
 Roadmap 4.12, started from Vvoidddd's first sampler
-([#6](https://github.com/mixutin/dauntless-revived/pull/6)). CSV with a header line, ASCII, CRLF
+([#6](https://github.com/Vvoidddd/dauntless-unbroken/pull/6)). CSV with a header line, ASCII, CRLF
 line ends, a decimal point in every number (whatever the Windows language), times in UTC as
 `yyyy-MM-ddTHH:mm:ssZ`. A sample is one `host` row and one row per process, all with the same
 `timestamp_utc`. A cell that does not apply to the row, or could not be read, is empty. **Counts
@@ -503,20 +503,20 @@ busy, so keep it private. How the numbers are taken:
   `Start-Process` redirection, a new file at every start. [Troubleshooting]({{ trouble_page.url | relative_url }})
   shows how to read them as plain text.
 - `npm start` or `npm run dev` in a terminal: the output stays in the terminal.
-- The launcher: `%APPDATA%\Dauntless Revived Launcher\logs\launcher.log`, renamed to
+- The launcher: `%APPDATA%\Dauntless Unbroken Launcher\logs\launcher.log`, renamed to
   `launcher.old.log` when it passes 2 MiB (one old file is kept).
 
 ## Backups
 
 ### Windows server kit
 
-`Backup-DauntlessServer.ps1` makes one folder per backup, `backups\yyyy-MM-dd_HHmmss\`. The folder
+`Backup-DauntlessUnbrokenServer.ps1` makes one folder per backup, `backups\yyyy-MM-dd_HHmmss\`. The folder
 names sort in time order. **A backup contains every secret of the server: never share it, never commit
 it, and copy it off the server only encrypted.**
 
 | In the backup folder | What it is |
 |:---------------------|:-----------|
-| `undaunted.db` | The database, copied with SQLite's online backup (safe while the metagame runs) and then checked with `integrity_check`. If the check fails, the folder is deleted and the backup fails. |
+| `dauntless-unbroken.db` | The database, copied with SQLite's online backup (safe while the metagame runs) and then checked with `integrity_check`. If the check fails, the folder is deleted and the backup fails. |
 | `server.json` | The kit's state. |
 | `news.json` | The launcher news. |
 | `secrets\metagame.env`, `deployserver.env`, `content.env`, `gateway.env` | The settings, with the token-signing keys, the game-server key and the gateway's secrets. |
@@ -528,19 +528,19 @@ new one), `data\allowlist\`, the logs, **the art pack in `data\branding\`** (kee
 game files, the built code, and the service account's `Game.ini` and `Engine.ini` (the installer
 writes them again).
 
-**When.** Every hour (the "Dauntless Revived backup" task, as the service account, from 00:05); before
+**When.** Every hour (the "Dauntless Unbroken backup" task, as the service account, from 00:05); before
 the metagame starts (`Stack.ps1` refuses to start it without a backup unless you pass `-NoBackup`; a
 supervised restart skips it if the newest backup is less than 10 minutes old); after a stop; before an
 update switches builds; and once at the end of an install.
 
 **Retention.** Each run keeps the newest 48 backups (hourly ones and the ones around starts and stops
 together) plus the newest backup of each of the 30 most recent days that have one, and deletes the
-rest. `Backup-DauntlessServer.ps1 -Hourly <n> -Daily <n>` uses other numbers for that one run; the
+rest. `Backup-DauntlessUnbrokenServer.ps1 -Hourly <n> -Daily <n>` uses other numbers for that one run; the
 scheduled task always uses the defaults.
 
-**Restore.** `Install-DauntlessServer.ps1 -RestoreFrom <backup folder>` (or `Deploy-Remote.ps1
--RestoreFrom` from your PC). The folder must hold `undaunted.db`, `secrets\metagame.env` and
-`secrets\deployserver.env`. An existing `data\undaunted.db` is not overwritten (delete it first), and
+**Restore.** `Install-DauntlessUnbrokenServer.ps1 -RestoreFrom <backup folder>` (or `Deploy-Remote.ps1
+-RestoreFrom` from your PC). The folder must hold `dauntless-unbroken.db`, `secrets\metagame.env` and
+`secrets\deployserver.env`. An existing `data\dauntless-unbroken.db` is not overwritten (delete it first), and
 key files that already exist are kept. The same command accepts the backups of our original host's
 `backup.ps1`, which use the same layout. See [Windows server kit]({{ winserver_page.url | relative_url }}#backups).
 
@@ -556,7 +556,7 @@ out, and losing an account key locks that player out.
 ### The launcher
 
 The launcher keeps its data in Electron's per-user folder, which is named after the product:
-`%APPDATA%\Dauntless Revived Launcher\`. Nothing there is meant to be edited by hand.
+`%APPDATA%\Dauntless Unbroken Launcher\`. Nothing there is meant to be edited by hand.
 
 | Path | What it is |
 |:-----|:-----------|
@@ -570,10 +570,10 @@ Elsewhere on the PC:
 
 | Path | What it is |
 |:-----|:-----------|
-| `%LOCALAPPDATA%\DauntlessRevived\Game\` | The default game folder: 410 files, about 10.9 GB, plus the two DLLs in `Archon\Binaries\Win64\`. "Change folder…" picks another one (an absolute path of at most 150 characters). A folder that already holds the game (the game root with `Archon\`, its parent `BaseGame144` with a `Dauntless` folder, or `Archon` or `Archon\Binaries\Win64` inside the game) is used as that game, and refused when that game's root is longer than 150 characters; any other folder that is not empty gets a `DauntlessRevived` subfolder. "I already have the game files" takes a pasted drive-letter path or a browsed folder, recognises the same layouts, refuses network (`\\host\share`), device and relative paths before looking at them, allows a game root of at most 150 characters, and then checks every file (Repair). While downloading, a file is `<name>.part`; a DLL being copied is `<name>.new`. |
-| `Dauntless Revived key - <username>.txt` | The key backup you save from Settings, in the folder you pick (Documents by default). Without a known username the name is `Dauntless Revived key.txt`. **Plain-text secret: anyone who has it can play as you. Never share it; keep it in a password manager or on a USB stick.** |
+| `%LOCALAPPDATA%\DauntlessUnbroken\Game\` | The default game folder: 410 files, about 10.9 GB, plus the two DLLs in `Archon\Binaries\Win64\`. "Change folder…" picks another one (an absolute path of at most 150 characters). A folder that already holds the game (the game root with `Archon\`, its parent `BaseGame144` with a `Dauntless` folder, or `Archon` or `Archon\Binaries\Win64` inside the game) is used as that game, and refused when that game's root is longer than 150 characters; any other folder that is not empty gets a `DauntlessUnbroken` subfolder. "I already have the game files" takes a pasted drive-letter path or a browsed folder, recognises the same layouts, refuses network (`\\host\share`), device and relative paths before looking at them, allows a game root of at most 150 characters, and then checks every file (Repair). While downloading, a file is `<name>.part`; a DLL being copied is `<name>.new`. |
+| `Dauntless Unbroken key - <username>.txt` | The key backup you save from Settings, in the folder you pick (Documents by default). Without a known username the name is `Dauntless Unbroken key.txt`. **Plain-text secret: anyone who has it can play as you. Never share it; keep it in a password manager or on a USB stick.** |
 | `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\` | `Engine.ini`, whose two managed sections the launcher rewrites before every PLAY, and `GameUserSettings.ini`, whose `sg.*Quality` lines it sets only when you force a graphics level. Both are written through a temporary `.dr-tmp` file. See [Game settings]({{ gamesettings_page.url | relative_url }}). |
-| `%LOCALAPPDATA%\DauntlessRevivedLauncher\` | The launcher program, where the Squirrel installer normally puts it (the portable zip runs from wherever you unpack it). The two pinned DLLs ship in its `resources` folder. |
+| `%LOCALAPPDATA%\DauntlessUnbrokenLauncher\` | The launcher program, where the Squirrel installer normally puts it (the portable zip runs from wherever you unpack it). The two pinned DLLs ship in its `resources` folder. |
 
 ### The friend kit
 
@@ -582,8 +582,8 @@ a different folder from the launcher:
 
 | Path | What it is |
 |:-----|:-----------|
-| `%APPDATA%\DauntlessRevived\account.key` | The account key in plain text, written by `setup.ps1` and passed to the game by `play.ps1`. **Secret: never share it; back it up yourself.** |
-| `%APPDATA%\DauntlessRevived\settings.json` | The host address and the game folder, so `play.ps1` needs no arguments. No secrets. |
+| `%APPDATA%\DauntlessUnbroken\account.key` | The account key in plain text, written by `setup.ps1` and passed to the game by `play.ps1`. **Secret: never share it; back it up yourself.** |
+| `%APPDATA%\DauntlessUnbroken\settings.json` | The host address and the game folder, so `play.ps1` needs no arguments. No secrets. |
 | The game folder (`-Game`, default `C:\D144\Dauntless`) | `setup.ps1` copies the two checked DLLs into `Archon\Binaries\Win64\`. |
 | `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\` | `play.ps1` rewrites the same `Engine.ini` sections as the launcher and, with `-Graphics`, the graphics lines of `GameUserSettings.ini`. |
 

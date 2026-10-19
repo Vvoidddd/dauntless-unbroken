@@ -1,4 +1,4 @@
-# Dauntless Revived - start the game against the host's server.
+# Dauntless Unbroken - start the game against the host's server.
 # Run setup.ps1 once first. Then double-click "Play Dauntless.cmd", or:
 #
 #   powershell -ExecutionPolicy Bypass -File .\play.ps1 [-Graphics 4] [-Windowed]
@@ -15,7 +15,7 @@ param(
 )
 $ErrorActionPreference = "Stop"
 
-$Dir = Join-Path $env:APPDATA "DauntlessRevived"
+$Dir = Join-Path $env:APPDATA "DauntlessUnbroken"
 $KeyFile = Join-Path $Dir "account.key"
 $SettingsFile = Join-Path $Dir "settings.json"
 function Fail($text) { Write-Host "!! $text" -ForegroundColor Red; exit 1 }
@@ -34,8 +34,8 @@ $Backend = if ($Server -match ":\d+$") { $Server } else { "${Server}:61000" }
 $Win64 = Join-Path $Game "Archon\Binaries\Win64"
 $Pinned = @{
   "Dauntless-Win64-Shipping.exe" = "D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4"
-  "dxgi.dll"                     = "9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F"
-  "UndauntedInternalServer.dll"  = "6f2433abebdee451edfc9060fa58eb3e2a3e73e5f7063de05386316b52d7b30b"
+  "dxgi.dll"                     = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
+  "DauntlessUnbroken.dll"  = "21df88216d012b10b37ee054ebd446d20c70f3ba341f53e6392053559e0db47c"
 }
 foreach ($f in $Pinned.Keys) {
   $p = Join-Path $Win64 $f

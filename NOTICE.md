@@ -1,13 +1,13 @@
 # NOTICE
 
-Dauntless Revived is a modified version of Undaunted. The whole repository is licensed under the GNU
+Dauntless Unbroken is a modified version of Undaunted. The whole repository is licensed under the GNU
 Affero General Public License, version 3 only (`AGPL-3.0-only`); see [LICENSE.txt](LICENSE.txt). This
 file records where the parts of the repository come from. Suomeksi: [below](#suomeksi).
 
 ## Modification notice
 
-This repository, [github.com/mixutin/dauntless-revived](https://github.com/mixutin/dauntless-revived)
-(branch `dauntless-revived`), modifies Undaunted from upstream commit `7f692aa`, to run a private
+This repository, [github.com/Vvoidddd/dauntless-unbroken](https://github.com/Vvoidddd/dauntless-unbroken)
+(branch `dauntless-unbroken`), modifies Undaunted from upstream commit `7f692aa`, to run a private
 server for the Dauntless 1.4.4 client (`1.4.4_shipping`, changelist 239827). Modifications began on
 21 September 2026. Every change is recorded in the commit history, and the planned work is in
 [ROADMAP.md](ROADMAP.md). This is not an official release of Undaunted, nor of any other project
@@ -29,7 +29,7 @@ named below.
 - By Harmonic. Repository:
   [github.com/Harmonicrain/Undaunted](https://github.com/Harmonicrain/Undaunted), commit `895f7c7`,
   AGPL-3.0-only.
-- Ported into Dauntless Revived in September 2026, rewritten on our code where needed:
+- Ported into Dauntless Unbroken in September 2026, rewritten on our code where needed:
   - the Escalation season registry, its save rules and version rules (real Escalation saves);
   - the free store: the catalogue, the two-step purchase token, the store tabs and tile-art list, the
     grant kind of each item, and the sheen and hair-tint entitlements;
@@ -44,23 +44,23 @@ named below.
   - the fork's test cases: 103 of its 119 ported and 7 turned around to assert our behaviour, each
     marked with the original file and line.
 - Files that carry Harmonic's copyright notice (`Ported from Harmonicrain/Undaunted (895f7c7), Copyright (C)
-  2026 Harmonic, AGPL-3.0-only`, with how each was modified for Dauntless Revived):
-  `UndauntedMetagame/src/controllers/escalationConfig.ts`, `escalation.ts`, `freestore.ts` and
+  2026 Harmonic, AGPL-3.0-only`, with how each was modified for Dauntless Unbroken):
+  `DauntlessUnbrokenMetagame/src/controllers/escalationConfig.ts`, `escalation.ts`, `freestore.ts` and
   `slayerlinks.ts`.
 - Data files from the fork, each with a provenance note in its `_comment`:
-  `UndauntedMetagame/src/vendor/escalation/seasons.json`, `src/vendor/store_catalog.json`,
+  `DauntlessUnbrokenMetagame/src/vendor/escalation/seasons.json`, `src/vendor/store_catalog.json`,
   `src/vendor/store_item_kinds.json` and `test/data/store_art_skus.json`. They hold identifiers and
   tuning values read from the installed 1.4.4 client for interoperability, and no game assets.
 - Code of ours built on Harmonic's ideas names the fork in its comments.
 - What was not taken, and why, is recorded on
-  [The Harmonic port](https://mixutin.github.io/dauntless-revived/findings/harmonic-fork.html).
+  [The Harmonic port](https://mixutin.github.io/dauntless-unbroken/findings/harmonic-fork.html).
 
 ### No Mystic Paradox material
 
 Harmonic's fork also contains realtime XMPP code derived from
 [Mystic Paradox](https://github.com/pranav158/Mystic-Paradox), which carries additional terms under
-AGPLv3 section 7. **Dauntless Revived contains none of that code**: our chat and presence code
-(`UndauntedMetagame/src/realtime/`) was written for this project, and nothing from Harmonic's
+AGPLv3 section 7. **Dauntless Unbroken contains none of that code**: our chat and presence code
+(`DauntlessUnbrokenMetagame/src/realtime/`) was written for this project, and nothing from Harmonic's
 `src/realtime/` was copied. Those additional terms therefore do not apply to this repository, and it
 has no `ADDITIONAL_TERMS.md`. Mystic Paradox is named in our README only as a related project; that
 implies no endorsement or affiliation.
@@ -68,22 +68,22 @@ implies no endorsement or affiliation.
 ### Other material
 
 - [MinHook](https://github.com/TsudaKageyu/minhook) by Tsuda Kageyu (BSD 2-Clause), in
-  `UndauntedInternalServer/MinHook/`, with its own license.
-- The Unreal Engine SDK headers in `UndauntedInternalServer/SDK/`, generated with
+  `DauntlessUnbrokenInternalServer/MinHook/`, with its own license.
+- The Unreal Engine SDK headers in `DauntlessUnbrokenInternalServer/SDK/`, generated with
   [Dumper-7](https://github.com/Encryqed/Dumper-7) from the 1.4.4 client.
 - Data read from the client for interoperability, carried from upstream: `progression_config.json`
-  and the deploy server's hunt tables (`UndauntedDeployServer/src/vendor/*_table.json`), from which
+  and the deploy server's hunt tables (`DauntlessUnbrokenDeployServer/src/vendor/*_table.json`), from which
   our `hunt_titles.json` is generated.
 - The launcher ships the license texts of the software it includes in
-  `UndauntedLauncher/THIRD-PARTY-NOTICES.txt`.
+  `DauntlessUnbrokenLauncher/THIRD-PARTY-NOTICES.txt`.
 
 No game files are distributed in this repository. "Dauntless" is a trademark of its owners;
-Dauntless Revived is not affiliated with or endorsed by Phoenix Labs or Epic Games. The full credits
-are on [Credits and license](https://mixutin.github.io/dauntless-revived/legal.html).
+Dauntless Unbroken is not affiliated with or endorsed by Phoenix Labs or Epic Games. The full credits
+are on [Credits and license](https://mixutin.github.io/dauntless-unbroken/legal.html).
 
 ## Suomeksi
 
-Dauntless Revived on Undauntedin muokattu versio, ja koko repositorio on lisensoitu GNU Affero General
+Dauntless Unbroken on Undauntedin muokattu versio, ja koko repositorio on lisensoitu GNU Affero General
 Public License -lisenssin versiolla 3 (`AGPL-3.0-only`). Muutokset alkoivat 21.9.2026 upstream-muutoksesta
 `7f692aa`, ja jokainen muutos näkyy muutoshistoriassa. Tämä ei ole Undauntedin eikä minkään muun tässä
 mainitun projektin virallinen julkaisu.
@@ -107,6 +107,6 @@ mainitun projektin virallinen julkaisu.
 - Muu aineisto: MinHook (BSD 2-Clause), Dumper-7:llä tuotetut SDK-otsaketiedostot, alkuperäisestä
   projektista peritty peliohjelmasta luettu data ja käynnistimen `THIRD-PARTY-NOTICES.txt`.
 
-Repositoriossa ei ole pelitiedostoja. Dauntless Revived ei ole sidoksissa Phoenix Labsiin tai Epic
+Repositoriossa ei ole pelitiedostoja. Dauntless Unbroken ei ole sidoksissa Phoenix Labsiin tai Epic
 Gamesiin. Kaikki kiitokset ovat sivulla
-[Kiitokset ja lisenssi](https://mixutin.github.io/dauntless-revived/fi/legal.html).
+[Kiitokset ja lisenssi](https://mixutin.github.io/dauntless-unbroken/fi/legal.html).

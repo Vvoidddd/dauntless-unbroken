@@ -2,7 +2,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { decodeWorkerPayload, runWineGame } from "../unix-common/game-runner.mjs";
 
-function loadWorkerEnv(file = process.env.DR_WORKER_ENV || "/etc/dauntless-revived-worker.env") {
+function loadWorkerEnv(file = process.env.DR_WORKER_ENV || "/etc/dauntless-unbroken-worker.env") {
   if (!existsSync(file)) return;
   for (const raw of readFileSync(file, "utf8").split(/\r?\n/)) {
     const line = raw.trim();

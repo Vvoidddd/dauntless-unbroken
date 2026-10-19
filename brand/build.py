@@ -2,7 +2,7 @@
 """Builds every derived brand image from the two masters in this folder.
 
 Inputs (never modified by a normal build):
-  logo-full.png   the full logo with the "DAUNTLESS REVIVED" wordmark
+  logo-full.png   the full logo with the "DAUNTLESS UNBROKEN" wordmark
   emblem.png      the dragon-head emblem
   palette.json    the eight brand colours and the checked contrast pairs
 
@@ -94,7 +94,7 @@ DOCS_COPIES = {
     "icons/favicon.ico": "docs/assets/favicon.ico",
     "icons/icon-192.png": "docs/assets/icon-192.png",
     "icons/apple-touch-icon.png": "docs/assets/apple-touch-icon.png",
-    "og.png": "docs/assets/og-revived.png",  # a new name when the image changes: link previews cache by URL
+    "og.png": "docs/assets/og-unbroken.png",  # a new name when the image changes: link previews cache by URL
     "web/emblem-128.png": "docs/assets/brand/emblem-128.png",
     "web/logo-400.png": "docs/assets/brand/logo-400.png",
     "web/logo-400.webp": "docs/assets/brand/logo-400.webp",
@@ -298,7 +298,7 @@ def banner() -> Image.Image:
 # The banner's text column, kept apart so a contrast check can render the backdrop without it.
 BANNER_TX = 452
 BANNER_TEXT = f"""<text x="{BANNER_TX}" y="78" font-family="{MONO}" font-size="15" font-weight="600" letter-spacing="4" fill="{C['glow']}">PRIVATE SERVER REVIVAL · DAUNTLESS 1.4.4</text>
-  <text x="{BANNER_TX - 3}" y="138" font-family="{SANS}" font-size="58" font-weight="800" fill="{C['frost']}">Dauntless Revived</text>
+  <text x="{BANNER_TX - 3}" y="138" font-family="{SANS}" font-size="58" font-weight="800" fill="{C['frost']}">Dauntless Unbroken</text>
   <text x="{BANNER_TX}" y="182" font-family="{SANS}" font-size="24" fill="{C['frost']}">Play the genuine Dauntless 1.4.4 client on a server</text>
   <text x="{BANNER_TX}" y="212" font-family="{SANS}" font-size="24" fill="{C['frost']}">you host yourself.</text>
   <text x="{BANNER_TX}" y="251" font-family="{MONO}" font-size="15" fill="{C['steel']}">fork of Undaunted by gwog &amp; contributors · AGPL-3.0</text>
@@ -388,7 +388,7 @@ def build() -> None:
     put(emblem_at(192), "icons/icon-192.png", web=True)
     put(emblem_at(512), "icons/icon-512.png", web=True)
 
-    # The launcher's set. UndauntedLauncher's `npm run icon` copies these (and web/emblem-32, -64
+    # The launcher's set. DauntlessUnbrokenLauncher's `npm run icon` copies these (and web/emblem-32, -64
     # and -512) into the launcher; this script does not write there.
     app = HERE / "launcher/icon.ico"
     app.parent.mkdir(parents=True, exist_ok=True)

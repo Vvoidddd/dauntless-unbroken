@@ -35,7 +35,7 @@ tests that feed the server's replies to a model of the client, read from the exe
 two-player test on the rented server confirms or corrects them.
 
 The first chat server was written and tested with a real 1.4.4 client by **Vvoidddd**
-([pull request #9](https://github.com/mixutin/dauntless-revived/pull/9)). His observations are what
+([pull request #9](https://github.com/Vvoidddd/dauntless-unbroken/pull/9)). His observations are what
 this page explains, and his code is what the server grew from.
 
 **Update (30 September 2026): friends' online status is built into the chat server, on by default**
@@ -324,7 +324,7 @@ friend session(s), heard of M` and `... offline (<reason>): told N friend sessio
 
 ## Testing without the game {#testing-without-the-game}
 
-`UndauntedMetagame/test/chatclient.ts` is a model of how the client reads chat, with the addresses
+`DauntlessUnbrokenMetagame/test/chatclient.ts` is a model of how the client reads chat, with the addresses
 above. Fed the first server's replies, it reproduces what Vvoidddd saw: `UID-...` as the sender, the
 join stuck with "Another operation already pending", and `[unknown]`. Fed ours, captured from the real
 server in the test, both players see usernames. Like the client, the model keeps one room member per
@@ -351,10 +351,10 @@ The live test with two players on the rented server.
 matchmaking queues held in memory):
 
 1. **Update the server to this version.** From your PC: `Deploy-Remote.ps1 -Server <address> -Update`
-   (or `Update-DauntlessServer.ps1` on the server). `Set-Chat.ps1` arrives with the update: a server
+   (or `Update-DauntlessUnbrokenServer.ps1` on the server). `Set-Chat.ps1` arrives with the update: a server
    on an older version (the rented one runs 9f3f78b) does not have it yet. `-Chat` cannot go with
    `-Update`, so switching chat on is a second run.
-2. **For the first run, add `CHAT_TRACE=1`** to `C:\DauntlessRevived\data\config\metagame.env` now,
+2. **For the first run, add `CHAT_TRACE=1`** to `C:\DauntlessUnbroken\data\config\metagame.env` now,
    before switching chat on: the restart in the next step picks it up.
 3. **Switch chat on:** `Deploy-Remote.ps1 -Server <address> -Chat On` (or `Set-Chat.ps1 -On` on the
    server; see [Windows server kit]({{ winserver_page.url | relative_url }}#chat)).
@@ -410,8 +410,8 @@ The test passes when steps 1-11 go as described and step 12 finds nothing.
   `CHAT_NICK_CHECK=log` in `metagame.env`, restart when nobody is playing, and report the line.
 - Anything serious: `Deploy-Remote.ps1 -Server <address> -Chat Off` (or `Set-Chat.ps1 -Off` on the
   server) puts things back as before chat.
-- The chat code itself at fault: `Update-DauntlessServer.ps1 -Rollback` (the build before the update)
-  or `Update-DauntlessServer.ps1 -Ref 9f3f78b`. The older code ignores `CHAT`, so nothing else needs
+- The chat code itself at fault: `Update-DauntlessUnbrokenServer.ps1 -Rollback` (the build before the update)
+  or `Update-DauntlessUnbrokenServer.ps1 -Ref 9f3f78b`. The older code ignores `CHAT`, so nothing else needs
   changing.
 
 ### Friends' online status (after the chat test passes) {#how-to-verify-presence}

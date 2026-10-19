@@ -1,22 +1,20 @@
 <p align="right"><a href="README.fi.md">🇫🇮 Suomeksi</a></p>
 
 <p align="center">
-  <img src=".github/assets/banner.png" width="100%" alt="Dauntless Revived banner. On the left, the project logo: a dragon's head above the words Dauntless Revived. On the right: Private server revival, Dauntless 1.4.4. Dauntless Revived. Play the genuine Dauntless 1.4.4 client on a server you host yourself. Fork of Undaunted by gwog and contributors, AGPL-3.0. Unofficial fan project, not affiliated with Phoenix Labs.">
+  <img src=".github/assets/banner.png" width="100%" alt="Dauntless Unbroken banner. On the left, the project logo: a dragon's head above the words Dauntless Unbroken. On the right: Private server revival, Dauntless 1.4.4. Dauntless Unbroken. Play the genuine Dauntless 1.4.4 client on a server you host yourself. Fork of Undaunted by gwog and contributors, AGPL-3.0. Unofficial fan project, not affiliated with Phoenix Labs.">
 </p>
 
 <p align="center">
   <a href="LICENSE.txt"><img alt="License: AGPL-3.0-only" src="https://img.shields.io/badge/license-AGPL--3.0--only-0D669C?style=flat-square&labelColor=031523"></a>
-  <a href="https://mixutin.github.io/dauntless-revived/"><img alt="Documentation site" src="https://img.shields.io/badge/docs-mixutin.github.io-0D669C?style=flat-square&labelColor=031523"></a>
-  <a href="https://discord.gg/ZJRprHzsgu"><img alt="Join the Dauntless Revived Discord" src="https://img.shields.io/badge/Discord-join%20the%20community-5865F2?style=flat-square&logo=discord&logoColor=white"></a>
-  <a href="https://patreon.com/DauntlessRevived"><img alt="Optional support on Patreon" src="https://img.shields.io/badge/Patreon-optional%20support-FF424D?style=flat-square&logo=patreon&logoColor=white"></a>
-  <a href="https://github.com/mixutin/dauntless-revived/discussions"><img alt="GitHub Discussions" src="https://img.shields.io/badge/discussions-ask%20%26%20share-0D669C?style=flat-square&labelColor=031523&logo=github"></a>
-  <a href="https://github.com/mixutin/dauntless-revived/commits/dauntless-revived"><img alt="Last commit on the dauntless-revived branch" src="https://img.shields.io/github/last-commit/mixutin/dauntless-revived/dauntless-revived?style=flat-square&labelColor=031523&color=0D669C"></a>
-  <a href="https://github.com/mixutin/dauntless-revived/actions/workflows/ci.yml?query=branch%3Adauntless-revived"><img alt="CI status on the dauntless-revived branch" src="https://img.shields.io/github/actions/workflow/status/mixutin/dauntless-revived/ci.yml?branch=dauntless-revived&event=push&style=flat-square&labelColor=031523&label=CI"></a>
+  <a href="https://vvoidddd.github.io/dauntless-unbroken/"><img alt="Documentation site" src="https://img.shields.io/badge/docs-vvoidddd.github.io-0D669C?style=flat-square&labelColor=031523"></a>
+  <a href="https://github.com/Vvoidddd/dauntless-unbroken/discussions"><img alt="GitHub Discussions" src="https://img.shields.io/badge/discussions-ask%20%26%20share-0D669C?style=flat-square&labelColor=031523&logo=github"></a>
+  <a href="https://github.com/Vvoidddd/dauntless-unbroken/commits/main"><img alt="Last commit on the dauntless-unbroken branch" src="https://img.shields.io/github/last-commit/Vvoidddd/dauntless-unbroken/main?style=flat-square&labelColor=031523&color=0D669C"></a>
+  <a href="https://github.com/Vvoidddd/dauntless-unbroken/actions/workflows/ci.yml?query=branch%3Amain"><img alt="CI status on the dauntless-unbroken branch" src="https://img.shields.io/github/actions/workflow/status/Vvoidddd/dauntless-unbroken/ci.yml?branch=main&event=push&style=flat-square&labelColor=031523&label=CI"></a>
 </p>
 
-# Dauntless Revived
+# Dauntless Unbroken
 
-**Dauntless Revived is a private-server revival of Dauntless**, Phoenix Labs' free-to-play co-op
+**Dauntless Unbroken is a private-server revival of Dauntless**, Phoenix Labs' free-to-play co-op
 monster-hunting game. The official servers shut down on **30 May 2025**. This project lets you play
 the genuine **Dauntless 1.4.4** client (October 2020, Unreal Engine 4) again, on a server you host
 yourself. It is a modified fork of **[Undaunted](https://github.com/SyST3MDeV/Undaunted) by gwog
@@ -26,18 +24,8 @@ launcher. This fork adds fixes, saved progression, server-side parties, a friend
 Undaunted's, a server kit for rented Windows machines and documentation. No game files are
 distributed in this repository or on the docs site: you need your own copy of the 1.4.4 client.
 
-> **This is not a public server.** It is run for a few friends. Anyone can host their own copy from
-> this repository.
-
-## Optional project support
-
-Dauntless Revived is free. If you would like to support ongoing development and community costs, you can [support the project on Patreon](https://patreon.com/DauntlessRevived). Patreon is entirely optional and does not provide paid access to the game or gameplay advantages.
-
-## Patreons
-
-A huge thank-you to the people supporting Dauntless Revived on Patreon. ❤️
-
-- **nasagi** — thank you for becoming a Patreon supporter and helping support the project.
+> This repository contains the source for Dauntless Unbroken, a fresh community realm.
+> Accounts and progression from Dauntless Revived are not imported.
 
 ## Hosting partner — EU Gamehost
 
@@ -45,7 +33,7 @@ A huge thank-you to the people supporting Dauntless Revived on Patreon. ❤️
   <a href="https://www.eugamehost.com/"><img src=".github/assets/eugamehost-partner.png" width="620" alt="EU Gamehost"></a>
 </p>
 
-**EU Gamehost is a partnered and recommended hosting provider for Dauntless Revived.** If you want a rented server instead of keeping your own PC online, see the [hosting partner guide](https://mixutin.github.io/dauntless-revived/setup/hosting-partner.html).
+**EU Gamehost is a partnered and recommended hosting provider for Dauntless Unbroken.** If you want a rented server instead of keeping your own PC online, see the [hosting partner guide](https://vvoidddd.github.io/dauntless-unbroken/setup/hosting-partner.html).
 
 The measured light-load all-in-one footprint is roughly **9.5 GB**, so **VDS GAME 3 (12 GB)** is our recommended starting point for the full default stack and **VDS GAME 5 (24 GB)** is the headroom option. **GAME 1 (4 GB)** is useful for testing/control-plane-only deployments and **GAME 2 (8 GB)** for deliberately trimmed setups, but neither has enough RAM for our measured full default layout. Operators wanting dedicated hardware can look at the **Ryzen 7 5800X / 32 GB** option.
 
@@ -63,7 +51,7 @@ the public, so you run your own and invite your friends.
 
 ### Can I join your server?
 No. Our server runs on a rented machine, but only people the owner invites can make an account. The
-[setup guide](https://mixutin.github.io/dauntless-revived/setup/) explains how to host your own.
+[setup guide](https://vvoidddd.github.io/dauntless-unbroken/setup/) explains how to host your own.
 
 ### Does this project give out the game?
 No. Neither this repository nor the docs site contains or links to game files. You need your own
@@ -79,7 +67,7 @@ No. Each player logs in with a personal account key issued by your own server.
 ### Is it official?
 No. It is an unofficial, non-commercial fan project, not affiliated with Phoenix Labs or Epic Games.
 
-More answers are in the [FAQ](https://mixutin.github.io/dauntless-revived/faq.html).
+More answers are in the [FAQ](https://vvoidddd.github.io/dauntless-unbroken/faq.html).
 
 ## Status
 
@@ -97,20 +85,20 @@ played solo on the host and rented server, then tested with two players over the
 | Hunts | Works (solo) | Played: a Lesser Boreus hunt and a pursuit on the host PC, and the new-player pursuit over the internet on the rented server |
 | Crafting | Works | |
 | Inventory, gear and quests | Works (solo) | Saved to SQLite; survives a client restart and a full server restart |
-| Slayer level, mastery and the Hunt Pass | Works (solo), on by default | Start from the beginning (Slayer level 1, no mastery, an empty Hunt Pass) and are saved; every account owns the Elite Hunt Pass. Tested in game on a throwaway account, including a full restart. On the rented server on 22 September 2026: Slayer level 3, weapon mastery and behemoth mastery (rank 2, the first time behemoth mastery was seen in game), with the rank rewards confirmed by the game server. `PROGRESSION_MODE=stub` brings back upstream's fixed level 50 ([upgrade notes](https://mixutin.github.io/dauntless-revived/setup/upgrading.html)) |
-| A server on a rented machine | Running | The [Windows server kit](https://mixutin.github.io/dauntless-revived/setup/windows-server.html) was deployed to a rented Windows Server 2019 VPS in public mode on 21–22 September 2026. Checked there: the stack starts at boot as the service account, Ramsgate runs and sends heartbeats, the gateway answers from the internet with the pinned certificate, and the hourly backup runs. In the first real test (22 September 2026) three game servers ran at once, and the UDP allowlist opened the game ports for the player and closed them after they left |
-| Linux server port | Control plane working; real Wine/Proton game session next | [Linux server](https://mixutin.github.io/dauntless-revived/setup/linux-server.html): metagame, content, deploy, gateway and SQLite run natively under Linux/systemd; nftables provides the dynamic UDP allowlist; Ramsgate/hunts launch through a separate Proton/Wine wrapper. The local pinned 1.4.4 tree passed all 410 manifest size checks, the Node stack and database bootstrap pass, and a smoke test reached Ramsgate on UDP 8777 with the exact production argv. A real Proton/Wine Ramsgate + hunt session is still the next milestone. |
-| OpenBSD server port | Native control plane CI-tested; live two-machine game session next | [OpenBSD server](https://mixutin.github.io/dauntless-revived/setup/openbsd-server.html): Node/SQLite services run natively on OpenBSD 7.9 under rc.d with PF for TLS redirect and a dynamic player table. The Windows x86_64 game process runs on a restricted Linux Proton/Wine worker over SSH. A real OpenBSD 7.9 VM builds/tests this port in CI. |
-| Friend launcher | Released on Windows; Linux support added | The first release, 0.1.0, was published on [GitHub Releases](https://github.com/mixutin/dauntless-revived/releases/latest) by CI, with `SHA256SUMS.txt` and a build provenance attestation; installed launchers update themselves. The owner registered with it on the rented server and downloaded the game (about 11 GB) through the gateway. 0.1.1, published the same night, stopped turning off the game's automatic exposure, which had made Ramsgate far too dark. Not code-signed yet: on the owner's PC SmartScreen blocked the installer outright, and checking it against `SHA256SUMS.txt` and unblocking it worked ([how](https://mixutin.github.io/dauntless-revived/setup/friends.html)) |
+| Slayer level, mastery and the Hunt Pass | Works (solo), on by default | Start from the beginning (Slayer level 1, no mastery, an empty Hunt Pass) and are saved; every account owns the Elite Hunt Pass. Tested in game on a throwaway account, including a full restart. On the rented server on 22 September 2026: Slayer level 3, weapon mastery and behemoth mastery (rank 2, the first time behemoth mastery was seen in game), with the rank rewards confirmed by the game server. `PROGRESSION_MODE=stub` brings back upstream's fixed level 50 ([upgrade notes](https://vvoidddd.github.io/dauntless-unbroken/setup/upgrading.html)) |
+| A server on a rented machine | Running | The [Windows server kit](https://vvoidddd.github.io/dauntless-unbroken/setup/windows-server.html) was deployed to a rented Windows Server 2019 VPS in public mode on 21–22 September 2026. Checked there: the stack starts at boot as the service account, Ramsgate runs and sends heartbeats, the gateway answers from the internet with the pinned certificate, and the hourly backup runs. In the first real test (22 September 2026) three game servers ran at once, and the UDP allowlist opened the game ports for the player and closed them after they left |
+| Linux server port | Control plane working; real Wine/Proton game session next | [Linux server](https://vvoidddd.github.io/dauntless-unbroken/setup/linux-server.html): metagame, content, deploy, gateway and SQLite run natively under Linux/systemd; nftables provides the dynamic UDP allowlist; Ramsgate/hunts launch through a separate Proton/Wine wrapper. The local pinned 1.4.4 tree passed all 410 manifest size checks, the Node stack and database bootstrap pass, and a smoke test reached Ramsgate on UDP 8777 with the exact production argv. A real Proton/Wine Ramsgate + hunt session is still the next milestone. |
+| OpenBSD server port | Native control plane CI-tested; live two-machine game session next | [OpenBSD server](https://vvoidddd.github.io/dauntless-unbroken/setup/openbsd-server.html): Node/SQLite services run natively on OpenBSD 7.9 under rc.d with PF for TLS redirect and a dynamic player table. The Windows x86_64 game process runs on a restricted Linux Proton/Wine worker over SSH. A real OpenBSD 7.9 VM builds/tests this port in CI. |
+| Friend launcher | Released on Windows; Linux support added | The first release, 0.1.0, was published on [GitHub Releases](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest) by CI, with `SHA256SUMS.txt` and a build provenance attestation; installed launchers update themselves. The owner registered with it on the rented server and downloaded the game (about 11 GB) through the gateway. 0.1.1, published the same night, stopped turning off the game's automatic exposure, which had made Ramsgate far too dark. Not code-signed yet: on the owner's PC SmartScreen blocked the installer outright, and checking it against `SHA256SUMS.txt` and unblocking it worked ([how](https://vvoidddd.github.io/dauntless-unbroken/setup/friends.html)) |
 | Playing with friends over the internet | Works (two players) | Tested on 22 September 2026 on the rented server. First one player: an invite, registration, the game download, the tutorial, Ramsgate, the Training Dojo and the first hunt. Then two players together: they saw each other in Ramsgate and hunted together, after queueing the same hunt within a few seconds of each other (parties don't work in game yet, see the next row) |
-| Parties, friends and guilds | Built, awaiting a live test | Server side: party invites, accept and decline, promote, kick and leave, the whole party on one hunt server, back to Ramsgate together, lookups by name, a friends list and blocklist, and guilds (create, invite, ranks, kick, leave, disband), all but parties saved in SQLite. In the two-player test on 22 September 2026 a party invite reached the other player's game but never showed, and Add Friends did nothing: the server described the wrong player in `POST /accountinfo/public` and answered `POST /account/mapping` in a shape the game does not read. Both are fixed, running on our rented server since 22 September 2026, and pass tests that replay the game's own requests; nobody has tried them in the game yet ([details](https://mixutin.github.io/dauntless-revived/findings/social.html)). Invites don't require being friends. Showing players as online needs presence over the chat connection: built since 23 September 2026, off by default (see the chat row) |
-| Backups | Works on our hosts | Hourly, plus one around every server start and stop. The Windows server kit has its own backup task (running on the rented server). The scripts of our original host PC, where a restore was tested, are not in this repository ([do-it-yourself version](https://mixutin.github.io/dauntless-revived/setup/admin.html#back-up-the-database)) |
+| Parties, friends and guilds | Built, awaiting a live test | Server side: party invites, accept and decline, promote, kick and leave, the whole party on one hunt server, back to Ramsgate together, lookups by name, a friends list and blocklist, and guilds (create, invite, ranks, kick, leave, disband), all but parties saved in SQLite. In the two-player test on 22 September 2026 a party invite reached the other player's game but never showed, and Add Friends did nothing: the server described the wrong player in `POST /accountinfo/public` and answered `POST /account/mapping` in a shape the game does not read. Both are fixed, running on our rented server since 22 September 2026, and pass tests that replay the game's own requests; nobody has tried them in the game yet ([details](https://vvoidddd.github.io/dauntless-unbroken/findings/social.html)). Invites don't require being friends. Showing players as online needs presence over the chat connection: built since 23 September 2026, off by default (see the chat row) |
+| Backups | Works on our hosts | Hourly, plus one around every server start and stop. The Windows server kit has its own backup task (running on the rented server). The scripts of our original host PC, where a restore was tested, are not in this repository ([do-it-yourself version](https://vvoidddd.github.io/dauntless-unbroken/setup/admin.html#back-up-the-database)) |
 | Friend kit | Built | The Tailscale-only fallback: hash-checked setup and play scripts. Not used by a friend yet |
 | Bounties | Not yet | Stored with real progression; drafting and claiming not yet tried in game |
-| Text chat and online status | Built, awaiting a live test; both off by default | Ramsgate, hunt, party and guild chat and whispers, with usernames, in the metagame itself; off by default until two players have tried it (`Set-Chat.ps1 -On` on a kit server). The first chat server was written and tested by Vvoidddd; why it showed `UID-...` instead of names, and the fix: [Text chat](https://mixutin.github.io/dauntless-revived/findings/chat.html). Friends' online status is built into the chat server since 23 September 2026 (the idea came from Harmonic's fork) and stays off (`CHAT_PRESENCE=1`) until two players have shown that the party's automatic kick stays asleep. Use the [Dauntless Revived Discord](https://discord.gg/ZJRprHzsgu) meanwhile |
-| Slayer Links | Built, on by default, awaiting a live test | The My Links tab: two friends link up for a week. From Harmonic's fork, corrected against the 1.4.4 executable (23 September 2026); not tried in game yet, and the game may keep the tab hidden ([details](https://mixutin.github.io/dauntless-revived/findings/social.html#slayer-links)) |
-| Escalation | Built, off by default | Real Escalation saves from Harmonic's fork: the season registry read from the client and its save rules (23 September 2026). Off (`ESCALATION_MODE=real`) because switching it on drops every player from the fake maximum to level 0; not tried in game ([details](https://mixutin.github.io/dauntless-revived/findings/escalation.html)) |
-| Store | Built, off by default | A free store from Harmonic's fork: 200 free cosmetics, bought with the game's own purchase flow (23 September 2026). Off (`STORE=free`) until the owner decides whether it stays free and it has been tried in game ([details](https://mixutin.github.io/dauntless-revived/findings/store.html)) |
+| Text chat and online status | Built, awaiting a live test; both off by default | Ramsgate, hunt, party and guild chat and whispers, with usernames, in the metagame itself; off by default until two players have tried it (`Set-Chat.ps1 -On` on a kit server). The first chat server was written and tested by Vvoidddd; why it showed `UID-...` instead of names, and the fix: [Text chat](https://vvoidddd.github.io/dauntless-unbroken/findings/chat.html). Friends' online status is built into the chat server since 23 September 2026 (the idea came from Harmonic's fork) and stays off (`CHAT_PRESENCE=1`) until two players have shown that the party's automatic kick stays asleep. Use the [Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu) meanwhile |
+| Slayer Links | Built, on by default, awaiting a live test | The My Links tab: two friends link up for a week. From Harmonic's fork, corrected against the 1.4.4 executable (23 September 2026); not tried in game yet, and the game may keep the tab hidden ([details](https://vvoidddd.github.io/dauntless-unbroken/findings/social.html#slayer-links)) |
+| Escalation | Built, off by default | Real Escalation saves from Harmonic's fork: the season registry read from the client and its save rules (23 September 2026). Off (`ESCALATION_MODE=real`) because switching it on drops every player from the fake maximum to level 0; not tried in game ([details](https://vvoidddd.github.io/dauntless-unbroken/findings/escalation.html)) |
+| Store | Built, off by default | A free store from Harmonic's fork: 200 free cosmetics, bought with the game's own purchase flow (23 September 2026). Off (`STORE=free`) until the owner decides whether it stays free and it has been tried in game ([details](https://vvoidddd.github.io/dauntless-unbroken/findings/store.html)) |
 | Multiple loadouts | Backend complete, awaiting an in-game UI test | Unlocks, active-slot selection and independent saves for all six client slots are stored with real progression. The server never advertises the invalid seventh slot, and a save no longer depends on `/all` having run first. The extra slots have not yet been tried in the game UI |
 
 The live checklist, with every step and what "done" means for it, is [ROADMAP.md](ROADMAP.md).
@@ -119,17 +107,17 @@ The live checklist, with every step and what "done" means for it, is [ROADMAP.md
 
 | Link | What you'll find |
 |---|---|
-| [Documentation site](https://mixutin.github.io/dauntless-revived/) | Status, setup, findings and credits |
-| [Setup guide](https://mixutin.github.io/dauntless-revived/setup/) | Hosting a server, joining as a friend, running it for a group, troubleshooting |
-| [Windows server kit](https://mixutin.github.io/dauntless-revived/setup/windows-server.html) | An always-on server on a rented Windows Server 2019 machine, installed with one command, in public or private mode |
-| [Launcher download](https://github.com/mixutin/dauntless-revived/releases/latest) | The Dauntless Revived Launcher for invited friends, with `SHA256SUMS.txt` |
-| [Reference](https://mixutin.github.io/dauntless-revived/reference/) | Every setting, port, HTTP route, file and script, with defaults, for self-hosters and developers |
-| [Friend kit](friend-kit/) | One-time setup and launcher for invited players ([guide](https://mixutin.github.io/dauntless-revived/setup/friends.html)) |
+| [Documentation site](https://vvoidddd.github.io/dauntless-unbroken/) | Status, setup, findings and credits |
+| [Setup guide](https://vvoidddd.github.io/dauntless-unbroken/setup/) | Hosting a server, joining as a friend, running it for a group, troubleshooting |
+| [Windows server kit](https://vvoidddd.github.io/dauntless-unbroken/setup/windows-server.html) | An always-on server on a rented Windows Server 2019 machine, installed with one command, in public or private mode |
+| [Launcher download](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest) | The Dauntless Unbroken Launcher for invited friends, with `SHA256SUMS.txt` |
+| [Reference](https://vvoidddd.github.io/dauntless-unbroken/reference/) | Every setting, port, HTTP route, file and script, with defaults, for self-hosters and developers |
+| [Friend kit](friend-kit/) | One-time setup and launcher for invited players ([guide](https://vvoidddd.github.io/dauntless-unbroken/setup/friends.html)) |
 | [Roadmap](ROADMAP.md) | Milestones M0 to M4 and the live checklist |
-| [FAQ](https://mixutin.github.io/dauntless-revived/faq.html) | Short answers to common questions |
-| [Suomeksi](https://mixutin.github.io/dauntless-revived/fi/) | The documentation in Finnish |
+| [FAQ](https://vvoidddd.github.io/dauntless-unbroken/faq.html) | Short answers to common questions |
+| [Suomeksi](https://vvoidddd.github.io/dauntless-unbroken/fi/) | The documentation in Finnish |
 | [Discord](https://discord.gg/ZJRprHzsgu) | Community chat, finding players, help and project updates |
-| [Discussions](https://github.com/mixutin/dauntless-revived/discussions) | Questions, ideas and your own setups |
+| [Discussions](https://github.com/Vvoidddd/dauntless-unbroken/discussions) | Questions, ideas and your own setups |
 
 ## How it works
 
@@ -142,16 +130,16 @@ The live checklist, with every step and what "done" means for it, is [ROADMAP.md
 ## Repository layout
 
 The component folders keep upstream's `Undaunted...` names for now (renaming them is roadmap item
-4.15); the npm packages in them are named `dauntless-revived-*`.
+4.15); the npm packages in them are named `dauntless-unbroken-*`.
 
 | Folder | What it is |
 |---|---|
-| `UndauntedMetagame/` | The backend the game talks to: accounts, characters, inventory, loadouts, progression, matchmaking, parties, the friends list and the `/undaunted/api` admin API |
-| `UndauntedDeployServer/` | Starts and supervises game-server processes (Ramsgate, hunts, the Training Dojo) |
-| `UndauntedGateway/` | Public mode only: the TLS gateway (the game's one public TCP port) and the helper that opens the game ports for logged-in players |
-| `UndauntedContent/` | The content server: the game files (checked against a manifest of 410 files), news and the art pack, for registered launchers only |
-| `UndauntedLauncher/` | The Dauntless Revived Launcher for Windows and x86_64 Linux; on Linux the pinned Windows game client runs through Proton/Wine. `assets/` holds the two pinned prebuilt DLLs every setup installs |
-| `UndauntedInternalServer/` | The C++ source of Undaunted's server DLL, which lets the retail client run as a game server and points clients at the backend. It compiles with the Visual Studio 2022 Build Tools, but nothing in this repository builds it; every setup uses the prebuilt DLLs from `UndauntedLauncher/assets/` |
+| `DauntlessUnbrokenMetagame/` | The backend the game talks to: accounts, characters, inventory, loadouts, progression, matchmaking, parties, the friends list and the `/undaunted/api` admin API |
+| `DauntlessUnbrokenDeployServer/` | Starts and supervises game-server processes (Ramsgate, hunts, the Training Dojo) |
+| `DauntlessUnbrokenGateway/` | Public mode only: the TLS gateway (the game's one public TCP port) and the helper that opens the game ports for logged-in players |
+| `DauntlessUnbrokenContent/` | The content server: the game files (checked against a manifest of 410 files), news and the art pack, for registered launchers only |
+| `DauntlessUnbrokenLauncher/` | The Dauntless Unbroken Launcher for Windows and x86_64 Linux; on Linux the pinned Windows game client runs through Proton/Wine. `assets/` holds the two pinned prebuilt DLLs every setup installs |
+| `DauntlessUnbrokenInternalServer/` | The C++ source of Undaunted's server DLL, which lets the retail client run as a game server and points clients at the backend. It compiles with the Visual Studio 2022 Build Tools, but nothing in this repository builds it; every setup uses the prebuilt DLLs from `DauntlessUnbrokenLauncher/assets/` |
 | `deploy/windows-server/` | The Windows server kit: installs and runs the whole server on Windows Server 2019, in public or private mode, with backups, invites and updates |
 | `deploy/linux-server/` | Separate Linux server port: systemd service templates, nftables allowlist, one-host Proton/Wine launch wrapper and the reusable Linux game-worker installer |
 | `deploy/openbsd-server/` | Separate OpenBSD 7.9 control-plane port: rc.d services, PF redirect/allowlist rules and the restricted SSH launcher for a Linux game worker |
@@ -193,7 +181,7 @@ The component folders keep upstream's `Undaunted...` names for now (renaming the
   Slayer Links, friends' online status inside our chat server (off by default), a dead Ramsgate
   started again when a player travels there, protection against retried progression grants, and
   more. What was taken and what was not, with the reasons:
-  [The Harmonic port](https://mixutin.github.io/dauntless-revived/findings/harmonic-fork.html).
+  [The Harmonic port](https://vvoidddd.github.io/dauntless-unbroken/findings/harmonic-fork.html).
 - **Live server status for the launcher.** The list of players online and running hunts is shown to
   registered players only. `/dauntless-status` gives the server's name, version, source URL and
   commit (for the AGPL), and no player count.
@@ -202,21 +190,21 @@ The component folders keep upstream's `Undaunted...` names for now (renaming the
   nothing. Our metagame stores Slayer level, mastery, the Hunt Pass, entitlements (the Elite pass
   for everyone), loadout slots, cooldowns and bounties per account. `PROGRESSION_MODE=stub` restores
   upstream's behaviour. Updating a server that already has players? Read the
-  [upgrade notes](https://mixutin.github.io/dauntless-revived/setup/upgrading.html) first.
+  [upgrade notes](https://vvoidddd.github.io/dauntless-unbroken/setup/upgrading.html) first.
 - A **friend kit** (`friend-kit/`, packaged by `tools/make-friend-kit.ps1`): a one-time setup and a
   launcher for invited players. It checks the two Undaunted DLLs against pinned SHA-256 hashes,
   registers the player, points the game's chat connection at the host so it never contacts Epic's
   old chat server, and ships with the license, third-party notices and a `SOURCE.txt` naming the
   exact commit.
-- Our own **friend launcher** (`UndauntedLauncher/`), built on upstream's, which was hard-wired to
+- Our own **friend launcher** (`DauntlessUnbrokenLauncher/`), built on upstream's, which was hard-wired to
   Undaunted's own servers. It joins a server from an invite, registers the player (it keeps the key
   only through Electron safe storage (DPAPI on Windows, the desktop secret store on Linux); the one plain copy is a backup the player chooses to save),
   downloads the game from the host and checks every file against a manifest
   built into it, installs the two pinned DLLs and the game settings, and in public mode relays the
   game's plain-HTTP calls over TLS pinned to the invite's certificate. CI publishes each new version on GitHub Releases, and installed launchers
   update themselves.
-- A **content server** (`UndauntedContent/`) that hands the game files only to registered accounts,
-  with resumable downloads, and a **gateway** (`UndauntedGateway/`) for public mode: the game's only
+- A **content server** (`DauntlessUnbrokenContent/`) that hands the game files only to registered accounts,
+  with resumable downloads, and a **gateway** (`DauntlessUnbrokenGateway/`) for public mode: the game's only
   public TCP port, TLS with a pinned self-signed certificate, admin routes and the game-server key refused
   from outside, body limits and rate limits, and a helper that opens the game's UDP ports only for
   the addresses of players who logged in.
@@ -235,10 +223,10 @@ The component folders keep upstream's `Undaunted...` names for now (renaming the
   that no secrets, keys, databases or game files are committed.
 - **Our own name.** The launcher, the in-game welcome text and the server's messages say Dauntless
   Revived, and the credits name Undaunted. The folders, the server DLL's file name
-  (`UndauntedInternalServer.dll`), the `/undaunted/api` routes and the `x-undaunted-*` headers keep
+  (`DauntlessUnbroken.dll`), the `/undaunted/api` routes and the `x-dauntless-unbroken-*` headers keep
   the Undaunted names for now (roadmap item 4.15).
 - A **documentation site** in `docs/`, published at
-  [mixutin.github.io/dauntless-revived](https://mixutin.github.io/dauntless-revived/), in English
+  [mixutin.github.io/dauntless-unbroken](https://vvoidddd.github.io/dauntless-unbroken/), in English
   and Finnish: setup guides, a reference of every setting, port, route and file, findings about the
   game's backend, and the roadmap.
 
@@ -246,7 +234,7 @@ Backups: the Windows server kit takes them itself (hourly, and around every star
 database copy checked with `PRAGMA integrity_check`. Our original host PC runs its own backup scripts
 (roadmap item 0.1), which are not part of this repository. The metagame itself takes no backup, so if
 you host by hand, set one up yourself:
-[Run it for a group](https://mixutin.github.io/dauntless-revived/setup/admin.html#back-up-the-database)
+[Run it for a group](https://vvoidddd.github.io/dauntless-unbroken/setup/admin.html#back-up-the-database)
 has a do-it-yourself version.
 
 ## Security
@@ -260,12 +248,12 @@ has a do-it-yourself version.
   players who logged in.
 
 Found a vulnerability? Please report it privately through
-[private vulnerability reporting](https://github.com/mixutin/dauntless-revived/security/advisories/new),
+[private vulnerability reporting](https://github.com/Vvoidddd/dauntless-unbroken/security/advisories/new),
 not in a public issue. [SECURITY.md](SECURITY.md) has the details and the scope.
 
 ## Contributing
 
-Ideas and fixes are welcome. Please open a [Discussion](https://github.com/mixutin/dauntless-revived/discussions)
+Ideas and fixes are welcome. Please open a [Discussion](https://github.com/Vvoidddd/dauntless-unbroken/discussions)
 before you start on anything big, test on a throwaway account, and never commit keys, `.env` files
 or game files. [CONTRIBUTING.md](CONTRIBUTING.md) has the short version of the rules, and
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) covers how we treat each other.
@@ -298,13 +286,13 @@ or game files. [CONTRIBUTING.md](CONTRIBUTING.md) has the short version of the r
 - **[Vvoidddd](https://github.com/Vvoidddd)**: found the cause of the dark pre-hunt airship (1.4.4's
   automatic exposure; the setting was reverted in launcher 0.1.1 because it darkened Ramsgate), hid
   the console windows of temporary hunt servers, and added the repository's `.gitignore`
-  ([#5](https://github.com/mixutin/dauntless-revived/pull/5)); wrote the first performance sampler,
-  the base of the server's performance log ([#6](https://github.com/mixutin/dauntless-revived/pull/6));
+  ([#5](https://github.com/Vvoidddd/dauntless-unbroken/pull/5)); wrote the first performance sampler,
+  the base of the server's performance log ([#6](https://github.com/Vvoidddd/dauntless-unbroken/pull/6));
   added the launcher's opt-in "Basic adaptive" auto exposure setting for the airship, off by default
-  ([#7](https://github.com/mixutin/dauntless-revived/pull/7)); let the launcher use an existing
-  Dauntless 1.4.4 folder by pasting its path ([#8](https://github.com/mixutin/dauntless-revived/pull/8));
+  ([#7](https://github.com/Vvoidddd/dauntless-unbroken/pull/7)); let the launcher use an existing
+  Dauntless 1.4.4 folder by pasting its path ([#8](https://github.com/Vvoidddd/dauntless-unbroken/pull/8));
   wrote the first in-game text chat server (XMPP) and tested it with a real 1.4.4 client
-  ([#9](https://github.com/mixutin/dauntless-revived/pull/9)).
+  ([#9](https://github.com/Vvoidddd/dauntless-unbroken/pull/9)).
 - **Harmonic** ([Harmonicrain/Undaunted](https://github.com/Harmonicrain/Undaunted), Harmonic's
   Dauntless 1.4.4 fork of Undaunted): the Escalation season registry and save rules, the free store (its
   catalogue, purchase flow and store tabs), the first working Slayer Links, the deploy server's restart
@@ -312,10 +300,10 @@ or game files. [CONTRIBUTING.md](CONTRIBUTING.md) has the short version of the r
   [NOTICE.md](NOTICE.md) lists what came from it.
 
 Everyone who has contributed is listed on the
-[contributors page](https://github.com/mixutin/dauntless-revived/graphs/contributors).
+[contributors page](https://github.com/Vvoidddd/dauntless-unbroken/graphs/contributors).
 
 The full list is on the docs site's
-[Credits and license](https://mixutin.github.io/dauntless-revived/legal.html) page.
+[Credits and license](https://vvoidddd.github.io/dauntless-unbroken/legal.html) page.
 
 ## License
 

@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest something Dauntless Revived should do.
+description: Suggest something Dauntless Unbroken should do.
 title: "[Idea]: "
 labels: ["enhancement"]
 body:
@@ -8,8 +8,8 @@ body:
       value: |
         Thanks for the idea. You can write in English or in Finnish (suomeksi).
 
-        Bigger ideas are best discussed first in Discussions: https://github.com/mixutin/dauntless-revived/discussions
-        Many features are already planned in the roadmap: https://github.com/mixutin/dauntless-revived/blob/dauntless-revived/ROADMAP.md
+        Bigger ideas are best discussed first in Discussions: https://github.com/Vvoidddd/dauntless-unbroken/discussions
+        Many features are already planned in the roadmap: https://github.com/Vvoidddd/dauntless-unbroken/blob/main/ROADMAP.md
 
         Requests for game files, public servers or help with piracy will be closed.
   - type: checkboxes

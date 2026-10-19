@@ -1,11 +1,11 @@
 # Linux server port
 
-This is a separate Linux deployment port for Dauntless Revived. It does not replace or call the
+This is a separate Linux deployment port for Dauntless Unbroken. It does not replace or call the
 Windows Server kit in `deploy/windows-server/`.
 
 ## Architecture
 
-- UndauntedMetagame, UndauntedDeployServer, UndauntedContent and UndauntedGateway run natively under
+- DauntlessUnbrokenMetagame, DauntlessUnbrokenDeployServer, DauntlessUnbrokenContent and DauntlessUnbrokenGateway run natively under
   Node.js on Linux.
 - Ramsgate, the Training Dojo and hunt processes are still the original Dauntless 1.4.4 Windows
   x86_64 executable. `launch-gameserver.mjs` runs them through Proton or Wine.
@@ -75,8 +75,8 @@ sudo ./deploy/linux-server/install.sh \
   --wine /usr/bin/wine64
 ```
 
-The normal install writes code under `/opt/dauntless-revived`, state under
-`/var/lib/dauntless-revived`, secret configuration under `/etc/dauntless-revived`, and systemd
+The normal install writes code under `/opt/dauntless-unbroken`, state under
+`/var/lib/dauntless-unbroken`, secret configuration under `/etc/dauntless-unbroken`, and systemd
 units under `/etc/systemd/system`.
 
 It creates a dedicated `dauntless` service user by default. Make sure that user can read/traverse
@@ -104,8 +104,8 @@ sudo ./deploy/linux-server/stack.sh restart deploy
 ## Create an invite
 
 ```sh
-sudo -u dauntless node /opt/dauntless-revived/deploy/unix-common/new-invite.mjs \
-  --config /etc/dauntless-revived \
+sudo -u dauntless node /opt/dauntless-unbroken/deploy/unix-common/new-invite.mjs \
+  --config /etc/dauntless-unbroken \
   --name FriendName
 ```
 

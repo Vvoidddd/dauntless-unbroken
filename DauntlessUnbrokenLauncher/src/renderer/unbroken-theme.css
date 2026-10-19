@@ -1,0 +1,108 @@
+/* Unbroken: a horizontal command bar over original purple aether artwork.
+   Behaviour, forms, focus handling and status rendering stay in the shared UI. */
+:root[data-style="unbroken"] {
+  --rail-w: 0px;
+  --panel-w: 286px;
+  --title-h: 34px;
+  --glass: color-mix(in srgb, var(--dr-navy) 91%, transparent);
+  --glass-strong: color-mix(in srgb, var(--dr-navy) 98%, transparent);
+}
+.titlebar { background: var(--dr-ink); border-bottom-color: var(--dr-deep); }
+.titlebar-emblem { width: 18px; height: 18px; }
+.titlebar-title { font-size: 11px; letter-spacing: .06em; color: var(--dr-steel); }
+.app { grid-template-rows: var(--title-h) minmax(0, 1fr) 56px; }
+.shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: 88px minmax(0, 1fr); }
+.rail {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr) 192px;
+  align-items: center;
+  gap: 20px;
+  padding: 0 28px;
+  overflow: visible;
+  border-right: 0;
+  border-bottom: 1px solid var(--dr-deep);
+  background: var(--dr-navy);
+}
+.game-tile { display: flex; align-items: center; gap: 12px; padding: 0; background: none; }
+.brand-crest { object-fit: contain; flex: none; }
+.wordmark { display: grid; gap: 1px; }
+.wordmark span { font-size: 10px; font-weight: 600; letter-spacing: .39em; color: var(--dr-steel); }
+.wordmark strong { font-size: 23px; letter-spacing: .06em; font-weight: 800; color: var(--dr-frost); }
+.tile-version { display: none; }
+.nav { display: flex; align-items: stretch; gap: 2px; margin: 0; height: 88px; }
+.nav > li { display: flex; }
+.nav-item { width: auto; height: 88px; padding: 0 13px; gap: 7px; border-radius: 0; font-size: 13px; white-space: nowrap; }
+.nav-item .icon { width: 17px; height: 17px; }
+.nav-item:hover { background: color-mix(in srgb, var(--dr-deep) 45%, transparent); }
+.nav-item[aria-current="page"] { background: color-mix(in srgb, var(--dr-azure) 12%, transparent); }
+.nav-item[aria-current="page"]::before { left: 14px; right: 14px; top: auto; bottom: 0; width: auto; height: 3px; border-radius: 3px 3px 0 0; animation: none; }
+.rail-account { min-width: 0; }
+.account-chip { min-height: 44px; border-color: var(--dr-deep); background: var(--dr-ink); }
+.account-switch { min-height: 44px; }
+.world { grid-template-columns: minmax(0, 1fr) var(--panel-w); }
+.hero {
+  background-image: url("./brand/hero-unbroken.png");
+  background-size: cover;
+  background-position: center right;
+}
+.hero .scene { display: none; }
+.hero-shade {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--dr-ink) 94%, transparent), color-mix(in srgb, var(--dr-ink) 55%, transparent) 48%, transparent 78%),
+    linear-gradient(0deg, var(--dr-ink), transparent 46%);
+}
+.view { padding: 36px 42px 24px; }
+#view-play { padding-top: clamp(34px, 11vh, 116px); }
+.play-content { max-width: 540px; }
+.play-content::before { content: "DAUNTLESS UNBROKEN"; display: block; margin-bottom: 18px; color: var(--dr-ice); font-size: 11px; font-weight: 700; letter-spacing: .28em; }
+.hero-title { font-size: clamp(36px, 4.8vw, 64px); line-height: 1.05; letter-spacing: -.045em; max-width: 12ch; margin-bottom: 18px; }
+.hero-text { max-width: 43ch; font-size: 15px; line-height: 1.7; color: var(--dr-steel); }
+.play-content .card { background: var(--glass); border-color: var(--dr-deep); border-radius: 14px; }
+.page { background: var(--glass-strong); border: 1px solid var(--dr-deep); border-radius: 18px; padding: 28px; }
+.page h1 { letter-spacing: -.035em; }
+.card, .settings-section, .offline-card { border-radius: 14px; }
+.actionbar { margin: 0; padding: 22px 42px 28px; border-top: 1px solid color-mix(in srgb, var(--dr-deep) 65%, transparent); background: color-mix(in srgb, var(--dr-ink) 85%, transparent); gap: 26px; flex-direction: row-reverse; }
+.action-info { text-align: left; min-width: 0; }
+.play-split { flex: none; }
+.big-button { min-width: 220px; height: 62px; border-radius: 10px 0 0 10px; background: var(--dr-ice); color: var(--dr-ink); box-shadow: 0 5px 28px color-mix(in srgb, var(--dr-azure) 24%, transparent); font-size: 20px; letter-spacing: .045em; }
+.big-button:hover:not(:disabled) { background: var(--dr-glow); }
+.play-more { height: 62px; border-radius: 0 10px 10px 0; color: var(--dr-ink); background: var(--dr-ice); border-left-color: var(--dr-azure); }
+.play-more:hover:not(:disabled) { background: var(--dr-glow); }
+.play-menu { border-radius: 12px; background: var(--dr-navy); border-color: var(--dr-steel); }
+.server-panel { align-self: start; max-height: calc(100% - 56px); margin: 28px 24px 0 0; padding: 18px; border: 1px solid var(--dr-deep); border-radius: 16px; background: color-mix(in srgb, var(--dr-navy) 77%, transparent); backdrop-filter: blur(14px); }
+.server-panel h2 { font-size: 14px; letter-spacing: .02em; }
+.community-bar { position: relative; z-index: 3; display: flex; align-items: center; gap: 16px; padding: 8px 28px; border-top: 1px solid var(--dr-deep); background: var(--dr-navy); min-width: 0; }
+.community-bar .partner-mini { width: 170px; flex: none; min-height: 0; padding: 4px 8px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; border-radius: 7px; }
+.community-bar .partner-mini img { width: 90px; max-height: 30px; object-fit: contain; }
+.community-bar .partner-mini-label { max-width: 80px; font-size: 9px; }
+.community-bar .social-button { min-height: 34px; height: 34px; justify-content: center; font-size: 11px; padding: 0 7px; border-radius: 7px; }
+.community-bar .lang-switch { margin: 0 0 0 auto; }
+.community-bar .rail-links { gap: 8px; margin: 0; }
+.community-bar .lang-btn { font-size: 10px; padding: 5px 8px; }
+.community-bar .rail-link { height: 26px; font-size: 11px; }
+.community-bar .icon-btn { width: 27px; height: 27px; }
+.world.no-panel .view { max-width: 1100px; width: 100%; margin: 0 auto; }
+.world.no-panel .hero-shade { background: color-mix(in srgb, var(--dr-ink) 80%, transparent); }
+.modal-card { background: var(--dr-navy); border-color: var(--dr-steel); border-radius: 18px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--dr-glow); outline-offset: 3px; }
+@media (max-width: 1180px) {
+  .rail { grid-template-columns: 198px minmax(0, 1fr) 158px; gap: 12px; padding: 0 20px; }
+  .nav-item { padding: 0 9px; font-size: 12px; }
+  .nav-item .icon { display: none; }
+  .brand-crest { width: 44px; height: 44px; }
+  .wordmark strong { font-size: 20px; }
+  :root[data-style="unbroken"] { --panel-w: 260px; }
+  .community-bar { gap: 10px; padding-left: 20px; padding-right: 20px; }
+  .view { padding-left: 28px; padding-right: 28px; }
+  .actionbar { padding-left: 28px; padding-right: 28px; }
+}
+@media (max-height: 700px) {
+  .shell { grid-template-rows: 70px minmax(0, 1fr); }
+  .nav, .nav-item { height: 70px; }
+  #view-play { padding-top: 28px; }
+  .hero-title { font-size: 40px; }
+  .community-bar .partner-mini { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .nav-item::before { animation: none; } }
+
+/* Community URLs are configured when the new realm has its own destinations. */
+#discord-btn, #patreon-btn { display: none; }

@@ -1,16 +1,16 @@
 # OpenBSD server port
 
-This is a separate OpenBSD deployment port for Dauntless Revived. It does not modify or replace the
+This is a separate OpenBSD deployment port for Dauntless Unbroken. It does not modify or replace the
 Windows Server kit.
 
 ## What runs on OpenBSD
 
 The control plane runs natively on OpenBSD:
 
-- UndauntedMetagame
-- UndauntedDeployServer
-- UndauntedContent
-- UndauntedGateway
+- DauntlessUnbrokenMetagame
+- DauntlessUnbrokenDeployServer
+- DauntlessUnbrokenContent
+- DauntlessUnbrokenGateway
 - SQLite progression/account database
 - TLS certificate and invites
 - PF-backed dynamic game-port allowlist
@@ -28,7 +28,7 @@ Players
    | TCP 443
    v
 OpenBSD control plane
-   |  PF rdr -> 127.0.0.1:61443 -> UndauntedGateway
+   |  PF rdr -> 127.0.0.1:61443 -> DauntlessUnbrokenGateway
    |
    | authenticated player IP added to PF table
    |
@@ -106,7 +106,7 @@ doas ./deploy/openbsd-server/install.ksh \
 ```
 
 `--configure-pf` is deliberately explicit. A live service install refuses to modify PF unless you
-ask for it. The installer writes a dedicated `dauntless-revived` PF anchor and validates
+ask for it. The installer writes a dedicated `dauntless-unbroken` PF anchor and validates
 `/etc/pf.conf` before reloading it.
 
 For a custom firewall with earlier `quick` rules, inspect/move the anchor so Dauntless traffic
@@ -141,8 +141,8 @@ The install creates separate rc.d services for metagame, deploy, content, allowl
 ## Create an invite
 
 ```sh
-doas -u _dauntless node /opt/dauntless-revived/deploy/unix-common/new-invite.mjs \
-  --config /etc/dauntless-revived \
+doas -u _dauntless node /opt/dauntless-unbroken/deploy/unix-common/new-invite.mjs \
+  --config /etc/dauntless-unbroken \
   --name FriendName
 ```
 

@@ -3,7 +3,7 @@ title: Setup
 nav_order: 2
 has_children: true
 has_toc: false
-description: "How to run Dauntless Revived on Windows, Linux or OpenBSD, let invited friends join, run it for a group, and fix common problems."
+description: "How to run Dauntless Unbroken on Windows, Linux or OpenBSD, let invited friends join, run it for a group, and fix common problems."
 lang: en
 ref: setup/index
 ---
@@ -24,7 +24,7 @@ ref: setup/index
 
 # Setup
 
-These pages describe how we run Dauntless Revived: the genuine **Dauntless 1.4.4** client (October
+These pages describe how we run Dauntless Unbroken: the genuine **Dauntless 1.4.4** client (October
 2020, UE4, pak v9) against our fork of [Undaunted](https://github.com/SyST3MDeV/Undaunted). The
 original and most thoroughly live-tested server path is Windows, but there are now separate Linux
 and OpenBSD server ports as well. Everything in this section is about **1.4.4**. The final client,

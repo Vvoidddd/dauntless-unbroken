@@ -12,7 +12,7 @@ const body = source
     .replace(/^# .*\n+/, "")
     .replace(
         /^`docs\/roadmap\.md` is a copy of this file\..*$/m,
-        `This page is generated from [\`ROADMAP.md\`](${repoUrl}/blob/dauntless-revived/ROADMAP.md), the checklist we work from.`
+        `This page is generated from [\`ROADMAP.md\`](${repoUrl}/blob/main/ROADMAP.md), the checklist we work from.`
     )
     .trimEnd();
 
@@ -22,7 +22,7 @@ const literal = "{% raw %}\n" + body.split(repoUrl).join(`{% endraw %}${repoUrl}
 // Search and social description (keep it 120-160 characters) and the language keys the docs use to pair
 // English and Finnish pages (lang + ref, see docs/_includes/head_custom.html).
 const description =
-    "The Dauntless Revived roadmap: what already works, and milestones M0 to M4, from a safety net and playing together to saved progression and the full game loop.";
+    "The Dauntless Unbroken roadmap: what already works, and milestones M0 to M4, from a safety net and playing together to saved progression and the full game loop.";
 
 const page = [
     "---",

@@ -1,7 +1,7 @@
 ---
 title: Harmonicin työn siirto
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 13
 lang: fi
 ref: findings/harmonic-fork
@@ -23,11 +23,11 @@ description: "Mitä otimme Harmonicin Dauntless 1.4.4 -forkista ja missä pidimm
 # Harmonicin työn siirto
 {: .no_toc }
 
-**Harmonic** ylläpitää toista Undaunted-haaraa (fork) Dauntless 1.4.4 -peliohjelmalle,
+**Harmonic** ylläpitää toista dauntless-unbroken-haaraa (fork) Dauntless 1.4.4 -peliohjelmalle,
 [github.com/Harmonicrain/Undaunted](https://github.com/Harmonicrain/Undaunted), samalla lisenssillä
 (AGPL-3.0-only). Syyskuussa 2026 hän julkaisi suuren muutoksen (`895f7c7`, "Preserve Dauntless 1.4.4
 backend work"), jossa oli eteneminen, kauppa, Escalation, sosiaalisia ominaisuuksia ja 119
-testitapausta. Ylläpitäjä pyysi meitä tuomaan Dauntless Revivediin kaiken hänen toimivan työnsä.
+testitapausta. Ylläpitäjä pyysi meitä tuomaan Dauntless Unbrokeniin kaiken hänen toimivan työnsä.
 
 Molemmat haarat lähtevät samasta alkuperäisen projektin muutoksesta (`7f692aa`), ja molemmissa oli
 samoina viikkoina rakennettu osin samoja asioita. Siksi vertasimme niitä ominaisuus kerrallaan. **Kun
@@ -188,7 +188,7 @@ palkkiotehtävälistan tyhjänä).
 
 | Asia | Päätös | Miksi |
 |:-----|:-------|:------|
-| Hänen reaaliaikatiedostonsa, jotka pohjautuvat Mystic Paradoxiin | **Mitään ei kopioitu** | Mikään ottamamme ei tarvitse niitä. Siksi toteamuksemme, ettei Dauntless Revivedissä ole Mystic Paradoxin koodia, pitää yhä paikkansa, eivätkä Mystic Paradoxin lisäehdot (AGPLv3:n kohta 7) koske tätä projektia. |
+| Hänen reaaliaikatiedostonsa, jotka pohjautuvat Mystic Paradoxiin | **Mitään ei kopioitu** | Mikään ottamamme ei tarvitse niitä. Siksi toteamuksemme, ettei Dauntless Unbrokenissä ole Mystic Paradoxin koodia, pitää yhä paikkansa, eivätkä Mystic Paradoxin lisäehdot (AGPLv3:n kohta 7) koske tätä projektia. |
 | `NOTICE.md` | **Otettu (ilman Mystic Paradox -osaa)** | Repositoriossa on nyt `NOTICE.md`, joka kertoo, mikä on peräisin Undauntedista ja mikä Harmonicin haarasta. |
 | `ADDITIONAL_TERMS.md` | **Jätetty pois** | Se koskee vain Mystic Paradoxin aineistoa, jota meillä ei ole. |
 | Hänen datatiedostonsa: Escalationin kausiluettelo, kaupan valikoima, tavaralajit, kaupan kuvaluettelo | **Otettu** | Peliohjelmasta yhteentoimivuuden vuoksi luettuja tunnisteita ja viritysarvoja, noin 330 lyhyttä englanninkielistä nimeä eikä lainkaan pelin sisältöä. Jokaiseen tiedostoon lisättiin alkuperämerkintä. Escalationin kausiluettelo nimeää pelitiedostot, joista se luettiin, niiden SHA-256-tiivisteillä. |
@@ -197,10 +197,10 @@ palkkiotehtävälistan tyhjänä).
 **Näin hänen työnsä mainitaan:**
 
 - Neljä hänen koodistaan siirrettyä lähdetiedostoa (`escalationConfig.ts`, `escalation.ts`,
-  `freestore.ts` ja `slayerlinks.ts` kansiossa `UndauntedMetagame/src/controllers/`) alkavat rivillä
+  `freestore.ts` ja `slayerlinks.ts` kansiossa `DauntlessUnbrokenMetagame/src/controllers/`) alkavat rivillä
   `Ported from Harmonicrain/Undaunted (895f7c7), Copyright (C) 2026 Harmonic, AGPL-3.0-only`, jonka
   jälkeen kerrotaan, miten niitä muokattiin (tai Slayer Linksin kohdalla kirjoitettiin uudelleen ja
-  korjattiin) Dauntless Revivedia varten. Hänen ideoidensa varaan rakennettu oma koodimme mainitsee
+  korjattiin) Dauntless Unbrokenia varten. Hänen ideoidensa varaan rakennettu oma koodimme mainitsee
   hänen haaransa kommenteissaan.
 - Jokainen hänen työtään sisältävä muutos nimeää hänet toiseksi tekijäksi ja kertoo "Ported from
   github.com/Harmonicrain/Undaunted 895f7c7."

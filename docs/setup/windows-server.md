@@ -2,7 +2,7 @@
 title: Windows server kit
 parent: Setup
 nav_order: 6
-description: "Install a Dauntless Revived server on a rented Windows Server 2019 VPS in public mode: one TLS gateway port with a pinned certificate, game ports opened only for logged-in players, key-only SSH deployment, invites, updates and backups."
+description: "Install a Dauntless Unbroken server on a rented Windows Server 2019 VPS in public mode: one TLS gateway port with a pinned certificate, game ports opened only for logged-in players, key-only SSH deployment, invites, updates and backups."
 lang: en
 ref: setup/windows-server
 ---
@@ -23,7 +23,7 @@ ref: setup/windows-server
 # Windows server kit
 {: .no_toc }
 
-The folder `deploy/windows-server/` in the repository installs a complete Dauntless Revived server on
+The folder `deploy/windows-server/` in the repository installs a complete Dauntless Unbroken server on
 a Windows Server 2019 machine, typically a rented VPS with a public IP address. You run one command on
 your own PC; it connects to the server over SSH, uploads everything, installs it and prints what
 friends need to connect.
@@ -69,7 +69,7 @@ relay on their own PC, and only that relay talks to the internet:
 | 1 | Friend's PC | The game talks plain HTTP to `127.0.0.1:61000`: the launcher's relay. |
 | 2 | Internet | The relay forwards every request over **TLS** to the server's gateway (port 443 by default). It accepts only the one certificate whose SHA-256 fingerprint came in the invite, so nobody in between can read or change the traffic, and no domain name or certificate authority is needed. |
 | 3 | Server | The **gateway** is the only public TCP port. It passes requests to the metagame and the content server, which listen on `127.0.0.1` only. Of the `/undaunted/api` routes it passes only the four a launcher needs (register, key check, server status, registration mode), so every admin route stays on the server. It refuses anything carrying the game-server key, limits request sizes and rates, and never logs keys or tokens. |
-| 4 | Server | When a player logs in (or their game sends its heartbeat), the gateway tells the **allowlist helper** that player's address. The helper keeps one Windows Firewall rule, "Dauntless Revived game ports (allowlist)", that opens UDP 8770-8777 to exactly those addresses. An address drops out 10 minutes after its last heartbeat. Everyone else is dropped by the firewall. |
+| 4 | Server | When a player logs in (or their game sends its heartbeat), the gateway tells the **allowlist helper** that player's address. The helper keeps one Windows Firewall rule, "Dauntless Unbroken game ports (allowlist)", that opens UDP 8770-8777 to exactly those addresses. An address drops out 10 minutes after its last heartbeat. Everyone else is dropped by the firewall. |
 | 5 | Friend's PC | The game's UDP traffic goes straight to the server's public address, through that rule. |
 
 The metagame hands every player the QoS address `http://127.0.0.1:61000/QoS`, which is each friend's
@@ -102,7 +102,7 @@ Not reachable from outside, ever: the metagame (61000), the content server (6100
 - **Your PC:** a checkout of the repository, Windows 10 or 11 with the built-in OpenSSH client, and an
   SSH key pair (for example `ssh-keygen -t ed25519 -f C:\dr\data\ssh\dauntless_deploy`). Keep the
   private key file readable by your own account only.
-- Optional: a backup of your current server (the folder `backup.ps1` or `Backup-DauntlessServer.ps1`
+- Optional: a backup of your current server (the folder `backup.ps1` or `Backup-DauntlessUnbrokenServer.ps1`
   makes), to move every account, save and key to the new server.
 
 ## One-time server preparation
@@ -190,7 +190,7 @@ database. What happens:
 
 ### What the installer does
 
-`Install-DauntlessServer.ps1` can also be run directly on the server (for example over Remote
+`Install-DauntlessUnbrokenServer.ps1` can also be run directly on the server (for example over Remote
 Desktop). Every step is safe to repeat, and `-WhatIf` lists every change without making it.
 
 1. **Preflight:** administrator, Windows Server 2019 (build 17763) or newer, Desktop Experience,
@@ -198,7 +198,7 @@ Desktop). Every step is safe to repeat, and `-WhatIf` lists every change without
 2. **Prerequisites:** Node.js (pinned version, checked against both our pin and nodejs.org's
    `SHASUMS256.txt`), the Visual C++ 2015-2022 x64 runtime and the DirectX June 2010 runtime (both
    checked by their Microsoft signature). All downloads use TLS 1.2.
-3. **Server code:** built with `npm ci` and `npm run build` in `C:\DauntlessRevived\app`: the
+3. **Server code:** built with `npm ci` and `npm run build` in `C:\DauntlessUnbroken\app`: the
    metagame, the deploy server, the content server and the gateway with its allowlist helper.
 4. **Game files:** the zip's SHA-256 is checked, it is extracted with Windows' own `tar.exe`, every
    file is checked against the content manifest, and the two server DLLs are installed with their
@@ -243,8 +243,8 @@ lists all of them, and those of every other kit script.
 | `-KeepRdpOpen` | | Public mode without `-AdminIp`: leave internet-open RDP rules open instead of disabling them. |
 | `-RestoreFrom` | | A backup folder to move an existing server here. |
 | `-OwnerName` | | Username of the admin account on a new server (3-16 letters, digits or `_`). |
-| `-ServerName` | `Dauntless Revived` | The name friends see, in the launcher and in the game's welcome text. Not remembered: a re-run without it sets the name back to `Dauntless Revived`. |
-| `-InstallRoot` | `C:\DauntlessRevived` | Where everything goes. |
+| `-ServerName` | `Dauntless Unbroken` | The name friends see, in the launcher and in the game's welcome text. Not remembered: a re-run without it sets the name back to `Dauntless Unbroken`. |
+| `-InstallRoot` | `C:\DauntlessUnbroken` | Where everything goes. |
 | `-InteractiveSession` | | The session-0 fallback, see below. Not remembered: a re-run without it turns the auto-logon off. |
 | `-NewCertificate` | | Make a new certificate. **Every invite handed out before stops working.** |
 
@@ -269,7 +269,7 @@ your own **PLAY fails with `relay_port_busy` while that stack is running**.
    on UDP 8777.
 5. Only then send invites to friends.
 
-`DAUNTLESS_REVIVED_RELAY_PORT` moves the relay off 61000, but that is only for tests; friends always use
+`DAUNTLESS_UNBROKEN_RELAY_PORT` moves the relay off 61000, but that is only for tests; friends always use
 61000.
 
 ## Before friends join
@@ -282,21 +282,21 @@ Run through this checklist once the server is deployed:
    allowlist already limits UDP to logged-in players. Your own PC cannot test the UDP path.
 2. At the provider, limit **TCP 22** and **TCP 3389** to your own address.
 3. Hand out the launcher. There is no in-launcher download link: friends get it from
-   **`https://github.com/mixutin/dauntless-revived/releases/latest`**
-   (`DauntlessRevivedLauncher-Setup.exe`). It is unsigned, so Windows SmartScreen warns the first time:
+   **`https://github.com/Vvoidddd/dauntless-unbroken/releases/latest`**
+   (`DauntlessUnbrokenLauncher-Setup.exe`). It is unsigned, so Windows SmartScreen warns the first time:
    **More info > Run anyway**. On a PC set to block unrecognised apps, SmartScreen blocks it outright
    with no Run anyway; then the friend checks the file's SHA-256 against `SHA256SUMS.txt` from the same
    release and unblocks it (right-click > **Properties** > **Unblock**, or `Unblock-File`), as
    [Join as a friend]({{ friends_page.url | relative_url }}) explains. Code-signing is roadmap item
-   4.16. CI publishes every new version in `UndauntedLauncher/package.json` by itself once all
+   4.16. CI publishes every new version in `DauntlessUnbrokenLauncher/package.json` by itself once all
    checks pass (the repository variable `LAUNCHER_AUTO_RELEASE` set to `false` pauses that), and
-   Actions > **Launcher release** > **Run workflow** on `dauntless-revived` publishes by hand (see
+   Actions > **Launcher release** > **Run workflow** on `dauntless-unbroken` publishes by hand (see
    "Releases and updates" in the launcher's README). Or send the `Setup.exe` with its SHA-256 through
    a private channel.
 
 If a friend **logs in and then hangs loading Ramsgate**, the provider is almost certainly blocking
 UDP 8770-8777. Add the provider rule above, and check the server's own allowlist:
-`Get-NetFirewallRule -Name DauntlessRevived-GamePorts-Allowlist | Get-NetFirewallAddressFilter`.
+`Get-NetFirewallRule -Name DauntlessUnbroken-GamePorts-Allowlist | Get-NetFirewallAddressFilter`.
 
 ## Invites
 
@@ -306,20 +306,20 @@ From your PC:
 .\deploy\windows-server\Deploy-Remote.ps1 -Server 203.0.113.7 -InviteFor Alex
 ```
 
-or on the server: `C:\DauntlessRevived\bin\New-Invite.ps1 -For Alex`. It creates a one-use invite
+or on the server: `C:\DauntlessUnbroken\bin\New-Invite.ps1 -For Alex`. It creates a one-use invite
 code (`-Uses` for more), first checks that the gateway answers with the right certificate, and prints
 one line:
 
 ```
-dauntless-revived://join?v=2&mode=public&host=203.0.113.7&port=443&fp=<64 hex characters>&code=ABCD-EFGH-JKLM&name=Saturday%20Ramsgate
+dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=<64 hex characters>&code=ABCD-EFGH-JKLM&name=Saturday%20Ramsgate
 ```
 
 The friend pastes it into the launcher. The code lets one person create an account; send it privately.
 `-List` shows the codes that are still open, `-Revoke <code>` deletes one.
 
 Friends get the launcher from
-[github.com/mixutin/dauntless-revived/releases/latest](https://github.com/mixutin/dauntless-revived/releases/latest)
-(`DauntlessRevivedLauncher-Setup.exe`). It is unsigned, so Windows may warn that the app is
+[github.com/Vvoidddd/dauntless-unbroken/releases/latest](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest)
+(`DauntlessUnbrokenLauncher-Setup.exe`). It is unsigned, so Windows may warn that the app is
 unrecognised: **More info > Run anyway**. If Windows blocks it with no Run anyway, the friend checks
 it against `SHA256SUMS.txt` and unblocks it (see [Join as a friend]({{ friends_page.url | relative_url }})).
 Keep the launcher open while playing.
@@ -338,12 +338,12 @@ All of these run on the server (over SSH: `ssh -i <key> Administrator@<server>`,
 
 | Command | What it does |
 |:--------|:-------------|
-| `C:\DauntlessRevived\bin\Stack.ps1 status` | Every component with its process and ports, the gateway's TLS check, the allowlist, the game servers, the scheduled tasks and the last backup. |
+| `C:\DauntlessUnbroken\bin\Stack.ps1 status` | Every component with its process and ports, the gateway's TLS check, the allowlist, the game servers, the scheduled tasks and the last backup. |
 | `Stack.ps1 stop` / `start` / `restart` | Stops or starts everything through the scheduled tasks. Stopping also closes the game ports. `restart -Only gateway` restarts one part. |
 | `Get-ServerStatus.ps1` | Who is online and which worlds and hunts are running, asked through the gateway like a friend would. The server shows that list to registered players only, so the script asks with the owner key (run it as administrator). From your PC: `Get-ServerStatus.ps1 -Invite '<invite line>' -KeyFile <your account.key>`. Without a key it says the list is hidden. |
-| `Backup-DauntlessServer.ps1` | A backup now (also runs every hour, and around every start and stop). |
+| `Backup-DauntlessUnbrokenServer.ps1` | A backup now (also runs every hour, and around every start and stop). |
 | `Write-PerformanceLog.ps1 -Once` | A performance sample now (run it as administrator). The stack takes one every minute by itself, into `data\logs\performance\`: CPU and memory per game server and component, the machine's CPU, RAM, disk and network, and player counts. See [Measure it]({{ admin_page.url | relative_url }}#measure-it). |
-| `Update-DauntlessServer.ps1 -Ref <tag>` | New server code; see below. |
+| `Update-DauntlessUnbrokenServer.ps1 -Ref <tag>` | New server code; see below. |
 | `Set-Chat.ps1 -On` / `-Off` | Turns the in-game text chat on or off; see [Chat](#chat) below. Restarts the stack. |
 
 From your PC, `Deploy-Remote.ps1 -Server <address> -Status` shows the status without logging in.
@@ -361,10 +361,10 @@ the parties and matchmaking queues, which live in memory.
 
 **On a server installed before chat, update first.** `Set-Chat.ps1` comes with the code that has chat,
 so a server on an older version does not have it yet: run `Deploy-Remote.ps1 -Server <address> -Update`
-(or `Update-DauntlessServer.ps1` on the server), then switch chat on. `-Chat` cannot go with
+(or `Update-DauntlessUnbrokenServer.ps1` on the server), then switch chat on. `-Chat` cannot go with
 `-Update`, so that is two runs and two restarts.
 
-- On the server: `C:\DauntlessRevived\bin\Set-Chat.ps1 -On` (or `-Off`). It writes `CHAT`,
+- On the server: `C:\DauntlessUnbroken\bin\Set-Chat.ps1 -On` (or `-Off`). It writes `CHAT`,
   `CHAT_BIND_HOST=127.0.0.1` and `CHAT_PORT` in `metagame.env` and `"Chat"` in `server.json`, restarts
   the stack with the usual backups, and waits up to 30 s for the listener. If that fails, it puts the
   old settings back and restarts again.
@@ -384,7 +384,7 @@ again afterwards. If real players are refused room joins with `reason=nick-resou
 or `nick-name`, `CHAT_NICK_CHECK=log` admits them with a warning while you report the line.
 `Set-Chat.ps1 -Off` is the way back from anything serious: the game then retries every 15-45 s,
 harmlessly, as before chat existed. If the chat code itself is at fault,
-`Update-DauntlessServer.ps1 -Rollback` goes back to the build before the update; older code ignores
+`Update-DauntlessUnbrokenServer.ps1 -Rollback` goes back to the build before the update; older code ignores
 `CHAT`. Private mode has no chat yet.
 
 **Friends' online status** is automatic and on by default. Players need no manual status setting.
@@ -397,7 +397,7 @@ the metagame when nobody is playing (`Stack.ps1 restart -Only metagame`). The lo
 
 The kit writes none of the switches that came with the port of Harmonic's fork, so a kit server runs
 them at their defaults: Slayer Links and friends' online status on; Escalation (`ESCALATION_MODE`)
-and the store (`STORE`) off. To change one, add the line to `C:\DauntlessRevived\data\config\metagame.env`
+and the store (`STORE`) off. To change one, add the line to `C:\DauntlessUnbroken\data\config\metagame.env`
 (deploy server: `deployserver.env`) from an elevated editor and restart that component when nobody is
 playing. The kit keeps the line across re-runs and updates. What each does and what to check first is
 on [Run it for a group]({{ admin_page.url | relative_url }}#switching-features-on).
@@ -405,10 +405,10 @@ on [Run it for a group]({{ admin_page.url | relative_url }}#switching-features-o
 ### Updates
 
 `Deploy-Remote.ps1 -Server <address> -Update` uploads your current commit and runs
-`Update-DauntlessServer.ps1` on the server. It builds the new code while the server keeps running,
+`Update-DauntlessUnbrokenServer.ps1` on the server. It builds the new code while the server keeps running,
 takes a backup, switches over, and checks that the metagame answers and the gateway answers with the
 invite certificate. If that check fails within 3 minutes, it switches back to the previous build by
-itself. `Update-DauntlessServer.ps1 -Rollback` does the same by hand. Settings (apart from `GIT_COMMIT` in
+itself. `Update-DauntlessUnbrokenServer.ps1 -Rollback` does the same by hand. Settings (apart from `GIT_COMMIT` in
 `metagame.env`, which records the new commit), keys, the certificate,
 the game files and the service account's `Game.ini` and `Engine.ini` are left alone; run the
 installer again for those. Do that after an update that changes the DLL's endpoint table, and in
@@ -425,7 +425,7 @@ out, or tell your friends that the count is wrong until their launcher has updat
 has no `PROGRESSION_MODE` line (or an empty one, or a value other than `real` or `stub`) switches
 from upstream's fake max ranks to real progression, and players who played before start at Slayer
 level 1. Nothing is migrated by the update. Keep max ranks for chosen players with a `grandfather`
-seed, or add `PROGRESSION_MODE=stub` to `C:\DauntlessRevived\data\config\metagame.env` first to stay
+seed, or add `PROGRESSION_MODE=stub` to `C:\DauntlessUnbroken\data\config\metagame.env` first to stay
 on the stub. Unless that file says `real` or `stub`, the updater repeats the metagame's warning about
 players without stored progression after a successful update. A rollback or a restore follows the
 same rule, so an explicit line keeps the mode fixed. The
@@ -433,7 +433,7 @@ same rule, so an explicit line keeps the mode fixed. The
 
 ### Backups
 
-Backups are in `C:\DauntlessRevived\backups\<date>_<time>\`: the database (taken with SQLite's
+Backups are in `C:\DauntlessUnbroken\backups\<date>_<time>\`: the database (taken with SQLite's
 online backup and checked), the settings with their keys, the admin account's key, the gateway
 certificate, `server.json` and the launcher news. The newest 48 backups (the hourly ones and the ones
 around starts and stops together) and the newest one of each of the last 30 days are kept. **They
@@ -454,19 +454,19 @@ in plain text), the stack starts in that session, and the session is locked stra
 `-Mode Private` installs Tailscale (pinned MSI hash), signs the server in, has the metagame and
 content server listen on the Tailscale address only, and limits the firewall to Tailscale addresses.
 There is no gateway and no allowlist in this mode, and `New-Invite.ps1` prints v1 invites:
-`dauntless-revived://join?v=1&host=<tailnet address>&port=61000&code=...&name=...`. The details of
+`dauntless-unbroken://join?v=1&host=<tailnet address>&port=61000&code=...&name=...`. The details of
 sharing the machine are on [Run it for a group]({{ admin_page.url | relative_url }}).
 
 ## Files on the server
 
 | Path | What it is |
 |:-----|:-----------|
-| `C:\DauntlessRevived\bin\` | The kit's scripts. |
+| `C:\DauntlessUnbroken\bin\` | The kit's scripts. |
 | `app\` (and `app.prev\`) | The built server code (and the previous build, for rollbacks). |
 | `game\Dauntless\` | The verified 1.4.4 files. |
 | `data\config\` | `server.json` and the `.env` settings (secrets). Which keys the installer writes and which it keeps: [Configuration]({{ config_page.url | relative_url }}#server-kit). |
 | `data\keys\`, `data\tls\` | The admin account's key and the game-server key; the gateway certificate and its private key. |
-| `data\undaunted.db` | The database: accounts and saves. |
+| `data\dauntless-unbroken.db` | The database: accounts and saves. |
 | `data\logs\` | Logs of every component; `gateway.out.log` is the access log (no keys or tokens). `performance\` holds the performance log, one CSV file per day (counts only). |
 | `data\allowlist\` | The allowlist helper's audit log and state (only Administrators and SYSTEM can write there). |
 | `backups\` | Hourly backups. |
@@ -496,17 +496,17 @@ On the server, in an elevated PowerShell. **Take and copy off a backup first** i
 anything.
 
 ```powershell
-C:\DauntlessRevived\bin\Stack.ps1 stop
-'Dauntless Revived stack', 'Dauntless Revived allowlist', 'Dauntless Revived backup' |
+C:\DauntlessUnbroken\bin\Stack.ps1 stop
+'Dauntless Unbroken stack', 'Dauntless Unbroken allowlist', 'Dauntless Unbroken backup' |
     ForEach-Object { Unregister-ScheduledTask -TaskName $_ -Confirm:$false -ErrorAction SilentlyContinue }
-# Keep 'Dauntless Revived - SSH (TCP 22)' if the installer made it: every profile still blocks
+# Keep 'Dauntless Unbroken - SSH (TCP 22)' if the installer made it: every profile still blocks
 # inbound connections by default, so without that rule SSH would stop working.
-Get-NetFirewallRule -Group 'Dauntless Revived' -ErrorAction SilentlyContinue |
-    Where-Object { $_.DisplayName -ne 'Dauntless Revived - SSH (TCP 22)' } | Remove-NetFirewallRule
-Remove-NetFirewallRule -Name 'DauntlessRevived-GamePorts-Allowlist' -ErrorAction SilentlyContinue
+Get-NetFirewallRule -Group 'Dauntless Unbroken' -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName -ne 'Dauntless Unbroken - SSH (TCP 22)' } | Remove-NetFirewallRule
+Remove-NetFirewallRule -Name 'DauntlessUnbroken-GamePorts-Allowlist' -ErrorAction SilentlyContinue
 Get-CimInstance Win32_UserProfile | Where-Object { $_.LocalPath -like '*\dauntless' } | Remove-CimInstance
 Remove-LocalUser -Name dauntless
-Remove-Item -Recurse -Force C:\DauntlessRevived
+Remove-Item -Recurse -Force C:\DauntlessUnbroken
 ```
 
 Some firewall changes are not undone by that: Remote Desktop rules limited to `-AdminIp` or disabled
@@ -535,7 +535,7 @@ Hosting a modified server for other people comes with the AGPL's source-code obl
 
 ## Optional owner dashboard
 
-Run `C:\DauntlessRevived\bin\Install-OwnerDashboard.ps1 -OpenOnLogon` after updating the kit.
+Run `C:\DauntlessUnbroken\bin\Install-OwnerDashboard.ps1 -OpenOnLogon` after updating the kit.
 It installs a separate loopback-only LocalService task and sets `BACKEND_HEALTH=1` for the next
 metagame restart. It never opens a public firewall port or restarts games itself. The optional
 browser task opens the locked page at `http://127.0.0.1:61110` in the installing operator's RDP
@@ -543,5 +543,5 @@ session. `Stack.ps1 start` and full `restart` also start the installed dashboard
 game stack leaves monitoring available. Use an SSH tunnel from a remote PC.
 
 After code updates, re-run the dashboard installer to refresh its copied files. See
-[tools/DASHBOARD.md](https://github.com/mixutin/dauntless-revived/blob/dauntless-revived/tools/DASHBOARD.md)
+[tools/DASHBOARD.md](https://github.com/Vvoidddd/dauntless-unbroken/blob/main/tools/DASHBOARD.md)
 for account-key fingerprints, invitations, performance CSVs, permissions and disabling the tasks.

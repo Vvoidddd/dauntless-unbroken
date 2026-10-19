@@ -1,13 +1,13 @@
 [Unit]
-Description=Dauntless Revived metagame
+Description=Dauntless Unbroken metagame
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
 User=@USER@
-WorkingDirectory=@ROOT@/UndauntedMetagame
-ExecStart=@NODE@ --env-file=@CONFIG@/metagame.env @ROOT@/UndauntedMetagame/dist/server.js
+WorkingDirectory=@ROOT@/DauntlessUnbrokenMetagame
+ExecStart=@NODE@ --env-file=@CONFIG@/metagame.env @ROOT@/DauntlessUnbrokenMetagame/dist/server.js
 Restart=on-failure
 RestartSec=3
 KillSignal=SIGTERM

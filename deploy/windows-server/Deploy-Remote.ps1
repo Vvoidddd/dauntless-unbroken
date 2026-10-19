@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Deploys a Dauntless Revived server to a Windows Server over SSH, from the admin's own PC.
+    Deploys a Dauntless Unbroken server to a Windows Server over SSH, from the admin's own PC.
 
 .DESCRIPTION
     Uses Windows' built-in OpenSSH client (ssh.exe, scp.exe) with a key file only: batch mode, no
@@ -17,7 +17,7 @@
          against the pinned SHA-256 here first; each part is checked on the server after it arrives, and
          the whole file again when it is put together. An interrupted upload continues where it stopped
          when you run the same command again. -GameZipUrl instead lets the server download it.
-      5. Runs Install-DauntlessServer.ps1 on the server (Update-DauntlessServer.ps1 with -Update) and
+      5. Runs Install-DauntlessUnbrokenServer.ps1 on the server (Update-DauntlessUnbrokenServer.ps1 with -Update) and
          shows its output as it runs.
       6. Prints the public address and the certificate fingerprint, and checks from this PC that the
          server answers through its public gateway with that certificate.
@@ -60,7 +60,7 @@ param(
     [ValidateRange(1, 65535)][int]$GatewayPort = 443,
     [string[]]$AdminIp,
     [switch]$KeepRdpOpen,
-    [string]$InstallRoot = 'C:\DauntlessRevived',
+    [string]$InstallRoot = 'C:\DauntlessUnbroken',
     [ValidateSet('Upload', 'GitHub')][string]$Source = 'Upload',
     [string]$Ref,
     [switch]$WorkingTree,
@@ -79,7 +79,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
-. "$PSScriptRoot\DauntlessServer.Common.ps1"
+. "$PSScriptRoot\DauntlessUnbrokenServer.Common.ps1"
 
 $script:Test = [bool]$TestTargetDir
 $script:ScpLegacy = $null      # $true: scp -O with C:/ paths; $false: SFTP with /C:/ paths; $null: not known yet
@@ -297,7 +297,7 @@ function Send-GameZip {
     Write-DROk ('the zip is the verified build ({0:N2} GB, {1} parts of {2} MB)' -f ($info.Size / 1GB), $info.Count, $ChunkSizeMB)
 
     $manifest = [ordered]@{ name = 'BaseGame144.zip'; size = $info.Size; sha256 = $info.Sha256; chunkSize = $chunk; chunks = [object[]]@($info.Chunks) }
-    $tempDir = Join-Path ([IO.Path]::GetTempPath()) "DauntlessRevived-upload-$PID"
+    $tempDir = Join-Path ([IO.Path]::GetTempPath()) "DauntlessUnbroken-upload-$PID"
     New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
     try {
         $mf = Join-Path $tempDir 'upload.json.incoming'
@@ -342,7 +342,7 @@ function New-SourceZip([string]$OutFile) {
     # content server (they may be uncommitted), the install fails on the server only after hours of
     # uploading. Catch it here, before the backup and the ~10.5 GB game zip go up.
     if (-not $WorkingTree -and $Mode -eq 'Public' -and -not $script:Test) {
-        foreach ($need in 'UndauntedGateway/package.json', 'UndauntedContent/package.json') {
+        foreach ($need in 'DauntlessUnbrokenGateway/package.json', 'DauntlessUnbrokenContent/package.json') {
             $old2 = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
             try { & git.exe -C $repo cat-file -e "HEAD:$need" 2>$null; $present = ($LASTEXITCODE -eq 0) } finally { $ErrorActionPreference = $old2 }
             if (-not $present) { Stop-DR "HEAD does not contain $need, which public mode needs. Commit and push your work, or add -WorkingTree to deploy your current files." }
@@ -376,12 +376,12 @@ function New-SourceZip([string]$OutFile) {
 # ---------------------------------------------------------------------------------------------
 $exitCode = 0
 try {
-    Write-DRStep "Dauntless Revived remote deployment$(if ($script:Test) { '  (TEST: a local folder stands in for the server)' })"
+    Write-DRStep "Dauntless Unbroken remote deployment$(if ($script:Test) { '  (TEST: a local folder stands in for the server)' })"
     # --- arguments ---------------------------------------------------------------------------
     $Server = $Server.Trim().ToLowerInvariant()
     if (-not (Test-DRHost $Server)) { Stop-DR "-Server '$Server' must be an IPv4 address or a DNS name." }
     if ($User -notmatch '^[A-Za-z0-9._-]{1,64}$') { Stop-DR "-User '$User' is not a plain account name." }
-    if ($InstallRoot -notmatch '^[A-Za-z]:\\[A-Za-z0-9_.\\-]+$') { Stop-DR '-InstallRoot must be an absolute path without spaces (for example C:\DauntlessRevived).' }
+    if ($InstallRoot -notmatch '^[A-Za-z]:\\[A-Za-z0-9_.\\-]+$') { Stop-DR '-InstallRoot must be an absolute path without spaces (for example C:\DauntlessUnbroken).' }
     $InstallRoot = $InstallRoot.TrimEnd('\')
     $testOnly = @('TestZipSha256', 'TestStopAfterChunks', 'TestCorruptChunk') | Where-Object { $PSBoundParameters.ContainsKey($_) }
     if ($testOnly -and -not $script:Test) { Stop-DR "-$($testOnly[0]) only works with -TestTargetDir." }
@@ -401,7 +401,7 @@ try {
     if ($RestoreFrom) {
         if (-not (Test-Path -LiteralPath $RestoreFrom -PathType Container)) { Stop-DR "-RestoreFrom folder not found: $RestoreFrom" }
         $RestoreFrom = (Resolve-Path -LiteralPath $RestoreFrom).Path.TrimEnd('\')
-        foreach ($f in 'undaunted.db', 'secrets\metagame.env', 'secrets\deployserver.env') {
+        foreach ($f in 'dauntless-unbroken.db', 'secrets\metagame.env', 'secrets\deployserver.env') {
             if (-not (Test-Path -LiteralPath (Join-Path $RestoreFrom $f))) { Stop-DR "-RestoreFrom: $f is missing in $RestoreFrom" }
         }
         if ((Split-Path $RestoreFrom -Leaf) -notmatch '^[A-Za-z0-9_.-]{1,64}$') { Stop-DR '-RestoreFrom must be a backup folder with a plain name (like 2026-10-01_200000).' }
@@ -454,7 +454,7 @@ try {
             if ($RestoreFrom) { Write-DRInfo "  upload the backup $RestoreFrom to $RemoteRestore (Administrators and SYSTEM only)" }
             if ($GameZip) { Write-DRInfo "  upload $GameZip in $ChunkSizeMB MB parts to $RemoteUpload (resumable, SHA-256 checked)" }
             if ($GameZipUrl) { Write-DRInfo "  let the server download the game zip from $(([Uri]$GameZipUrl).Host)" }
-            if (-not $UploadOnly) { Write-DRInfo "  run $(if ($Update) { 'Update-DauntlessServer.ps1' } else { "Install-DauntlessServer.ps1 -Mode $Mode" }) on the server" }
+            if (-not $UploadOnly) { Write-DRInfo "  run $(if ($Update) { 'Update-DauntlessUnbrokenServer.ps1' } else { "Install-DauntlessUnbrokenServer.ps1 -Mode $Mode" }) on the server" }
         }
         exit 0
     }
@@ -497,7 +497,7 @@ $os = Get-CimInstance Win32_OperatingSystem
     if ($InviteFor) {
         $lines = Invoke-Remote "& $(ConvertTo-DRPsLiteral (Join-Path $RemoteBin 'New-Invite.ps1')) -For $(ConvertTo-DRPsLiteral $InviteFor) 6>&1; exit `$LASTEXITCODE" -Stream
         if ($script:RemoteExit -ne 0) { Stop-DR 'New-Invite.ps1 failed on the server (see above).' }
-        $invite = @($lines | Where-Object { $_ -match '^dauntless-revived://' }) | Select-Object -Last 1
+        $invite = @($lines | Where-Object { $_ -match '^dauntless-unbroken://' }) | Select-Object -Last 1
         if ($invite) {
             Write-DRStep 'Checking the invite from this PC'
             & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'Get-ServerStatus.ps1') -Invite $invite | ForEach-Object { Write-Host $_ }
@@ -508,7 +508,7 @@ $os = Get-CimInstance Win32_OperatingSystem
 
     # --- uploads -------------------------------------------------------------------------------
     Write-DRStep 'Uploading the kit'
-    $stage = Join-Path ([IO.Path]::GetTempPath()) "DauntlessRevived-deploy-$PID"
+    $stage = Join-Path ([IO.Path]::GetTempPath()) "DauntlessUnbroken-deploy-$PID"
     New-Item -ItemType Directory -Force -Path $stage | Out-Null
     try {
         [void](Invoke-Remote "foreach (`$d in $(ConvertTo-DRPsLiteral $RemoteStaging), $(ConvertTo-DRPsLiteral $RemoteUpload), $(ConvertTo-DRPsLiteral $RemoteSource)) { New-Item -ItemType Directory -Force -Path `$d | Out-Null }; 'DRJSON:{}'")
@@ -553,9 +553,9 @@ $os = Get-CimInstance Win32_OperatingSystem
             if ($script:RemoteExit -ne 0) { Stop-DR 'Could not prepare the restore folder on the server.' }
             Send-Item $RestoreFrom $RemoteRestore -Recurse
             $localCount = @(Get-ChildItem -LiteralPath $RestoreFrom -Recurse -File).Count
-            $rr = Invoke-Remote "'DRJSON:' + (@{ files = @(Get-ChildItem -LiteralPath $(ConvertTo-DRPsLiteral $restoreRemote) -Recurse -File).Count; db = (Get-FileHash -LiteralPath (Join-Path $(ConvertTo-DRPsLiteral $restoreRemote) 'undaunted.db') -Algorithm SHA256).Hash } | ConvertTo-Json -Compress)"
+            $rr = Invoke-Remote "'DRJSON:' + (@{ files = @(Get-ChildItem -LiteralPath $(ConvertTo-DRPsLiteral $restoreRemote) -Recurse -File).Count; db = (Get-FileHash -LiteralPath (Join-Path $(ConvertTo-DRPsLiteral $restoreRemote) 'dauntless-unbroken.db') -Algorithm SHA256).Hash } | ConvertTo-Json -Compress)"
             $rj = Get-RemoteJson $rr
-            if (-not $rj -or [int]$rj.files -ne $localCount -or $rj.db -ne (Get-DRSha256 (Join-Path $RestoreFrom 'undaunted.db'))) { Stop-DR 'The backup did not arrive complete (file count or database hash differs).' }
+            if (-not $rj -or [int]$rj.files -ne $localCount -or $rj.db -ne (Get-DRSha256 (Join-Path $RestoreFrom 'dauntless-unbroken.db'))) { Stop-DR 'The backup did not arrive complete (file count or database hash differs).' }
             Write-DROk "backup uploaded ($localCount files; database hash checked; contents not shown)"
         }
 
@@ -574,11 +574,11 @@ $os = Get-CimInstance Win32_OperatingSystem
     $named = [ordered]@{}
     $switches = @()
     if ($Update) {
-        $scriptName = 'Update-DauntlessServer.ps1'
+        $scriptName = 'Update-DauntlessUnbrokenServer.ps1'
         $named['Root'] = $InstallRoot
         for ($i = 0; $i -lt $sourceArgs.Count; $i += 2) { $named[$sourceArgs[$i].TrimStart('-')] = $sourceArgs[$i + 1] }
     } else {
-        $scriptName = 'Install-DauntlessServer.ps1'
+        $scriptName = 'Install-DauntlessUnbrokenServer.ps1'
         $named['Mode'] = $Mode
         $named['InstallRoot'] = $InstallRoot
         for ($i = 0; $i -lt $sourceArgs.Count; $i += 2) { $named[$sourceArgs[$i].TrimStart('-')] = $sourceArgs[$i + 1] }

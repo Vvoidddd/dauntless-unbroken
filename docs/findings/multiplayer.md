@@ -61,10 +61,10 @@ in, but the stock client never calls it.
 
 | Component | Language | Role |
 |---|---|---|
-| `UndauntedLauncher` | Electron | Checks the exe's SHA-256, copies the two DLLs into `Archon\Binaries\Win64` before every launch, and starts the client with the player's account key |
-| `UndauntedMetagame` | TypeScript, SQLite (Drizzle) | The backend: login, characters, inventory, loadouts, progression, the matchmaking queue, an admin API |
-| `UndauntedDeployServer` | TypeScript (Express) | Starts and supervises game-server processes |
-| `UndauntedInternalServer.dll` | C++ (MinHook, a Dumper-7 SDK) | Injected into every game process, the client included. Runs in server mode or client mode. |
+| `DauntlessUnbrokenLauncher` | Electron | Checks the exe's SHA-256, copies the two DLLs into `Archon\Binaries\Win64` before every launch, and starts the client with the player's account key |
+| `DauntlessUnbrokenMetagame` | TypeScript, SQLite (Drizzle) | The backend: login, characters, inventory, loadouts, progression, the matchmaking queue, an admin API |
+| `DauntlessUnbrokenDeployServer` | TypeScript (Express) | Starts and supervises game-server processes |
+| `DauntlessUnbroken.dll` | C++ (MinHook, a Dumper-7 SDK) | Injected into every game process, the client included. Runs in server mode or client mode. |
 | `dxgi.dll` | prebuilt proxy | Loads the DLL into the process |
 
 ### Loading the DLL: the `dxgi.dll` proxy
@@ -146,7 +146,7 @@ Other server-side hooks:
 - `HasFinishedLoading` is forced true.
 - A byte patch labelled "Fixup Ramsgate Crash" makes one ability-input array read as empty.
 
-**How a server talks to the backend.** Server mode adds an `x-undaunted-gameserver-apikey` header to
+**How a server talks to the backend.** Server mode adds an `x-dauntless-unbroken-gameserver-apikey` header to
 every HTTP request the process makes. The metagame accepts that header, and if the request also
 carries a player's bearer token, it attributes the request to that player. Server mode does **not**
 redirect any endpoint URLs, and the upstream code does not show how Undaunted's servers reach the
@@ -350,7 +350,7 @@ apply there. That is **unverified**.
 ## Open questions
 
 - **The proxy's source.** The `dxgi.dll` proxy's source is unpublished. We plan to write our own.
-- **Prebuilt binaries.** We have not confirmed that the prebuilt `UndauntedInternalServer.dll` was
+- **Prebuilt binaries.** We have not confirmed that the prebuilt `DauntlessUnbroken.dll` was
   built from the published source. We pin the hashes of the prebuilt DLLs we run and plan to build
   from source.
 - **Double ability activation.** The server's RPC hook activates an ability directly and then also

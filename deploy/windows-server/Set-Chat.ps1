@@ -12,18 +12,18 @@
     A restart drops the parties and matchmaking queues, which live in memory: switch it when nobody is
     playing. Public mode only for now.
 .EXAMPLE
-    C:\DauntlessRevived\bin\Set-Chat.ps1 -On
+    C:\DauntlessUnbroken\bin\Set-Chat.ps1 -On
 .EXAMPLE
-    C:\DauntlessRevived\bin\Set-Chat.ps1 -Off
+    C:\DauntlessUnbroken\bin\Set-Chat.ps1 -Off
 #>
 [CmdletBinding(DefaultParameterSetName = 'On')]
 param(
-    [string]$Root = 'C:\DauntlessRevived',
+    [string]$Root = 'C:\DauntlessUnbroken',
     [Parameter(ParameterSetName = 'On', Mandatory = $true)][switch]$On,
     [Parameter(ParameterSetName = 'Off', Mandatory = $true)][switch]$Off
 )
 $ErrorActionPreference = 'Stop'
-. "$PSScriptRoot\DauntlessServer.Common.ps1"
+. "$PSScriptRoot\DauntlessUnbrokenServer.Common.ps1"
 
 # Runs Stack.ps1 in a child PowerShell and says whether it worked
 function Invoke-Stack([string]$Stack, [string]$Action) {

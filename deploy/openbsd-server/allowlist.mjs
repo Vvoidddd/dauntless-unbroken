@@ -31,7 +31,7 @@ async function apply(ips) {
   const pfctl = findPfctl(process.env);
   if (!pfctl) throw new Error("pfctl was not found");
   const table = process.env.DR_PF_TABLE || "dauntless_revived_players";
-  const anchor = process.env.DR_PF_ANCHOR || "dauntless-revived";
+  const anchor = process.env.DR_PF_ANCHOR || "dauntless-unbroken";
   if (!/^[a-zA-Z0-9_]{1,32}$/.test(table)) throw new Error("DR_PF_TABLE is invalid");
   if (!/^[a-zA-Z0-9_-]{1,48}$/.test(anchor)) throw new Error("DR_PF_ANCHOR is invalid");
   await runPfctl(pfctl, anchor, table, ips);

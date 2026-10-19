@@ -57,7 +57,7 @@ test('optional IP bans use backend observations, ignore submitted IPs, and fail 
 test('moderation history requires owner auth and bounded pagination',async()=>{
   const key='test-history-owner-key';let reads=0;
   const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',fetcher:async(url,opts)=>{
-    if(url.pathname==='/undaunted/api/ModerationLog'){reads++;assert.equal(opts.headers['x-undaunted-user-api-key'],key);return {status:200,json:async()=>({rows:[],nextOffset:null})};}
+    if(url.pathname==='/undaunted/api/ModerationLog'){reads++;assert.equal(opts.headers['x-dauntless-unbroken-user-api-key'],key);return {status:200,json:async()=>({rows:[],nextOffset:null})};}
     return {ok:true,json:async()=>({Users:[],players:[],instances:[],playersOnline:0})};
   }});
   try {

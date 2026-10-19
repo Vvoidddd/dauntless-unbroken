@@ -2,11 +2,11 @@
 set -eu
 
 PIN_EXE=d3d41e614908d2befd518b27046d9822d6130ef12ba3504babbdb786bef9cff4
-PIN_DXGI=9a431d7b6fd20c43fa92bebd91c3bc023ec7a3fcbc52871c41f4df293d4b0d1f
+PIN_DXGI=f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c
 PIN_SERVER=106d50f6baa3bfb4b1283440ef486547b1f30bb4f54f8309ef436f455db286a7
 
 usage() {
-  echo "usage: $0 --game-dir <folder containing Archon> [--repo <dauntless-revived checkout>]" >&2
+  echo "usage: $0 --game-dir <folder containing Archon> [--repo <dauntless-unbroken checkout>]" >&2
   exit 2
 }
 
@@ -34,10 +34,10 @@ hash_file() {
   exit 1
 }
 
-for spec in "dxgi.dll:$PIN_DXGI" "UndauntedInternalServer.dll:$PIN_SERVER"; do
+for spec in "dxgi.dll:$PIN_DXGI" "DauntlessUnbroken.dll:$PIN_SERVER"; do
   file=${spec%%:*}
   expected=${spec#*:}
-  source="$repo/UndauntedLauncher/assets/$file"
+  source="$repo/DauntlessUnbrokenLauncher/assets/$file"
   target="$win64/$file"
   [ -f "$source" ] || { echo "missing pinned asset: $source" >&2; exit 1; }
   [ "$(hash_file "$source")" = "$expected" ] || { echo "repo asset failed pin: $file" >&2; exit 1; }

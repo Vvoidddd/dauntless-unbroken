@@ -2,7 +2,7 @@
 title: Linux launcher
 parent: Setup
 nav_order: 3
-description: "Install and run Dauntless Revived on Linux: Ubuntu, Debian, Mint, Pop!_OS, Fedora, openSUSE, Arch, EndeavourOS, CachyOS, Manjaro, NixOS, Gentoo, Void and other x86_64 distributions."
+description: "Install and run Dauntless Unbroken on Linux: Ubuntu, Debian, Mint, Pop!_OS, Fedora, openSUSE, Arch, EndeavourOS, CachyOS, Manjaro, NixOS, Gentoo, Void and other x86_64 distributions."
 lang: en
 ref: setup/linux
 ---
@@ -13,7 +13,7 @@ ref: setup/linux
 # Linux launcher
 {: .no_toc }
 
-Dauntless Revived Launcher runs natively on **x86_64 Linux**. The actual Dauntless 1.4.4 game is still
+Dauntless Unbroken Launcher runs natively on **x86_64 Linux**. The actual Dauntless 1.4.4 game is still
 the original Windows x86_64 build, so the launcher starts it through **Proton or Wine**. You use the
 same invite, account and server as a Windows player.
 
@@ -43,16 +43,16 @@ musl-only systems are not currently advertised as supported because Electron's o
 targets glibc.
 
 Download the newest launcher from
-[GitHub Releases](https://github.com/mixutin/dauntless-revived/releases/latest). Every launcher
+[GitHub Releases](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest). Every launcher
 release has these Linux files:
 
 | File | Best for |
 |:--|:--|
-| `DauntlessRevivedLauncher-<version>-linux-x86_64.AppImage` | Universal option for most desktop distributions |
-| `DauntlessRevivedLauncher-<version>-linux-amd64.deb` | Debian, Ubuntu, Mint, Pop!_OS and derivatives |
-| `DauntlessRevivedLauncher-<version>-linux-x86_64.rpm` | Fedora, openSUSE and other conventional RPM systems |
-| `DauntlessRevivedLauncher-<version>-linux-x64.tar.gz` | Portable fallback, especially Arch/Gentoo/other glibc distros |
-| `DauntlessRevivedLauncher-<version>-linux-x64.zip` | Same portable app in ZIP form |
+| `DauntlessUnbrokenLauncher-<version>-linux-x86_64.AppImage` | Universal option for most desktop distributions |
+| `DauntlessUnbrokenLauncher-<version>-linux-amd64.deb` | Debian, Ubuntu, Mint, Pop!_OS and derivatives |
+| `DauntlessUnbrokenLauncher-<version>-linux-x86_64.rpm` | Fedora, openSUSE and other conventional RPM systems |
+| `DauntlessUnbrokenLauncher-<version>-linux-x64.tar.gz` | Portable fallback, especially Arch/Gentoo/other glibc distros |
+| `DauntlessUnbrokenLauncher-<version>-linux-x64.zip` | Same portable app in ZIP form |
 
 Also download `SHA256SUMS.txt`. Check your download before running it:
 
@@ -68,7 +68,7 @@ Use the `.deb` package:
 
 ```bash
 cd ~/Downloads
-sudo apt install ./DauntlessRevivedLauncher-*-linux-amd64.deb
+sudo apt install ./DauntlessUnbrokenLauncher-*-linux-amd64.deb
 ```
 
 Using `apt install ./file.deb` lets APT resolve package dependencies. Ubuntu documents local
@@ -77,21 +77,21 @@ Using `apt install ./file.deb` lets APT resolve package dependencies. Ubuntu doc
 For the game runtime, the launcher searches native Steam **and Flatpak Steam** for installed Proton
 versions. Wine also works. If no supported runtime exists, packaged Linux builds can ask Polkit for
 authorization and install the distro's Wine package automatically when you press **PLAY**. Set
-`DAUNTLESS_REVIVED_AUTO_INSTALL=0` before starting the launcher if you prefer to manage dependencies
+`DAUNTLESS_UNBROKEN_AUTO_INSTALL=0` before starting the launcher if you prefer to manage dependencies
 yourself.
 
-After installation, launch **Dauntless Revived Launcher** from the application menu. The default game
+After installation, launch **Dauntless Unbroken Launcher** from the application menu. The default game
 folder is:
 
 ```text
-~/Games/DauntlessRevived
+~/Games/DauntlessUnbroken
 ```
 
 To update, download the newer `.deb` and run the same `apt install ./...` command. To remove only
 the launcher:
 
 ```bash
-sudo apt remove dauntless-revived-launcher
+sudo apt remove dauntless-unbroken-launcher
 ```
 
 Removing the launcher does not intentionally delete the game folder or your launcher user data.
@@ -102,7 +102,7 @@ On a normal mutable Fedora/RHEL-family desktop, use the RPM:
 
 ```bash
 cd ~/Downloads
-sudo dnf install ./DauntlessRevivedLauncher-*-linux-x86_64.rpm
+sudo dnf install ./DauntlessUnbrokenLauncher-*-linux-x86_64.rpm
 ```
 
 Fedora provides Wine as the `wine` meta-package:
@@ -118,8 +118,8 @@ For **Bazzite, Fedora Silverblue, Kinoite and other immutable/Atomic systems**, 
 rather than layering the launcher RPM into the base image:
 
 ```bash
-chmod +x DauntlessRevivedLauncher-*-linux-x86_64.AppImage
-./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 If your Steam installation is a Flatpak, read [Flatpak Steam and Proton](#flatpak-steam-and-proton)
@@ -128,7 +128,7 @@ below.
 To remove the RPM install:
 
 ```bash
-sudo dnf remove dauntless-revived-launcher
+sudo dnf remove dauntless-unbroken-launcher
 ```
 
 ## openSUSE Tumbleweed and Leap
@@ -137,7 +137,7 @@ Use the RPM directly with Zypper:
 
 ```bash
 cd ~/Downloads
-sudo zypper install ./DauntlessRevivedLauncher-*-linux-x86_64.rpm
+sudo zypper install ./DauntlessUnbrokenLauncher-*-linux-x86_64.rpm
 ```
 
 openSUSE's Zypper documentation supports installing an RPM by local file path.
@@ -148,12 +148,12 @@ Install Wine if you are not using Steam Proton:
 sudo zypper install wine
 ```
 
-Then launch **Dauntless Revived Launcher** from the desktop menu.
+Then launch **Dauntless Unbroken Launcher** from the desktop menu.
 
 Update by installing the newer RPM with the same `zypper install ./...` command. Remove it with:
 
 ```bash
-sudo zypper remove dauntless-revived-launcher
+sudo zypper remove dauntless-unbroken-launcher
 ```
 
 ## Arch Linux, EndeavourOS, CachyOS and Manjaro
@@ -164,16 +164,16 @@ AppImage:
 
 ```bash
 cd ~/Downloads
-chmod +x DauntlessRevivedLauncher-*-linux-x86_64.AppImage
-./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 Portable tarball:
 
 ```bash
-mkdir -p ~/.local/opt/dauntless-revived
-tar -xzf DauntlessRevivedLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-revived
-~/.local/opt/dauntless-revived/DauntlessRevivedLauncher
+mkdir -p ~/.local/opt/dauntless-unbroken
+tar -xzf DauntlessUnbrokenLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-unbroken
+~/.local/opt/dauntless-unbroken/DauntlessUnbrokenLauncher
 ```
 
 For Steam Proton on Arch-family systems, enable the `multilib` repository and install Steam:
@@ -204,7 +204,7 @@ paths. Use `appimage-run`.
 One-off run:
 
 ```bash
-nix-shell -p appimage-run --run 'appimage-run ./DauntlessRevivedLauncher-*-linux-x86_64.AppImage'
+nix-shell -p appimage-run --run 'appimage-run ./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage'
 ```
 
 For permanent AppImage support, add this to `/etc/nixos/configuration.nix`:
@@ -236,16 +236,16 @@ programs.steam.extraCompatPackages = with pkgs; [
 ```
 
 If the launcher does not find that Proton build automatically, point
-`DAUNTLESS_REVIVED_PROTON` at its actual `proton` script.
+`DAUNTLESS_UNBROKEN_PROTON` at its actual `proton` script.
 
 ## Gentoo
 
 The portable tarball is the simplest choice:
 
 ```bash
-mkdir -p ~/.local/opt/dauntless-revived
-tar -xzf DauntlessRevivedLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-revived
-~/.local/opt/dauntless-revived/DauntlessRevivedLauncher
+mkdir -p ~/.local/opt/dauntless-unbroken
+tar -xzf DauntlessUnbrokenLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-unbroken
+~/.local/opt/dauntless-unbroken/DauntlessUnbrokenLauncher
 ```
 
 The AppImage is also usable on an appropriately configured desktop.
@@ -257,23 +257,23 @@ sudo emerge --ask app-emulation/wine-proton
 ```
 
 If the executable is not exposed under the usual `wine` or `wine64` name in `PATH`, set
-`DAUNTLESS_REVIVED_WINE` to the Wine executable before starting the launcher.
+`DAUNTLESS_UNBROKEN_WINE` to the Wine executable before starting the launcher.
 
 ## Void Linux
 
 Use the AppImage or portable tarball:
 
 ```bash
-chmod +x DauntlessRevivedLauncher-*-linux-x86_64.AppImage
-./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 or:
 
 ```bash
-mkdir -p ~/.local/opt/dauntless-revived
-tar -xzf DauntlessRevivedLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-revived
-~/.local/opt/dauntless-revived/DauntlessRevivedLauncher
+mkdir -p ~/.local/opt/dauntless-unbroken
+tar -xzf DauntlessUnbrokenLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-unbroken
+~/.local/opt/dauntless-unbroken/DauntlessUnbrokenLauncher
 ```
 
 Install Wine from the Void repositories if you do not use Steam Proton:
@@ -289,8 +289,8 @@ If your runtime is somewhere unusual, use the override variables below.
 Start with the **AppImage**. It avoids depending on the distro's package format:
 
 ```bash
-chmod +x DauntlessRevivedLauncher-*-linux-x86_64.AppImage
-./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 If AppImage integration is awkward on that distro, use the portable `.tar.gz` instead.
@@ -318,15 +318,15 @@ Flatpak Steam normally stores its files under:
 That location is searched automatically. Start Flatpak Steam once and install at least one Proton
 version; the launcher will find it without a wrapper or environment variable.
 
-You can still use `DAUNTLESS_REVIVED_PROTON` to force one exact Proton script when troubleshooting
+You can still use `DAUNTLESS_UNBROKEN_PROTON` to force one exact Proton script when troubleshooting
 or when your Steam library is in a nonstandard location.
 
 ## Choosing Proton or Wine
 
 Runtime selection is:
 
-1. `DAUNTLESS_REVIVED_PROTON`, when explicitly set;
-2. `DAUNTLESS_REVIVED_WINE`, when explicitly set;
+1. `DAUNTLESS_UNBROKEN_PROTON`, when explicitly set;
+2. `DAUNTLESS_UNBROKEN_WINE`, when explicitly set;
 3. Steam Proton / Proton-GE in native Steam's normal directories;
 4. Steam Proton / Proton-GE from Flatpak Steam;
 5. `wine64` or `wine` from `PATH`;
@@ -336,13 +336,13 @@ Runtime selection is:
 Examples:
 
 ```bash
-DAUNTLESS_REVIVED_PROTON="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton10-1/proton" \
-  ./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+DAUNTLESS_UNBROKEN_PROTON="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton10-1/proton" \
+  ./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 ```bash
-DAUNTLESS_REVIVED_WINE=/usr/bin/wine64 \
-  ./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+DAUNTLESS_UNBROKEN_WINE=/usr/bin/wine64 \
+  ./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 The launcher creates its own prefix in its Electron user-data directory. Do not point it at an
@@ -352,11 +352,11 @@ existing Steam game's prefix.
 
 After the launcher opens, the flow is the same on every Linux distro:
 
-1. Open or paste the host's `dauntless-revived://join?...` invite.
+1. Open or paste the host's `dauntless-unbroken://join?...` invite.
 2. Press **JOIN**.
 3. Register a username, or import your existing account key.
 4. Save the offered key backup somewhere private.
-5. Press **INSTALL**. The default game directory is `~/Games/DauntlessRevived`.
+5. Press **INSTALL**. The default game directory is `~/Games/DauntlessUnbroken`.
 6. If you already have the exact 1.4.4 files, use **I already have the game files** and choose that
    Linux folder instead.
 7. Press **PLAY**. The launcher creates/prepares its Wine/Proton prefix, writes the game's config and
@@ -375,7 +375,7 @@ For the rest of the player workflow, see
 No supported runtime was found and automatic installation could not provide one. Normally the launcher
 offers to install Wine through your distro's package manager when you press **PLAY**. You can also
 install Steam + Proton, Wine, or Lutris Wine yourself. If a runtime is in a nonstandard location, set
-`DAUNTLESS_REVIVED_PROTON` or `DAUNTLESS_REVIVED_WINE`.
+`DAUNTLESS_UNBROKEN_PROTON` or `DAUNTLESS_UNBROKEN_WINE`.
 
 ### "The operating system couldn't store your key securely"
 
@@ -390,7 +390,7 @@ dependency installation, install your desktop's Secret Service/KWallet provider 
 First confirm it is executable:
 
 ```bash
-chmod +x DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 On NixOS, use `appimage-run`. On another distro where AppImage/FUSE integration is unavailable,
@@ -400,7 +400,7 @@ use the portable tarball instead.
 
 Update to **launcher 0.1.13 or newer** first. Launcher 0.1.12 could start Proton and set Discord
 activity while the game itself remained stuck before Unreal Engine created its window. The injected
-`UndauntedInternalServer.dll` was doing Windows console setup during Wine/Proton DLL initialization;
+`DauntlessUnbroken.dll` was doing Windows console setup during Wine/Proton DLL initialization;
 under Proton this could leave `Dauntless-Win64-Shipping.exe` alive with only its initial thread and
 no UE log or visible window.
 

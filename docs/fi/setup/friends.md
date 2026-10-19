@@ -1,9 +1,9 @@
 ---
 title: Liity kaverina
 parent: Asennus
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 2
-description: "Näin kutsuttu kaveri liittyy Dauntless Revived -palvelimelle: Tailscale, tarkistettu Dauntless 1.4.4, kaksi DLL-tiedostoa, kutsukoodi ja kaveripaketti."
+description: "Näin kutsuttu kaveri liittyy Dauntless Unbroken -palvelimelle: Tailscale, tarkistettu Dauntless 1.4.4, kaksi DLL-tiedostoa, kutsukoodi ja kaveripaketti."
 lang: fi
 ref: setup/friends
 locale: fi_FI
@@ -23,8 +23,8 @@ tietokone, joka pyörittää peliä verkossa. Et tarvitse Epic-tiliä, hosts-tie
 varmenteita. Kaikki liikenne kulkee yksityisen Tailscale-yhteyden kautta isännän koneelle.
 
 **Julkisen tilan palvelimet käyttävät käynnistintä, eivät tätä sivua.** Jos isäntä lähetti sinulle
-`dauntless-revived://join?...`-rivin (julkinen palvelin vuokrakoneella), et tarvitse Tailscalea etkä alla
-olevia käsivaiheita. Windowsissa asenna `DauntlessRevivedLauncher-Setup.exe`; Linuxissa seuraa oman
+`dauntless-unbroken://join?...`-rivin (julkinen palvelin vuokrakoneella), et tarvitse Tailscalea etkä alla
+olevia käsivaiheita. Windowsissa asenna `DauntlessUnbrokenLauncher-Setup.exe`; Linuxissa seuraa oman
 jakelusi [Linux-käynnistin]({{ linux_page.url | relative_url }}) -ohjetta. Liitä sitten kutsurivi, ja
 käynnistin hoitaa loput. Jos sinulla on jo tiliavain, valitse **"Minulla on jo tiliavain"** ja tuo tai
 liitä se rekisteröitymisen sijaan. Pidä käynnistin auki pelatessasi. Loput tästä sivusta on käsivaiheinen
@@ -34,11 +34,11 @@ Windows/Tailscale-polku.
 1.4.4-kansiosi polku (esimerkiksi `C:\Pelit\BaseGame144` tai sen sisällä oleva `Dauntless`-kansio),
 tai selaa siihen. Käynnistin löytää pelin ja käyttää sitä siinä kansiossa, jossa se on: se tarkistaa
 jokaisen tiedoston kiinnitettyä luetteloa vasten, korvaa tiedostot, jotka eroavat 1.4.4:stä, ja
-laittaa omat `dxgi.dll`- ja `UndauntedInternalServer.dll`-tiedostonsa kansioon
+laittaa omat `dxgi.dll`- ja `DauntlessUnbroken.dll`-tiedostonsa kansioon
 `Archon\Binaries\Win64`. Puuttuvat ja poikkeavat tiedostot ladataan isännän palvelimelta, joten se
 onnistuu vain, jos isäntä on avannut pelin latauksen. Jos jokin toinen asennus (esimerkiksi alla
 oleva kaveripaketti) käyttää kansiota yhä, kopioi se ensin. Polun liittämisen lisäsi Vvoidddd
-([#8](https://github.com/mixutin/dauntless-revived/pull/8)).
+([#8](https://github.com/Vvoidddd/dauntless-unbroken/pull/8)).
 
 **Jos Windows estää asennusohjelman.** Käynnistintä ei ole vielä allekirjoitettu, joten Windows
 SmartScreen varoittaa ensimmäisellä kerralla: **Lisätietoja > Suorita silti**. Koneella, jossa
@@ -46,16 +46,16 @@ tunnistamattomat sovellukset on asetettu estettäviksi, SmartScreen estää sen 
 silti -vaihtoehtoa ole. Tee silloin näin:
 
 1. Lataa samasta julkaisusta `SHA256SUMS.txt` ja tarkista asennusohjelma sitä vasten. Aja
-   PowerShellissä latauskansiossa `Get-FileHash .\DauntlessRevivedLauncher-Setup.exe`: sen on
+   PowerShellissä latauskansiossa `Get-FileHash .\DauntlessUnbrokenLauncher-Setup.exe`: sen on
    näytettävä sama SHA-256 kuin tiedoston rivillä `SHA256SUMS.txt`-tiedostossa (PowerShell näyttää sen
    isoin kirjaimin ja tiedostossa se on pienin; sillä erolla ei ole väliä). Jos se ei täsmää, poista
    tiedosto äläkä aja sitä.
 2. Poista esto: napsauta tiedostoa hiiren oikealla > **Ominaisuudet** > rastita **Poista esto** >
-   **OK**, tai aja PowerShellissä `Unblock-File .\DauntlessRevivedLauncher-Setup.exe`.
+   **OK**, tai aja PowerShellissä `Unblock-File .\DauntlessUnbrokenLauncher-Setup.exe`.
 3. Käynnistä se uudelleen.
 
 Kaikki tällä sivulla koskee **versiota 1.4.4**. Pelin viimeinen versio, 2.1.1 (”Awakening”, UE5), ei
-toimi tässä: `UndauntedInternalServer.dll` muokkaa kiinteitä muistiosoitteita 1.4.4:n
+toimi tässä: `DauntlessUnbroken.dll` muokkaa kiinteitä muistiosoitteita 1.4.4:n
 ohjelmatiedoston sisällä, joten se toimii vain juuri sen version kanssa. Siksi jokainen alla oleva
 vaihe myös tarkistaa tiivisteen (hash). Tiiviste on tiedoston sisällöstä laskettu sormenjälki: jos
 tiedostosta muuttuu yksikin tavu, tiiviste muuttuu.
@@ -67,7 +67,7 @@ he näkivät toisensa Ramsgatessa ja metsästivät yhdessä. Tämän sivun käsi
 ei ole vielä käyttänyt yksikään kaveri (katso [Palvelin ryhmälle]({{ admin_page.url | relative_url }})).
 
 **Lyhyt tapa: kaveripaketti.** Isäntä voi antaa sinulle pienen zip-tiedoston, joka on koottu
-repositorion [`friend-kit/`]({{ site.github.repository_url }}/tree/dauntless-revived/friend-kit)-kansiosta.
+repositorion [`friend-kit/`]({{ site.github.repository_url }}/tree/main/friend-kit)-kansiosta.
 Tee ensin vaihe 1 ja kaksoisnapsauta sitten `Setup.cmd`-tiedostoa: se tekee vaiheet 2–4 puolestasi ja
 tarkistaa jokaisen tiivisteen. Sen jälkeen `Play Dauntless.cmd` tekee vaiheen 5 jokaisella
 käynnistyskerralla. Alla olevat käsin tehtävät vaiheet näyttävät tarkalleen, mitä paketti tekee.
@@ -86,8 +86,8 @@ käynnistyskerralla. Alla olevat käsin tehtävät vaiheet näyttävät tarkalle
 | Windows-tietokone | 64-bittinen Windows 10 tai 11. Peli vie levyltä noin 10,9 Gt (10,1 GiB). |
 | Oma Dauntless 1.4.4 -asennus | Shipping-versio `dauntless_rel-1.4.4_Shipping_2020-10-28_20-11-15_239827`, joka tarkistetaan tiivisteellä vaiheessa 2. |
 | Tailscale | Oma ilmainen tili sekä isännän jakaman koneen hyväksyminen. |
-| Kaksi DLL-tiedostoa | `dxgi.dll` ja `UndauntedInternalServer.dll`, jotka tarkistetaan tiivisteellä vaiheessa 3. |
-| Microsoft Visual C++ 2015-2022 Redistributable (x64) | `UndauntedInternalServer.dll` tarvitsee tiedostot `MSVCP140.dll` ja `VCRUNTIME140_1.dll`. Monessa koneessa ne ovat jo valmiina. |
+| Kaksi DLL-tiedostoa | `dxgi.dll` ja `DauntlessUnbroken.dll`, jotka tarkistetaan tiivisteellä vaiheessa 3. |
+| Microsoft Visual C++ 2015-2022 Redistributable (x64) | `DauntlessUnbroken.dll` tarvitsee tiedostot `MSVCP140.dll` ja `VCRUNTIME140_1.dll`. Monessa koneessa ne ovat jo valmiina. |
 | Kutsukoodi | Isännältä. Koodit ovat yleensä kertakäyttöisiä. |
 | Käynnistysskripti | Annetaan vaiheessa 5. |
 
@@ -139,7 +139,7 @@ Get-Content "$Game\Version.txt"
 | `Dauntless-Win64-Shipping.exe` koko | 103 673 520 tavua |
 | `BaseGame144.zip` SHA-256, jos sinulla on arkisto | `556B9A648A5E5E7E11B6F8DD3D80FF8E88FCEB0D3448297AAF47CE7BF756BC6D` (10,48 Gt) |
 
-Exe-tiedoston tiiviste on sama arvo, jonka alkuperäinen Undaunted-käynnistin tarkistaa. Jos se ei
+Exe-tiedoston tiiviste on sama arvo, jonka alkuperäinen dauntless-unbroken-käynnistin tarkistaa. Jos se ei
 täsmää, lopeta tähän: DLL-tiedostot eivät toimi eri version kanssa.
 
 Isännän koneella tarkistimme vertailukopiomme perusteellisemmin. Kaikki 406 tiedostoa vastaavat
@@ -154,24 +154,24 @@ Molemmat tiedostot menevät kansioon `<game folder>\Archon\Binaries\Win64\` eli 
 
 | Tiedosto | Koko | SHA-256 |
 |:-----|-----:|:--------|
-| `dxgi.dll` | 11 264 tavua | `9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F` |
-| `UndauntedInternalServer.dll` | 123 392 tavua | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` |
+| `dxgi.dll` | 11 264 tavua | `f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c` |
+| `DauntlessUnbroken.dll` | 123 392 tavua | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` |
 
 Saat ne isännältä, helpoimmin kaveripaketissa (katso yllä), tai
 alkuperäisestä repositoriosta kansiosta
-[`UndauntedLauncher/assets/`](https://github.com/SyST3MDeV/Undaunted/tree/main/UndauntedLauncher/assets).
+[`DauntlessUnbrokenLauncher/assets/`](https://github.com/SyST3MDeV/Undaunted/tree/main/DauntlessUnbrokenLauncher/assets).
 Ne ovat samat tiedostot. Kopioinnin jälkeen tarkista ne ja poista niistä ”ladattu internetistä”
 -merkintä:
 
 ```powershell
 $W = "$Game\Archon\Binaries\Win64"
-Get-FileHash "$W\dxgi.dll", "$W\UndauntedInternalServer.dll" -Algorithm SHA256 | Format-Table Hash, Path
-Unblock-File "$W\dxgi.dll", "$W\UndauntedInternalServer.dll"
+Get-FileHash "$W\dxgi.dll", "$W\DauntlessUnbroken.dll" -Algorithm SHA256 | Format-Table Hash, Path
+Unblock-File "$W\dxgi.dll", "$W\DauntlessUnbroken.dll"
 ```
 
 **Mitä ne tekevät.** Kun peli käynnistyy, Windows lataa `dxgi.dll`-tiedoston pelikansiosta ennen
 järjestelmän omaa kopiota. Tämä välittäjä (proxy) lataa oikean järjestelmän `dxgi.dll`-tiedoston,
-välittää sen kolme funktiota (exports) eteenpäin ja lataa `UndauntedInternalServer.dll`-tiedoston.
+välittää sen kolme funktiota (exports) eteenpäin ja lataa `DauntlessUnbroken.dll`-tiedoston.
 Tavallisessa käynnistyksessä (client-tilassa) tämä DLL lukee ensimmäisen komentoriviparametrin
 palvelimen osoitteeksi. Sen jälkeen se kirjoittaa uudelleen taustapalvelun osoitteet, jotka peli lukee
 asetuksistaan (167 avaimen taulukko sekä tilipalvelun asetukset): kuolleista `steelyard.ca`-palvelimista
@@ -182,7 +182,7 @@ pelipalvelimeksi. Näin isäntä pyörittää Ramsgatea ja metsästyksiä.
 **Mistä voimme mennä takuuseen ja mistä emme:**
 
 - Nämä ovat alkuperäisen projektin valmiiksi käännetyt tiedostot. Kiinnitämme niiden tiivisteet. Emme
-  ole vielä kääntäneet `UndauntedInternalServer.dll`-tiedostoa itse lähdekoodista todistaaksemme, että
+  ole vielä kääntäneet `DauntlessUnbroken.dll`-tiedostoa itse lähdekoodista todistaaksemme, että
   se vastaa julkaistua koodia. Versiomerkkijonot täsmäävät (0.0.3), mutta se ei ole todiste.
 - `dxgi.dll`-tiedoston lähdekoodia ei ole koskaan julkaistu. Purimme sen konekielen luettavaan muotoon
   (disassembly): se tekee vain yllä kuvatut kolme asiaa eikä käytä mitään muuta kuin `KERNEL32`-kirjastoa
@@ -219,7 +219,7 @@ $Server   = "100.x.y.z"             # the host's Tailscale address
 $Username = "YourName"              # 3-16 letters, digits or _
 $Invite   = "code-from-the-host"
 
-$dir = "$env:APPDATA\DauntlessRevived"
+$dir = "$env:APPDATA\DauntlessUnbroken"
 if (Test-Path "$dir\account.key") { throw "You already have a key in $dir. Registering again would create a second account." }
 $body = @{ Username = $Username; InviteCode = $Invite } | ConvertTo-Json
 $r = Invoke-RestMethod -Method Post -Uri "http://${Server}:61000/undaunted/api/Register" -ContentType "application/json" -Body $body
@@ -243,8 +243,8 @@ Tarkista, että avain toimii. Tämä tulostaa käyttäjätunnisteesi (user id), 
 oletko ylläpitäjä:
 
 ```powershell
-$key = (Get-Content "$env:APPDATA\DauntlessRevived\account.key" -Raw).Trim()
-Invoke-RestMethod "http://${Server}:61000/undaunted/api/GetUserInfo" -Headers @{ "x-undaunted-user-api-key" = $key }
+$key = (Get-Content "$env:APPDATA\DauntlessUnbroken\account.key" -Raw).Trim()
+Invoke-RestMethod "http://${Server}:61000/undaunted/api/GetUserInfo" -Headers @{ "x-dauntless-unbroken-user-api-key" = $key }
 ```
 
 Säilytä kopio `account.key`-tiedostosta turvallisessa paikassa, esimerkiksi salasanojen
@@ -287,15 +287,15 @@ $W   = Join-Path $Game "Archon\Binaries\Win64"
 $exe = Join-Path $W "Dauntless-Win64-Shipping.exe"
 $pinned = @{
   "Dauntless-Win64-Shipping.exe" = "D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4"
-  "dxgi.dll"                     = "9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F"
-  "UndauntedInternalServer.dll"  = "520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933"
+  "dxgi.dll"                     = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
+  "DauntlessUnbroken.dll"  = "520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933"
 }
 foreach ($f in $pinned.Keys) {
   $p = Join-Path $W $f
   if (-not (Test-Path $p)) { throw "Missing: $p" }
   if ((Get-FileHash $p -Algorithm SHA256).Hash -ne $pinned[$f]) { throw "Hash mismatch: $p" }
 }
-$key = (Get-Content "$env:APPDATA\DauntlessRevived\account.key" -Raw).Trim()
+$key = (Get-Content "$env:APPDATA\DauntlessUnbroken\account.key" -Raw).Trim()
 $a = @("${Server}:61000", "-AUTH_PASSWORD=$key", "-AUTH_LOGIN=unused", "-AUTH_TYPE=exchangecode",
        "-epicapp=appidlol", "-epicenv=Prod", "-EpicPortal", "-epicusername=usernamelol",
        "-epicuserid=useridlol", "-epiclocale=en-US", "-epicsandboxid=sandboxidlol",
@@ -402,7 +402,7 @@ Tämä on pieni yksityinen elvytyshanke, ja työ on kesken. Tätä kirjoitettaes
   (pelaajia yhteen sovittava osa) kerää pelaajat, jotka jonottavat samaan metsästykseen, ja
   käynnistää heille yhden palvelimen, kun neljä on liittynyt tai kun 20 sekuntia kuluu ilman, että
   kukaan uusi liittyy.
-- Tekstichat on rakennettu, mutta sitä ei ole vielä kytketty päälle (katso alta). Käytä [Dauntless Revived Discordia](https://discord.gg/ZJRprHzsgu).
+- Tekstichat on rakennettu, mutta sitä ei ole vielä kytketty päälle (katso alta). Käytä [Dauntless Unbroken Discordia](https://discord.gg/ZJRprHzsgu).
 - Palkkiotehtävät (bounties) ja odotusajat (cooldowns) tallentuvat, mutta palkkiotehtävän valitsemista
   ja lunastamista sekä vuorokauden vaihdetta ei ole vielä kokeiltu pelissä. Escalation-sarjat ovat
   vain tynkiä, jotka eivät oikeasti tallenna mitään, eivätkä ne säily pelikerrasta toiseen, ellei
@@ -410,7 +410,7 @@ Tämä on pieni yksityinen elvytyshanke, ja työ on kesken. Tätä kirjoitettaes
 - Pelin kauppa on rakennettu, mutta se on pois päältä, ellei isäntäsi kytke sitä päälle. Kun se on
   päällä, kaikki siinä on ilmaista.
 - Äänichat toimi Vivoxilla, joka on maksullinen ulkopuolinen palvelu, eikä se voi palata. Käytä
-  [Dauntless Revived Discordia](https://discord.gg/ZJRprHzsgu).
+  [Dauntless Unbroken Discordia](https://discord.gg/ZJRprHzsgu).
 - Jonkun omalla koneella pyörivä palvelin on poissa päältä, kun se kone on sammutettu. Vuokratulla
   koneella pyörivä palvelin ei riipu kenenkään omasta koneesta.
 
@@ -458,7 +458,7 @@ Jos joku hylkää kutsusi, voit kutsua hänet uudelleen 2 minuutin kuluttua, ja 
 asetus juuri tätä tilannetta varten.
 
 Jos pelin oma kutsu ei toimi, isäntä voi lähettää kutsun nimellä palvelimelta
-([hallintarajapinnan]({{ '/fi/reference/api.html' | relative_url }}#undaunted-api) `PartyInvite`-reitti);
+([hallintarajapinnan]({{ '/fi/reference/api.html' | relative_url }}#dauntless-unbroken-api) `PartyInvite`-reitti);
 hyväksyt sen silti pelissä. Sama koskee kiltakutsuja (`GuildInvite`).
 
 ### Slayer Links {#slayer-links}
@@ -498,7 +498,7 @@ muutu.
   näyttäminen paikalla on rakennettu chat-palvelimeen, mutta isäntä kytkee sen päälle vasta, kun chat
   itse toimii ja kaksi pelaajaa on kokeillut sitä.
 - **Chat**: kuiskaukset sekä ryhmä-, kilta- ja Ramsgate-chat käyttäjänimin on rakennettu, mutta isäntä
-  kytkee sen päälle vasta, kun kaksi pelaajaa on kokeillut sitä; siihen asti käytä [Dauntless Revived Discordia](https://discord.gg/ZJRprHzsgu). Aluksi
+  kytkee sen päälle vasta, kun kaksi pelaajaa on kokeillut sitä; siihen asti käytä [Dauntless Unbroken Discordia](https://discord.gg/ZJRprHzsgu). Aluksi
   Ramsgaten chat tavoittaa vain ne pelaajat, jotka matkustivat sinne kanssasi ryhmänä.
 - **Muutokset näkyvät viiveellä.** Kaveripyynnöt, hyväksytyt pyynnöt ja kiltojen muutokset näkyvät
   toiselle pelaajalle hänen seuraavalla kirjautumisellaan (killoissa myös matkustamisen jälkeen), eivät
@@ -530,7 +530,7 @@ sen koko lähdekoodi (lisenssin kohta 13). Koska isäntä antaa sinulle DLL-ohje
 oikeus myös niiden lähdekoodiin (kohta 6).
 
 - Forkimme lähdekoodi on [tämän sivuston repositoriossa]({{ site.github.repository_url }}), haarassa
-  `dauntless-revived`. Kysy isännältä, mitä versiota (commit) hänen palvelimensa ajaa.
+  `dauntless-unbroken`. Kysy isännältä, mitä versiota (commit) hänen palvelimensa ajaa.
 - Alkuperäisen projektin lähdekoodi on osoitteessa
   [github.com/SyST3MDeV/Undaunted](https://github.com/SyST3MDeV/Undaunted).
 - Tunnettu puute: alkuperäinen projekti ei koskaan julkaissut valmiiksi käännetyn `dxgi.dll`-tiedoston

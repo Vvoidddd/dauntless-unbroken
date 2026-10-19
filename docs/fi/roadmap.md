@@ -1,8 +1,8 @@
 ---
 title: Tiekartta
-parent: Dauntless Revived suomeksi
+parent: Dauntless Unbroken suomeksi
 nav_order: 5
-description: "Dauntless Revivedin tiekartta selkokielellä: tavoite, välitavoitteet M0–M4, mitä on jo tehty ja mitä on työn alla. Päivittyvä lista on englanniksi."
+description: "Dauntless Unbrokenin tiekartta selkokielellä: tavoite, välitavoitteet M0–M4, mitä on jo tehty ja mitä on työn alla. Päivittyvä lista on englanniksi."
 lang: fi
 ref: roadmap
 locale: fi_FI
@@ -14,12 +14,12 @@ locale: fi_FI
 # Tiekartta
 {: .no_toc }
 
-Tällä sivulla kerrotaan tavallisin sanoin, mihin Dauntless Revived on menossa ja mitä on jo tehty.
+Tällä sivulla kerrotaan tavallisin sanoin, mihin Dauntless Unbroken on menossa ja mitä on jo tehty.
 Tämä on suomenkielinen yhteenveto. Tarkka tarkistuslista, jota päivitetään sitä mukaa kuin työ etenee,
 on englanniksi:
 
 [Avaa päivittyvä tarkistuslista (englanniksi)]({{ roadmap_en.url | relative_url }}){: .btn .btn-primary .mr-2 }
-[ROADMAP.md GitHubissa]({{ site.github.repository_url }}/blob/dauntless-revived/ROADMAP.md){: .btn }
+[ROADMAP.md GitHubissa]({{ site.github.repository_url }}/blob/main/ROADMAP.md){: .btn }
 
 Yhteenveto kuvaa tilannetta 23.9.2026. Jos tämä sivu ja englanninkielinen lista eroavat toisistaan,
 englanninkielinen lista on ajan tasalla.
@@ -56,7 +56,7 @@ ennen mitään julkista julkaisua, ei kaveripalvelinta varten.
 
 ## Missä mennään nyt {#where-we-are}
 
-**Harmonicin 1.4.4-forkin siirto (23.9.2026).** Harmonic ylläpitää toista Undaunted-haaraa
+**Harmonicin 1.4.4-forkin siirto (23.9.2026).** Harmonic ylläpitää toista dauntless-unbroken-haaraa
 versiolle 1.4.4 ([github.com/Harmonicrain/Undaunted](https://github.com/Harmonicrain/Undaunted),
 AGPL-3.0). Vertasimme sitä omaamme ominaisuus kerrallaan ja otimme sen, mikä toi jotain uutta, lukuun
 ottamatta muutamaa syineen pois jätettyä alustan kohtaa (DLL-puolen kohdat, palvelintilan koukku ja
@@ -175,10 +175,10 @@ testitilillä testiportissa (esimerkiksi 62099, kuten palvelinpaketin hiekkalaat
 tarkistettava jokainen yhteys tunnisteillamme. Julkisessa tilassa portti 61099 pysyy vain koneen
 sisäisenä yhdyskäytävän takana; yksityisessä tilassa se avataan Tailscale-laitteille vasta, kun
 palvelu tarkistaa kirjautumiset. (Tämän nosti esiin Vvoidddd,
-[PR #6](https://github.com/mixutin/dauntless-revived/pull/6).)
+[PR #6](https://github.com/Vvoidddd/dauntless-unbroken/pull/6).)
 
 **Tekstichat on rakennettu, oletuksena pois päältä (kohta 3.10, 22.9.2026).** Vvoidddd kirjoitti
-ensimmäisen chat-palvelimen ([PR #9](https://github.com/mixutin/dauntless-revived/pull/9)) ja testasi
+ensimmäisen chat-palvelimen ([PR #9](https://github.com/Vvoidddd/dauntless-unbroken/pull/9)) ja testasi
 sitä oikealla 1.4.4-pelillä: Ramsgaten viestit menivät perille, mutta lähettäjänä näkyi tilitunnus
 `UID-...`. Ohjelmatiedostosta luettu syy: peliohjelma liittyy jokaiseen huoneeseen nimimerkillä, jossa
 käyttäjänimi jo on (`<nimi>:<tilitunnus>:<resurssi>`), ja lukee nimen siitä takaisin, mutta palvelin
@@ -210,9 +210,9 @@ käyttäjänimet.
 
 Käynnissä olevien pelaajien lista näytetään vain rekisteröityneille pelaajille, eikä
 `/dauntless-status` enää kerro pelaajamäärää. Käynnistimessä, pelin tervetulotekstissä ja palvelimen
-viesteissä lukee nyt Dauntless Revived, ja kiitoksissa mainitaan Undaunted (nimenvaihdon ensimmäinen
-osa); kansiot, palvelin-DLL:n tiedostonimi (`UndauntedInternalServer.dll`), rajapinnan reitit ja
-otsakkeet pitävät toistaiseksi Undaunted-nimet.
+viesteissä lukee nyt Dauntless Unbroken, ja kiitoksissa mainitaan Undaunted (nimenvaihdon ensimmäinen
+osa); kansiot, palvelin-DLL:n tiedostonimi (`DauntlessUnbroken.dll`), rajapinnan reitit ja
+otsakkeet pitävät toistaiseksi dauntless-unbroken-nimet.
 
 Osa pelissä ansaitusta tallentuu jo, osa ei:
 
@@ -268,7 +268,7 @@ Osa pelissä ansaitusta tallentuu jo, osa ei:
   julkaisuna, ja asennetut käynnistimet päivittävät itsensä. Versio 0.1.1 seurasi 22.9.2026.
   Seuraavassa versiossa pelaaja, jolla peli jo on, voi liittää `BaseGame144`-kansionsa polun tai
   selata siihen, ja käynnistin käyttää peliä siinä kansiossa, jossa se on, ja lataa vain puuttuvat
-  tai vioittuneet tiedostot (Vvoidddd, [PR #8](https://github.com/mixutin/dauntless-revived/pull/8)).
+  tai vioittuneet tiedostot (Vvoidddd, [PR #8](https://github.com/Vvoidddd/dauntless-unbroken/pull/8)).
 - **Ensimmäinen oikea testi yhdellä pelaajalla (22.9.2026):** omistaja kulki vuokratulla
   palvelimella internetin yli käynnistimen latauksesta ja kutsusta pelin lataukseen, opetusjaksoon,
   Ramsgateen, Training Dojoon ja ensimmäiseen metsästykseen. Yksityiskohdat ovat yllä.
@@ -276,7 +276,7 @@ Osa pelissä ansaitusta tallentuu jo, osa ei:
   ohjesivuston käännöksen ja sen, ettei projektiin ole lisätty salaisuuksia, avaimia, tietokantoja tai
   pelitiedostoja.
 - **Nimenvaihdon ensimmäinen osa:** käynnistimessä, pelin tervetulotekstissä ja palvelimen viesteissä
-  lukee Dauntless Revived.
+  lukee Dauntless Unbroken.
 - **Harmonicin 1.4.4-forkin siirto (23.9.2026):** Escalation, ilmainen kauppa, Slayer Links,
   kavereiden paikalla olo, deploy-palvelimen korjaukset ja pienemmät korjaukset on rakennettu ja
   testattu ilman peliä (katso yllä). Pelissä niitä ei ole vielä kokeiltu.
@@ -423,7 +423,7 @@ M4:ään lisättiin 22.9.2026 kuusi uutta kohtaa:
   montako pelaajaa tietty kone jaksaa. Omistajan syy: palvelimen rajoja ei tarvitse enää arvata.
   Ensimmäiset mittaukset tehdään ensimmäisissä kaveritesteissä. *Tilanne 22.9.2026:* mittari on
   rakennettu Vvoidddd:n ensimmäisen mittarin pohjalta
-  ([PR #6](https://github.com/mixutin/dauntless-revived/pull/6)). Windows-palvelinpaketin valvoja
+  ([PR #6](https://github.com/Vvoidddd/dauntless-unbroken/pull/6)). Windows-palvelinpaketin valvoja
   kirjoittaa minuutin välein mittauksen tiedostoon `data\logs\performance\performance-<UTC-päivä>.csv`
   (30 päivää säilytetään, vain lukuja): jokainen pelipalvelin (rooli, UDP-portti, käynnistysaika,
   pelaajat, suoritin prosentteina yhdestä ytimestä ja muisti), palvelimen omat prosessit sekä kone
@@ -452,8 +452,8 @@ M4:ään lisättiin 22.9.2026 kuusi uutta kohtaa:
   etenemisen, koko pelikerta (kirjautuminen, Ramsgate, metsästys, tallennus) toimii PostgreSQL:llä,
   tietokanta ei ota yhteyksiä internetistä, ja öinen kopio palautuu toiselle koneelle.
 - **4.15 Nimenvaihdon toinen osa**, ensimmäisen kaveritestin jälkeen. *Mitä:* kansioiden nimet,
-  `/undaunted/api`-reitit ja `x-undaunted-*`-otsakkeet (vanhat nimet jäävät rinnakkaisnimiksi),
-  asetusten ja datatiedostojen Undaunted-nimet (esimerkiksi tietokantatiedosto `undaunted.db`),
+  `/undaunted/api`-reitit ja `x-dauntless-unbroken-*`-otsakkeet (vanhat nimet jäävät rinnakkaisnimiksi),
+  asetusten ja datatiedostojen dauntless-unbroken-nimet (esimerkiksi tietokantatiedosto `dauntless-unbroken.db`),
   JWT-tunnisteiden myöntäjä ja kohde (issuer ja audience) ja palvelinpaketin asennuskansiot. Alkuperäisen projektin valmiisiin
   DLL-tiedostoihin kiinteästi kirjoitetut nimet jäävät, ellemme käännä omia DLL-tiedostoja, ja kiitokset
   Undauntedille jäävät aina. *Valmis, kun:* uusi asennus ja päivitetty palvelin toimivat uusilla
@@ -469,14 +469,14 @@ M4:ään lisättiin 22.9.2026 kuusi uutta kohtaa:
   tunnistamattomat sovellukset, ja asennetut käynnistimet päivittyvät yhä allekirjoitettuun versioon.
 - **4.17 Kunnollinen korjaus pimeään ilmalaivaan ennen metsästystä.** *Mitä:* nykyisillä
   näytönohjainten ajureilla 1.4.4:n automaattinen valotus tekee ilmalaivan hytistä lähes mustan, ja
-  sen ikkunat palavat puhki valkoisiksi. Rivi `r.EyeAdaptationQuality=0` (sen löysi Vvoidddd, [PR #5](https://github.com/mixutin/dauntless-revived/pull/5))
+  sen ikkunat palavat puhki valkoisiksi. Rivi `r.EyeAdaptationQuality=0` (sen löysi Vvoidddd, [PR #5](https://github.com/Vvoidddd/dauntless-unbroken/pull/5))
   laittaa automaattisen valotuksen pois. Se korjasi ilmalaivan, mutta teki myös Ramsgatesta ja kaikista
   yökohtauksista aivan liian pimeitä, joten käynnistimen versio 0.1.1 perui sen. Omistaja haluaa
   korjauksen, joka ei pilaa pelin ulkonäköä. Kokeiltavat vaihtoehdot: automaattinen valotus pysyy
   päällä, mutta sen vaihteluväliä rajataan; valotus mitataan toisella tavalla; tai käynnistimeen tulee
   asetus, josta jokainen pelaaja voi valita. Ensin selvitetään, mitä valotusasetuksia 1.4.4 hyväksyy
   `Engine.ini`-tiedostossa. *Kokeilu:* Vvoidddd lisäsi käynnistimeen valinnaisen asetuksen
-  ([PR #7](https://github.com/mixutin/dauntless-revived/pull/7)): Asetukset > Grafiikka >
+  ([PR #7](https://github.com/Vvoidddd/dauntless-unbroken/pull/7)): Asetukset > Grafiikka >
   Automaattinen valotus > **Mukautuva perusvalotus (kokeellinen)** kirjoittaa rivin
   `r.EyeAdaptation.MethodOverride=2`, jota 1.4.4:n ohjelmatiedosto kutsuu nimellä ”Auto Basic”, joten
   automaattinen valotus pysyy päällä. **Pelin oletus** on edelleen kaikkien oletus. Tämä ei ole vielä

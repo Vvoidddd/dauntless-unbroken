@@ -1,7 +1,7 @@
 ---
 title: Kaatumisten tutkiminen
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 7
 lang: fi
 ref: findings/crashes

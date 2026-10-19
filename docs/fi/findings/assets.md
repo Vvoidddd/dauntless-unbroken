@@ -1,7 +1,7 @@
 ---
 title: Pelin sisältö ja asetukset
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 2
 lang: fi
 ref: findings/assets

@@ -9,8 +9,8 @@
 #    (tools/ci/check-repo.js)
 #
 # Automatic launcher releases are ON: set the repository variable LAUNCHER_AUTO_RELEASE to false
-# (Settings > Secrets and variables > Actions > Variables) to pause them. A push to dauntless-revived that passes
-# every check, is still the head of the branch, and whose UndauntedLauncher/package.json version has no
+# (Settings > Secrets and variables > Actions > Variables) to pause them. A push to dauntless-unbroken that passes
+# every check, is still the head of the branch, and whose DauntlessUnbrokenLauncher/package.json version has no
 # published launcher-v<version> release yet publishes that version (launcher-release.yml) with the
 # installer built and tested here. While paused, Actions > Launcher release > Run workflow
 # publishes by hand.
@@ -29,9 +29,9 @@ permissions:
   contents: read
 
 # One run at a time per branch or pull request; a newer push to a pull request cancels the older run.
-# Every run on dauntless-revived gets its own group, so none of them is ever cancelled or replaced.
+# Every run on dauntless-unbroken gets its own group, so none of them is ever cancelled or replaced.
 concurrency:
-  group: ci-${{ github.ref }}-${{ github.ref == 'refs/heads/dauntless-revived' && github.run_id || 'latest' }}
+  group: ci-${{ github.ref }}-${{ github.ref == 'refs/heads/main' && github.run_id || 'latest' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -43,10 +43,10 @@ jobs:
       fail-fast: false
       matrix:
         package:
-          - UndauntedMetagame
-          - UndauntedGateway
-          - UndauntedContent
-          - UndauntedDeployServer
+          - DauntlessUnbrokenMetagame
+          - DauntlessUnbrokenGateway
+          - DauntlessUnbrokenContent
+          - DauntlessUnbrokenDeployServer
     defaults:
       run:
         shell: pwsh
@@ -68,7 +68,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      # UndauntedContent's test:integration is not run here: it serves a real 1.4.4 install, which CI
+      # DauntlessUnbrokenContent's test:integration is not run here: it serves a real 1.4.4 install, which CI
       # does not have (without one every test in it is skipped).
       - name: Unit tests
         run: npm test
@@ -80,7 +80,7 @@ jobs:
     defaults:
       run:
         shell: pwsh
-        working-directory: UndauntedLauncher
+        working-directory: DauntlessUnbrokenLauncher
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -90,7 +90,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: UndauntedLauncher/package-lock.json
+          cache-dependency-path: DauntlessUnbrokenLauncher/package-lock.json
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
@@ -115,7 +115,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: launcher-windows
-          path: UndauntedLauncher/release/
+          path: DauntlessUnbrokenLauncher/release/
           if-no-files-found: error
           retention-days: 7
 
@@ -126,7 +126,7 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
-        working-directory: UndauntedLauncher
+        working-directory: DauntlessUnbrokenLauncher
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -136,7 +136,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: UndauntedLauncher/package-lock.json
+          cache-dependency-path: DauntlessUnbrokenLauncher/package-lock.json
 
       - name: Install Linux package tools
         run: |
@@ -163,7 +163,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: launcher-linux
-          path: UndauntedLauncher/release-linux/
+          path: DauntlessUnbrokenLauncher/release-linux/
           if-no-files-found: error
           retention-days: 7
 
@@ -182,15 +182,15 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: |
-            UndauntedMetagame/package-lock.json
-            UndauntedGateway/package-lock.json
-            UndauntedContent/package-lock.json
-            UndauntedDeployServer/package-lock.json
+            DauntlessUnbrokenMetagame/package-lock.json
+            DauntlessUnbrokenGateway/package-lock.json
+            DauntlessUnbrokenContent/package-lock.json
+            DauntlessUnbrokenDeployServer/package-lock.json
 
       - name: Build and test the native server services on Linux
         run: |
           set -euo pipefail
-          for pkg in UndauntedMetagame UndauntedGateway UndauntedContent UndauntedDeployServer; do
+          for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
             echo "::group::$pkg"
             (cd "$pkg" && npm ci --no-audit --no-fund && npm run build && npm test)
             echo "::endgroup::"
@@ -235,7 +235,7 @@ jobs:
             set -eu
             node --version
             npm --version
-            for pkg in UndauntedMetagame UndauntedGateway UndauntedContent UndauntedDeployServer; do
+            for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
               echo "=== $pkg ==="
               (cd "$pkg" && npm ci --no-audit --no-fund && npm run build && npm test)
             done
@@ -255,8 +255,8 @@ jobs:
               --game-dir "$tmp/game" --my-ip 203.0.113.10 --mode public \
               --worker-host 10.0.0.2 --worker-user dauntless --worker-key "$tmp/worker.key" \
               --worker-command dr-game-worker
-            (cd UndauntedMetagame && node --env-file="$tmp/config/metagame.env" -e 'require("./dist/db.js").GetDb()')
-            node deploy/unix-common/dr-db.cjs integrity "$PWD/UndauntedMetagame" "$tmp/data/undaunted.db"
+            (cd DauntlessUnbrokenMetagame && node --env-file="$tmp/config/metagame.env" -e 'require("./dist/db.js").GetDb()')
+            node deploy/unix-common/dr-db.cjs integrity "$PWD/DauntlessUnbrokenMetagame" "$tmp/data/dauntless-unbroken.db"
             ksh deploy/openbsd-server/configure-pf.ksh \
               --mode public --interface vio0 --worker-interface vio0 --worker-ip 10.0.0.2 \
               --output "$tmp/pf.conf"
@@ -275,7 +275,7 @@ jobs:
         run: |
           set -euo pipefail
           out="$(mktemp -d)"
-          for source in UndauntedInternalServer/tests/*.cpp; do
+          for source in DauntlessUnbrokenInternalServer/tests/*.cpp; do
             # Windows CRT and HID/XInput tests run in the Windows job.
             [[ "$source" == */server-locale.cpp || "$source" == */dualsense.cpp ]] && continue
             name="$(basename "$source" .cpp)"
@@ -284,7 +284,7 @@ jobs:
             echo "PASS $name"
           done
           g++ -std=c++20 -Wall -Wextra -Werror -g -fsanitize=address,undefined \
-            -fno-omit-frame-pointer UndauntedInternalServer/tests/fall-recovery-policy.cpp \
+            -fno-omit-frame-pointer DauntlessUnbrokenInternalServer/tests/fall-recovery-policy.cpp \
             -o "$out/fall-recovery-sanitized"
           "$out/fall-recovery-sanitized"
 
@@ -305,7 +305,7 @@ jobs:
           $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
           $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
           if (-not $msbuild) { throw 'MSBuild not found' }
-          & $msbuild UndauntedInternalServer\UndauntedInternalServer.sln /m /t:Build /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143
+          & $msbuild DauntlessUnbrokenInternalServer\DauntlessUnbrokenInternalServer.sln /m /t:Build /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Test Windows native regressions
@@ -318,7 +318,7 @@ jobs:
           @call "$vs\VC\Auxiliary\Build\vcvars64.bat"
           @if errorlevel 1 exit /b 1
           @for %%t in (server-locale dualsense console-visibility) do @(
-          cl /nologo /std:c++20 /EHsc /W4 /WX /O2 UndauntedInternalServer\tests\%%t.cpp /Fe:"$env:RUNNER_TEMP\%%t.exe" /Fo:"$env:RUNNER_TEMP\%%t.obj" user32.lib
+          cl /nologo /std:c++20 /EHsc /W4 /WX /O2 DauntlessUnbrokenInternalServer\tests\%%t.cpp /Fe:"$env:RUNNER_TEMP\%%t.exe" /Fo:"$env:RUNNER_TEMP\%%t.obj" user32.lib
           if errorlevel 1 exit /b 1
           "$env:RUNNER_TEMP\%%t.exe"
           if errorlevel 1 exit /b 1
@@ -329,20 +329,20 @@ jobs:
 
       - name: Verify DLL output
         run: |
-          $dll = Get-ChildItem -Path UndauntedInternalServer -Filter UndauntedInternalServer.dll -Recurse |
+          $dll = Get-ChildItem -Path DauntlessUnbrokenInternalServer -Filter DauntlessUnbroken.dll -Recurse |
             Where-Object { $_.FullName -match '[\\/]x64[\\/]Release[\\/]' } |
             Select-Object -First 1
           if (-not $dll) { throw 'Release x64 DLL not found' }
           $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $dll.FullName).Hash.ToLowerInvariant()
           Write-Output "DLL: $($dll.FullName)"
           Write-Output "SHA256: $hash"
-          Copy-Item -LiteralPath $dll.FullName -Destination "$env:RUNNER_TEMP\UndauntedInternalServer.dll"
+          Copy-Item -LiteralPath $dll.FullName -Destination "$env:RUNNER_TEMP\DauntlessUnbroken.dll"
 
       - name: Keep candidate DLL
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: internal-server-dll
-          path: ${{ runner.temp }}/UndauntedInternalServer.dll
+          path: ${{ runner.temp }}/DauntlessUnbroken.dll
           if-no-files-found: error
           retention-days: 7
 
@@ -364,10 +364,10 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: |
-            UndauntedMetagame/package-lock.json
-            UndauntedGateway/package-lock.json
-            UndauntedContent/package-lock.json
-            UndauntedDeployServer/package-lock.json
+            DauntlessUnbrokenMetagame/package-lock.json
+            DauntlessUnbrokenGateway/package-lock.json
+            DauntlessUnbrokenContent/package-lock.json
+            DauntlessUnbrokenDeployServer/package-lock.json
 
       - name: Every PowerShell script parses in Windows PowerShell 5.1
         run: |
@@ -403,7 +403,7 @@ jobs:
 
       - name: Install the gateway's dependencies (Test-KitUnit uses its certificate tool)
         shell: pwsh
-        working-directory: UndauntedGateway
+        working-directory: DauntlessUnbrokenGateway
         run: npm ci --no-audit --no-fund
 
       - name: Unit checks (Test-KitUnit.ps1)
@@ -458,7 +458,7 @@ jobs:
             exit 1
           fi
 
-      # The same build GitHub Pages runs for this site (branch dauntless-revived, folder /docs). The action
+      # The same build GitHub Pages runs for this site (branch dauntless-unbroken, folder /docs). The action
       # is pinned by commit; its Docker image (ghcr.io/actions/jekyll-build-pages) by version tag only, so
       # this job keeps read-only permissions and no secrets.
       - name: Build the site like GitHub Pages
@@ -522,8 +522,8 @@ jobs:
     name: Launcher release needed?
     needs: [node-packages, launcher, launcher-linux, server-port-linux, server-port-openbsd, native-regressions, internal-server-dll, server-kit, docs, repo-hygiene]
     if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/dauntless-revived' &&
-      github.repository == 'mixutin/dauntless-revived' && vars.LAUNCHER_AUTO_RELEASE != 'false'
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      github.repository == 'Vvoidddd/dauntless-unbroken' && vars.LAUNCHER_AUTO_RELEASE != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -533,7 +533,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          sparse-checkout: UndauntedLauncher/package.json
+          sparse-checkout: DauntlessUnbrokenLauncher/package.json
           sparse-checkout-cone-mode: false
 
       # A first look; launcher-release.yml decides again, under its lock, right before publishing.
@@ -546,12 +546,12 @@ jobs:
           COMMIT: ${{ github.sha }}
         run: |
           set -euo pipefail
-          version="$(node -p 'require("./UndauntedLauncher/package.json").version')"
+          version="$(node -p 'require("./DauntlessUnbrokenLauncher/package.json").version')"
           tag="launcher-v$version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           publish=false
           if out="$(gh api "repos/$GH_REPO/releases/tags/$tag" --jq .html_url 2>&1)"; then
-            echo "$tag is published already ($out). Raise the version in UndauntedLauncher/package.json to publish a new one."
+            echo "$tag is published already ($out). Raise the version in DauntlessUnbrokenLauncher/package.json to publish a new one."
           elif ! grep -q 'HTTP 404' <<<"$out"; then
             echo "::error::could not look up the release $tag: $out"
             exit 1

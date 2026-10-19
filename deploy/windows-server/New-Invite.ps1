@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Creates an invite code on this Dauntless Revived server and prints the invite string for a friend.
+    Creates an invite code on this Dauntless Unbroken server and prints the invite string for a friend.
 
 .DESCRIPTION
     Uses the owner (admin) key from <root>\data\keys\owner.key (never printed) to call the metagame's
@@ -8,13 +8,13 @@
     one line the friend pastes into the launcher (or clicks, once the launcher is installed).
 
     Public mode (v2):
-        dauntless-revived://join?v=2&mode=public&host=203.0.113.7&port=443&fp=<64 hex>&code=ABCD-EFGH-JKLM&name=...
+        dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=<64 hex>&code=ABCD-EFGH-JKLM&name=...
     The fp is the SHA-256 of the gateway's certificate; the launcher accepts that certificate and no
     other, so nobody in between can read or change the traffic. Before printing, the script connects to
     the gateway exactly as a launcher would (TLS, pinned to that fingerprint) and checks that it answers.
 
     Private mode (v1, Tailscale):
-        dauntless-revived://join?v=1&host=100.x.y.z&port=61000&code=ABCD-EFGH-JKLM&name=...&share=...
+        dauntless-unbroken://join?v=1&host=100.x.y.z&port=61000&code=ABCD-EFGH-JKLM&name=...&share=...
     A friend can only reach the server after you share this machine with their Tailscale account:
     Tailscale admin console > Machines > this machine > "..." > Share. If you put the share link in
     -ShareUrl (or once with -SaveShareUrl), it goes into the invite and the launcher opens it for them.
@@ -24,9 +24,9 @@
     -Revoke <code> deletes one.
 
 .EXAMPLE
-    C:\DauntlessRevived\bin\New-Invite.ps1 -For Alex
+    C:\DauntlessUnbroken\bin\New-Invite.ps1 -For Alex
 .EXAMPLE
-    C:\DauntlessRevived\bin\New-Invite.ps1 -Uses 3 -For "Saturday group"
+    C:\DauntlessUnbroken\bin\New-Invite.ps1 -Uses 3 -For "Saturday group"
 #>
 [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Create')]
 param(
@@ -41,7 +41,7 @@ param(
     [Parameter(ParameterSetName = 'Revoke')][string]$Revoke
 )
 $ErrorActionPreference = 'Stop'
-. "$PSScriptRoot\DauntlessServer.Common.ps1"
+. "$PSScriptRoot\DauntlessUnbrokenServer.Common.ps1"
 
 try {
     $Root = Resolve-DRRoot $Root $PSScriptRoot
@@ -55,7 +55,7 @@ try {
     if (-not (Test-Path -LiteralPath $P.OwnerKey)) { Stop-DR "No owner key at $($P.OwnerKey)." }
     try { $key = ([IO.File]::ReadAllText($P.OwnerKey)).Trim() }
     catch { Stop-DR "Cannot read $($P.OwnerKey). Run this in an elevated PowerShell (Run as administrator)." }
-    $h = @{ 'x-undaunted-user-api-key' = $key }
+    $h = @{ 'x-dauntless-unbroken-user-api-key' = $key }
 
     $me = Invoke-DRHttp -Url "$api/GetUserInfo" -Headers $h -TimeoutSec 10
     if ($me.Status -eq 0) { Stop-DR "The metagame at ${bind}:$port does not answer ($($me.Error)). Is the stack running? (Stack.ps1 status)" }
@@ -84,7 +84,7 @@ try {
         exit 0
     }
 
-    $name = Get-DRConfigValue $Cfg 'ServerName' 'Dauntless Revived'
+    $name = Get-DRConfigValue $Cfg 'ServerName' 'Dauntless Unbroken'
     if ($For -and $For -match '[\x00-\x1f]') { Stop-DR '-For must be plain text.' }
 
     if ($mode -eq 'Public') {
@@ -167,7 +167,7 @@ try {
         Write-Host '  The friend pastes the whole line into the launcher. They need nothing else: no Tailscale, no'
         Write-Host '  port forwarding. Send it privately (it lets one person create an account).'
         Write-Host ''
-        Write-Host "  Launcher: $($DRRepo.Url)/releases/latest  (DauntlessRevivedLauncher-Setup.exe)"
+        Write-Host "  Launcher: $($DRRepo.Url)/releases/latest  (DauntlessUnbrokenLauncher-Setup.exe)"
         Write-Host '  Windows may warn that the app is unrecognised: More info > Run anyway. If it only offers'
         Write-Host '  "Don''t run": check the file''s SHA-256 (Get-FileHash) against SHA256SUMS.txt from the same'
         Write-Host '  release, then right-click the file > Properties > Unblock, or run Unblock-File on it.'

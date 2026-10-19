@@ -1,7 +1,7 @@
 ---
 title: Taustapalvelun rajapinta
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 3
 lang: fi
 ref: findings/backend-contract

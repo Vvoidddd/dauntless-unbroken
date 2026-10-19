@@ -1,9 +1,9 @@
 ---
 title: Linux-palvelin
 parent: Asennus
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 7
-description: "Dauntless Revived -palvelin x86_64-Linuxissa: natiivit Node-palvelut, Proton/Wine-pelipalvelimet, systemd ja nftables."
+description: "Dauntless Unbroken -palvelin x86_64-Linuxissa: natiivit Node-palvelut, Proton/Wine-pelipalvelimet, systemd ja nftables."
 lang: fi
 ref: setup/linux-server
 locale: fi_FI
@@ -153,9 +153,9 @@ Kääre pakottaa asetuksen `WINEDLLOVERRIDES=dxgi=n,b`, jotta kiinnitetty `dxgi.
 
 | Asia | Oletuspolku |
 |---|---|
-| Sovellus | `/opt/dauntless-revived` |
-| Tietokanta, TLS ja tila | `/var/lib/dauntless-revived` |
-| Salaiset asetukset | `/etc/dauntless-revived` |
+| Sovellus | `/opt/dauntless-unbroken` |
+| Tietokanta, TLS ja tila | `/var/lib/dauntless-unbroken` |
+| Salaiset asetukset | `/etc/dauntless-unbroken` |
 | systemd-yksiköt | `/etc/systemd/system/dauntless-*.service` |
 
 Hallinta:
@@ -170,8 +170,8 @@ sudo ./deploy/linux-server/stack.sh logs
 ## Tee kutsu
 
 ```bash
-sudo -u dauntless node /opt/dauntless-revived/deploy/unix-common/new-invite.mjs \
-  --config /etc/dauntless-revived \
+sudo -u dauntless node /opt/dauntless-unbroken/deploy/unix-common/new-invite.mjs \
+  --config /etc/dauntless-unbroken \
   --name KaverinNimi
 ```
 
@@ -202,10 +202,10 @@ palautusta.
 SQLite-varmuuskopio:
 
 ```bash
-sudo -u dauntless node /opt/dauntless-revived/deploy/unix-common/dr-db.cjs \
-  backup /opt/dauntless-revived/UndauntedMetagame \
-  /var/lib/dauntless-revived/undaunted.db \
-  /var/lib/dauntless-revived/undaunted-backup.db
+sudo -u dauntless node /opt/dauntless-unbroken/deploy/unix-common/dr-db.cjs \
+  backup /opt/dauntless-unbroken/DauntlessUnbrokenMetagame \
+  /var/lib/dauntless-unbroken/dauntless-unbroken.db \
+  /var/lib/dauntless-unbroken/dauntless-unbroken-backup.db
 ```
 
 Päivitä lähdekoodi ja aja asennin uudelleen samoilla asetuksilla. Säilytä samat data- ja

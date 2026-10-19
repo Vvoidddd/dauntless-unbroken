@@ -1,9 +1,9 @@
 ---
 title: Vianetsintä
 parent: Asennus
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 5
-description: "Dauntless 1.4.4 ja Dauntless Revived -palvelin: ongelmat, joihin törmäsimme, syineen ja korjauksineen. Varatut portit, kirjautuminen, sumea grafiikka, Defender ja git."
+description: "Dauntless 1.4.4 ja Dauntless Unbroken -palvelin: ongelmat, joihin törmäsimme, syineen ja korjauksineen. Varatut portit, kirjautuminen, sumea grafiikka, Defender ja git."
 lang: fi
 ref: setup/troubleshooting
 locale: fi_FI
@@ -21,7 +21,7 @@ locale: fi_FI
 # Vianetsintä
 {: .no_toc }
 
-Nämä ovat ongelmat, joihin oikeasti törmäsimme Dauntless Revivedia pystyttäessä, syineen ja
+Nämä ovat ongelmat, joihin oikeasti törmäsimme Dauntless Unbrokenia pystyttäessä, syineen ja
 korjauksineen. Muutama lopun kohta on peräisin koodin lukemisesta, eivätkä ne ole vielä osuneet
 meihin; ne on merkitty. Itse asennus on sivulla [Pystytä palvelin]({{ host_page.url | relative_url }}).
 Ellei kohdassa sanota toisin, se koskee peliversiota **1.4.4**. Versiota **2.1.1** koskevat kohdat on
@@ -49,8 +49,8 @@ Portti on numeroitu ”ovi”, jonka kautta ohjelmat ottavat yhteyttä toisiinsa
 | Pelipalvelinten konsoli-ikkunat | Palvelin-DLL:n avaamia; ne näyttävät palvelimen oman tulosteen. Ramsgaten ja Dojon ikkunat näkyvät. Metsästyspalvelimet käynnistetään ikkuna piilotettuna. |
 | Peliohjelman konsoli-ikkuna | DLL avaa sen client-tilassa ja pitää sen piilossa. Näet sen, kun otat käynnistimessä käyttöön Asetukset > Käynnistin > Vianmääritys > "Näytä lokiruutu" (se antaa pelille `DR_SHOW_CONSOLE=1`). **Kun asetus on käytössä ja konsoli-ikkunaa ei ilmesty peliohjelman käynnistyessä, DLL-tiedostot eivät ole latautuneet.** |
 | `%LOCALAPPDATA%\Archon\Saved\Crashes\` | Kaatumisraportit. Niiden lukemisesta kerrotaan sivulla [Kaatumisten tutkiminen]({{ crashes_page.url | relative_url }}). |
-| `C:\DauntlessRevived\data\logs\` (Windows-palvelinpaketti) | Samat lokit nimillä `metagame.out.log` ja `deploy.out.log` sekä yhdyskäytävän pääsyloki (`gateway.out.log`) ja valvojan `supervisor.log`. |
-| `%APPDATA%\Dauntless Revived Launcher\logs\launcher.log` | Kavereiden käynnistin: liittymiset, yhteysongelmat, lataukset ja pelin komentorivi (avain piilotettuna). |
+| `C:\DauntlessUnbroken\data\logs\` (Windows-palvelinpaketti) | Samat lokit nimillä `metagame.out.log` ja `deploy.out.log` sekä yhdyskäytävän pääsyloki (`gateway.out.log`) ja valvojan `supervisor.log`. |
+| `%APPDATA%\Dauntless Unbroken Launcher\logs\launcher.log` | Kavereiden käynnistin: liittymiset, yhteysongelmat, lataukset ja pelin komentorivi (avain piilotettuna). |
 
 Jokainen lokitiedosto, sen muoto ja kierrätys: [Tiedostot ja data]({{ files_page.url | relative_url }}#logs).
 
@@ -148,7 +148,7 @@ fatal: remote helper 'https' aborted session
 ```
 
 **Syy.** Windowsin 260 merkin polkuraja. Työkansion polku oli jo pitkä, ja repositorio lisää jopa 94
-merkkiä. Syvimmät nimet ovat kansiossa `UndauntedInternalServer/SDK/`, joka on yli 4 000 tiedoston
+merkkiä. Syvimmät nimet ovat kansiossa `DauntlessUnbrokenInternalServer/SDK/`, joka on yli 4 000 tiedoston
 generoitu SDK. Gitin omat tiedostot `.git`-kansiossa lisäävät pituutta vielä. Valitsimen
 `-c core.longpaths=true` lisääminen **ei** korjannut ongelmaa: `$GIT_DIR`-virhe johtuu siitä, että
 itse repositorion sijainnin polku on liian pitkä.
@@ -231,7 +231,7 @@ ja käynnistin poistaa version 0.1.0 kirjoittaman rivin seuraavalla käynnistysk
 lyhyt kohtaus.
 
 **Kokeilu, jota voit kokeilla.** Vvoidddd lisäsi käynnistimeen valinnaisen asetuksen
-([#7](https://github.com/mixutin/dauntless-revived/pull/7)): kohdassa Asetukset > Grafiikka
+([#7](https://github.com/Vvoidddd/dauntless-unbroken/pull/7)): kohdassa Asetukset > Grafiikka
 **Automaattinen valotus** tarjoaa vaihtoehdon **Mukautuva perusvalotus (kokeellinen)**. Se
 kirjoittaa `Engine.ini`-tiedostoon rivin `r.EyeAdaptation.MethodOverride=2`, jonka 1.4.4:n
 peliohjelma (tiivisteellä kiinnitetty `Dauntless-Win64-Shipping.exe`) kuvaa nimellä ”Auto Basic”:
@@ -315,7 +315,7 @@ EOS-overlayta, ja se kirjautuu avaimella, jonka oma metagamemme on myöntänyt.
 
 ## Windows Defender ja allekirjoittamattomat DLL-tiedostot {#windows-defender-and-the-unsigned-dlls}
 
-**Tausta.** `dxgi.dll` ja `UndauntedInternalServer.dll` ovat allekirjoittamattomia. Peliin koukkuja
+**Tausta.** `dxgi.dll` ja `DauntlessUnbroken.dll` ovat allekirjoittamattomia. Peliin koukkuja
 asentava (hook) välittäjä-DLL on juuri sellainen asia, jonka virustorjunnan heuristiikka merkitsee
 epäilyttäväksi. Meidän koneellamme Defender **ei ilmoittanut mistään** sen jälkeen, kun kopioimme
 tiedostot paikalleen. Tarkistimme sen näin:
@@ -338,7 +338,7 @@ Get-MpThreatDetection -ErrorAction SilentlyContinue | Where-Object { $_.InitialD
   tiedostot merkitään internetistä tulleiksi. Kun olet tarkistanut tiivisteet, `Unblock-File` kahdelle
   DLL-tiedostolle poistaa tuon merkinnän.
 
-Pysyvä korjaus on kääntää `UndauntedInternalServer.dll` lähdekoodista ja korvata `dxgi.dll` omalla
+Pysyvä korjaus on kääntää `DauntlessUnbroken.dll` lähdekoodista ja korvata `dxgi.dll` omalla
 pienellä välittäjällämme. `dxgi.dll`-tiedoston lähdekoodi ei ole Undauntedin repositoriossa, eikä sitä
 tietääksemme ole julkaistu. Molemmat ovat [tiekartalla]({{ roadmap_page.url | relative_url }}).
 
@@ -367,7 +367,7 @@ npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to revi
 Tarkista natiivimoduuli:
 
 ```powershell
-Test-Path C:\dr\undaunted\UndauntedMetagame\node_modules\better-sqlite3\build\Release\better_sqlite3.node
+Test-Path C:\dr\undaunted\DauntlessUnbrokenMetagame\node_modules\better-sqlite3\build\Release\better_sqlite3.node
 ```
 
 **Jos tämä tulostaa `False`,** metagame ei voi avata tietokantaansa. Tarkista ja hyväksy vain se

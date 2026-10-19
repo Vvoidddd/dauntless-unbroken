@@ -1,6 +1,6 @@
 ---
 title: Työkalut
-parent: Dauntless Revived suomeksi
+parent: Dauntless Unbroken suomeksi
 nav_order: 7
 lang: fi
 ref: tools
@@ -39,7 +39,7 @@ avaamaan näitä tiedostoja.
 ## Lisenssi ja perussäännöt {#licence-and-ground-rules}
 
 - Skriptit julkaistaan **GNU Affero General Public License v3.0 (AGPL-3.0)** -lisenssillä yhdessä
-  Undaunted-haaramme (fork, eli oman muokatun kopiomme) kanssa. **Tila:** ne eivät ole vielä
+  dauntless-unbroken-haaramme (fork, eli oman muokatun kopiomme) kanssa. **Tila:** ne eivät ole vielä
   repositoriossa; aiomme lisätä ne `tools/`-kansioon. Nykyisessä `tools/`-kansiossa on projektin omat
   käännös- ja paketointiskriptit, eivät nämä; ne on lueteltu sivulla
   [Skriptit ja parametrit]({{ scripts_page.url | relative_url }}).

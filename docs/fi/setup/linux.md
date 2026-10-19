@@ -2,7 +2,7 @@
 title: Linux-käynnistin
 parent: Asennus
 nav_order: 3
-description: "Dauntless Revived Linuxissa: Ubuntu, Debian, Mint, Pop!_OS, Fedora, openSUSE, Arch, EndeavourOS, CachyOS, Manjaro, NixOS, Gentoo, Void ja muut x86_64-jakelut."
+description: "Dauntless Unbroken Linuxissa: Ubuntu, Debian, Mint, Pop!_OS, Fedora, openSUSE, Arch, EndeavourOS, CachyOS, Manjaro, NixOS, Gentoo, Void ja muut x86_64-jakelut."
 lang: fi
 ref: setup/linux
 locale: fi_FI
@@ -14,7 +14,7 @@ locale: fi_FI
 # Linux-käynnistin
 {: .no_toc }
 
-Dauntless Revived Launcher toimii natiivisti **x86_64-Linuxissa**. Itse Dauntless 1.4.4 on edelleen
+Dauntless Unbroken Launcher toimii natiivisti **x86_64-Linuxissa**. Itse Dauntless 1.4.4 on edelleen
 alkuperäinen Windowsin x86_64-versio, joten käynnistin ajaa pelin **Protonin tai Winen** kautta.
 Kutsu, tili ja palvelin ovat samat kuin Windows-pelaajilla.
 
@@ -44,16 +44,16 @@ käyttäviä järjestelmiä ei tällä hetkellä luvata tuetuiksi, koska Electro
 on tehty glibc:lle.
 
 Lataa uusin käynnistin
-[GitHub Releases -sivulta](https://github.com/mixutin/dauntless-revived/releases/latest). Jokaisessa
+[GitHub Releases -sivulta](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest). Jokaisessa
 käynnistinjulkaisussa on:
 
 | Tiedosto | Suositus |
 |:--|:--|
-| `DauntlessRevivedLauncher-<versio>-linux-x86_64.AppImage` | Yleispaketti useimmille työpöytäjakeluille |
-| `DauntlessRevivedLauncher-<versio>-linux-amd64.deb` | Debian, Ubuntu, Mint, Pop!_OS ja johdannaiset |
-| `DauntlessRevivedLauncher-<versio>-linux-x86_64.rpm` | Fedora, openSUSE ja tavalliset RPM-järjestelmät |
-| `DauntlessRevivedLauncher-<versio>-linux-x64.tar.gz` | Siirrettävä varavaihtoehto esimerkiksi Archille ja Gentoolle |
-| `DauntlessRevivedLauncher-<versio>-linux-x64.zip` | Sama siirrettävä sovellus ZIP-muodossa |
+| `DauntlessUnbrokenLauncher-<versio>-linux-x86_64.AppImage` | Yleispaketti useimmille työpöytäjakeluille |
+| `DauntlessUnbrokenLauncher-<versio>-linux-amd64.deb` | Debian, Ubuntu, Mint, Pop!_OS ja johdannaiset |
+| `DauntlessUnbrokenLauncher-<versio>-linux-x86_64.rpm` | Fedora, openSUSE ja tavalliset RPM-järjestelmät |
+| `DauntlessUnbrokenLauncher-<versio>-linux-x64.tar.gz` | Siirrettävä varavaihtoehto esimerkiksi Archille ja Gentoolle |
+| `DauntlessUnbrokenLauncher-<versio>-linux-x64.zip` | Sama siirrettävä sovellus ZIP-muodossa |
 
 Lataa myös `SHA256SUMS.txt` ja tarkista lataus:
 
@@ -69,7 +69,7 @@ Käytä `.deb`-pakettia:
 
 ```bash
 cd ~/Downloads
-sudo apt install ./DauntlessRevivedLauncher-*-linux-amd64.deb
+sudo apt install ./DauntlessUnbrokenLauncher-*-linux-amd64.deb
 ```
 
 APT ratkaisee riippuvuudet, kun paikallinen DEB asennetaan näin.
@@ -77,18 +77,18 @@ APT ratkaisee riippuvuudet, kun paikallinen DEB asennetaan näin.
 Käynnistin etsii asennetut Proton-versiot automaattisesti sekä natiivista Steamista että Flatpak
 Steamista. Wine käy myös. Jos sopivaa ajoympäristöä ei löydy, paketoitu Linux-käynnistin voi pyytää
 Polkit-valtuutuksen ja asentaa jakelun Wine-paketin automaattisesti, kun painat **PELAA**. Aseta
-`DAUNTLESS_REVIVED_AUTO_INSTALL=0`, jos haluat hallita riippuvuudet itse.
+`DAUNTLESS_UNBROKEN_AUTO_INSTALL=0`, jos haluat hallita riippuvuudet itse.
 
 Oletuspelikansio Linuxissa on:
 
 ```text
-~/Games/DauntlessRevived
+~/Games/DauntlessUnbroken
 ```
 
 Päivitä lataamalla uudempi DEB ja ajamalla sama `apt install ./...` -komento. Poista vain käynnistin:
 
 ```bash
-sudo apt remove dauntless-revived-launcher
+sudo apt remove dauntless-unbroken-launcher
 ```
 
 Käynnistimen poistaminen ei tarkoituksella poista ladattua peliä tai käyttäjätietoja.
@@ -99,7 +99,7 @@ Tavallisessa muokattavassa Fedora/RHEL-sukuisessa järjestelmässä käytä RPM:
 
 ```bash
 cd ~/Downloads
-sudo dnf install ./DauntlessRevivedLauncher-*-linux-x86_64.rpm
+sudo dnf install ./DauntlessUnbrokenLauncher-*-linux-x86_64.rpm
 ```
 
 Fedora tarjoaa Winen `wine`-metapakettina:
@@ -115,8 +115,8 @@ asentavat Steamin usein RPM Fusionista; Nobarassa pelikäyttöön tarvittavia os
 AppImagea kuin kerrostat RPM-paketin perusjärjestelmään:
 
 ```bash
-chmod +x DauntlessRevivedLauncher-*-linux-x86_64.AppImage
-./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 Jos Steam on Flatpak, katso [Flatpak Steam ja Proton](#flatpak-steam-ja-proton).
@@ -124,7 +124,7 @@ Jos Steam on Flatpak, katso [Flatpak Steam ja Proton](#flatpak-steam-ja-proton).
 RPM-asennuksen poistaminen:
 
 ```bash
-sudo dnf remove dauntless-revived-launcher
+sudo dnf remove dauntless-unbroken-launcher
 ```
 
 ## openSUSE Tumbleweed ja Leap
@@ -133,7 +133,7 @@ Asenna RPM Zypperillä:
 
 ```bash
 cd ~/Downloads
-sudo zypper install ./DauntlessRevivedLauncher-*-linux-x86_64.rpm
+sudo zypper install ./DauntlessUnbrokenLauncher-*-linux-x86_64.rpm
 ```
 
 Jos et käytä Steam Protonia, asenna Wine:
@@ -145,7 +145,7 @@ sudo zypper install wine
 Päivitä asentamalla uudempi RPM samalla komennolla. Poista käynnistin:
 
 ```bash
-sudo zypper remove dauntless-revived-launcher
+sudo zypper remove dauntless-unbroken-launcher
 ```
 
 ## Arch Linux, EndeavourOS, CachyOS ja Manjaro
@@ -156,16 +156,16 @@ AppImage:
 
 ```bash
 cd ~/Downloads
-chmod +x DauntlessRevivedLauncher-*-linux-x86_64.AppImage
-./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 Siirrettävä tar.gz:
 
 ```bash
-mkdir -p ~/.local/opt/dauntless-revived
-tar -xzf DauntlessRevivedLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-revived
-~/.local/opt/dauntless-revived/DauntlessRevivedLauncher
+mkdir -p ~/.local/opt/dauntless-unbroken
+tar -xzf DauntlessUnbrokenLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-unbroken
+~/.local/opt/dauntless-unbroken/DauntlessUnbrokenLauncher
 ```
 
 Steam Protonia varten ota Archissa `multilib` käyttöön ja asenna Steam:
@@ -195,7 +195,7 @@ Tavallinen AppImage ei toimi NixOS:ssa suoraan, koska tavallisia FHS-kirjastopol
 Kertaluonteisesti:
 
 ```bash
-nix-shell -p appimage-run --run 'appimage-run ./DauntlessRevivedLauncher-*-linux-x86_64.AppImage'
+nix-shell -p appimage-run --run 'appimage-run ./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage'
 ```
 
 Pysyvä AppImage- ja Steam-tuki `/etc/nixos/configuration.nix`-tiedostoon:
@@ -223,7 +223,7 @@ programs.steam.extraCompatPackages = with pkgs; [
 ];
 ```
 
-Jos käynnistin ei löydä sitä automaattisesti, osoita `DAUNTLESS_REVIVED_PROTON` oikeaan
+Jos käynnistin ei löydä sitä automaattisesti, osoita `DAUNTLESS_UNBROKEN_PROTON` oikeaan
 `proton`-skriptiin.
 
 ## Gentoo
@@ -231,9 +231,9 @@ Jos käynnistin ei löydä sitä automaattisesti, osoita `DAUNTLESS_REVIVED_PROT
 Siirrettävä tar.gz on yksinkertaisin vaihtoehto:
 
 ```bash
-mkdir -p ~/.local/opt/dauntless-revived
-tar -xzf DauntlessRevivedLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-revived
-~/.local/opt/dauntless-revived/DauntlessRevivedLauncher
+mkdir -p ~/.local/opt/dauntless-unbroken
+tar -xzf DauntlessUnbrokenLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-unbroken
+~/.local/opt/dauntless-unbroken/DauntlessUnbrokenLauncher
 ```
 
 AppImage käy myös sopivasti määritetyllä työpöydällä.
@@ -245,23 +245,23 @@ sudo emerge --ask app-emulation/wine-proton
 ```
 
 Jos Wine ei tule `PATH`-muuttujaan nimellä `wine` tai `wine64`, aseta
-`DAUNTLESS_REVIVED_WINE` Winen ohjelmatiedostoon ennen käynnistystä.
+`DAUNTLESS_UNBROKEN_WINE` Winen ohjelmatiedostoon ennen käynnistystä.
 
 ## Void Linux
 
 Käytä AppImagea:
 
 ```bash
-chmod +x DauntlessRevivedLauncher-*-linux-x86_64.AppImage
-./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 tai tar-pakettia:
 
 ```bash
-mkdir -p ~/.local/opt/dauntless-revived
-tar -xzf DauntlessRevivedLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-revived
-~/.local/opt/dauntless-revived/DauntlessRevivedLauncher
+mkdir -p ~/.local/opt/dauntless-unbroken
+tar -xzf DauntlessUnbrokenLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-unbroken
+~/.local/opt/dauntless-unbroken/DauntlessUnbrokenLauncher
 ```
 
 Jos et käytä Steam Protonia, asenna Wine Voidin pakettilähteestä:
@@ -275,8 +275,8 @@ sudo xbps-install -S wine
 Aloita **AppImagella**, koska se ei riipu jakelun omasta pakettimuodosta:
 
 ```bash
-chmod +x DauntlessRevivedLauncher-*-linux-x86_64.AppImage
-./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 Jos AppImage ei sovi järjestelmään, käytä siirrettävää `.tar.gz`-pakettia.
@@ -304,15 +304,15 @@ Flatpak Steam käyttää tavallisesti:
 Tämä polku tutkitaan nyt automaattisesti. Käynnistä Flatpak Steam kerran ja asenna vähintään yksi
 Proton-versio; käynnistin löytää sen ilman wrapper-skriptiä tai ympäristömuuttujaa.
 
-`DAUNTLESS_REVIVED_PROTON`-muuttujaa voi edelleen käyttää tietyn Proton-skriptin pakottamiseen
+`DAUNTLESS_UNBROKEN_PROTON`-muuttujaa voi edelleen käyttää tietyn Proton-skriptin pakottamiseen
 vianetsinnässä tai jos Steam-kirjasto on epästandardissa polussa.
 
 ## Protonin tai Winen valinta
 
 Valintajärjestys on:
 
-1. `DAUNTLESS_REVIVED_PROTON`, jos se on asetettu;
-2. `DAUNTLESS_REVIVED_WINE`, jos se on asetettu;
+1. `DAUNTLESS_UNBROKEN_PROTON`, jos se on asetettu;
+2. `DAUNTLESS_UNBROKEN_WINE`, jos se on asetettu;
 3. Steam Proton / Proton-GE natiivin Steamin tavallisissa kansioissa;
 4. Steam Proton / Proton-GE Flatpak Steamista;
 5. `wine64` tai `wine` `PATH`-muuttujasta;
@@ -322,13 +322,13 @@ Valintajärjestys on:
 Esimerkkejä:
 
 ```bash
-DAUNTLESS_REVIVED_PROTON="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton10-1/proton" \
-  ./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+DAUNTLESS_UNBROKEN_PROTON="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton10-1/proton" \
+  ./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 ```bash
-DAUNTLESS_REVIVED_WINE=/usr/bin/wine64 \
-  ./DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+DAUNTLESS_UNBROKEN_WINE=/usr/bin/wine64 \
+  ./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 Käynnistin tekee oman Wine/Proton-prefiksinsä Electronin käyttäjätietokansioon. Älä osoita sitä
@@ -338,11 +338,11 @@ olemassa olevan Steam-pelin prefiksiin.
 
 Kun käynnistin on auki, käyttö on sama kaikissa Linux-jakeluissa:
 
-1. Avaa tai liitä ylläpitäjän `dauntless-revived://join?...`-kutsu.
+1. Avaa tai liitä ylläpitäjän `dauntless-unbroken://join?...`-kutsu.
 2. Paina **LIITY**.
 3. Rekisteröi käyttäjänimi tai tuo olemassa oleva tiliavain.
 4. Tallenna tarjottu avaimen varmuuskopio yksityiseen paikkaan.
-5. Paina **ASENNA**. Oletuspelikansio on `~/Games/DauntlessRevived`.
+5. Paina **ASENNA**. Oletuspelikansio on `~/Games/DauntlessUnbroken`.
 6. Jos sinulla on jo täsmälleen oikeat 1.4.4-tiedostot, valitse **Minulla on jo pelitiedostot** ja
    osoita niiden Linux-kansio.
 7. Paina **PELAA**. Käynnistin valmistelee Wine/Proton-prefiksin, kirjoittaa pelin asetukset ja
@@ -361,7 +361,7 @@ Muu pelaajan käyttö löytyy sivulta
 Käynnistin ei löytänyt yhteensopivaa ajoympäristöä eikä automaattinen asennus saanut sitä käyttöön.
 Normaalisti käynnistin tarjoaa Winen asennusta jakelun paketinhallinnalla, kun painat **PELAA**. Voit
 myös asentaa Steam + Protonin, Winen tai Lutris Winen itse. Jos ajoympäristö on epästandardissa
-polussa, aseta `DAUNTLESS_REVIVED_PROTON` tai `DAUNTLESS_REVIVED_WINE`.
+polussa, aseta `DAUNTLESS_UNBROKEN_PROTON` tai `DAUNTLESS_UNBROKEN_WINE`.
 
 ### "The operating system couldn't store your key securely"
 
@@ -376,7 +376,7 @@ riippuvuuksien asennus on poistettu käytöstä, asenna työpöytäsi Secret Ser
 Varmista ensin, että tiedosto on suoritettava:
 
 ```bash
-chmod +x DauntlessRevivedLauncher-*-linux-x86_64.AppImage
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
 ```
 
 NixOS:ssa käytä `appimage-run`-työkalua. Jos AppImage/FUSE ei sovi muuhun jakeluun, käytä
@@ -386,7 +386,7 @@ siirrettävää tar-pakettia.
 
 Päivitä ensin **käynnistimeen 0.1.13 tai uudempaan**. Versiossa 0.1.12 Proton saattoi käynnistyä ja
 Discord-tila päivittyä, vaikka itse peli jumittui ennen kuin Unreal Engine ehti luoda ikkunan.
-Injektoitu `UndauntedInternalServer.dll` teki Windowsin konsolialustusta Wine/Protonin DLL-latauksen
+Injektoitu `DauntlessUnbroken.dll` teki Windowsin konsolialustusta Wine/Protonin DLL-latauksen
 aikana. Protonissa tämä saattoi jättää `Dauntless-Win64-Shipping.exe`-prosessin eloon vain yhdellä
 alkusäikeellä ilman UE-lokia tai näkyvää ikkunaa.
 

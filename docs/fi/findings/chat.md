@@ -1,7 +1,7 @@
 ---
 title: Tekstichat
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 10
 lang: fi
 ref: findings/chat
@@ -38,7 +38,7 @@ katettu testeillä, jotka syöttävät palvelimen vastaukset ohjelmatiedostosta 
 malliin. Kahden pelaajan testi vuokratulla palvelimella vahvistaa tai korjaa ne.
 
 Ensimmäisen chat-palvelimen kirjoitti ja testasi oikealla 1.4.4-pelillä **Vvoidddd**
-([pull request #9](https://github.com/mixutin/dauntless-revived/pull/9)). Tämä sivu selittää hänen
+([pull request #9](https://github.com/Vvoidddd/dauntless-unbroken/pull/9)). Tämä sivu selittää hänen
 havaintonsa, ja palvelin on kasvanut hänen koodistaan.
 
 **Päivitys 30.9.2026: kavereiden paikalla olo on rakennettu chat-palvelimeen, oletuksena päällä**
@@ -347,7 +347,7 @@ luettelo on sivulla [Vianetsintä]({{ trouble_page.url | relative_url }}#chat-pr
 
 ## Testaus ilman peliä {#testing-without-the-game}
 
-`UndauntedMetagame/test/chatclient.ts` on malli siitä, miten peliohjelma lukee chattia, yllä olevine
+`DauntlessUnbrokenMetagame/test/chatclient.ts` on malli siitä, miten peliohjelma lukee chattia, yllä olevine
 osoitteineen. Kun sille syötetään ensimmäisen palvelimen vastaukset, se toistaa sen, mitä Vvoidddd
 näki: lähettäjänä `UID-...`, liittyminen jumissa ilmoituksella "Another operation already pending"
 ja `[unknown]`. Kun sille syötetään meidän vastauksemme, jotka on kaapattu testissä oikealta
@@ -377,11 +377,11 @@ Kahden pelaajan testi vuokratulla palvelimella.
 pudottaa muistissa olevat ryhmät ja matchmaking-jonot):
 
 1. **Päivitä palvelin tähän versioon.** Omalta koneelta: `Deploy-Remote.ps1 -Server <osoite> -Update`
-   (tai palvelimella `Update-DauntlessServer.ps1`). `Set-Chat.ps1` tulee päivityksen mukana: vanhemmassa
+   (tai palvelimella `Update-DauntlessUnbrokenServer.ps1`). `Set-Chat.ps1` tulee päivityksen mukana: vanhemmassa
    versiossa (vuokrattu palvelin ajaa versiota 9f3f78b) sitä ei vielä ole. `-Chat` ei käy yhdessä
    valinnan `-Update` kanssa, joten chatin kytkeminen on toinen ajo.
 2. **Ensimmäistä ajoa varten lisää `CHAT_TRACE=1`** tiedostoon
-   `C:\DauntlessRevived\data\config\metagame.env` nyt, ennen chatin kytkemistä: seuraavan vaiheen
+   `C:\DauntlessUnbroken\data\config\metagame.env` nyt, ennen chatin kytkemistä: seuraavan vaiheen
    uudelleenkäynnistys ottaa sen käyttöön.
 3. **Kytke chat päälle:** `Deploy-Remote.ps1 -Server <osoite> -Chat On` (tai palvelimella
    `Set-Chat.ps1 -On`; katso [Windows-palvelin]({{ winserver_page.url | relative_url }}#chat)).
@@ -439,15 +439,15 @@ Testi on läpäisty, kun vaiheet 1-11 menevät kuvatusti ja vaihe 12 ei löydä 
   ei pelaa, ja raportoi rivi.
 - Mikä tahansa vakava: `Deploy-Remote.ps1 -Server <osoite> -Chat Off` (tai palvelimella
   `Set-Chat.ps1 -Off`) palauttaa tilanteen sellaiseksi kuin ennen chattia.
-- Vika on itse chat-koodissa: `Update-DauntlessServer.ps1 -Rollback` (päivitystä edeltänyt versio) tai
-  `Update-DauntlessServer.ps1 -Ref 9f3f78b`. Vanhempi koodi ei lue asetusta `CHAT`, joten muuta ei
+- Vika on itse chat-koodissa: `Update-DauntlessUnbrokenServer.ps1 -Rollback` (päivitystä edeltänyt versio) tai
+  `Update-DauntlessUnbrokenServer.ps1 -Ref 9f3f78b`. Vanhempi koodi ei lue asetusta `CHAT`, joten muuta ei
   tarvitse muuttaa.
 
 ### Kavereiden paikalla olo (kun chat-testi on läpäisty) {#how-to-verify-presence}
 
 Kun yllä olevat vaiheet 1–12 on läpäisty, testaa oletuksena päällä oleva läsnäolo.
 Pelaajan ei tarvitse muuttaa asetuksia. Jos palvelimella on `CHAT_PRESENCE=0`, poista se tiedostosta
-`C:\DauntlessRevived\data\config\metagame.env` ja käynnistä metagame uudelleen, kun kukaan ei pelaa.
+`C:\DauntlessUnbroken\data\config\metagame.env` ja käynnistä metagame uudelleen, kun kukaan ei pelaa.
 Käynnistysrivi on `chat: friends' online status on (CHAT_PRESENCE=1)`. A:n ja B:n on oltava
 hyväksyttyjä kavereita.
 

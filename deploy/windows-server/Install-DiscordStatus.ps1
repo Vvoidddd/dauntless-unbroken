@@ -3,7 +3,7 @@
 [CmdletBinding()]
 param([string]$Root)
 $ErrorActionPreference = 'Stop'
-. "$PSScriptRoot\DauntlessServer.Common.ps1"
+. "$PSScriptRoot\DauntlessUnbrokenServer.Common.ps1"
 $Root = Resolve-DRRoot $Root $PSScriptRoot
 $P = Get-DRPaths $Root
 $Cfg = Get-DRConfig $Root
@@ -15,7 +15,7 @@ foreach ($path in @($Root, (Join-Path $Root 'data'), $P.Keys, $secret, $P.OwnerK
     if (Test-DRReparsePoint $path) { throw 'Refusing linked status-worker path.' }
 }
 if (-not (Test-Path -LiteralPath $secret)) { throw 'Create the private discord-status.key file first.' }
-$task = 'Dauntless Revived Discord status'
+$task = 'Dauntless Unbroken Discord status'
 if (Get-ScheduledTask -TaskName $task -ErrorAction SilentlyContinue) { Stop-ScheduledTask -TaskName $task }
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
 icacls.exe $dir /inheritance:r /grant:r '*S-1-5-32-544:(OI)(CI)F' '*S-1-5-18:(OI)(CI)F' '*S-1-5-19:(OI)(CI)RX' | Out-Null

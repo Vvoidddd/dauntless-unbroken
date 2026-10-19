@@ -1,4 +1,4 @@
-# Dauntless Revived - one-time setup for a friend's PC.
+# Dauntless Unbroken - one-time setup for a friend's PC.
 #
 # Checks the game files, installs the two server DLLs, registers your account on the
 # host's server and saves your personal key. Safe to run again: it never registers twice
@@ -25,10 +25,10 @@ $ErrorActionPreference = "Stop"
 $Pinned = @{
   "zip"                          = "556B9A648A5E5E7E11B6F8DD3D80FF8E88FCEB0D3448297AAF47CE7BF756BC6D"
   "Dauntless-Win64-Shipping.exe" = "D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4"
-  "dxgi.dll"                     = "9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F"
-  "UndauntedInternalServer.dll"  = "6f2433abebdee451edfc9060fa58eb3e2a3e73e5f7063de05386316b52d7b30b"
+  "dxgi.dll"                     = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
+  "DauntlessUnbroken.dll"  = "21df88216d012b10b37ee054ebd446d20c70f3ba341f53e6392053559e0db47c"
 }
-$Dir = Join-Path $env:APPDATA "DauntlessRevived"
+$Dir = Join-Path $env:APPDATA "DauntlessUnbroken"
 $KeyFile = Join-Path $Dir "account.key"
 $SettingsFile = Join-Path $Dir "settings.json"
 
@@ -60,10 +60,10 @@ Ok "Dauntless-Win64-Shipping.exe is the verified 1.4.4 build"
 
 # 2. The two DLLs: taken from this kit, checked before and after copying.
 Step "Installing the two server DLLs"
-foreach ($name in "dxgi.dll", "UndauntedInternalServer.dll") {
+foreach ($name in "dxgi.dll", "DauntlessUnbroken.dll") {
   $target = Join-Path $Win64 $name
   if ((Test-Path -LiteralPath $target) -and ((Hash $target) -eq $Pinned[$name])) { Ok "$name already installed"; continue }
-  $source = @((Join-Path $PSScriptRoot "dll\$name"), (Join-Path $PSScriptRoot "..\UndauntedLauncher\assets\$name")) |
+  $source = @((Join-Path $PSScriptRoot "dll\$name"), (Join-Path $PSScriptRoot "..\DauntlessUnbrokenLauncher\assets\$name")) |
     Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
   if (-not $source) { Fail "$name is missing from this kit (expected in $PSScriptRoot\dll\)." }
   if ((Hash $source) -ne $Pinned[$name]) { Fail "The kit's $name does not match the pinned hash. Do not use this kit." }
@@ -201,7 +201,7 @@ if (Test-Path -LiteralPath $KeyFile) {
 # 5. Check that the key works, without ever printing it.
 $key = (Get-Content -LiteralPath $KeyFile -Raw).Trim()
 try {
-  $me = Invoke-RestMethod -Uri "http://$Backend/undaunted/api/GetUserInfo" -Headers @{ "x-undaunted-user-api-key" = $key } -TimeoutSec 20
+  $me = Invoke-RestMethod -Uri "http://$Backend/undaunted/api/GetUserInfo" -Headers @{ "x-dauntless-unbroken-user-api-key" = $key } -TimeoutSec 20
 } catch { Fail "The server did not accept your key. Ask the host." }
 Ok "logged in as '$($me.name)'"
 

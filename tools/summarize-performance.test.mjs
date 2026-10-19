@@ -23,7 +23,7 @@ test('rejects malformed input rather than silently reporting zero', () => {
   assert.throws(() => summarize([]));
 });
 test('reads the current kit header and does not expose process identifiers', () => {
-  const source = readFileSync(new URL('../deploy/windows-server/DauntlessServer.Performance.ps1', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../deploy/windows-server/DauntlessUnbrokenServer.Performance.ps1', import.meta.url), 'utf8');
   const actual = [...source.match(/\$script:DRPerfColumns = @\(([\s\S]*?)\r?\n\)/)[1].matchAll(/^\s*'([^']+)'/gm)].map(match => match[1]);
   const values = actual.map(name => ({timestamp_utc: '2026-09-28T00:00:00Z', role: 'host', pid: '12345', host_cpu_percent: '25', ram_free_mb: '4096'})[name] ?? '');
   const report = summarize(parseSamples(actual.join(',') + '\n' + values.join(',')));

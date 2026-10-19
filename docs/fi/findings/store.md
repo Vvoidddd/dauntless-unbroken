@@ -1,7 +1,7 @@
 ---
 title: Pelin kauppa
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 11
 lang: fi
 ref: findings/store
@@ -49,7 +49,7 @@ Mitä otimme ja mitä muutimme, kerrotaan sivulla [Harmonicin työn siirto]({{ h
 | Merkki | Lähde |
 |:-------|:------|
 | **B** | 1.4.4-ohjelmatiedosto (`Dauntless-Win64-Shipping.exe`): merkkijonot ja konekielinen koodi. Osoitteet ovat muistiosoitteita, joiden perusosoite on `0x140000000`. |
-| **K** | Päätepisteiden taulukko tiedostossa `UndauntedInternalServer/dllmain.cpp` sekä peliohjelman omat datataulukot. |
+| **K** | Päätepisteiden taulukko tiedostossa `DauntlessUnbrokenInternalServer/dllmain.cpp` sekä peliohjelman omat datataulukot. |
 | **O** | Harmonic näki tämän pelissä omalla forkillaan (yksi peliohjelma), ei vielä meidän palvelimellamme. |
 | **S** | Vahva päätelmä: yksi ketjun lenkki on jäljittämättä. |
 | **G** | Oma suunnitteluratkaisumme, kun peliohjelma ei ratkaise asiaa. |
@@ -86,7 +86,7 @@ lataus), selviää pelitestissä.
 
 ## Valikoima {#catalogue}
 
-Tarjoukset ovat tiedostossa `UndauntedMetagame/src/vendor/store_catalog.json` sen tunnisteen alla,
+Tarjoukset ovat tiedostossa `DauntlessUnbrokenMetagame/src/vendor/store_catalog.json` sen tunnisteen alla,
 jota peliohjelma pyytää. Mikään peliohjelman lähettämä ei ratkaise, mitä tarjous antaa tai maksaa:
 metagame hakee tarjouksen joka kerta sen tunnuksella.
 
@@ -111,7 +111,7 @@ valikoimasta, Harmonicin työn pohjalta:
   (`StoreItemsTable`, 1 405 riviä tarjouksen tunnuksen mukaan). Tarjous, jonka tunnus ei ole kuvallinen
   rivi, näyttää varakuvan, ja ruudut ovat kiinteästi 2:1-muotoisia, joten neliönmuotoiset Hunt Pass
   -kuvakkeet venyvät. Siksi kauppa myy vain tunnuksia, joiden ruutukuva on 2:1, ja testi pitää jokaisen
-  tarjouksen tällaisten tunnusten luettelossa (`UndauntedMetagame/test/data/store_art_skus.json`, 994
+  tarjouksen tällaisten tunnusten luettelossa (`DauntlessUnbrokenMetagame/test/data/store_art_skus.json`, 994
   tunnusta, ei kuvia).
 - **Kiillot ja hiusten sävyt ovat oikeuksia** eivätkä tavaroita. Niiden tarjous- ja oikeusparit tulevat
   peliohjelman omista taulukoista (värien kiiltotaulukko ja premium-hiusvärien taulukko): viisi kiiltoa
@@ -127,7 +127,7 @@ pelin sisältöä (grafiikkaa tai muuta); katso [Kiitokset ja lisenssi]({{ '/fi/
 Tavara tulee tavaraluetteloon (inventaario) jommallakummalla tavalla: **pinona** (tavaran tunnus ja
 määrä) tai **yksilönä** (tavara, jolla on oma yksilötunnuksensa). Peliohjelman tavaraluettelo
 ratkaisee, kumpi, kunkin tavaran pinottavuusmerkinnän kautta, ja väärä laji jättää tavaran
-näkymättömäksi tai rikkoo tavaraluettelon. `UndauntedMetagame/src/vendor/store_item_kinds.json` kirjaa
+näkymättömäksi tai rikkoo tavaraluettelon. `DauntlessUnbrokenMetagame/src/vendor/store_item_kinds.json` kirjaa
 merkinnän kaikille 211 kaupan tavaralle (95 pinottavaa, 116 yksilöllistä), Harmonicin peliohjelman
 tavaraluettelosta lukemana. Nimen alkuun perustuva sääntö menisi yksittäisissä tavaroissa pieleen:
 useimmat aseiden ulkoasut ja muutama saapumisanimaatio ovat yksilöllisiä, kun taas muutama kangas ja
@@ -189,7 +189,7 @@ sitä, monellako tilillä on useampi hahmo, ei ole vielä laskettu.
 Jokainen reitti toimii sen pelaajan puolesta, jonka tunniste pyynnössä on: ilman tunnistetta 401, ja
 pelkkä pelipalvelimen avain saa 403. Ostot voi jäljittää (`inventorylog.caller = 'store'`,
 `entitlements.source LIKE 'store:%'`) ja perua nykyisillä ylläpitoreiteillä
-([HTTP-rajapinta]({{ api_page.url | relative_url }}#undaunted-api)).
+([HTTP-rajapinta]({{ api_page.url | relative_url }}#dauntless-unbroken-api)).
 
 ## Mitä jätimme pois ja miksi {#left-out}
 
@@ -204,7 +204,7 @@ pelkkä pelipalvelimen avain saa 403. Ostot voi jäljittää (`inventorylog.call
 
 | Asetus | Oletus | Mitä se tekee |
 |:-------|:-------|:--------------|
-| `STORE` | `off` | `off`: kauppanäkymä saa vanhan vastauksen 400 (`{"code": "400", "message": "The store is not available on Dauntless Revived yet."}`) ja kolme ostoreittiä vastauksen 404, jonka ne ovat aina saaneet. `free`: yllä kuvattu valikoima, tunniste ja vahvistus. |
+| `STORE` | `off` | `off`: kauppanäkymä saa vanhan vastauksen 400 (`{"code": "400", "message": "The store is not available on Dauntless Unbroken yet."}`) ja kolme ostoreittiä vastauksen 404, jonka ne ovat aina saaneet. `free`: yllä kuvattu valikoima, tunniste ja vahvistus. |
 | `STORE_REPEATABLE_TOKENS` | pois | `1` näyttää ja myy palkkiotehtävien tunnisteiden paketin rajattomasti. |
 
 Tarkat kuvaukset ovat sivulla [Asetukset]({{ config_page.url | relative_url }}#metagame-store), reitit

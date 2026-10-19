@@ -1,7 +1,7 @@
 ---
 title: Escalation
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 12
 lang: fi
 ref: findings/escalation
@@ -50,7 +50,7 @@ hylkäysten sijaan; yksityiskohdat sivulla [Harmonicin työn siirto]({{ harmonic
 | Merkki | Lähde |
 |:-------|:------|
 | **B** | 1.4.4-ohjelmatiedosto (`Dauntless-Win64-Shipping.exe`): konekielinen koodi. Osoitteet ovat muistiosoitteita, joiden perusosoite on `0x140000000`. |
-| **K** | Päätepisteiden taulukko tiedostossa `UndauntedInternalServer/dllmain.cpp` sekä peliohjelman omat datataulukot. |
+| **K** | Päätepisteiden taulukko tiedostossa `DauntlessUnbrokenInternalServer/dllmain.cpp` sekä peliohjelman omat datataulukot. |
 | **S** | Vahva päätelmä: yksi ketjun lenkki on jäljittämättä. |
 | **G** | Oma suunnitteluratkaisumme, kun peliohjelma ei ratkaise asiaa. |
 | **C** | Oma koodimme ja testimme. |
@@ -91,7 +91,7 @@ Sisältö (payload), samoin kuin tallennuksen runko, on yksi kausi:
 
 ## Kausiluettelo {#registry}
 
-`UndauntedMetagame/src/vendor/escalation/seasons.json` luettelee jokaisen kauden, joka 1.4.4-peliohjelmassa
+`DauntlessUnbrokenMetagame/src/vendor/escalation/seasons.json` luettelee jokaisen kauden, joka 1.4.4-peliohjelmassa
 on. Harmonic vei sen vain lukien peliohjelman omasta Escalation-etenemistaulukosta ja kunkin kauden
 nimeämästä kykytaulukosta (versio CL239827). Metagame tarkistaa tiedoston käynnistyessään, ja
 virheellinen tiedosto pysäyttää käynnistyksen.
@@ -204,7 +204,7 @@ ja luettelotiedosto sivulla [Pelin asetukset]({{ game_page.url | relative_url }}
 
 ## Testit {#tests}
 
-`UndauntedMetagame/test/escalation.test.ts` sisältää 27 tapausta: Harmonicin 17 (kausiluettelo,
+`DauntlessUnbrokenMetagame/test/escalation.test.ts` sisältää 27 tapausta: Harmonicin 17 (kausiluettelo,
 luvut, versiosäännöt, kovat ja pehmeät säännöt, tynkävahti) meidän vastauksiimme sovitettuina (toisen
 tilin luku on 403, uusinta on kirjattu 200, toisen tilin välitetty tunniste kirjataan ja hyväksytään,
 pehmeät säännöt vastaavat 409 vain, kun `ESCALATION_STRICT=1`, tiukka XP-tapaus nousee tasolle 25

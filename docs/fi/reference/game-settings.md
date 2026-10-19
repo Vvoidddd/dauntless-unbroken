@@ -1,9 +1,9 @@
 ---
 title: Pelin asetukset
 parent: Tekninen viite
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 5
-description: "Mitä Dauntless Revived muuttaa 1.4.4-peliohjelmassa ja pelipalvelimissa: ini-tiedostot ja kuka ne kirjoittaa, komentorivit, kaksi DLL-tiedostoa, kiinnitetty versio ja metagamen tarjoama pelidata."
+description: "Mitä Dauntless Unbroken muuttaa 1.4.4-peliohjelmassa ja pelipalvelimissa: ini-tiedostot ja kuka ne kirjoittaa, komentorivit, kaksi DLL-tiedostoa, kiinnitetty versio ja metagamen tarjoama pelidata."
 lang: fi
 ref: reference/game-settings
 locale: fi_FI
@@ -28,7 +28,7 @@ locale: fi_FI
 # Pelin asetukset
 {: .no_toc }
 
-Dauntless Revived ei koskaan muuta pelin omia tiedostoja. `Dauntless-Win64-Shipping.exe` pysyy
+Dauntless Unbroken ei koskaan muuta pelin omia tiedostoja. `Dauntless-Win64-Shipping.exe` pysyy
 tavu tavulta samana kuin tarkistettu 1.4.4-versio. Kaikki, mitä hanke muuttaa pelin puolella, on
 kolmessa paikassa:
 
@@ -63,8 +63,8 @@ sivuilla [Pystytä palvelin]({{ host_page.url | relative_url }}),
 | | Pelaajan peliohjelma | Pelipalvelin |
 |:--|:--|:--|
 | Exe | `Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe` kiinnitetystä versiosta | Sama exe |
-| DLL-tiedostot | `dxgi.dll` ja `UndauntedInternalServer.dll` exen vieressä | Samat kaksi tiedostoa |
-| Kuka käynnistää | Käynnistin (`UndauntedLauncher/`), kaveripaketin `play.ps1` tai isännän oma `play.ps1` | Deploy-palvelin (`UndauntedDeployServer/`) |
+| DLL-tiedostot | `dxgi.dll` ja `DauntlessUnbroken.dll` exen vieressä | Samat kaksi tiedostoa |
+| Kuka käynnistää | Käynnistin (`DauntlessUnbrokenLauncher/`), kaveripaketin `play.ps1` tai isännän oma `play.ps1` | Deploy-palvelin (`DauntlessUnbrokenDeployServer/`) |
 | Ensimmäinen parametri | Metagamen osoite, `host:port` | Pelipalvelimen avain (salainen) |
 | Palvelin-DLL:n tila | Client-tila: vastaa taustapalvelun osoiteavaimiin suoraan muistissa | Palvelintila: komentorivillä on `-server` |
 | `Engine.ini` | Muistirivit, valinnainen pakotettu grafiikkataso ja chatin uudelleenohjaus | Muistirivit ja chatin uudelleenohjaus |
@@ -109,11 +109,11 @@ kerrotaan lisää sivulla [Pelin sisältö ja asetukset]({{ assets_page.url | re
 
 | Kirjoittaja | Milloin | `Engine.ini` | `Game.ini` | `GameUserSettings.ini` |
 |:------------|:--------|:-------------|:-----------|:-----------------------|
-| Käynnistin (`UndauntedLauncher/`) | Jokaisella PELAA-painalluksella ennen kuin peli käynnistyy | Korvaa osiot `[SystemSettings]` ja `[OnlineSubsystemMcp.XMPP]` | Ei koskaan | `sg.<ryhmä>Quality`-rivit, kun taso on valittu ja tiedosto on olemassa |
+| Käynnistin (`DauntlessUnbrokenLauncher/`) | Jokaisella PELAA-painalluksella ennen kuin peli käynnistyy | Korvaa osiot `[SystemSettings]` ja `[OnlineSubsystemMcp.XMPP]` | Ei koskaan | `sg.<ryhmä>Quality`-rivit, kun taso on valittu ja tiedosto on olemassa |
 | Kaveripaketti, `friend-kit/play.ps1` | Jokaisella käynnistyksellä, myös valinnalla `-DryRun` | Samat rivit kuin käynnistin, paitsi käynnistimen valinnainen [automaattisen valotuksen](#auto-exposure) rivi | Ei koskaan | Kuten käynnistin |
 | Isännän `C:\dr\tools\play.ps1` (ei repositoriossa; kokonaisuudessaan sivun [Pystytä palvelin vaiheessa 13]({{ host_page.url | relative_url }}#launch-the-client)) | Jokaisella käynnistyksellä | Samat rivit | Ei koskaan | Sama, ja lisäksi `sg.ResolutionQuality=100.000000` |
 | Isännän `make-gameini.ps1` (skripti, jonka tallennat sivun [Pystytä palvelin vaiheesta 8]({{ host_page.url | relative_url }}#game-ini); ei repositoriossa) | Kun ajat sen | Ei kosketa | Korvaa koko tiedoston | Ei kosketa |
-| Windows-palvelinpaketti, `Install-DauntlessServer.ps1` | Jokaisella asennusohjelman ajokerralla. `Update-DauntlessServer.ps1` **ei** kirjoita näitä tiedostoja uudelleen. | Vain muistirivit ja chatin uudelleenohjaus: ei grafiikkarivejä | Korvaa koko tiedoston | Ei kosketa |
+| Windows-palvelinpaketti, `Install-DauntlessUnbrokenServer.ps1` | Jokaisella asennusohjelman ajokerralla. `Update-DauntlessUnbrokenServer.ps1` **ei** kirjoita näitä tiedostoja uudelleen. | Vain muistirivit ja chatin uudelleenohjaus: ei grafiikkarivejä | Korvaa koko tiedoston | Ei kosketa |
 | Peli itse | Käynnissä ollessaan | Kirjoittaa tiedoston uudelleen ja säilyttää osiomme | Kirjoittaa tiedoston uudelleen; lainausmerkeissä olevat arvot säilyvät | Asetusvalikostaan |
 
 Kun tiedostoa ei vielä ole, käynnistin kirjoittaa täsmälleen samat tavut kuin kaveripaketin
@@ -246,7 +246,7 @@ kirjoittaa sen taas.
 ### Automaattinen valotus {#auto-exposure}
 
 Valinnainen kokeilu pimeää ilmalaivaa vastaan ennen metsästystä (tiekartan kohta 4.17). Sen lisäsi
-Vvoidddd ([#7](https://github.com/mixutin/dauntless-revived/pull/7)). Se on oletuksena pois päältä.
+Vvoidddd ([#7](https://github.com/Vvoidddd/dauntless-unbroken/pull/7)). Se on oletuksena pois päältä.
 
 | Kirjoittaja | Oletus | Näin muutat sitä |
 |:------------|:-------|:-----------------|
@@ -280,7 +280,7 @@ Mitä kukin kirjoittaja laittaa siihen:
 | Kirjoittaja ja tila | `ServerAddr` | `ServerPort` |
 |:--------------------|:-------------|:-------------|
 | Käynnistin, yksityinen tila (Tailscale-kutsu) | `"ws://<kutsun osoite>"` | `61099` |
-| Käynnistin, julkinen tila | `"ws://127.0.0.1"` (käynnistimen paikallinen välitin) | Välittimen portti: `61000`, ellei `DAUNTLESS_REVIVED_RELAY_PORT` siirrä sitä |
+| Käynnistin, julkinen tila | `"ws://127.0.0.1"` (käynnistimen paikallinen välitin) | Välittimen portti: `61000`, ellei `DAUNTLESS_UNBROKEN_RELAY_PORT` siirrä sitä |
 | Kaveripaketin `play.ps1` | `"ws://<-Server-arvon osoiteosa>"` | `61099` |
 | Isännän `play.ps1` | `"ws://127.0.0.1"` | `61099` |
 | Palvelinpaketti palvelutilille (myös `-Sandbox`-asennuksessa) | `"ws://127.0.0.1"` | `61099` |
@@ -330,7 +330,7 @@ TrackingEndpoint="http://127.0.0.1:61000"
 ```
 
 - 167 riviä, yksi kutakin DLL:n osoitetaulukon merkintää kohden tiedostossa
-  `UndauntedInternalServer/dllmain.cpp`. Molemmat tiedoston luovat skriptit (paketin asennusohjelma
+  `DauntlessUnbrokenInternalServer/dllmain.cpp`. Molemmat tiedoston luovat skriptit (paketin asennusohjelma
   ja isännän `make-gameini.ps1`) lukevat tuon tiedoston samalla säännöllisellä lausekkeella ja
   kirjoittavat rivit muodossa `<avain>="http://<metagamen osoite><polku>"`.
 - `MatchmakingEndpoint` ja `TrackingEndpoint` ovat pelkkä osoite ilman polkua.
@@ -357,10 +357,10 @@ vahingoittuneen tiedoston takaisin levylle. Katso
 yksityisen tilan palvelimen Tailscale-osoite muuttuu, ja kun uusi koodiversio muuttaa
 `dllmain.cpp`:n osoitetaulukkoa.
 
-- Paketilla asennetulla palvelimella aja `Install-DauntlessServer.ps1` uudelleen (sen voi toistaa
-  turvallisesti). `Update-DauntlessServer.ps1` ei kirjoita `Game.ini`- eikä `Engine.ini`-tiedostoa
+- Paketilla asennetulla palvelimella aja `Install-DauntlessUnbrokenServer.ps1` uudelleen (sen voi toistaa
+  turvallisesti). `Update-DauntlessUnbrokenServer.ps1` ei kirjoita `Game.ini`- eikä `Engine.ini`-tiedostoa
   uudelleen. Asennusohjelma lukee `dllmain.cpp`:n käännetystä koodista kansiosta
-  `<InstallRoot>\app\UndauntedInternalServer\` ja varoittaa, jos merkintöjä on jokin muu määrä kuin
+  `<InstallRoot>\app\DauntlessUnbrokenInternalServer\` ja varoittaa, jos merkintöjä on jokin muu määrä kuin
   167.
 - Käsin pystytetyllä isäntäkoneella aja `make-gameini.ps1` uudelleen uudella `-Metagame`-arvolla.
   Älä etsi ja korvaa tekstiä: merkkijonon `:61000/` korvaaminen ohittaa ne kaksi avainta, joiden arvo
@@ -413,7 +413,7 @@ Järjestys ja arvot ovat samat kaikissa kolmessa. Käynnistimen testi kiinnittä
 | Nimi | Oletus | Arvot | Mitä se tekee | Kuka asettaa |
 |:-----|:-------|:------|:--------------|:-------------|
 | Ensimmäinen parametri, `<host>:<port>` | ei mitään | `host:port`, ilman protokollaa | Metagamen osoite. Palvelin-DLL lukee sen client-tilassa ja muodostaa jokaisen taustapalvelun osoitteen muodossa `http://<host>:<port>/...`. | Katso seuraava taulukko |
-| `-AUTH_PASSWORD=` | ei mitään (pakollinen) | Tiliavain. Palvelimen luomat avaimet ovat `UUK_` ja 48 heksamerkkiä; käynnistin hyväksyy 8–128 merkkiä joukosta `A-Z a-z 0-9 _ -`. | Peli lähettää sen ”vaihtokoodina” (exchange code) osoitteeseen `POST /account/api/oauth/token`. Asetuksella `AUTH_MODE=APIKEY` metagame etsii tilin ja palauttaa 24 tuntia voimassa olevan tunnisteen. **Salainen: se on tilin salasana. Älä koskaan jaa sitä äläkä tallenna sitä versionhallintaan.** | Käynnistin: sen salattu avainvarasto. Kaveripaketti: `%APPDATA%\DauntlessRevived\account.key`. Isännän skripti: `-KeyFile`, oletus `C:\dr\data\owner.key`. |
+| `-AUTH_PASSWORD=` | ei mitään (pakollinen) | Tiliavain. Palvelimen luomat avaimet ovat `UUK_` ja 48 heksamerkkiä; käynnistin hyväksyy 8–128 merkkiä joukosta `A-Z a-z 0-9 _ -`. | Peli lähettää sen ”vaihtokoodina” (exchange code) osoitteeseen `POST /account/api/oauth/token`. Asetuksella `AUTH_MODE=APIKEY` metagame etsii tilin ja palauttaa 24 tuntia voimassa olevan tunnisteen. **Salainen: se on tilin salasana. Älä koskaan jaa sitä äläkä tallenna sitä versionhallintaan.** | Käynnistin: sen salattu avainvarasto. Kaveripaketti: `%APPDATA%\DauntlessUnbroken\account.key`. Isännän skripti: `-KeyFile`, oletus `C:\dr\data\owner.key`. |
 | `-AUTH_TYPE=exchangecode` | aina | kiinteä | Valitsee vaihtokoodikirjautumisen. 1.4.4 tuntee myös tavat `password` ja `developer`; käytämme vain tätä. | Kaikki kolme käynnistäjää |
 | `-AUTH_LOGIN=unused` | aina | kiinteä | Paikanpitäjä, joka ei saa olla tyhjä. | Kaikki kolme käynnistäjää |
 | `-EpicPortal` | aina | kiinteä | Annetaan samoin kuin alkuperäisen Undauntedin käynnistin sen antaa. 2.1.1 sulkeutuu ilman sitä; 1.4.4:ää ei ole testattu ilman sitä. | Kaikki kolme käynnistäjää |
@@ -426,8 +426,8 @@ Ensimmäinen parametri käynnistäjittäin:
 | Käynnistäjä | Ensimmäinen parametri |
 |:------------|:----------------------|
 | Käynnistin, yksityinen tila | Kutsun `host:port`: yleensä palvelimen Tailscale-osoite ja 61000 |
-| Käynnistin, julkinen tila | `127.0.0.1:61000`: käynnistimen paikallinen välitin, joka välittää kaiken kiinnitetyn TLS-yhteyden yli palvelimen yhdyskäytävälle. `DAUNTLESS_REVIVED_RELAY_PORT` siirtää välittimen testejä ja harjoituksia varten; katso [asetusten viitesivu]({{ config_page.url | relative_url }}). |
-| Kaveripaketin `play.ps1` | `-Server` tai `Server` tiedostosta `%APPDATA%\DauntlessRevived\settings.json`. Jos porttia ei anneta, perään lisätään `:61000`. |
+| Käynnistin, julkinen tila | `127.0.0.1:61000`: käynnistimen paikallinen välitin, joka välittää kaiken kiinnitetyn TLS-yhteyden yli palvelimen yhdyskäytävälle. `DAUNTLESS_UNBROKEN_RELAY_PORT` siirtää välittimen testejä ja harjoituksia varten; katso [asetusten viitesivu]({{ config_page.url | relative_url }}). |
+| Kaveripaketin `play.ps1` | `-Server` tai `Server` tiedostosta `%APPDATA%\DauntlessUnbroken\settings.json`. Jos porttia ei anneta, perään lisätään `:61000`. |
 | Isännän `play.ps1` | `-Backend`, oletus `127.0.0.1:61000` |
 
 **Tiliavain komentorivillä.**
@@ -467,7 +467,7 @@ Dauntless-Win64-Shipping.exe <pelipalvelimen avain> <UDP-portti> <kenttä> <behe
 
 | # | Parametri | Arvot | Mitä se tekee | Kuka asettaa |
 |:--|:----------|:------|:--------------|:-------------|
-| 1 | Pelipalvelimen avain | Avain; paketti luo 48 heksamerkkiä | Lähetetään `x-undaunted-gameserver-apikey`-otsakkeena jokaisessa palvelimen tekemässä HTTP-pyynnössä. Metagame tallentaa siitä vain SHA-256-tiivisteen ja hyväksyy avaimen vain omalta koneeltaan (tai `GAMESERVER_ALLOW_FROM`-listan osoitteesta), ei koskaan yhdyskäytävän tai muun välityspalvelimen kautta. **Salainen: älä koskaan jaa sitä, älä tallenna sitä versionhallintaan äläkä tulosta `-server`-komentoriviä.** | `METAGAME_API_KEY` deploy-palvelimen asetuksissa |
+| 1 | Pelipalvelimen avain | Avain; paketti luo 48 heksamerkkiä | Lähetetään `x-dauntless-unbroken-gameserver-apikey`-otsakkeena jokaisessa palvelimen tekemässä HTTP-pyynnössä. Metagame tallentaa siitä vain SHA-256-tiivisteen ja hyväksyy avaimen vain omalta koneeltaan (tai `GAMESERVER_ALLOW_FROM`-listan osoitteesta), ei koskaan yhdyskäytävän tai muun välityspalvelimen kautta. **Salainen: älä koskaan jaa sitä, älä tallenna sitä versionhallintaan äläkä tulosta `-server`-komentoriviä.** | `METAGAME_API_KEY` deploy-palvelimen asetuksissa |
 | 2 | UDP-portti | Kokonaisluku | Portti, jossa palvelin kuuntelee. Portit 8776 ja siitä ylöspäin poistavat lisäksi tyhjäkäyntisulkeutumisen käytöstä (alla). | Ramsgate: `PORT_RANGE_END` (8777). Dojo: `PORT_RANGE_END` miinus 1 (8776). Metsästykset: vapaa portti väliltä `PORT_RANGE_BEGIN` – `PORT_RANGE_END` miinus 2 (8770–8775). |
 | 3 | Kenttä | `/Game/...`-kenttäpolku, jonka perässä voi olla `?game=<pelitilan luokka>` | Aloituskenttä. | Ramsgate: `/Game/Maps/ramsgate/ramsgate_01_persistent`. Dojo: `/Game/Maps/islands/dojo/training_dojo_persistent`. Trials: `/Game/Maps/islands/arenas/arena_ramsgate_00`. Metsästys: satunnainen kenttä metsästyksen kenttälistasta, ja lisäksi `?game=`, jos metsästys vaihtaa pelitilan. Opetussaari: kenttä peliohjelman omasta pyynnöstä. |
 | 4 | Behemoth | `_C`-päätteinen asset-polku tai `NO_BEHEMOTH` | Lisätään kentän URL-osoitteeseen muodossa `?MonsterClass=`. | Metsästystaulukot, tai opetussaarella peliohjelman pyyntö. Ramsgate ja Dojo antavat arvon `NO_BEHEMOTH`. |
@@ -533,11 +533,11 @@ kuin ne päätyvät komentoriville; katso [HTTP API]({{ api_page.url | relative_
 
 | Tiedosto | Koko | SHA-256 | Mitä se tekee |
 |:---------|-----:|:--------|:--------------|
-| `dxgi.dll` | 11 264 tavua | `9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F` | Välittäjä (proxy). Windows lataa sen pelikansiosta järjestelmän oman kopion sijaan. Se lataa oikean `System32\dxgi.dll`-tiedoston, välittää eteenpäin funktiot `CreateDXGIFactory`, `CreateDXGIFactory1` ja `CreateDXGIFactory2` ja lataa `UndauntedInternalServer.dll`-tiedoston. Sen lähdekoodia ei ole julkaistu. |
-| `UndauntedInternalServer.dll` | 123 392 tavua | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` | Undauntedin palvelin-DLL, versio 0.0.3. Lähdekoodi on kansiossa `UndauntedInternalServer/`. Se kaappaa pelin toimintoja muistissa (hook) joko client-tilassa tai palvelintilassa (alla). Se tarvitsee Visual C++ 2015-2022 x64 -ajonaikaisen kirjaston (`MSVCP140.dll` ja `VCRUNTIME140_1.dll` kansiossa `System32`). |
+| `dxgi.dll` | 11 264 tavua | `f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c` | Välittäjä (proxy). Windows lataa sen pelikansiosta järjestelmän oman kopion sijaan. Se lataa oikean `System32\dxgi.dll`-tiedoston, välittää eteenpäin funktiot `CreateDXGIFactory`, `CreateDXGIFactory1` ja `CreateDXGIFactory2` ja lataa `DauntlessUnbroken.dll`-tiedoston. Sen lähdekoodia ei ole julkaistu. |
+| `DauntlessUnbroken.dll` | 123 392 tavua | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` | Undauntedin palvelin-DLL, versio 0.0.3. Lähdekoodi on kansiossa `DauntlessUnbrokenInternalServer/`. Se kaappaa pelin toimintoja muistissa (hook) joko client-tilassa tai palvelintilassa (alla). Se tarvitsee Visual C++ 2015-2022 x64 -ajonaikaisen kirjaston (`MSVCP140.dll` ja `VCRUNTIME140_1.dll` kansiossa `System32`). |
 
 Molemmat ovat alkuperäisen Undauntedin valmiiksi käännettyjä, allekirjoittamattomia tiedostoja, ja
-ne ovat kansiossa `UndauntedLauncher/assets/`. Jokainen palvelin-DLL:n koukkuosoite on sidottu
+ne ovat kansiossa `DauntlessUnbrokenLauncher/assets/`. Jokainen palvelin-DLL:n koukkuosoite on sidottu
 kiinnitettyyn exe-tiedostoon, joten **älä koskaan kopioi niitä toiseen versioon**; 2.1.1:ssä ne
 kaataisivat pelin. Virustorjunta voi merkitä välittäjä-DLL:n epäilyttäväksi; katso
 [Windows Defender ja allekirjoittamattomat DLL-tiedostot]({{ trouble_page.url | relative_url }}#windows-defender-and-the-unsigned-dlls).
@@ -547,11 +547,11 @@ Pelikansio on se kansio, jossa `Archon\` on.
 
 | Asentaja | Pelikansio (oletus) | Mistä kopioidaan | Tarkistukset |
 |:---------|:--------------------|:-----------------|:-------------|
-| Käynnistin | `%LOCALAPPDATA%\DauntlessRevived\Game`; kohdasta Asetukset > Peli > Pelitiedostot sen voi siirtää | Käynnistimen oma resurssikansio | Tarkistaa tiivisteen käynnistimen kopiosta, väliaikaisesta kopiosta (`<nimi>.new`) ja lopullisesta tiedostosta, ja poistaa ”ladattu internetistä” -merkinnän. Tarkistaa uudelleen ennen jokaista PELAA-painallusta ja korjaa ne tarvittaessa. |
-| Kaveripaketti, `setup.ps1` | `-Game`, oletus `C:\D144\Dauntless` | Paketin `dll\`-kansio (repositorion kopiossa `UndauntedLauncher\assets\`) | Tiiviste ennen kopiointia, `Unblock-File` ja tiiviste uudelleen kopioinnin jälkeen. Jo oikeaan DLL-tiedostoon ei kosketa. `play.ps1` tarkistaa molemmat jokaisella käynnistyksellä. |
-| Palvelinpaketti, `Install-DauntlessServer.ps1` | `<InstallRoot>\game\Dauntless` (oletus `C:\DauntlessRevived\game\Dauntless`) tai `-GameDir` | `<InstallRoot>\app\UndauntedLauncher\assets` | Tiiviste ennen kopiointia, `Unblock-File` ja tiiviste uudelleen kopioinnin jälkeen. Jo oikeaan DLL-tiedostoon ei kosketa. |
-| Käsin | [Pystytä palvelin, vaihe 5]({{ host_page.url | relative_url }}#dlls); [Liity kaverina]({{ friends_page.url | relative_url }}), vaihe 3 | `UndauntedLauncher/assets/` | Kuten siellä kerrotaan |
-| `tools/make-friend-kit.ps1` | Ei koske: se pakkaa ne paketin `dll\`-kansioon | `UndauntedLauncher/assets/` | Tiiviste ennen pakkaamista |
+| Käynnistin | `%LOCALAPPDATA%\DauntlessUnbroken\Game`; kohdasta Asetukset > Peli > Pelitiedostot sen voi siirtää | Käynnistimen oma resurssikansio | Tarkistaa tiivisteen käynnistimen kopiosta, väliaikaisesta kopiosta (`<nimi>.new`) ja lopullisesta tiedostosta, ja poistaa ”ladattu internetistä” -merkinnän. Tarkistaa uudelleen ennen jokaista PELAA-painallusta ja korjaa ne tarvittaessa. |
+| Kaveripaketti, `setup.ps1` | `-Game`, oletus `C:\D144\Dauntless` | Paketin `dll\`-kansio (repositorion kopiossa `DauntlessUnbrokenLauncher\assets\`) | Tiiviste ennen kopiointia, `Unblock-File` ja tiiviste uudelleen kopioinnin jälkeen. Jo oikeaan DLL-tiedostoon ei kosketa. `play.ps1` tarkistaa molemmat jokaisella käynnistyksellä. |
+| Palvelinpaketti, `Install-DauntlessUnbrokenServer.ps1` | `<InstallRoot>\game\Dauntless` (oletus `C:\DauntlessUnbroken\game\Dauntless`) tai `-GameDir` | `<InstallRoot>\app\DauntlessUnbrokenLauncher\assets` | Tiiviste ennen kopiointia, `Unblock-File` ja tiiviste uudelleen kopioinnin jälkeen. Jo oikeaan DLL-tiedostoon ei kosketa. |
+| Käsin | [Pystytä palvelin, vaihe 5]({{ host_page.url | relative_url }}#dlls); [Liity kaverina]({{ friends_page.url | relative_url }}), vaihe 3 | `DauntlessUnbrokenLauncher/assets/` | Kuten siellä kerrotaan |
+| `tools/make-friend-kit.ps1` | Ei koske: se pakkaa ne paketin `dll\`-kansioon | `DauntlessUnbrokenLauncher/assets/` | Tiiviste ennen pakkaamista |
 
 Poistaaksesi ne poista nämä kaksi tiedostoa. Mikään muu pelikansiossa ei muutu. Sisältöluettelo
 (content manifest) ei listaa niitä, ja käynnistin hylkää luettelon, joka listaa ne.
@@ -590,7 +590,7 @@ kaveripaketti eivät tarkista tätä.
 ### Palvelintila {#dll-server-mode}
 
 - Lukee yllä kuvatut paikkasidonnaiset parametrit.
-- Lisää jokaiseen HTTP-pyyntöön `x-undaunted-gameserver-apikey`-otsakkeen, jossa on pelipalvelimen
+- Lisää jokaiseen HTTP-pyyntöön `x-dauntless-unbroken-gameserver-apikey`-otsakkeen, jossa on pelipalvelimen
   avain.
 - **Ei** kaappaa asetushakua. Siksi pelipalvelimet tarvitsevat [`Game.ini`-tiedoston](#game-ini).
 - Antaa pelimoottorille kiinteän komentorivin, käynnistyy suoraan kentän URL-osoitteeseen, alkaa
@@ -608,7 +608,7 @@ uudelleen, mikä muuttaa sen kiinnitettyä tiivistettä. Kääntäminen lähdeko
 
 | Vakio | Arvo | Tila |
 |:------|:-----|:-----|
-| DLL:n versio | `0.0.3` (`UndauntedInternalServer/constants.h`), tulostetaan konsoli-ikkunaan | Molemmat |
+| DLL:n versio | `0.0.3` (`DauntlessUnbrokenInternalServer/constants.h`), tulostetaan konsoli-ikkunaan | Molemmat |
 | Tilan valinta | `-server` missä tahansa raa'assa komentorivissä, kirjainkoko huomioiden | Molemmat |
 | Konsoli-ikkuna | Avataan aina | Molemmat |
 | Metagamen osoite | Ensimmäinen parametri, luetaan, kun exen jälkeen on vähintään kaksi parametria | Client |
@@ -616,7 +616,7 @@ uudelleen, mikä muuttaa sen kiinnitettyä tiivistettä. Kääntäminen lähdeko
 | Konsolinäppäin | F2 | Client |
 | Parametrien vähimmäismäärä | 8 exe-tiedoston nimen jälkeen | Palvelin |
 | Pelimoottorin komentorivi | `Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -EpicPortal -RepDriverDisable` | Palvelin |
-| Avainotsake | `x-undaunted-gameserver-apikey` | Palvelin |
+| Avainotsake | `x-dauntless-unbroken-gameserver-apikey` | Palvelin |
 | Kuuntelun alku | 3 sekuntia sen jälkeen, kun maailma on olemassa | Palvelin |
 | Tyhjäkäyntisulkeutuminen | Yhteensä 50 sekuntia ilman yhdistettyä pelaajaa | Palvelin |
 | Ei tyhjäkäyntisulkeutumista | Portit 8776 ja siitä ylöspäin | Palvelin |
@@ -636,7 +636,7 @@ lataamisen turvallisena.
 | Pelimoottori | Unreal Engine `4.25.3-239827+++dauntless+rel-1.4.4`, versio, josta DLL:n SDK-otsaketiedostot on generoitu |
 | Exe | `Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe`, SHA-256 `D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4`, 103 673 520 tavua |
 | Pelin zip | `BaseGame144.zip`, SHA-256 `556B9A648A5E5E7E11B6F8DD3D80FF8E88FCEB0D3448297AAF47CE7BF756BC6D`, 10 479 214 119 tavua. Sen ylin kansio on `Dauntless\`, jonka sisällä on `Archon\`. |
-| Sisältöluettelo | `UndauntedContent/data/dauntless-1.4.4.json`: 410 tiedostoa, 10 893 512 875 tavua, ja `build`-kenttä, joka on sama kuin versiomerkkijono. Se ei listaa ini-tiedostoja (pelin mukana tulleet asetukset ovat pak-tiedostojen sisällä, ja käyttäjän asetukset ovat pelikansion ulkopuolella) eikä kahta DLL-tiedostoa. Luotu työkalulla `tools/make-game-manifest.js`. |
+| Sisältöluettelo | `DauntlessUnbrokenContent/data/dauntless-1.4.4.json`: 410 tiedostoa, 10 893 512 875 tavua, ja `build`-kenttä, joka on sama kuin versiomerkkijono. Se ei listaa ini-tiedostoja (pelin mukana tulleet asetukset ovat pak-tiedostojen sisällä, ja käyttäjän asetukset ovat pelikansion ulkopuolella) eikä kahta DLL-tiedostoa. Luotu työkalulla `tools/make-game-manifest.js`. |
 | Phoenixin oma luettelo | `Manifest.bin.json` pelikansiossa: 406 merkintää. Meidän 410 tiedostoamme ovat nämä sekä itse `Manifest.bin.json`, `Manifest.bin` ja kaksi tyhjää `debug.log`-tiedostoa. Miten tarkistimme sen, kerrotaan sivun [Pystytä palvelin vaiheessa 2]({{ host_page.url | relative_url }}#verify-the-build) ja sivulla [Pelitiedostojen tarkistaminen]({{ verification_page.url | relative_url }}). |
 
 ### Kuka tarkistaa kiinnitykset {#pin-checks}
@@ -656,12 +656,12 @@ vain samalla kertaa niiden tiedostojen kanssa, joita ne kuvaavat.
 
 | Arvo | Tiedostot |
 |:-----|:----------|
-| Exen SHA-256 | `UndauntedLauncher/src/main/constants.ts`, `deploy/windows-server/DauntlessServer.Common.ps1`, `friend-kit/play.ps1`, `friend-kit/setup.ps1`, `tools/make-game-manifest.js`, `UndauntedContent/data/dauntless-1.4.4.json` (ja sen testi) |
-| Exen koko | `UndauntedLauncher/src/main/constants.ts` ja `UndauntedContent/data/dauntless-1.4.4.json` (ja sen testi). Muut tiedostot tarkistavat vain tiivisteen. |
-| DLL-tiedostojen SHA-256:t | `UndauntedLauncher/src/main/constants.ts`, `deploy/windows-server/DauntlessServer.Common.ps1`, `friend-kit/play.ps1`, `friend-kit/setup.ps1`, `tools/make-friend-kit.ps1` |
-| Zipin SHA-256 | `deploy/windows-server/DauntlessServer.Common.ps1` (tavumäärän kanssa), `friend-kit/setup.ps1`, `tools/make-game-manifest.js` |
-| Versiomerkkijono | `UndauntedLauncher/src/main/manifest.ts`, `UndauntedContent/src/manifest.ts`, `deploy/windows-server/DauntlessServer.Common.ps1`, `tools/make-game-manifest.js`, sisältöluettelon JSON-tiedosto |
-| Muutoslista | `deploy/windows-server/DauntlessServer.Common.ps1`, joka kirjoittaa metagamen `TARGET_CHANGELIST`-arvon |
+| Exen SHA-256 | `DauntlessUnbrokenLauncher/src/main/constants.ts`, `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`, `friend-kit/play.ps1`, `friend-kit/setup.ps1`, `tools/make-game-manifest.js`, `DauntlessUnbrokenContent/data/dauntless-1.4.4.json` (ja sen testi) |
+| Exen koko | `DauntlessUnbrokenLauncher/src/main/constants.ts` ja `DauntlessUnbrokenContent/data/dauntless-1.4.4.json` (ja sen testi). Muut tiedostot tarkistavat vain tiivisteen. |
+| DLL-tiedostojen SHA-256:t | `DauntlessUnbrokenLauncher/src/main/constants.ts`, `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`, `friend-kit/play.ps1`, `friend-kit/setup.ps1`, `tools/make-friend-kit.ps1` |
+| Zipin SHA-256 | `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1` (tavumäärän kanssa), `friend-kit/setup.ps1`, `tools/make-game-manifest.js` |
+| Versiomerkkijono | `DauntlessUnbrokenLauncher/src/main/manifest.ts`, `DauntlessUnbrokenContent/src/manifest.ts`, `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`, `tools/make-game-manifest.js`, sisältöluettelon JSON-tiedosto |
+| Muutoslista | `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`, joka kirjoittaa metagamen `TARGET_CHANGELIST`-arvon |
 
 ---
 
@@ -669,7 +669,7 @@ vain samalla kertaa niiden tiedostojen kanssa, joita ne kuvaavat.
 
 Osa siitä, mitä peli näyttää, tulee metagamen omista datatiedostoista eikä pelin pak-tiedostoista:
 etenemisradat (Hunt Pass -kaudet ja mestaruus), kaupan tarjoukset ja Escalation-kaudet. Ne ovat
-kansiossa `UndauntedMetagame/src/vendor/`, ja käännös kopioi ne kansioon `dist/vendor/`. Niissä on
+kansiossa `DauntlessUnbrokenMetagame/src/vendor/`, ja käännös kopioi ne kansioon `dist/vendor/`. Niissä on
 1.4.4-peliohjelmasta luettuja tunnisteita ja viritysarvoja eikä lainkaan pelin sisältöä (grafiikkaa
 tai muuta).
 
@@ -719,7 +719,7 @@ Käytössä vain asetuksella `STORE=free` ([Pelin kauppa]({{ '/fi/findings/store
 | `vendor/store_item_kinds.json` | Jokaiselle kaupan 211 tavarasta: `stacked` tai `instanced`, peliohjelman tavaraluettelon pinottavuusmerkintä. Tavaraa, jolla ei ole merkintää, ei koskaan anneta. |
 | `test/data/store_art_skus.json` | Ne 994 tarjoustunnusta, joiden kaupparuudun kuva on 2:1. Vain testi lukee sitä: jokaisen kaupan tarjouksen on oltava yksi niistä, tai sen ruutu näyttää varakuvan tai venytetyn kuvan. |
 
-Muuta valikoimaa vain yhdessä testin (`npm test` kansiossa `UndauntedMetagame`) ja kaupan
+Muuta valikoimaa vain yhdessä testin (`npm test` kansiossa `DauntlessUnbrokenMetagame`) ja kaupan
 välilehtien pelissä tehdyn tarkistuksen kanssa: tyhjä välilehti täytetyn edellä siirtää kaikkien
 myöhempien välilehtien sisällön. Toistettavasti ostettava palkkiotehtävien tunnisteiden paketti
 (`bundle_currency_bounty_small`) näkyy vain asetuksella `STORE_REPEATABLE_TOKENS=1`.
@@ -740,17 +740,17 @@ muokkaa sitä: väärä arvo torjuu oikeita tallennuksia (tai pehmeissä säänn
 
 Kehittäjille. `Engine.ini`-rivit ovat neljänä kopiona, joiden on pysyttävä samoina:
 
-- `UndauntedLauncher/src/main/engineini.ts`
+- `DauntlessUnbrokenLauncher/src/main/engineini.ts`
 - `friend-kit/play.ps1`
 - isännän `play.ps1` ja sen listaus sivun
   [Pystytä palvelin vaiheessa 13]({{ host_page.url | relative_url }}#launch-the-client)
-- `Write-DRGameUserConfig` tiedostossa `deploy/windows-server/DauntlessServer.Common.ps1` (vain
+- `Write-DRGameUserConfig` tiedostossa `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1` (vain
   muistirivit ja chat)
 
-Käynnistysparametrit ovat tiedostoissa `UndauntedLauncher/src/main/launch.ts` ja `friend-kit/play.ps1`
+Käynnistysparametrit ovat tiedostoissa `DauntlessUnbrokenLauncher/src/main/launch.ts` ja `friend-kit/play.ps1`
 sekä isännän `play.ps1`-skriptissä.
 
-Niitä kattavat testit: `UndauntedLauncher/test/engineini-launch.test.ts` tarkistaa käynnistimen
+Niitä kattavat testit: `DauntlessUnbrokenLauncher/test/engineini-launch.test.ts` tarkistaa käynnistimen
 `Engine.ini`-tiedoston tavu tavulta ja kiinnittää tarkan parametrilistan, ja
 `deploy/windows-server/tests/Test-Sandbox.ps1` tarkistaa, että hiekkalaatikkoasennus kirjoittaa 167
 `Game.ini`-riviä, jotka osoittavat osoitteeseen `127.0.0.1:62000`. Mikään ei testaa paketin

@@ -5,7 +5,7 @@
 [CmdletBinding(SupportsShouldProcess = $true)]
 param([string]$Root, [switch]$OpenOnLogon)
 $ErrorActionPreference = 'Stop'
-. "$PSScriptRoot\DauntlessServer.Common.ps1"
+. "$PSScriptRoot\DauntlessUnbrokenServer.Common.ps1"
 $Root = Resolve-DRRoot $Root $PSScriptRoot
 $P = Get-DRPaths $Root
 $Cfg = Get-DRConfig $Root
@@ -20,7 +20,7 @@ $files = @('dashboard.mjs','dashboard-performance.mjs','dashboard-fleet.mjs','da
 foreach ($file in $files) {
     if (-not (Test-Path -LiteralPath (Join-Path $P.App "tools\$file"))) { throw 'Update the server code before installing the dashboard.' }
 }
-$taskName = 'Dauntless Revived dashboard'
+$taskName = 'Dauntless Unbroken dashboard'
 if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) { Stop-ScheduledTask -TaskName $taskName }
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
 icacls.exe $dir /inheritance:r /grant:r '*S-1-5-32-544:(OI)(CI)F' '*S-1-5-18:(OI)(CI)F' '*S-1-5-19:(OI)(CI)RX' | Out-Null
@@ -67,7 +67,7 @@ Register-ScheduledTask -TaskName $taskName -Action $action -Principal $principal
 Set-DRConfigValue $Cfg 'DashboardEnabled' $true
 if ($OpenOnLogon) {
     $operator = [Security.Principal.WindowsIdentity]::GetCurrent().Name
-    $openTask = 'Dauntless Revived open dashboard'
+    $openTask = 'Dauntless Unbroken open dashboard'
     $openAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\Open-OwnerDashboard.ps1`""
     Register-ScheduledTask -TaskName $openTask -Action $openAction -Principal (New-ScheduledTaskPrincipal -UserId $operator -LogonType Interactive -RunLevel Limited) -Trigger (New-ScheduledTaskTrigger -AtLogOn -User $operator) -Settings (New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 2)) -Description 'Open the locked owner page in the operator session, never in the service session.' -Force | Out-Null
     Set-DRConfigValue $Cfg 'DashboardOpenOnStart' $true

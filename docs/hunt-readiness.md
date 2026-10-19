@@ -1,6 +1,6 @@
 # Hunt startup and worker operation
 
-Deploy the matching `UndauntedInternalServer.dll` and deploy-server build together.
+Deploy the matching `DauntlessUnbroken.dll` and deploy-server build together.
 The deploy server creates a private per-launch readiness marker automatically and waits
 up to 90 seconds before returning a travel address. Newer native servers write the marker
 only after `InitListen` succeeds. Existing installs with an older DLL are also supported:
@@ -72,7 +72,7 @@ new actor's first lookup does not scan every channel opened before it. Positive
 lookups still validate current array slots; removal, replacement and reentrant
 assignment are covered by the regression suite. If the setter hook cannot be
 installed, lookup keeps its conservative fallback. See
-[`CHANNEL_LOOKUP_TESTING.md`](../UndauntedInternalServer/tests/CHANNEL_LOOKUP_TESTING.md)
+[`CHANNEL_LOOKUP_TESTING.md`](../DauntlessUnbrokenInternalServer/tests/CHANNEL_LOOKUP_TESTING.md)
 for the exact binary checks and performance regression.
 
 Update the central metagame, the deploy servers on each worker, and the server
@@ -93,11 +93,11 @@ the generated SDK's uninstantiated `static_assert(false)` templates.
 
 The central metagame owns the store and inventory; workers use that same backend.
 Set `STORE=free` to enable the shipped catalog. Offers currently cost zero. See
-[`UndauntedMetagame/STORE_PRICING.md`](../UndauntedMetagame/STORE_PRICING.md) before
+[`DauntlessUnbrokenMetagame/STORE_PRICING.md`](../DauntlessUnbrokenMetagame/STORE_PRICING.md) before
 changing earned-currency prices. No real-money payment processing is provided.
 
 Set `STORE_CATALOG_PROFILE=curated30` for the 30-cosmetic storefront listed in
-`UndauntedMetagame/src/vendor/store_curated_30.json`. Set `STORE_REPEATABLE_TOKENS=0`;
+`DauntlessUnbrokenMetagame/src/vendor/store_curated_30.json`. Set `STORE_REPEATABLE_TOKENS=0`;
 the curated profile excludes bounty-token bundles even if that flag is enabled.
 Other offers cannot be purchased by bypassing the listing and requesting their SKU.
 The separate Hunt Pass endpoint remains available.

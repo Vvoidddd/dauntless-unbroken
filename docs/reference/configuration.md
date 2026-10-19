@@ -2,7 +2,7 @@
 title: Configuration
 parent: Reference
 nav_order: 1
-description: "Every environment variable of the Dauntless Revived servers: defaults, allowed values, what each does, who sets it, and which switches are on by default."
+description: "Every environment variable of the Dauntless Unbroken servers: defaults, allowed values, what each does, who sets it, and which switches are on by default."
 lang: en
 ref: reference/configuration
 ---
@@ -23,10 +23,10 @@ ref: reference/configuration
 # Configuration
 {: .no_toc }
 
-Every server component of Dauntless Revived is configured with environment variables. None of them
+Every server component of Dauntless Unbroken is configured with environment variables. None of them
 has a configuration file format of its own: on a development PC each one reads a `.env` file in its
 folder, and on a server installed with the Windows server kit each one reads its own file in
-`C:\DauntlessRevived\data\config\`. This page lists every variable each component reads, what an
+`C:\DauntlessUnbroken\data\config\`. This page lists every variable each component reads, what an
 unset value means, who normally sets it, and which ones are secret.
 
 It is a reference. For a working setup step by step, follow [Host a server]({{ host_page.url | relative_url }})
@@ -53,12 +53,12 @@ print them. The examples on this page are placeholders.
 
 | Component | Folder | Started with | Developer file | File on a kit server |
 |:----------|:-------|:-------------|:---------------|:---------------------|
-| Metagame | `UndauntedMetagame/` | `npm start` = `node --env-file=.env dist/server.js`; `npm run dev` = `tsx watch --env-file=.env src/server.ts` | `UndauntedMetagame/.env` (must exist, or Node refuses to start) | `data\config\metagame.env` |
-| Deploy server | `UndauntedDeployServer/` | `npm start` = `node --env-file=.env dist/server.js`; `npm run dev` = `tsx --env-file=.env src/server.ts` | `UndauntedDeployServer/.env` (must exist) | `data\config\deployserver.env` |
-| Gateway | `UndauntedGateway/` | `npm start` = `node --env-file-if-exists=.env dist/server.js` | `UndauntedGateway/.env` (optional) | `data\config\gateway.env` (public mode only) |
-| Allowlist helper | `UndauntedGateway/` | `npm run start:allowlist` = `node --env-file-if-exists=.env dist/allowlist/server.js` | the same `UndauntedGateway/.env` | `data\config\allowlist.env` (public mode only) |
-| Content server | `UndauntedContent/` | `npm start` = `node --env-file-if-exists=.env dist/server.js` (also `npm run verify`) | `UndauntedContent/.env` (optional) | `data\config\content.env` (when the content server is installed) |
-| Launcher | `UndauntedLauncher/` | the installed app, or `npm start` | none: it reads its own process environment only | not on the server |
+| Metagame | `DauntlessUnbrokenMetagame/` | `npm start` = `node --env-file=.env dist/server.js`; `npm run dev` = `tsx watch --env-file=.env src/server.ts` | `DauntlessUnbrokenMetagame/.env` (must exist, or Node refuses to start) | `data\config\metagame.env` |
+| Deploy server | `DauntlessUnbrokenDeployServer/` | `npm start` = `node --env-file=.env dist/server.js`; `npm run dev` = `tsx --env-file=.env src/server.ts` | `DauntlessUnbrokenDeployServer/.env` (must exist) | `data\config\deployserver.env` |
+| Gateway | `DauntlessUnbrokenGateway/` | `npm start` = `node --env-file-if-exists=.env dist/server.js` | `DauntlessUnbrokenGateway/.env` (optional) | `data\config\gateway.env` (public mode only) |
+| Allowlist helper | `DauntlessUnbrokenGateway/` | `npm run start:allowlist` = `node --env-file-if-exists=.env dist/allowlist/server.js` | the same `DauntlessUnbrokenGateway/.env` | `data\config\allowlist.env` (public mode only) |
+| Content server | `DauntlessUnbrokenContent/` | `npm start` = `node --env-file-if-exists=.env dist/server.js` (also `npm run verify`) | `DauntlessUnbrokenContent/.env` (optional) | `data\config\content.env` (when the content server is installed) |
+| Launcher | `DauntlessUnbrokenLauncher/` | the installed app, or `npm start` | none: it reads its own process environment only | not on the server |
 
 Rules that apply to all of them:
 
@@ -80,7 +80,7 @@ Rules that apply to all of them:
 - **Restart after every change.** Each component reads its environment when it starts (some values
   once, some on every request, but the environment of a running process never changes). Change the
   file, then restart that component: by hand as in [Host a server]({{ host_page.url | relative_url }}#stopping),
-  or on a kit server with `C:\DauntlessRevived\bin\Stack.ps1 restart -Only <component>` (`metagame`,
+  or on a kit server with `C:\DauntlessUnbroken\bin\Stack.ps1 restart -Only <component>` (`metagame`,
   `content`, `deploy`, `gateway` or `allowlist`). Two things change without a restart: an admin can
   switch `REGISTRATION_MODE` at runtime (in memory only, a restart goes back to the file), and the
   content server re-reads the news file and the art pack folder by itself.
@@ -156,7 +156,7 @@ it would do; any test machine) or `0` (change the firewall; the server).
 
 ---
 
-## Metagame (`UndauntedMetagame/`) {#metagame}
+## Metagame (`DauntlessUnbrokenMetagame/`) {#metagame}
 
 The backend the game talks to: logins, characters, inventory, progression, matchmaking and the
 `/undaunted/api` management routes. A worked `.env` for one PC is in
@@ -204,7 +204,7 @@ could not be loaded: <reason>`, exit code 1), before the database is opened.
 | `AUTH_SIGNING_PRIVKEY_B64` | none. Unset: the metagame stops at startup. Empty: it starts, but every login fails. | base64 of a PEM RSA private key (PKCS#8) | **Secret: never share, never commit.** Signs the players' session tokens (RS256, valid 24 hours). Whoever has it can sign in as any account. Replacing the key pair only logs everyone out. Back it up encrypted. | You ([Host a server]({{ host_page.url | relative_url }}#metagame) shows how to generate it); kit: kept from the existing file or the backup, otherwise generated once |
 | `AUTH_SIGNING_PUBKEY_B64` | none. Unset: the metagame stops at startup. | base64 of the matching PEM public key (SPKI) | Checks every session token. Not secret, but it must belong to the private key, or every signed-in request fails. | Generated together with the private key |
 | `REGISTRATION_MODE` | none. Unset or unknown: account creation answers 500. | `NONE`, `INVITECODE` or `OPEN` (exact) | Who may create an account (`POST /undaunted/api/Register`). `NONE`: nobody (400). `INVITECODE`: only with a usable invite code (401 otherwise). `OPEN`: anyone who can reach the metagame, so use it only while the metagame listens on `127.0.0.1`. An admin can change it at runtime; that lasts until the next restart. | You (`OPEN` on one PC); kit: always `INVITECODE` (a hand-set value is overwritten on every installer run) |
-| `DB_FILENAME` | none. Unset or empty: a temporary database that is deleted when the metagame exits. | file path, forward slashes; relative to the working directory | The SQLite database: accounts, key hashes, saves, progression. Its folder must exist. Pending migrations run at every start, without a backup first, so back up before you update. The file is private: it holds usernames, saves, key hashes and, until the next start, keys queued for registration in plain text. `npm run db:generate` reads it from `.env` too. | You (`C:/dr/data/undaunted.db` in the host guide); kit: always (`<root>/data/undaunted.db`) |
+| `DB_FILENAME` | none. Unset or empty: a temporary database that is deleted when the metagame exits. | file path, forward slashes; relative to the working directory | The SQLite database: accounts, key hashes, saves, progression. Its folder must exist. Pending migrations run at every start, without a backup first, so back up before you update. The file is private: it holds usernames, saves, key hashes and, until the next start, keys queued for registration in plain text. `npm run db:generate` reads it from `.env` too. | You (`C:/dr/data/dauntless-unbroken.db` in the host guide); kit: always (`<root>/data/dauntless-unbroken.db`) |
 | `DB_WAL` | off | `1` or anything else | `1` switches SQLite to WAL journal mode. Off because the documented backups copy the database file alone and the kit stops the metagame hard, so the newest saves could sit only in the separate `-wal` file. With it off, a database left in WAL mode is switched back at startup. | Nobody by default; kit: kept |
 
 ### Matchmaking and the client {#metagame-matchmaking}
@@ -237,7 +237,7 @@ URLs, bodies or account identifiers are retained. See `tools/DASHBOARD.md` for d
 | `LOG_REQUESTS` | on | `0` or anything else | **Fork only.** One line per request: `METHOD /path gs=0` (`gs=1` when the request carried the game-server key). Behind the gateway the line ends with ` via=gateway ip=<player address>`; other forwarded requests get ` via=proxy peer=<address>`. Only the path is logged, never the query string or headers, and token-shaped parts of the path are replaced. `0` turns it off. | Nobody by default |
 | `LOG_BODIES` | off | `1` or anything else | **Fork only.** `1` appends the request bodies of unfinished routes (progression, Hunt Pass, bounties, cooldowns, Escalation, entitlements, loadout unlocks, the store (`/product`, `/token`, `/notification`), balance and `/reconcile`, Slayer Links, matchmaking, party, friends, inventory and account lookups) to `BODY_LOG_FILE`: one JSON object per line, `{t, method, url, gs, body, status, ms}` with the arrival time, method, URL (query string included), whether the game-server key was present, the body cut at 8 KB (64 KB for inventory), the reply's status and the time to answer in milliseconds (`"aborted": true` when the connection closed first). The line is written when the answer is done. Tokens, account keys (`UUK_...`) and other long token-shaped strings are removed from the URL and the body. A development aid: the file records what players send, so keep it private and never turn it on for a public server. | Nobody by default; kit: forced to `0` in public mode, kept in private mode |
 | `BODY_LOG_PER_PATH` | `0`: no cap | whole number | **Fork only.** With `LOG_BODIES=1`: at most this many lines per method and exact path (ids included) in one run of the metagame; the path's last line is followed by `body log: <METHOD path> reached BODY_LOG_PER_PATH=N; no more lines for it in this run`. For a client stuck in a loop. | Nobody by default |
-| `BODY_LOG_FILE` | `bodies.log` in the working directory | file path | Where `LOG_BODIES` writes. The file is never rotated. `UndauntedMetagame/bodies.log` is not git-ignored: point this outside the repository (for example `C:/dr/data/bodies.log`) and never commit the file. | Kit: always (`<root>/data/logs/bodies.log`) |
+| `BODY_LOG_FILE` | `bodies.log` in the working directory | file path | Where `LOG_BODIES` writes. The file is never rotated. `DauntlessUnbrokenMetagame/bodies.log` is not git-ignored: point this outside the repository (for example `C:/dr/data/bodies.log`) and never commit the file. | Kit: always (`<root>/data/logs/bodies.log`) |
 
 ### Server identity {#metagame-identity}
 
@@ -246,10 +246,10 @@ players from `GET /undaunted/api/ServerStatus` (see [HTTP API]({{ api_page.url |
 
 | Name | Default | Values | What it does | Set by |
 |:-----|:--------|:-------|:-------------|:-------|
-| `SERVER_NAME` | `Dauntless Revived` | printable ASCII, cut to 64 characters | The server's name in the status replies, and in the in-game welcome text of `/dauntless-status` (`Welcome to <name>!`, translated into each of the eight languages the reply carries). | Kit: always, from `-ServerName` (default `Dauntless Revived`). The installer does not remember it: pass `-ServerName` on every run, or the name goes back to the default. |
+| `SERVER_NAME` | `Dauntless Unbroken` | printable ASCII, cut to 64 characters | The server's name in the status replies, and in the in-game welcome text of `/dauntless-status` (`Welcome to <name>!`, translated into each of the eight languages the reply carries). | Kit: always, from `-ServerName` (default `Dauntless Unbroken`). The installer does not remember it: pass `-ServerName` on every run, or the name goes back to the default. |
 | `SERVER_VERSION` | the version recorded at build time (`dist/build-info.json`), then `package.json`, then `unknown` | printable ASCII, up to 32 characters | Version in the status replies. | Nobody by default |
-| `GIT_COMMIT` | the commit recorded at build time (with `-dirty` if the metagame folder had uncommitted changes), then `unknown` | up to 64 characters of letters, digits and `._+-`; anything else is ignored | The commit the running code came from. | Kit: always (the installed commit); `Update-DauntlessServer.ps1` rewrites it on every update and rollback |
-| `SOURCE_URL` | `https://github.com/mixutin/dauntless-revived` | URL, printable ASCII, up to 256 characters | Where the source of the running server is, for the AGPL source offer ([Credits and license]({{ legal_page.url | relative_url }})). If you run modified code for other people, point it at your modified source. | Kit: always the repository URL from `deploy/windows-server/DauntlessServer.Common.ps1`, so a hand edit is overwritten on the next installer run; a fork changes it there |
+| `GIT_COMMIT` | the commit recorded at build time (with `-dirty` if the metagame folder had uncommitted changes), then `unknown` | up to 64 characters of letters, digits and `._+-`; anything else is ignored | The commit the running code came from. | Kit: always (the installed commit); `Update-DauntlessUnbrokenServer.ps1` rewrites it on every update and rollback |
+| `SOURCE_URL` | `https://github.com/Vvoidddd/dauntless-unbroken` | URL, printable ASCII, up to 256 characters | Where the source of the running server is, for the AGPL source offer ([Credits and license]({{ legal_page.url | relative_url }})). If you run modified code for other people, point it at your modified source. | Kit: always the repository URL from `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1`, so a hand edit is overwritten on the next installer run; a fork changes it there |
 | `CONTENT_PORT` | unset or invalid: none reported | 1-65535 | Tells launchers which port the content server (game downloads, news, art) uses. | Kit: always when the content server is installed (61002), removed otherwise |
 | `STATUS_EXTRA` | on | `0` or anything else | **Fork only.** `GET /dauntless-status` adds `name`, `version`, `commit` and `sourceUrl` after the nine fields the game reads. `0` answers the nine fields only, as upstream did. The route answers anyone and never names players. | Nobody by default |
 
@@ -377,7 +377,7 @@ reason every 10 minutes. Message text, tokens, login payloads and request header
 
 ---
 
-## Deploy server (`UndauntedDeployServer/`) {#deploy-server}
+## Deploy server (`DauntlessUnbrokenDeployServer/`) {#deploy-server}
 
 ### Memory admission
 
@@ -428,7 +428,7 @@ game-server key included.
 | `MY_IP` | none. Unset: every launch fails. | IPv4 address as players reach it | The address handed to clients for every game server (Ramsgate, the Dojo, hunts). `127.0.0.1` for play on one PC, the Tailscale address in private mode, the server's public IPv4 in public mode (for example `203.0.113.10`). With `127.0.0.1` on a shared server, a friend's game connects to its own PC. | You; kit: always (public mode: the IPv4 of the public host, which is `-PublicHost`, else the one saved at the last install, else the network adapter's only public IPv4; the Tailscale address in private mode; `127.0.0.1` in sandbox) |
 | `PORT_RANGE_BEGIN` | none. Unset: no hunt ports, every hunt fails. | UDP port | Lowest game-server port. Hunts use `PORT_RANGE_BEGIN` up to `PORT_RANGE_END - 2`: six at a time with 8770-8777. To allow more at once on a hand-built host, lower it and open the extra ports too. | You (8770); kit: always 8770 |
 | `PORT_RANGE_END` | none. Unset: Ramsgate cannot start. | keep `8777` | Ramsgate always runs on this port and the Training Dojo on the one below. The rebuilt DLL identifies the permanent Ramsgate by its map rather than its port. Older pinned DLLs disable the idle watchdog by port, so keep this layout when using them. | You (8777); kit: always 8777 |
-| `GAMESERVER_BINARY_PATH` | none. Unset or wrong: the deploy server stops soon after start (from reading the code). | full path of `Dauntless-Win64-Shipping.exe`, forward slashes | The 1.4.4 game exe started as each game server; `dxgi.dll` and `UndauntedInternalServer.dll` must sit next to it. Whatever file this names is run with the game-server key on its command line, so only administrators may edit the file. | You; kit: always (`<root>/game/Dauntless/Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe`) |
+| `GAMESERVER_BINARY_PATH` | none. Unset or wrong: the deploy server stops soon after start (from reading the code). | full path of `Dauntless-Win64-Shipping.exe`, forward slashes | The 1.4.4 game exe started as each game server; `dxgi.dll` and `DauntlessUnbroken.dll` must sit next to it. Whatever file this names is run with the game-server key on its command line, so only administrators may edit the file. | You; kit: always (`<root>/game/Dauntless/Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe`) |
 | `METAGAME_API_KEY` | none. Unset: game servers cannot talk to the metagame. | the game-server key (48 hex characters as generated) | **Secret: never share, never commit.** Passed to every game server as its first command-line argument; the server DLL sends it with every request to the metagame, which stores only its SHA-256. It must match `gameserver.key` and be registered in the metagame's database. Local users can see it in the game servers' command lines. | You ([Host a server]({{ host_page.url | relative_url }}#metagame)); kit: always (kept from the backup, the key file or the old file, otherwise new) |
 | `SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP` | none. Unset: effectively no gap. | seconds; decimals work | Minimum gap between two game-server launches. All launches wait in one queue, so the third hunt requested at the same moment starts about two gaps later. | You (10); kit: 10 when missing or empty, a hand-set value is kept |
 | `ENABLE_DOJO` | on demand | `1` or anything else | **Fork only.** `1` starts the Training Dojo at boot, as upstream did. Anything else: it starts the first time someone is matchmade into it, and it starts again on demand after shutdown. | You (0); kit: 0 when missing, kept otherwise |
@@ -438,10 +438,10 @@ game-server key included.
 
 ---
 
-## Gateway (`UndauntedGateway/`, `dist/server.js`) {#gateway}
+## Gateway (`DauntlessUnbrokenGateway/`, `dist/server.js`) {#gateway}
 
 The only public TCP listener in public mode. It terminates TLS and passes requests to the metagame
-and the content server on loopback. The gateway's own [README]({{ site.github.repository_url }}/blob/dauntless-revived/UndauntedGateway/README.md)
+and the content server on loopback. The gateway's own [README]({{ site.github.repository_url }}/blob/main/DauntlessUnbrokenGateway/README.md)
 explains routing, refusals and how the limits were sized.
 
 **When read:** once, at startup. A value outside its range stops the gateway with an error that names
@@ -488,7 +488,7 @@ included.
 
 ---
 
-## Allowlist helper (`UndauntedGateway/`, `dist/allowlist/server.js`) {#allowlist-helper}
+## Allowlist helper (`DauntlessUnbrokenGateway/`, `dist/allowlist/server.js`) {#allowlist-helper}
 
 A small service that keeps one Windows Firewall rule open to the addresses of logged-in players. It
 runs with administrator rights (as SYSTEM on a kit server), so its settings file is readable only by
@@ -515,7 +515,7 @@ variable. `NODE_ENV` has no effect here.
 
 ---
 
-## Content server (`UndauntedContent/`) {#content-server}
+## Content server (`DauntlessUnbrokenContent/`) {#content-server}
 
 Serves the verified game files to registered accounts, plus the host's news and art for the
 launcher. Details of the news file and the art pack (`branding.json`) are on
@@ -554,8 +554,8 @@ reads only the variables below.
 
 | Name | Default | Values | What it does | Set by |
 |:-----|:--------|:-------|:-------------|:-------|
-| `DAUNTLESS_REVIVED_RELAY_PORT` | unset: 61000 | whole number 1024-65535 without a leading zero; anything else is ignored | For tests only, for example on a PC where the development stack already holds 61000. In public mode it moves the launcher's local relay, the address the game is started with and the game's chat port in `Engine.ini` to this port, and the launcher logs a warning. Private mode ignores it. Friends must keep 61000: the server hands every player `http://127.0.0.1:61000/QoS`. | A developer or tester, in the launcher's environment (`$env:DAUNTLESS_REVIVED_RELAY_PORT = "62100"` before starting it). Never set by any installer or kit. |
-| `LOCALAPPDATA` (`USERPROFILE` as a fallback) | set by Windows | folder | Default game folder (`%LOCALAPPDATA%\DauntlessRevived\Game`), the game's user config folder the launcher rewrites, and one place it looks for `tailscale.exe`. | Windows |
+| `DAUNTLESS_UNBROKEN_RELAY_PORT` | unset: 61000 | whole number 1024-65535 without a leading zero; anything else is ignored | For tests only, for example on a PC where the development stack already holds 61000. In public mode it moves the launcher's local relay, the address the game is started with and the game's chat port in `Engine.ini` to this port, and the launcher logs a warning. Private mode ignores it. Friends must keep 61000: the server hands every player `http://127.0.0.1:61000/QoS`. | A developer or tester, in the launcher's environment (`$env:DAUNTLESS_UNBROKEN_RELAY_PORT = "62100"` before starting it). Never set by any installer or kit. |
+| `LOCALAPPDATA` (`USERPROFILE` as a fallback) | set by Windows | folder | Default game folder (`%LOCALAPPDATA%\DauntlessUnbroken\Game`), the game's user config folder the launcher rewrites, and one place it looks for `tailscale.exe`. | Windows |
 | `ProgramW6432`, `ProgramFiles`, `ProgramFiles(x86)`, `PATH` | set by Windows | folders | Where else the launcher looks for `tailscale.exe` (private mode only). `C:\Program Files\Tailscale` is always tried. | Windows |
 | `WINDIR` (`SystemRoot` as a fallback) | set by Windows | folder | Where it checks for the Visual C++ runtime the server DLL needs. | Windows |
 
@@ -567,8 +567,8 @@ environment.
 
 ## What the Windows server kit writes {#server-kit}
 
-`Install-DauntlessServer.ps1` writes the five files in `<root>\data\config\` (default root
-`C:\DauntlessRevived`). On every run it reads the existing file, and with `-RestoreFrom` also the
+`Install-DauntlessUnbrokenServer.ps1` writes the five files in `<root>\data\config\` (default root
+`C:\DauntlessUnbroken`). On every run it reads the existing file, and with `-RestoreFrom` also the
 backup's `metagame.env` and `deployserver.env` (the backup's values win), keeps every key it finds,
 and then sets the keys that describe this host. So a setting you add by hand, such as
 `PROGRESSION_MODE=stub`, survives installer re-runs and updates; a hand-edited key from the "always
@@ -580,7 +580,7 @@ Other rules:
 - Comment lines are not kept: the file is rewritten with one header line.
 - Values containing a quote, a backslash or a line break are refused, so paths are written with
   forward slashes.
-- `Update-DauntlessServer.ps1` changes only `GIT_COMMIT` in `metagame.env`.
+- `Update-DauntlessUnbrokenServer.ps1` changes only `GIT_COMMIT` in `metagame.env`.
 - Ports come from `-MetagamePort`, `-DeployPort`, `-ContentPort`, `-AllowlistPort` and
   `-GatewayPort`, else from the existing install's `server.json`, else the defaults on
   [Ports and network]({{ ports_page.url | relative_url }}).
@@ -614,7 +614,7 @@ machine; a restore does not need them. The installer never prints any of them.
 stack, and `allowlist.env` is readable only by administrators and SYSTEM. Edit the files from an
 elevated editor, then restart the component with `Stack.ps1 restart -Only <component>`.
 
-**Backups.** `Backup-DauntlessServer.ps1` copies `metagame.env`, `deployserver.env`, `content.env` and
+**Backups.** `Backup-DauntlessUnbrokenServer.ps1` copies `metagame.env`, `deployserver.env`, `content.env` and
 `gateway.env` into `backups\<date>_<time>\secrets\`, together with the `*.key` files from
 `data\keys\` and the gateway's TLS certificate and key. `allowlist.env` is not copied (only administrators and SYSTEM can read it, and an
 install on a new machine makes a new allowlist secret). `gateway.env` carries copies of
@@ -640,10 +640,10 @@ process. You do not set these yourself; the table says what each is used for.
 
 | Name | Read by | What it is used for |
 |:-----|:--------|:--------------------|
-| `SSH_CONNECTION` | `Install-DauntlessServer.ps1` | Set by the OpenSSH server. When the installer runs over SSH (as `Deploy-Remote.ps1` does), the key login has been proven, so it turns SSH password login off. From the console or Remote Desktop it only warns. |
+| `SSH_CONNECTION` | `Install-DauntlessUnbrokenServer.ps1` | Set by the OpenSSH server. When the installer runs over SSH (as `Deploy-Remote.ps1` does), the key login has been proven, so it turns SSH password login off. From the console or Remote Desktop it only warns. |
 | `COMPUTERNAME` | the server kit | Forms the service account's name, `<COMPUTERNAME>\dauntless`. |
 | `WINDIR`, `ProgramFiles`, `ProgramData`, `Path`, `TEMP` | the server kit | `System32` tools (`tar.exe`, `cmd.exe`, OpenSSH), `nodejs\node.exe` and `Tailscale\tailscale.exe`, `ssh\sshd_config`. The installer adds the Node.js folder to `Path` for its own session. `Deploy-Remote.ps1` stages uploads under `%TEMP%`. |
-| `APPDATA`, `LOCALAPPDATA`, `WINDIR` | friend kit (`setup.ps1`, `play.ps1`) | `%APPDATA%\DauntlessRevived\` holds `account.key` (**secret: never share it, never commit it**) and `settings.json`; `play.ps1` writes the game's ini files under `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\`; `setup.ps1` checks `%WINDIR%\System32` for the Visual C++ runtime. |
+| `APPDATA`, `LOCALAPPDATA`, `WINDIR` | friend kit (`setup.ps1`, `play.ps1`) | `%APPDATA%\DauntlessUnbroken\` holds `account.key` (**secret: never share it, never commit it**) and `settings.json`; `play.ps1` writes the game's ini files under `%LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\`; `setup.ps1` checks `%WINDIR%\System32` for the Visual C++ runtime. |
 
 When the kit builds the code (`npm ci`, `npm run build`) it sets `NODE_ENV=development`, so that
 TypeScript is installed, and turns off npm's update, funding and audit messages. That is only the
@@ -659,7 +659,7 @@ its own.
 
 | Name | Kind | Default | Values | What it does | Set by |
 |:-----|:-----|:--------|:-------|:-------------|:-------|
-| `LAUNCHER_AUTO_RELEASE` | Repository variable (Settings > Secrets and variables > Actions > Variables), read by `ci.yml` | unset: on | `false` pauses automatic releases; unset, they are on | Automatic launcher releases: a push to `dauntless-revived` that passes every check, is still the head of the branch, and has a launcher version with no `launcher-v<version>` release yet publishes that launcher ([Launcher releases]({{ dev_page.url | relative_url }}#launcher-releases)). Only the repository `mixutin/dauntless-revived` publishes automatically. While it is `false`, Actions > **Launcher release** > **Run workflow** still publishes by hand. | The repository owner |
+| `LAUNCHER_AUTO_RELEASE` | Repository variable (Settings > Secrets and variables > Actions > Variables), read by `ci.yml` | unset: on | `false` pauses automatic releases; unset, they are on | Automatic launcher releases: a push to `dauntless-unbroken` that passes every check, is still the head of the branch, and has a launcher version with no `launcher-v<version>` release yet publishes that launcher ([Launcher releases]({{ dev_page.url | relative_url }}#launcher-releases)). Only the repository `Vvoidddd/dauntless-unbroken` publishes automatically. While it is `false`, Actions > **Launcher release** > **Run workflow** still publishes by hand. | The repository owner |
 
 The workflows need no secrets of their own: they use the token GitHub gives every run, with write
 access only in the jobs that publish a release. Code scanning with CodeQL is the repository's default

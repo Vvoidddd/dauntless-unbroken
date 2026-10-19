@@ -1,9 +1,9 @@
 ---
 title: Palvelin ryhmälle
 parent: Asennus
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 4
-description: "Dauntless Revived -palvelin kavereille: Tailscale-jako, palomuurisäännöt, kutsukoodit, ylläpitäjän tilit, kapasiteetti ja tietokannan varmuuskopiot."
+description: "Dauntless Unbroken -palvelin kavereille: Tailscale-jako, palomuurisäännöt, kutsukoodit, ylläpitäjän tilit, kapasiteetti ja tietokannan varmuuskopiot."
 lang: fi
 ref: setup/admin
 locale: fi_FI
@@ -48,8 +48,8 @@ toinen puoli on sivu [Liity kaverina]({{ friends_page.url | relative_url }}).
 
 | Osa | Kuuntelee | Kenen on tavoitettava se |
 |:----------|:-----------|:--------------------|
-| Metagame (`UndauntedMetagame`: Node, Express, SQLite) | TCP 61000 | Jokaisen pelaajan peliohjelman, jokaisen pelipalvelimen ja sinun ylläpitäjänä |
-| Deploy-palvelin (`UndauntedDeployServer`) | TCP 61001, vain loopback | Vain samalla koneella olevan metagamen. **Siinä ei ole tunnistautumista.** |
+| Metagame (`DauntlessUnbrokenMetagame`: Node, Express, SQLite) | TCP 61000 | Jokaisen pelaajan peliohjelman, jokaisen pelipalvelimen ja sinun ylläpitäjänä |
+| Deploy-palvelin (`DauntlessUnbrokenDeployServer`) | TCP 61001, vain loopback | Vain samalla koneella olevan metagamen. **Siinä ei ole tunnistautumista.** |
 | Ramsgate-palvelin | UDP 8777 (`PORT_RANGE_END`) | Pelaajien. Aina käynnissä. Jos se kuolee, deploy-palvelin käynnistää sen uudelleen, kun pelaaja matkustaa sinne, tai sen vahtikoira (watchdog) tekee sen minuutin sisällä. |
 | Training Dojo | UDP 8776 | Pelaajien. Forkimme käynnistää sen ensimmäisellä käyttökerralla; `ENABLE_DOJO=1` palauttaa alkuperäisen aina päällä -toiminnan. |
 | Metsästyspalvelimet | UDP 8770–8775 | Pelaajien. Yksi jokaista enintään neljän hengen ryhmää kohden. Kukin sulkeutuu, kun siihen ei ole ollut kukaan yhteydessä yhteensä 50 sekuntiin. |
@@ -68,7 +68,7 @@ koneellesi) toisi kaiken seuraavan julkiseen internetiin:
   `http://<metagame address>/...`. Koko kokonaisuudessa ei ole TLS-salausta missään.
 - **Tiliavaimet kulkevat salaamattomina.** Kirjautuessa peli lähettää pelaajan avaimen
   `exchange_code`-kenttänä osoitteeseen `/account/api/oauth/token`. Käynnistin ja ylläpitorajapinta
-  lähettävät sen `x-undaunted-user-api-key`-otsakkeessa. Takaisin tulee 24 tuntia voimassa oleva
+  lähettävät sen `x-dauntless-unbroken-user-api-key`-otsakkeessa. Takaisin tulee 24 tuntia voimassa oleva
   RS256-bearer-tunniste, joka antaa täyden pääsyn kyseisen pelaajan tietoihin.
 - `POST /undaunted/api/Register` ei vaadi tunnistautumista, eikä mikään metagamessa rajoita pyyntöjen
   määrää.
@@ -116,11 +116,11 @@ järjestelmänvalvojan oikeuksin avatussa PowerShellissä:
 $game = "C:\D144\Dauntless\Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe"
 $node = "C:\Program Files\nodejs\node.exe"
 
-New-NetFirewallRule -DisplayName "Dauntless Revived - metagame (Tailscale)" `
+New-NetFirewallRule -DisplayName "Dauntless Unbroken - metagame (Tailscale)" `
   -Direction Inbound -Action Allow -Protocol TCP -LocalPort 61000 `
   -Program $node -InterfaceAlias Tailscale -RemoteAddress 100.64.0.0/10
 
-New-NetFirewallRule -DisplayName "Dauntless Revived - game servers (Tailscale)" `
+New-NetFirewallRule -DisplayName "Dauntless Unbroken - game servers (Tailscale)" `
   -Direction Inbound -Action Allow -Protocol UDP -LocalPort 8770-8777 `
   -Program $game -InterfaceAlias Tailscale -RemoteAddress 100.64.0.0/10
 ```
@@ -152,11 +152,11 @@ Kolme asetusta osoittaa nykyään osoitteeseen `127.0.0.1`, ja ne on muutettava:
 
 | Asetus | Tiedosto | Uusi arvo | Miksi |
 |:--------|:-----|:----------|:----|
-| `MY_IP` | `UndauntedDeployServer/.env` | `<host 100.x address>` | Ainoa isännän osoite, jonka deploy-palvelin antaa Ramsgatea, Dojoa ja metsästyksiä varten matchmaking-tuloksen kautta. Arvolla `127.0.0.1` kaverin peliohjelma matkaisi omalle koneelleen. |
-| `QOS_TARGET_URL` | `UndauntedMetagame/.env` | `http://<host 100.x address>:61000/QoS` | `/candidate/regions` palauttaa tämän osoitteen alueena, jota pingataan. Arvolla `127.0.0.1` kaverit pingaavat omaa konettaan (localhost). Emme ole testanneet, mitä peliohjelma tekee, kun tuo ping epäonnistuu. |
-| `BIND_HOST` | `UndauntedMetagame/.env` | `<host 100.x address>` | Osoite, jossa metagame kuuntelee. Forkimme oletus on `127.0.0.1`; alkuperäinen projekti kuunteli kaikissa liitännöissä. |
-| `BIND_HOST` | `UndauntedDeployServer/.env` | pysyy arvossa `127.0.0.1` | Ei tunnistautumista. |
-| `DEPLOYSERVER_URL` | `UndauntedMetagame/.env` | pysyy arvossa `127.0.0.1:61001` | Metagame tavoittaa deploy-palvelimen paikallisesti. |
+| `MY_IP` | `DauntlessUnbrokenDeployServer/.env` | `<host 100.x address>` | Ainoa isännän osoite, jonka deploy-palvelin antaa Ramsgatea, Dojoa ja metsästyksiä varten matchmaking-tuloksen kautta. Arvolla `127.0.0.1` kaverin peliohjelma matkaisi omalle koneelleen. |
+| `QOS_TARGET_URL` | `DauntlessUnbrokenMetagame/.env` | `http://<host 100.x address>:61000/QoS` | `/candidate/regions` palauttaa tämän osoitteen alueena, jota pingataan. Arvolla `127.0.0.1` kaverit pingaavat omaa konettaan (localhost). Emme ole testanneet, mitä peliohjelma tekee, kun tuo ping epäonnistuu. |
+| `BIND_HOST` | `DauntlessUnbrokenMetagame/.env` | `<host 100.x address>` | Osoite, jossa metagame kuuntelee. Forkimme oletus on `127.0.0.1`; alkuperäinen projekti kuunteli kaikissa liitännöissä. |
+| `BIND_HOST` | `DauntlessUnbrokenDeployServer/.env` | pysyy arvossa `127.0.0.1` | Ei tunnistautumista. |
+| `DEPLOYSERVER_URL` | `DauntlessUnbrokenMetagame/.env` | pysyy arvossa `127.0.0.1:61001` | Metagame tavoittaa deploy-palvelimen paikallisesti. |
 
 **Hankaluus: metagame kuuntelee yhdessä osoitteessa**, ja myös kaksi paikallista osaa puhuu sille.
 
@@ -255,14 +255,14 @@ palauttaa).
 
 ### Kutsukoodien luominen {#making-invite-codes}
 
-Ylläpitokutsut tunnistetaan ylläpitäjätilin omalla avaimella `x-undaunted-user-api-key`-otsakkeessa,
+Ylläpitokutsut tunnistetaan ylläpitäjätilin omalla avaimella `x-dauntless-unbroken-user-api-key`-otsakkeessa,
 ja ne toimivat vain suoraan metagamea vasten, eivät koskaan välityspalvelimen (proxy) tai julkisen
 yhdyskäytävän kautta. Meidän kokoonpanossamme omistajan avain on tiedostossa `C:\dr\data\owner.key`.
 Tämä lohko pyytää palvelimelta uuden kertakäyttöisen koodin, listaa kaikki koodit ja peruu yhden:
 
 ```powershell
 $M = "100.x.y.z:61000"    # wherever the metagame listens
-$h = @{ "x-undaunted-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
+$h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 
 # new single-use code, made by the server (XXXX-XXXX-XXXX)
 $code = (Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/CreateInvite" -Headers $h `
@@ -293,19 +293,19 @@ Invoke-RestMethod -Method Delete -Uri "http://$M/undaunted/api/InviteCode/$code"
 
 Ylläpitäjä on `users`-taulun rivi, jossa `isAdmin = 1`. Mikään rajapinta ei aseta sitä. Muokkaa
 tietokantaa metagamen ollessa pysäytettynä, esimerkiksi pienellä `better-sqlite3`-skriptillä, jota
-ajetaan `UndauntedMetagame`-kansiosta (`UPDATE users SET isAdmin = 1 WHERE userId = ?`). Ylläpitäjän
+ajetaan `DauntlessUnbrokenMetagame`-kansiosta (`UPDATE users SET isAdmin = 1 WHERE userId = ?`). Ylläpitäjän
 avain on yksinkertaisesti kyseisen käyttäjän tiliavain, joten pidä se palvelinkoneella.
 
 ## Ylläpitorajapinta {#admin-api}
 
 Kaikki reitit ovat metagamen portissa polun `/undaunted/api` alla. ”Ylläpitäjä” tarkoittaa, että
-`x-undaunted-user-api-key`-otsakkeen on kuuluttava käyttäjälle, jolla on `isAdmin`. Puuttuva tai
+`x-dauntless-unbroken-user-api-key`-otsakkeen on kuuluttava käyttäjälle, jolla on `isAdmin`. Puuttuva tai
 tuntematon avain saa vastauksen 401; kelvollinen avain, joka ei kuulu ylläpitäjälle, saa vastauksen 403.
 **Ylläpitokutsu, jossa on välityspalvelimen otsake, saa vastauksen 403** jo ennen kuin avainta
 edes tarkistetaan. Siksi ylläpitokutsut toimivat vain suoraan metagamea vasten: palvelinkoneella tai
 yksityisessä tilassa koneelta, joka on samassa tailnetissä. Myös julkinen yhdyskäytävä torjuu ne.
 
-Sivu [HTTP-rajapinta]({{ api_page.url | relative_url }}#undaunted-api) luettelee jokaisen reitin
+Sivu [HTTP-rajapinta]({{ api_page.url | relative_url }}#dauntless-unbroken-api) luettelee jokaisen reitin
 runkoineen ja vastauksineen. Ryhmän palvelimen ylläpidossa eniten käytetyt:
 
 | Metodi ja polku | Tunnistautuminen | Mitä se tekee |
@@ -363,7 +363,7 @@ nimissä; ylläpitäjän avaimella voi nimetä toisen pelaajan kentässä `From`
 
 ```powershell
 $M = "127.0.0.1:61000"    # vuokrapalvelimella; yksityisessä tilassa Tailscale-osoite
-$h = @{ "x-undaunted-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
+$h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 $json = @{ ContentType = "application/json"; Headers = $h; TimeoutSec = 10 }
 
 # kutsu kaveri ryhmääsi, lähetä kaveripyyntö, kutsu kiltaasi
@@ -405,14 +405,14 @@ ylläpitäjäksi ylentämiseen. Nimen vaihto on olemassa (`RenameUser`, katso
   kirjautumisella, mutta jo myönnetty tunniste pysyy voimassa enintään 24 tuntia.
 - **Kaveri kadotti avaimensa.** Sitä ei voi palauttaa, koska vain sen tiiviste on tallessa. Anna uusi
   korvaamalla tiiviste. Uuden avaimen antava ylläpitotoiminto on suunnitteilla. Siihen asti tallenna
-  tämä nimellä `rekey.js` kansioon `UndauntedMetagame`, jotta `require` löytää `better-sqlite3`-kirjaston:
+  tämä nimellä `rekey.js` kansioon `DauntlessUnbrokenMetagame`, jotta `require` löytää `better-sqlite3`-kirjaston:
 
   ```js
   // node rekey.js <UserId>   (take the UserId from GET /undaunted/api/GetAllUsers)
   const crypto = require("crypto");
   const fs = require("fs");
   const Database = require("better-sqlite3");
-  const db = new Database("C:/dr/data/undaunted.db", { fileMustExist: true });
+  const db = new Database("C:/dr/data/dauntless-unbroken.db", { fileMustExist: true });
   const userId = process.argv[2];
   const key = "UUK_" + crypto.randomBytes(24).toString("hex");   // same format as Register
   const hash = crypto.createHash("sha256").update(key, "utf8").digest("hex");
@@ -431,12 +431,12 @@ ylläpitäjäksi ylentämiseen. Nimen vaihto on olemassa (`RenameUser`, katso
 
 Useat ominaisuudet on rakennettu, mutta ne ovat oletuksena pois päältä, ja muutamalla päällä olevalla
 on kytkin, jolla sen saa pois. Kukin on yksi rivi metagamen asetuksissa: itse pystytetyllä koneella
-`.env` kansiossa `UndauntedMetagame`, palvelinpaketin palvelimella
-`C:\DauntlessRevived\data\config\metagame.env` (muokkaa järjestelmänvalvojana avatulla editorilla).
+`.env` kansiossa `DauntlessUnbrokenMetagame`, palvelinpaketin palvelimella
+`C:\DauntlessUnbroken\data\config\metagame.env` (muokkaa järjestelmänvalvojana avatulla editorilla).
 Paketti säilyttää lisäämäsi rivin uudelleenajoissa ja päivityksissä. Käynnistä sitten metagame
 uudelleen **silloin, kun kukaan ei pelaa** (uudelleenkäynnistys pudottaa ryhmät ja jonot): käsin kuten
 kohdassa [Uudelleenkäynnistys muutoksen jälkeen](#restarting-after-a-change) tai paketin palvelimella
-`C:\DauntlessRevived\bin\Stack.ps1 restart -Only metagame`. Metagamen käynnistysrivi `features: ...`
+`C:\DauntlessUnbroken\bin\Stack.ps1 restart -Only metagame`. Metagamen käynnistysrivi `features: ...`
 näyttää käytössä olevan arvon. Jokainen asetus on sivulla [Asetukset]({{ config_page.url | relative_url }}).
 
 **Oletuksena pois, ja mitä tehdä ennen kunkin kytkemistä päälle:**
@@ -462,11 +462,11 @@ muutoksen jälkeen.
 eikä tunnuksia). Paketin palvelimella, järjestelmänvalvojana avatussa PowerShellissä:
 
 ```powershell
-Set-Location C:\DauntlessRevived\app\UndauntedMetagame
-node -e "const db = new (require('better-sqlite3'))(process.argv[1], { readonly: true }); console.log(db.prepare('SELECT COUNT(*) AS accountsWithSeveralCharacters FROM (SELECT userId FROM characters GROUP BY userId HAVING COUNT(*) > 1)').get())" C:/DauntlessRevived/data/undaunted.db
+Set-Location C:\DauntlessUnbroken\app\DauntlessUnbrokenMetagame
+node -e "const db = new (require('better-sqlite3'))(process.argv[1], { readonly: true }); console.log(db.prepare('SELECT COUNT(*) AS accountsWithSeveralCharacters FROM (SELECT userId FROM characters GROUP BY userId HAVING COUNT(*) > 1)').get())" C:/DauntlessUnbroken/data/dauntless-unbroken.db
 ```
 
-Itse pystytetyllä koneella aja se omasta `UndauntedMetagame`-kansiostasi omalla `DB_FILENAME`-polullasi.
+Itse pystytetyllä koneella aja se omasta `DauntlessUnbrokenMetagame`-kansiostasi omalla `DB_FILENAME`-polullasi.
 Tulos 0 tarkoittaa, että jokainen osto menee pelaajan ainoalle hahmolle.
 
 ## Käyttäjänimet {#usernames}
@@ -568,7 +568,7 @@ Käytännön rajoituksia, jotka on hyvä tietää:
 Yllä olevat luvut ovat yhden pelaajan lukuja palvelinkoneeltamme. Palvelin, joka on asennettu
 [Windows-palvelinpaketilla]({{ winserver_page.url | relative_url }}), mittaa itse itseään: sen
 kokonaisuuden valvoja ottaa minuutin välein mittauksen ja lisää sen tiedostoon
-`C:\DauntlessRevived\data\logs\performance\performance-<päivä>.csv`. Tiedosto vaihtuu joka päivä
+`C:\DauntlessUnbroken\data\logs\performance\performance-<päivä>.csv`. Tiedosto vaihtuu joka päivä
 (UTC-aikaa), ja tiedostot säilyvät 30 päivää. Jokaisessa mittauksessa on:
 
 - yksi `host`-rivi: koneen suoritin, keskusmuisti kaikkiaan ja vapaana, asennusaseman vapaa
@@ -580,7 +580,7 @@ kokonaisuuden valvoja ottaa minuutin välein mittauksen ja lisää sen tiedostoo
 
 Tiedostoihin kirjoitetaan vain lukuja: ei pelaajien nimiä, tilitunnuksia eikä avaimia.
 `Stack.ps1 status` kertoo, milloin viimeisin mittaus otettiin. Mittauksen saa otettua heti
-ajamalla `C:\DauntlessRevived\bin\Write-PerformanceLog.ps1 -Once` järjestelmänvalvojana avatussa
+ajamalla `C:\DauntlessUnbroken\bin\Write-PerformanceLog.ps1 -Once` järjestelmänvalvojana avatussa
 PowerShellissä. Kirjaamisen saa pois asettamalla `data\config\server.json`-tiedostoon
 `"PerformanceLog": false` ja ajamalla `Stack.ps1 restart`. Sarakkeet on lueteltu sivulla
 [Tiedostot ja data]({{ files_page.url | relative_url }}#performance-log). Pidä tiedostot omana
@@ -590,7 +590,7 @@ Tiedostot ovat CSV-muotoisia, joten taulukkolaskentaohjelma avaa ne. Yhteenvetot
 niistä yhden metsästyksen ja yhden Ramsgaten pelaajan hinnan ja arvion siitä, montako pelaajaa kone
 jaksaa, on vielä tekemättä, samoin metagamen omat ajat (pyyntöjen vasteajat, tapahtumasilmukan viive
 ja tietokantaan kuluva aika). Molemmat kuuluvat tiekartan kohtaan 4.12. Mittarin pohjana oli
-Vvoidddd:n ensimmäinen versio ([#6](https://github.com/mixutin/dauntless-revived/pull/6)). Tällä
+Vvoidddd:n ensimmäinen versio ([#6](https://github.com/Vvoidddd/dauntless-unbroken/pull/6)). Tällä
 sivulla kuvatulla käsin pystytetyllä palvelinkoneella mittaria ei vielä ole.
 
 ## Koneen pitäminen käytettävissä {#keeping-the-pc-available}
@@ -629,7 +629,7 @@ Palvelin on päällä vain, kun palvelinkone on päällä, hereillä ja kirjautu
 
 Kaikki, mitä pelaajat omistavat (tilit, hahmot, tavarat, varustesetit, eteneminen, kaverilistat,
 kutsukoodit), on yhdessä SQLite-tiedostossa, joka on metagamen `.env`-tiedoston `DB_FILENAME`. Meillä
-se on `C:\dr\data\undaunted.db`. Aluksi se on pieni (meillä 132 kt yhdellä pelaajalla), mutta siihen
+se on `C:\dr\data\dauntless-unbroken.db`. Aluksi se on pieni (meillä 132 kt yhdellä pelaajalla), mutta siihen
 tallentuu myös jokaisen hahmon tallennushistoria palautuksia varten (koodin arvion mukaan enintään
 noin 3,5 Mt hahmoa kohden oletusasetuksilla) sekä tavara- ja etenemislokit, jotka vain kasvavat.
 Jokainen taulu on kuvattu sivulla [Tiedostot ja data]({{ files_page.url | relative_url }}#the-database).
@@ -644,7 +644,7 @@ päivän uusimman kopion. `stack.ps1` ottaa lisäksi varmuuskopion ennen jokaist
 pysäytyksen jälkeen, eikä se käynnistä metagamea, jos varmuuskopio epäonnistuu. Palautustesti
 onnistui. Nämä skriptit toimivat palvelinkoneellamme, mutta ne eivät ole vielä repositoriossa (katso
 [tiekartta]({{ roadmap_page.url | relative_url }})). Kopioita koneen ulkopuolelle ei vielä ole.
-Windows-palvelinpaketilla asennetulla palvelimella `Backup-DauntlessServer.ps1` tekee saman (tunnin
+Windows-palvelinpaketilla asennetulla palvelimella `Backup-DauntlessUnbrokenServer.ps1` tekee saman (tunnin
 välein, ennen jokaista käynnistystä ja jokaisen pysäytyksen jälkeen; se säilyttää 48 uusinta
 varmuuskopiota sekä kunkin viimeisen 30 päivän uusimman). Muilla koneilla käytä jompaakumpaa alla olevista vaihtoehdoista.
 
@@ -653,18 +653,18 @@ oletusarvoista rollback journal -lokia, joten erillistä `-wal`-tiedostoa ei voi
 
 **Vaihtoehto 2: varmuuskopio käynnissä ollessa.** SQLiten online backup -rajapinta on turvallinen,
 vaikka metagame kirjoittaa samaan aikaan, ja `better-sqlite3` (joka on jo metagamen riippuvuus)
-tarjoaa sen. Tallenna tämä nimellä `backup-db.js` kansioon `UndauntedMetagame`, jotta `require` löytää
+tarjoaa sen. Tallenna tämä nimellä `backup-db.js` kansioon `DauntlessUnbrokenMetagame`, jotta `require` löytää
 moduulin:
 
 ```js
-// node backup-db.js  -> C:/dr/backups/undaunted-YYYYMMDDHHMM.db (UTC time)
+// node backup-db.js  -> C:/dr/backups/dauntless-unbroken-YYYYMMDDHHMM.db (UTC time)
 const Database = require("better-sqlite3");
 const fs = require("fs");
-const src = "C:/dr/data/undaunted.db";
+const src = "C:/dr/data/dauntless-unbroken.db";
 const dir = "C:/dr/backups";
 fs.mkdirSync(dir, { recursive: true });
 const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
-const out = `${dir}/undaunted-${stamp}.db`;
+const out = `${dir}/dauntless-unbroken-${stamp}.db`;
 new Database(src, { readonly: true, fileMustExist: true }).backup(out).then(() => {
   const check = new Database(out, { readonly: true }).pragma("integrity_check", { simple: true });
   console.log(out, check);   // prints "ok" for a sound copy
@@ -700,7 +700,7 @@ pelipalvelinavain. Varmuuskopioi myös omistajan tiliavain.
    heillä on oikeus sen lähdekoodiin (kohta 13). Myös heille antamiesi DLL-tiedostojen lähdekoodin on
    oltava saatavilla (kohta 6). Anna heille linkki [tämän sivuston repositorioon]({{ site.github.repository_url }})
    ja kerro, mitä versiota (commit) ajat. Pelinsisäinen tilateksti (`/dauntless-status`) toivottaa
-   pelaajat tervetulleiksi palvelimesi nimellä (”Welcome to Dauntless Revived!”, ellet aseta
+   pelaajat tervetulleiksi palvelimesi nimellä (”Welcome to Dauntless Unbroken!”, ellet aseta
    metagamen `.env`-tiedostoon muuta nimeä kohtaan `SERVER_NAME`). Samassa vastauksessa on niiden
    kenttien jälkeen, jotka peli lukee, myös palvelimen nimi, versio, commit ja lähdekoodilinkki
    (`SOURCE_URL` ja `GIT_COMMIT`, katso

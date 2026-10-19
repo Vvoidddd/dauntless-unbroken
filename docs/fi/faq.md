@@ -1,8 +1,8 @@
 ---
 title: Usein kysyttyä
-parent: Dauntless Revived suomeksi
+parent: Dauntless Unbroken suomeksi
 nav_order: 6
-description: "Voiko Dauntlessia vielä pelata? Onko sille yksityistä palvelinta? Lyhyet vastaukset Dauntless Revivedistä: versio, Epic-tili, liittyminen ja oma palvelin."
+description: "Voiko Dauntlessia vielä pelata? Onko sille yksityistä palvelinta? Lyhyet vastaukset Dauntless Unbrokenistä: versio, Epic-tili, liittyminen ja oma palvelin."
 lang: fi
 ref: faq
 locale: fi_FI
@@ -11,7 +11,7 @@ locale: fi_FI
 # Usein kysyttyjä kysymyksiä
 {: .no_toc }
 
-Tällä sivulla on lyhyet vastaukset kysymyksiin, joita Dauntless Revivedistä ja Dauntlessin
+Tällä sivulla on lyhyet vastaukset kysymyksiin, joita Dauntless Unbrokenistä ja Dauntlessin
 pelaamisesta kysytään usein. Vastausten lopussa on linkki sivulle, jolla asiasta kerrotaan tarkemmin.
 
 <details open markdown="block">

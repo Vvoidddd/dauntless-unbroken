@@ -1,10 +1,10 @@
 ---
 title: Asennus
-parent: Dauntless Revived suomeksi
+parent: Dauntless Unbroken suomeksi
 nav_order: 2
 has_children: true
 has_toc: false
-description: "Dauntless Revived Windowsissa, Linuxissa tai OpenBSD:ssa: palvelimen pystytys, kavereiden liittyminen, ryhmäkäyttö ja vianetsintä."
+description: "Dauntless Unbroken Windowsissa, Linuxissa tai OpenBSD:ssa: palvelimen pystytys, kavereiden liittyminen, ryhmäkäyttö ja vianetsintä."
 lang: fi
 ref: setup/index
 locale: fi_FI

@@ -1,7 +1,7 @@
 ---
 title: Asiakasohjelman sisäosat
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 5
 lang: fi
 ref: findings/client-internals

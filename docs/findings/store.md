@@ -47,7 +47,7 @@ code. What we took and what we changed is on [The Harmonic port]({{ harmonic_pag
 | Label | Source |
 |:------|:-------|
 | **B** | The 1.4.4 executable (`Dauntless-Win64-Shipping.exe`): strings and disassembly. Addresses are virtual addresses with image base `0x140000000`. |
-| **K** | The endpoint table in `UndauntedInternalServer/dllmain.cpp` and the client's own data tables. |
+| **K** | The endpoint table in `DauntlessUnbrokenInternalServer/dllmain.cpp` and the client's own data tables. |
 | **O** | Observed in game by Harmonic on that fork (one client), not yet on our server. |
 | **S** | Strong inference: one link in the chain was not traced. |
 | **G** | A design decision of ours, where nothing in the client decides it. |
@@ -83,7 +83,7 @@ for the in-game test to show.
 
 ## The catalogue {#catalogue}
 
-The offers live in `UndauntedMetagame/src/vendor/store_catalog.json`, keyed by the tag the client asks
+The offers live in `DauntlessUnbrokenMetagame/src/vendor/store_catalog.json`, keyed by the tag the client asks
 for. Nothing the client sends decides what an offer grants or costs: the metagame looks the offer up
 by its id every time.
 
@@ -106,7 +106,7 @@ a warning line. Every offer has `platinumPrice` 0. A few facts about the list, f
   by SKU id). An offer whose id is not a row with an image shows a fallback picture, and the tiles are
   a fixed 2:1 frame, so square Hunt Pass icons show stretched. The storefront therefore sells only SKU
   ids whose tile image is 2:1; a test holds every offer to the list of such ids
-  (`UndauntedMetagame/test/data/store_art_skus.json`, 994 ids, no images).
+  (`DauntlessUnbrokenMetagame/test/data/store_art_skus.json`, 994 ids, no images).
 - **Sheens and hair tints are entitlements**, not items. Their SKU-to-entitlement pairs come from the
   client's own tables (the dye sheen table and the premium hair colour table): five sheens
   (`ent_dye_sheen_glossy` and four more) and four hair-tint offers.
@@ -121,7 +121,7 @@ The list holds identifiers and short English names read from the client, and no 
 An item enters the inventory in one of two ways: as a **stack** (a catalogue id with a quantity) or as
 an **instance** (an item with an instance id of its own). The client's item catalogue decides which,
 through each item's stackable flag, and a wrong kind leaves the item invisible or breaks the
-inventory. `UndauntedMetagame/src/vendor/store_item_kinds.json` records the flag for each of the 211
+inventory. `DauntlessUnbrokenMetagame/src/vendor/store_item_kinds.json` records the flag for each of the 211
 items the store sells (95 stacked, 116 instanced), read from the client's catalogue by Harmonic. A rule
 by name prefix gets individual items wrong: most weapon skins and a few arrivals are instanced, while a
 few fabrics and lanterns are stacked.
@@ -180,7 +180,7 @@ accounts have more than one has not been counted yet.
 
 Every route acts for the player whose token it carries: without a token 401, and a game server's key
 alone gets 403. Purchases can be traced (`inventorylog.caller = 'store'`, `entitlements.source LIKE
-'store:%'`) and taken back with the existing admin routes ([HTTP API]({{ api_page.url | relative_url }}#undaunted-api)).
+'store:%'`) and taken back with the existing admin routes ([HTTP API]({{ api_page.url | relative_url }}#dauntless-unbroken-api)).
 
 ## What we left out, and why {#left-out}
 
@@ -195,7 +195,7 @@ alone gets 403. Purchases can be traced (`inventorylog.caller = 'store'`, `entit
 
 | Setting | Default | What it does |
 |:--------|:--------|:-------------|
-| `STORE` | `off` | `off`: the store screen gets the old 400 (`{"code": "400", "message": "The store is not available on Dauntless Revived yet."}`) and the three purchase routes the 404 they always got. `free`: the catalogue above, the token and the confirm. |
+| `STORE` | `off` | `off`: the store screen gets the old 400 (`{"code": "400", "message": "The store is not available on Dauntless Unbroken yet."}`) and the three purchase routes the 404 they always got. `free`: the catalogue above, the token and the confirm. |
 | `STORE_REPEATABLE_TOKENS` | off | `1` lists and sells the bounty-token bundle, unlimited. |
 
 The full descriptions are on [Configuration]({{ config_page.url | relative_url }}#metagame-store), the

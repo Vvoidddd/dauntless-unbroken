@@ -1,9 +1,9 @@
 ---
 title: Portit ja verkko
 parent: Tekninen viite
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 2
-description: "Dauntless Revived -palvelimen kaikki TCP- ja UDP-portit: kuka kuuntelee missäkin, kuunteluosoitteet yksityisessä ja julkisessa tilassa, pyyntöjen reitit ja palvelinpaketin palomuurisäännöt."
+description: "Dauntless Unbroken -palvelimen kaikki TCP- ja UDP-portit: kuka kuuntelee missäkin, kuunteluosoitteet yksityisessä ja julkisessa tilassa, pyyntöjen reitit ja palvelinpaketin palomuurisäännöt."
 lang: fi
 ref: reference/ports
 locale: fi_FI
@@ -23,7 +23,7 @@ locale: fi_FI
 # Portit ja verkko
 {: .no_toc }
 
-Tälle sivulle on koottu jokainen Dauntless Revived -kokonaisuuden käyttämä portti: missä osoitteessa
+Tälle sivulle on koottu jokainen Dauntless Unbroken -kokonaisuuden käyttämä portti: missä osoitteessa
 kukin kuuntelee, kuka siihen saa yhteyden, miten kaverin liikenne kulkee ja mitkä palomuurisäännöt
 Windows-palvelinpaketti luo. Tässä mainitut ympäristömuuttujat selitetään kokonaisuudessaan sivulla
 [Asetukset]({{ config_page.url | relative_url }}) ja reitit sivulla
@@ -50,16 +50,16 @@ Sivulla toistuu kolme kokoonpanoa:
 
 | Portti | Protokolla | Kuka kuuntelee | Missä | Tavoitettavissa muilta koneilta |
 |:-------|:-----------|:---------------|:------|:--------------------------------|
-| 443 | TCP | Yhdyskäytävä (`UndauntedGateway/`), TLS | Palvelin, vain julkinen tila | Kaikilta. Ainoa julkinen TCP-portti. |
-| 61000 | TCP | Metagame (`UndauntedMetagame/`) | Palvelin | Julkinen tila: ei koskaan suoraan, vain yhdyskäytävän kautta. Yksityinen tila: Tailscale-verkon koneilta. Kehityskone: ei keneltäkään. |
-| 61001 | TCP | Deploy-palvelin (`UndauntedDeployServer/`) | Palvelin | Ei koskaan. |
-| 61002 | TCP | Sisältöpalvelin (`UndauntedContent/`), pelitiedostot käynnistimelle | Palvelin, jos asennettu | Julkinen tila: ei koskaan suoraan, vain yhdyskäytävän kautta. Yksityinen tila: Tailscale-verkon koneilta. |
-| 61005 | TCP | Sallittujen listan apuri (`UndauntedGateway/`, pyörii SYSTEM-tilillä) | Palvelin, vain julkinen tila | Ei koskaan. |
+| 443 | TCP | Yhdyskäytävä (`DauntlessUnbrokenGateway/`), TLS | Palvelin, vain julkinen tila | Kaikilta. Ainoa julkinen TCP-portti. |
+| 61000 | TCP | Metagame (`DauntlessUnbrokenMetagame/`) | Palvelin | Julkinen tila: ei koskaan suoraan, vain yhdyskäytävän kautta. Yksityinen tila: Tailscale-verkon koneilta. Kehityskone: ei keneltäkään. |
+| 61001 | TCP | Deploy-palvelin (`DauntlessUnbrokenDeployServer/`) | Palvelin | Ei koskaan. |
+| 61002 | TCP | Sisältöpalvelin (`DauntlessUnbrokenContent/`), pelitiedostot käynnistimelle | Palvelin, jos asennettu | Julkinen tila: ei koskaan suoraan, vain yhdyskäytävän kautta. Yksityinen tila: Tailscale-verkon koneilta. |
+| 61005 | TCP | Sallittujen listan apuri (`DauntlessUnbrokenGateway/`, pyörii SYSTEM-tilillä) | Palvelin, vain julkinen tila | Ei koskaan. |
 | 61099 | TCP | Chat metagamen sisällä (vain kun `CHAT=1`) osoitteessa `127.0.0.1` | Palvelin | Ei koskaan suoraan. Julkinen tila: yhdyskäytävän kautta. Palomuurisääntöä ei ole missään. |
 | 8777 | UDP | Ramsgaten pelipalvelin | Palvelin | Pelaajilta. Julkinen tila: vain kirjautuneiden pelaajien osoitteista. Yksityinen tila: Tailscale-verkon koneilta. |
 | 8776 | UDP | Training Dojon pelipalvelin | Palvelin | Kuten 8777. |
 | 8770-8775 | UDP | Metsästysten ja opetusjakson pelipalvelimet, yksi prosessi ryhmää kohden | Palvelin | Kuten 8777. |
-| 61000 | TCP | Käynnistimen välitin (`UndauntedLauncher/`) | Jokaisen pelaajan kone, julkinen tila, vain pelin ollessa käynnissä | Ei koskaan: se kuuntelee vain osoitteessa `127.0.0.1`. |
+| 61000 | TCP | Käynnistimen välitin (`DauntlessUnbrokenLauncher/`) | Jokaisen pelaajan kone, julkinen tila, vain pelin ollessa käynnissä | Ei koskaan: se kuuntelee vain osoitteessa `127.0.0.1`. |
 | 22 | TCP | OpenSSH (Windowsin oma, ei osa kokonaisuutta) | Palvelin | Julkinen tila: paketti sallii sen avainpohjaista ylläpitoa varten. Rajaa se palveluntarjoajalla omaan osoitteeseesi. |
 | 3389 | TCP, UDP | Etätyöpöytä (Windows) | Palvelin | Julkinen tila: vain `-AdminIp`-osoitteista. Ilman sitä paketti poistaa käytöstä internetille avoimet säännöt, ellei annettu `-KeepRdpOpen`. |
 
@@ -131,7 +131,7 @@ toisena komentoriviparametrina.
   enemmän samanaikaisia metsästyksiä, pienennä `PORT_RANGE_BEGIN`-arvoa ja laajenna palomuurisääntöjä
   vastaavasti.
 - **Paketin alue on kiinteästi 8770-8777.** Se tulee tiedoston
-  `deploy/windows-server/DauntlessServer.Common.ps1` vakioista (`$DRUdpBegin`, `$DRUdpEnd`).
+  `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1` vakioista (`$DRUdpBegin`, `$DRUdpEnd`).
   Asennusohjelmalla ei ole sille parametria, ja jokainen asennusohjelman ajo kirjoittaa alueen
   uudelleen tiedostoon `deployserver.env`, sallittujen listan apurin `ALLOWLIST_PORTS`-asetukseen ja
   palomuurisääntöihin. `server.json` tallentaa sen (`UdpPortBegin`, `UdpPortEnd`), ja
@@ -164,7 +164,7 @@ sitä äläkä tallenna sitä versionhallintaan. Välitin:
 Portti on kiinteä, koska metagame antaa jokaiselle pelaajalle saman QoS-osoitteen,
 `http://127.0.0.1:61000/QoS` (`QOS_TARGET_URL`), ja se on kunkin pelaajan oma välitin. Jos portti
 61000 on varattu, esimerkiksi samalla koneella pyörivän kehityspinon takia, PELAA epäonnistuu
-virheellä `relay_port_busy`. Käynnistin lukee piilotetun ohituksen `DAUNTLESS_REVIVED_RELAY_PORT`
+virheellä `relay_port_busy`. Käynnistin lukee piilotetun ohituksen `DAUNTLESS_UNBROKEN_RELAY_PORT`
 (1024-65535), joka on tarkoitettu vain testeihin ja harjoituksiin. Se siirtää välittimen, pelin
 ensimmäisen parametrin ja chat-portin kerralla, mutta palvelimelta tuleva QoS-osoite pysyy portissa
 61000, eikä ole testattu, toimiiko alueen viivemittaus silloin yhä. Kaverit käyttävät aina porttia
@@ -201,7 +201,7 @@ Kun `CHAT=1`, metagame itse kuuntelee porttia 61099 pelin chattia varten
   voi erota toisistaan. Kun chat on pois päältä, yhdyskäytävä vastaa avaukseen 502, ja peli yrittää
   uudelleen 15-45 sekunnin välein vaarattomasti.
 - **Kehityskone** (yksi kone): peli ottaa yhteyden suoraan osoitteeseen `ws://127.0.0.1:61099`. Aseta
-  `CHAT=1` tiedostoon `UndauntedMetagame/.env` ([Pystytä palvelin]({{ host_page.url | relative_url }})).
+  `CHAT=1` tiedostoon `DauntlessUnbrokenMetagame/.env` ([Pystytä palvelin]({{ host_page.url | relative_url }})).
 - **Yksityinen tila** (Tailscale): ei vielä tuettu. Peli ottaisi yhteyden osoitteeseen
   `ws://<Tailscale-osoite>:61099`, mutta kuuntelija ei suostu muuhun kuin paikalliseen osoitteeseen,
   joten yhteys epäonnistuu vaarattomasti kuten ennenkin.
@@ -340,7 +340,7 @@ asennuksessa `Game.ini` on tätä varten kirjoitettava uudelleen (katso
 
 ## Paketin luomat palomuurisäännöt {#kit-firewall}
 
-Asennusohjelma sijoittaa sääntönsä Windowsin palomuurin ryhmään **Dauntless Revived** ja rakentaa ne
+Asennusohjelma sijoittaa sääntönsä Windowsin palomuurin ryhmään **Dauntless Unbroken** ja rakentaa ne
 uudelleen jokaisella ajokerralla: julkisessa tilassa kaikki paitsi sallittujen listan säännön, jonka
 osoitteista ja päälle/pois-tilasta vastaa sallittujen listan apuri (asennusohjelma palauttaa siitä vain
 protokollan, portit ja ohjelman), ja yksityisessä tilassa kaikki. Sääntöjen nimissä näkyvät
@@ -351,9 +351,9 @@ tekemättä niitä.
 
 | Sääntö | Protokolla ja portti | Ohjelma | Mistä | Tila |
 |:-------|:---------------------|:--------|:------|:-----|
-| Dauntless Revived - gateway (TCP 443) | TCP, yhdyskäytävän portti | `node.exe` | Mistä tahansa osoitteesta | Käytössä, kaikki profiilit |
-| Dauntless Revived game ports (allowlist); säännön nimi `DauntlessRevived-GamePorts-Allowlist` | UDP 8770-8777 | pelin exe-tiedosto | Sallittujen listan apuri asettaa (luodaan paikkamerkkiosoitteella 192.0.2.1) | Luodaan pois käytöstä. Apuri ottaa sen käyttöön, kun vähintään yksi osoite on sallittu, ja poistaa käytöstä, kun lista on tyhjä. |
-| Dauntless Revived - SSH (TCP 22) | TCP 22 | mikä tahansa | Mistä tahansa osoitteesta | Luodaan vain, jos OpenSSH on asennettu eikä mikään käytössä oleva sääntö jo salli TCP-porttia 22 |
+| Dauntless Unbroken - gateway (TCP 443) | TCP, yhdyskäytävän portti | `node.exe` | Mistä tahansa osoitteesta | Käytössä, kaikki profiilit |
+| Dauntless Unbroken game ports (allowlist); säännön nimi `DauntlessUnbroken-GamePorts-Allowlist` | UDP 8770-8777 | pelin exe-tiedosto | Sallittujen listan apuri asettaa (luodaan paikkamerkkiosoitteella 192.0.2.1) | Luodaan pois käytöstä. Apuri ottaa sen käyttöön, kun vähintään yksi osoite on sallittu, ja poistaa käytöstä, kun lista on tyhjä. |
+| Dauntless Unbroken - SSH (TCP 22) | TCP 22 | mikä tahansa | Mistä tahansa osoitteesta | Luodaan vain, jos OpenSSH on asennettu eikä mikään käytössä oleva sääntö jo salli TCP-porttia 22 |
 
 Metagamelle, sisältöpalvelimelle, deploy-palvelimelle tai sallittujen listan apurille ei luoda sääntöä.
 Asennusohjelma muuttaa myös olemassa olevia asetuksia ja tallentaa vanhat arvot `server.json`-tiedoston
@@ -397,9 +397,9 @@ vain osoitteista 100.64.0.0/10, ja ne sidotaan Tailscale-verkkosovittimeen, jos 
 
 | Sääntö | Protokolla ja portti | Ohjelma |
 |:-------|:---------------------|:--------|
-| Dauntless Revived - metagame (TCP 61000, Tailscale only) | TCP, metagamen portti | `node.exe` |
-| Dauntless Revived - content server (TCP 61002, Tailscale only) | TCP, sisältöpalvelimen portti (vain jos sisältöpalvelin on asennettu) | `node.exe` |
-| Dauntless Revived - game servers (UDP 8770-8777, Tailscale only) | UDP 8770-8777 | pelin exe-tiedosto |
+| Dauntless Unbroken - metagame (TCP 61000, Tailscale only) | TCP, metagamen portti | `node.exe` |
+| Dauntless Unbroken - content server (TCP 61002, Tailscale only) | TCP, sisältöpalvelimen portti (vain jos sisältöpalvelin on asennettu) | `node.exe` |
+| Dauntless Unbroken - game servers (UDP 8770-8777, Tailscale only) | UDP 8770-8777 | pelin exe-tiedosto |
 
 Deploy-palvelin ei saa sääntöä. Profiileihin, SSH:hon ja etätyöpöytään ei kosketa; asennusohjelma vain
 varoittaa, jos jokin profiili on pois päältä tai sallii saapuvan liikenteen oletuksena. Se myös vaihtaa
@@ -451,12 +451,12 @@ aja koneella vain yksi sarja kerrallaan, äläkä silloin, kun hiekkalaatikkoase
 
 | Sarja | Portit |
 |:------|:-------|
-| `UndauntedMetagame/`, `npm test` | 62014, 62015-62016, 62471-62472, 62481-62483, 62501-62502, 62901-62904, 62921-62922; chat-testien omat kuuntelijat ottavat satunnaisen vapaan portin |
-| `UndauntedDeployServer/`, `npm test` | 62013, 62473 |
-| `UndauntedGateway/`, `npm test` | 62400-62499 (käytössä: 62400-62405, 62409-62417, 62420-62422, 62430-62436) |
-| `UndauntedContent/`, `npm test` | 62011, 62012, 62019 |
-| `UndauntedContent/`, `npm run test:integration` | 62002 ja 62003 (`CONTENT_IT_PORT`, `CONTENT_IT_MOCK_PORT`) |
-| `UndauntedLauncher/`, `npm test` | 62012, 62013, 62401-62404, 62409, 62420-62422, 62429, 62440-62444 |
+| `DauntlessUnbrokenMetagame/`, `npm test` | 62014, 62015-62016, 62471-62472, 62481-62483, 62501-62502, 62901-62904, 62921-62922; chat-testien omat kuuntelijat ottavat satunnaisen vapaan portin |
+| `DauntlessUnbrokenDeployServer/`, `npm test` | 62013, 62473 |
+| `DauntlessUnbrokenGateway/`, `npm test` | 62400-62499 (käytössä: 62400-62405, 62409-62417, 62420-62422, 62430-62436) |
+| `DauntlessUnbrokenContent/`, `npm test` | 62011, 62012, 62019 |
+| `DauntlessUnbrokenContent/`, `npm run test:integration` | 62002 ja 62003 (`CONTENT_IT_PORT`, `CONTENT_IT_MOCK_PORT`) |
+| `DauntlessUnbrokenLauncher/`, `npm test` | 62012, 62013, 62401-62404, 62409, 62420-62422, 62429, 62440-62444 |
 | `deploy/windows-server/tests/Test-KitUnit.ps1` | 62450 ja 62451 (`-Port` ja sitä seuraava portti, 62000-62499) |
 | `-Sandbox`-asennus ja `Test-Sandbox.ps1` | Metagame 62000, sisältöpalvelin 62002, sallittujen listan apuri 62005, yhdyskäytävä 62443, chat (yhdyskäytävän WebSocket-kohde ja metagamen `CHAT_PORT`) 62099. 62001 kirjoitetaan deploy-palvelimelle, joka ei pyöri hiekkalaatikossa. |
 
@@ -467,7 +467,7 @@ deploy-palvelimen ja yhdyskäytävän testien kanssa.
 
 ## Mikä kuuntelee: tarkistus {#checking}
 
-Paketin palvelimella `C:\DauntlessRevived\bin\Stack.ps1 status` näyttää jokaisen osan prosesseineen ja
+Paketin palvelimella `C:\DauntlessUnbroken\bin\Stack.ps1 status` näyttää jokaisen osan prosesseineen ja
 portteineen, pelipalvelimet UDP-portteineen (se etsii ne alueelta 8700-8799 ja nimeää portin
 `UdpPortEnd` Ramsgateksi ja sitä edeltävän Dojoksi) sekä sallittujen listan. `Stack.ps1 start` odottaa
 enintään 30 sekuntia, että kukin osa kuuntelee porttiaan, ja enintään 60 sekuntia Ramsgatea

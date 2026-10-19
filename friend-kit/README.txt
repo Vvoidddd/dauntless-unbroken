@@ -1,4 +1,4 @@
-DAUNTLESS REVIVED - FRIEND KIT
+DAUNTLESS UNBROKEN - FRIEND KIT
 ==============================
 
 A private, non-commercial revival of Dauntless for a few friends. Not affiliated with
@@ -17,7 +17,7 @@ ONE-TIME SETUP
      (Another folder works too: pass -Game "D:\Games\Dauntless" to both scripts.)
   3. Double-click Setup.cmd. It asks for the host's address, a username and your invite code.
      It checks the game files, installs two DLLs into the game folder, registers you and
-     saves your personal key in %APPDATA%\DauntlessRevived\account.key.
+     saves your personal key in %APPDATA%\DauntlessUnbroken\account.key.
      THE KEY IS YOUR PASSWORD. Keep a copy somewhere safe. Nobody can recover it.
 
 PLAYING
@@ -28,7 +28,7 @@ PLAYING
     -Windowed     1280x720 window
 
 WHAT THE SCRIPTS CHANGE ON YOUR PC
-  - Copies dxgi.dll and UndauntedInternalServer.dll into ...\Archon\Binaries\Win64\
+  - Copies dxgi.dll and DauntlessUnbroken.dll into ...\Archon\Binaries\Win64\
     (delete them to uninstall). Their SHA-256 hashes are checked before and after copying.
   - Installs UE4SS and the client mods from client-mods\ into the same folder (dwmapi.dll and
     ue4ss\): behemoth health bars, a behemoth tracker and a mod menu (Home key). Checked
@@ -37,7 +37,7 @@ WHAT THE SCRIPTS CHANGE ON YOUR PC
   - Writes two sections of %LOCALAPPDATA%\Archon\Saved\Config\WindowsClient\Engine.ini:
     graphics/memory settings, and the game's chat connection, which is pointed at the host
     so the game never contacts Epic's old chat server with your login.
-  - Stores your key and settings in %APPDATA%\DauntlessRevived\.
+  - Stores your key and settings in %APPDATA%\DauntlessUnbroken\.
   The game is started directly (Dauntless-Win64-Shipping.exe); EasyAntiCheat never runs.
 
 THE DLLs

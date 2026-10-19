@@ -8,11 +8,11 @@ usage: $0 --game-dir <Dauntless folder> --my-ip <advertised IP> --worker-host <h
   --worker-user <user>           default dauntless
   --worker-command <command>     remote command; default dr-game-worker
   --source <repo>                source checkout; default repository containing this script
-  --install-root <dir>           default /opt/dauntless-revived
-  --data-dir <dir>               default /var/dauntless-revived
-  --config-dir <dir>             default /etc/dauntless-revived
+  --install-root <dir>           default /opt/dauntless-unbroken
+  --data-dir <dir>               default /var/dauntless-unbroken
+  --config-dir <dir>             default /etc/dauntless-unbroken
   --service-user <user>          default _dauntless
-  --server-name <name>           default Dauntless Revived
+  --server-name <name>           default Dauntless Unbroken
   --gateway-port <port>          default 443
   --udp-begin <port>             default 8770
   --udp-end <port>               default 8777
@@ -25,14 +25,14 @@ EOF
 
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 source_root=$(CDPATH= cd -- "$script_dir/../.." && pwd)
-install_root=/opt/dauntless-revived
-data_dir=/var/dauntless-revived
-config_dir=/etc/dauntless-revived
+install_root=/opt/dauntless-unbroken
+data_dir=/var/dauntless-unbroken
+config_dir=/etc/dauntless-unbroken
 service_user=_dauntless
 mode=public
 worker_user=dauntless
 worker_command=dr-game-worker
-server_name="Dauntless Revived"
+server_name="Dauntless Unbroken"
 gateway_port=443
 udp_begin=8770
 udp_end=8777
@@ -103,7 +103,7 @@ pin=$(node -e "const fs=require(\"fs\"),c=require(\"crypto\");const p=process.ar
 [ "$pin" = d3d41e614908d2befd518b27046d9822d6130ef12ba3504babbdb786bef9cff4 ] || { echo "local content game is not the pinned 1.4.4 build" >&2; exit 1; }
 
 if [ "$skip_build" -eq 0 ]; then
-  for pkg in UndauntedMetagame UndauntedGateway UndauntedContent UndauntedDeployServer; do
+  for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
     echo "Building $pkg"
     (cd "$install_root/$pkg" && npm ci --no-audit --no-fund && npm run build)
   done
@@ -113,16 +113,16 @@ node "$install_root/deploy/unix-common/generate-config.mjs" --platform openbsd -
 
 if [ "$mode" = public ]; then
   cert="$data_dir/tls/gateway-cert.pem"; key="$data_dir/tls/gateway-key.pem"
-  if [ ! -f "$cert" ] || [ ! -f "$key" ]; then (cd "$install_root/UndauntedGateway" && node tools/make-cert.js --host "$my_ip" --out "$data_dir/tls" --json >/dev/null); fi
+  if [ ! -f "$cert" ] || [ ! -f "$key" ]; then (cd "$install_root/DauntlessUnbrokenGateway" && node tools/make-cert.js --host "$my_ip" --out "$data_dir/tls" --json >/dev/null); fi
 fi
 
-if [ -f "$install_root/UndauntedMetagame/dist/db.js" ]; then
-  (cd "$install_root/UndauntedMetagame" && node --env-file="$config_dir/metagame.env" -e "require(\"./dist/db.js\").GetDb()")
-  node "$install_root/deploy/unix-common/dr-db.cjs" gs-key "$install_root/UndauntedMetagame" "$data_dir/undaunted.db" "$data_dir/gameserver.key"
+if [ -f "$install_root/DauntlessUnbrokenMetagame/dist/db.js" ]; then
+  (cd "$install_root/DauntlessUnbrokenMetagame" && node --env-file="$config_dir/metagame.env" -e "require(\"./dist/db.js\").GetDb()")
+  node "$install_root/deploy/unix-common/dr-db.cjs" gs-key "$install_root/DauntlessUnbrokenMetagame" "$data_dir/dauntless-unbroken.db" "$data_dir/gameserver.key"
   invite_file="$data_dir/owner-invite-code.txt"
   if [ ! -f "$invite_file" ]; then
     node -e "process.stdout.write(require(\"crypto\").randomBytes(10).toString(\"hex\")+\"\\n\")" > "$invite_file"; chmod 600 "$invite_file"
-    node "$install_root/deploy/unix-common/dr-db.cjs" add-invite "$install_root/UndauntedMetagame" "$data_dir/undaunted.db" "$(cat "$invite_file")" >/dev/null
+    node "$install_root/deploy/unix-common/dr-db.cjs" add-invite "$install_root/DauntlessUnbrokenMetagame" "$data_dir/dauntless-unbroken.db" "$(cat "$invite_file")" >/dev/null
   fi
 fi
 
@@ -155,4 +155,4 @@ echo "PF external interface: $interface"
 echo "PF worker interface: $worker_interface"
 echo "Config: $config_dir"
 echo "The game process itself runs on the Linux/Wine worker; OpenBSD runs the Node control plane natively."
-if [ "$mode" = public ] && [ -f "$data_dir/tls/gateway-cert.pem" ]; then (cd "$install_root/UndauntedGateway" && node tools/make-cert.js --fingerprint "$data_dir/tls/gateway-cert.pem" | sed -n "/Fingerprint:/p"); fi
+if [ "$mode" = public ] && [ -f "$data_dir/tls/gateway-cert.pem" ]; then (cd "$install_root/DauntlessUnbrokenGateway" && node tools/make-cert.js --fingerprint "$data_dir/tls/gateway-cert.pem" | sed -n "/Fingerprint:/p"); fi

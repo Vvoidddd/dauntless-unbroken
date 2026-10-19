@@ -83,7 +83,7 @@ const data = path.resolve(required(args, "data"));
 const config = path.resolve(required(args, "config"));
 const game = path.resolve(required(args, "game-dir"));
 const myIp = required(args, "my-ip");
-const serverName = args["server-name"] || "Dauntless Revived";
+const serverName = args["server-name"] || "Dauntless Unbroken";
 const externalGatewayPort = Number(args["gateway-port"] || 443);
 if (!Number.isInteger(externalGatewayPort) || externalGatewayPort < 1 || externalGatewayPort > 65535) throw new Error("bad gateway port");
 const udpBegin = Number(args["udp-begin"] || 8770);
@@ -115,13 +115,13 @@ const metagame = {
   AUTH_SIGNING_PRIVKEY_B64: priv,
   AUTH_SIGNING_PUBKEY_B64: pub,
   REGISTRATION_MODE: "INVITECODE",
-  DB_FILENAME: path.join(data, "undaunted.db"),
+  DB_FILENAME: path.join(data, "dauntless-unbroken.db"),
   MATCHMAKING_MODE: "DEPLOYSERVER",
   DEPLOYSERVER_URL: "127.0.0.1:61001",
   QOS_TARGET_URL: mode === "public" ? "http://127.0.0.1:61000/QoS" : "http://" + myIp + ":61000/QoS",
   TARGET_CHANGELIST: 239827,
   SERVER_NAME: serverName,
-  SOURCE_URL: "https://github.com/mixutin/dauntless-revived",
+  SOURCE_URL: "https://github.com/Vvoidddd/dauntless-unbroken",
   GIT_COMMIT: commit,
   CONTENT_PORT: 61002,
   BODY_LOG_FILE: path.join(data, "logs", "bodies.log"),
@@ -199,13 +199,13 @@ if (mode === "public") {
     ALLOWLIST_DRY_RUN: 0,
     ALLOWLIST_AUDIT_LOG: path.join(data, "logs", "allowlist-audit.log"),
     ALLOWLIST_STATE_FILE: path.join(data, "allowlist-state.json"),
-    DR_GATEWAY_DIR: path.join(root, "UndauntedGateway"),
+    DR_GATEWAY_DIR: path.join(root, "DauntlessUnbrokenGateway"),
     ...(platform === "linux" ? {
       DR_NFT_TABLE: "dauntless_revived",
       ...(args["firewall-interface"] ? { DR_FIREWALL_INTERFACE: args["firewall-interface"] } : {}),
     } : {
       DR_PF_TABLE: "dauntless_revived_players",
-      DR_PF_ANCHOR: "dauntless-revived",
+      DR_PF_ANCHOR: "dauntless-unbroken",
     }),
   });
 }

@@ -1,7 +1,7 @@
 ---
 title: Kaverit, ryhmät ja killat
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 9
 lang: fi
 ref: findings/social
@@ -58,7 +58,7 @@ Jokaisesta tiedosta on merkitty, mistä se tulee ja kuinka varmoja olemme.
 | **B** | 1.4.4-ohjelmatiedosto (`Dauntless-Win64-Shipping.exe`, 103 Mt): sen merkkijonot (ASCII ja UTF-16) sekä pyyntöjä rakentavien ja vastauksia lukevien funktioiden konekielinen koodi (disassembly). Osoitteet ovat muistiosoitteita, joiden perusosoite on `0x140000000`. |
 | **L** | Oikea palvelin: luettelo kaikista reiteistä, joita oikeat peliohjelmat ja pelipalvelimet kutsuivat 22.9.2026, määrineen ja vastaamattomine reitteineen, sekä se, mitä kaksi pelaajaa kertoi nähneensä. |
 | **R** | Pyynnöt, jotka versio 2.1.1 lähetti tutkimuspalvelimellemme (samat Phoenixin palvelut, tallennettu runkoineen). |
-| **K** | Pelin luokkien ja rakenteiden nimet (SDK-vedos) sekä päätepistetaulukko tiedostossa `UndauntedInternalServer/dllmain.cpp`. |
+| **K** | Pelin luokkien ja rakenteiden nimet (SDK-vedos) sekä päätepistetaulukko tiedostossa `DauntlessUnbrokenInternalServer/dllmain.cpp`. |
 | **C** | Oma koodimme ja testimme. |
 | **G** | Oma suunnitteluratkaisumme, kun peliohjelma ei ratkaise asiaa. |
 
@@ -594,7 +594,7 @@ uloskirjautumista tai yhteyden uudelleenyrityssilmukkaa.
 
 Korjauksia testataan HTTP:n yli oikeaa metagamea vastaan peliohjelman omilla rungoilla ja otsakkeilla:
 
-- **Peliohjelman malli** (`UndauntedMetagame/test/socialclient.ts`) toteuttaa yllä kuvatut
+- **Peliohjelman malli** (`DauntlessUnbrokenMetagame/test/socialclient.ts`) toteuttaa yllä kuvatut
   jäsennyssäännöt uudelleen: yhdistämisen jäsentimen, käyttäjätietojen välimuistin, jossa ensimmäinen
   vastaus voittaa, työkalupakin Epic-tunnuksen tarkistuksen, Phoenixin kuoren, kiltavirheiden
   muunnoksen, kaverilistan ja ryhmäkutsut. Kun sille syötetään palvelimemme 22.9.2026 lähettämät

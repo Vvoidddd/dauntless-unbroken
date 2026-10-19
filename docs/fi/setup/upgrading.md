@@ -1,9 +1,9 @@
 ---
 title: Päivitysohjeet
 parent: Asennus
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 9
-description: "Mitä pelaajille muuttuu, kun päivität jo käytössä olevan Dauntless Revived -palvelimen: Harmonicin forkin siirto (Slayer Links päällä; Escalation, kauppa ja paikalla olo rakennettu mutta pois päältä), tekstichat, kaverit, ryhmät ja killat sekä oletuksena päällä oleva oikea eteneminen. Näin pidät vanhat maksimitasot, aloitat alusta tai jatkat tyngällä."
+description: "Mitä pelaajille muuttuu, kun päivität jo käytössä olevan Dauntless Unbroken -palvelimen: Harmonicin forkin siirto (Slayer Links päällä; Escalation, kauppa ja paikalla olo rakennettu mutta pois päältä), tekstichat, kaverit, ryhmät ja killat sekä oletuksena päällä oleva oikea eteneminen. Näin pidät vanhat maksimitasot, aloitat alusta tai jatkat tyngällä."
 lang: fi
 ref: setup/upgrading
 locale: fi_FI
@@ -106,7 +106,7 @@ sen metagamen käynnistysrivistä, joka alkaa `features:`.
   kunkin testit.
 - Jos jokin toimii väärin, ensimmäisen taulukon kytkimet ottavat kunkin muutoksen pois. Etsittävät
   lokirivit ovat sivulla [Vianetsintä]({{ trouble_page.url | relative_url }}#log-lines-of-the-port).
-- **Paluu** päivitystä edeltäneeseen versioon (`Update-DauntlessServer.ps1 -Rollback`) ei vaadi muuta:
+- **Paluu** päivitystä edeltäneeseen versioon (`Update-DauntlessUnbrokenServer.ps1 -Rollback`) ei vaadi muuta:
   vanhempi koodi jättää uudet kytkimet ja taulut huomiotta. Escalation palaa tyngäksi (tallennetut
   kaudet jäävät käyttämättä tauluihinsa), `/slayerlink` vastaa taas 404, ja jo tehdyt kauppaostot
   pysyvät pelaajien tavaraluetteloissa ja oikeuksissa. Ne löytyvät (`inventorylog.caller = 'store'`,
@@ -152,7 +152,7 @@ myöhemmällä päivityksellä, oletuksena pois päältä ([yllä](#harmonic-por
 - Jos oikeiden pelaajien huoneisiin liittymiset hylätään syyllä `reason=nick-resource`, `nick-format`
   tai `nick-name`, aseta `CHAT_NICK_CHECK=log` tiedostoon `metagame.env` ja käynnistä uudelleen, kun
   kukaan ei pelaa. Mihin tahansa vakavaan: `Set-Chat.ps1 -Off`.
-- **Paluu** päivitystä edeltäneeseen versioon (`Update-DauntlessServer.ps1 -Rollback`) ei vaadi muuta:
+- **Paluu** päivitystä edeltäneeseen versioon (`Update-DauntlessUnbrokenServer.ps1 -Rollback`) ei vaadi muuta:
   vanhempi koodi ei lue asetuksia `CHAT` ja `GATEWAY_RATE_WS`.
 
 ## Kaverit, ryhmät ja killat {#social}
@@ -314,18 +314,18 @@ Palvelinpaketti ottaa varmuuskopion jokaisen päivityksen yhteydessä; itse koot
 ### Missä asetus on {#where-the-setting-lives}
 
 - **Itse koottu kone** ([Pystytä palvelin]({{ host_page.url | relative_url }})): `.env`
-  `UndauntedMetagame`-kansiossa. Käynnistä metagame uudelleen muutoksen jälkeen.
+  `DauntlessUnbrokenMetagame`-kansiossa. Käynnistä metagame uudelleen muutoksen jälkeen.
 - **Windows-palvelinpaketti** ([Windows-palvelin]({{ winserver_page.url | relative_url }})):
-  `C:\DauntlessRevived\data\config\metagame.env`. Asennus ja `Update-DauntlessServer.ps1` säilyttävät
+  `C:\DauntlessUnbroken\data\config\metagame.env`. Asennus ja `Update-DauntlessUnbrokenServer.ps1` säilyttävät
   jokaisen tiedostossa jo olevan asetuksen (asennus kirjoittaa uudelleen vain palvelinkohtaiset
   avaimet, eikä kumpikaan säilytä kommenttirivejä), joten palvelin, jolla oli jo `PROGRESSION_MODE=real` tai `stub`,
   pitää sen. Jos haluat jatkaa tyngällä, lisää rivi **ennen** päivitystä, tai lisää se jälkeenpäin ja
-  aja `C:\DauntlessRevived\bin\Stack.ps1 restart -Only metagame`. Ellei tiedostossa lue `real` tai
+  aja `C:\DauntlessUnbroken\bin\Stack.ps1 restart -Only metagame`. Ellei tiedostossa lue `real` tai
   `stub`, päivitysohjelma toistaa onnistuneen päivityksen jälkeen metagamen varoituksen pelaajista,
   joilla ei ole tallennettua etenemistä.
 - **Palautukset ja paluut edelliseen versioon noudattavat samaa sääntöä.** Palautus varmuuskopiosta,
   joka on otettu ennen tätä muutosta, tai paluu tätä vanhempaan versioon (päivitysohjelman
-  automaattinen paluu tai `Update-DauntlessServer.ps1 -Rollback`) käyttää asetuksia sellaisinaan.
+  automaattinen paluu tai `Update-DauntlessUnbrokenServer.ps1 -Rollback`) käyttää asetuksia sellaisinaan.
   Ilman riviä vanhempi versio tarkoittaa taas tynkää (pelaajat näkevät valetason 50; heidän
   tallennettu etenemisensä säilyy tietokannassa), ja uudempi versio tarkoittaa oikeaa etenemistä.
   Aseta `PROGRESSION_MODE=real` tai `stub` erikseen, jos haluat tilan pysyvän samana palautusten ja
@@ -349,7 +349,7 @@ const key = fs.readFileSync(keyFile, "utf8").trim();
 async function call(method, path, body) {
   const r = await fetch(base + path, {
     method,
-    headers: { "x-undaunted-user-api-key": key, ...(body ? { "content-type": "application/json" } : {}) },
+    headers: { "x-dauntless-unbroken-user-api-key": key, ...(body ? { "content-type": "application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined,
     signal: AbortSignal.timeout(15000),
   });
@@ -390,11 +390,11 @@ paketin metagame kuuntelee palvelimen Tailscale-osoitteessa; nämä rivit lukeva
 paketin asetuksista ja toimivat kummassakin tilassa:
 
 ```powershell
-$cfg = Get-Content C:\DauntlessRevived\data\config\server.json -Raw | ConvertFrom-Json
+$cfg = Get-Content C:\DauntlessUnbroken\data\config\server.json -Raw | ConvertFrom-Json
 $port = if ($cfg.Ports.metagame) { $cfg.Ports.metagame } else { 61000 }
 $env:METAGAME = "http://$($cfg.BindAddress):$port"
-node seed-progression.js C:\DauntlessRevived\data\keys\owner.key list
-node seed-progression.js C:\DauntlessRevived\data\keys\owner.key UID-... grandfather
+node seed-progression.js C:\DauntlessUnbroken\data\keys\owner.key list
+node seed-progression.js C:\DauntlessUnbroken\data\keys\owner.key UID-... grandfather
 ```
 
 `list` tulostaa jokaisen tilin, sen Slayer-tason sellaisena kuin peli sen näyttää ja Hunt Passin

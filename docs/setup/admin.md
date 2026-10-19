@@ -2,7 +2,7 @@
 title: Run it for a group
 parent: Setup
 nav_order: 4
-description: "Opening a Dauntless Revived server to a few friends: Tailscale sharing, firewall rules, invite codes, admin accounts, capacity figures and database backups."
+description: "Opening a Dauntless Unbroken server to a few friends: Tailscale sharing, firewall rules, invite codes, admin accounts, capacity figures and database backups."
 lang: en
 ref: setup/admin
 ---
@@ -23,7 +23,7 @@ ref: setup/admin
 
 ## Private owner dashboard (2026-09-30)
 
-On an updated Windows kit server, run `C:\DauntlessRevived\bin\Install-OwnerDashboard.ps1 -OpenOnLogon`
+On an updated Windows kit server, run `C:\DauntlessUnbroken\bin\Install-OwnerDashboard.ps1 -OpenOnLogon`
 as administrator, then restart the metagame during maintenance to activate backend health collection.
 Open `http://127.0.0.1:61110` **on the VPS** and unlock with `data\keys\owner.key`.
 From your own PC, forward that port through SSH; do not open it in the public firewall.
@@ -35,7 +35,7 @@ locations, process memory, free disk/network, account names and key fingerprints
 invites and bounded operational logs. Key matching happens in the browser without sending the
 entered player key. Game tick rate is not yet instrumented. Process metrics reuse the kit's
 minute CSV rather than repeatedly launching scanners. Re-run the dashboard installer after
-updates. See [the dashboard operator guide](https://github.com/mixutin/dauntless-revived/blob/dauntless-revived/tools/DASHBOARD.md)
+updates. See [the dashboard operator guide](https://github.com/Vvoidddd/dauntless-unbroken/blob/main/tools/DASHBOARD.md)
 for security, limitations and disabling autostart.
 
 Keep `REGISTRATION_MODE=INVITECODE`: generate a join link in **Invites** and share
@@ -58,9 +58,9 @@ It checks the local backend every five seconds and edits one Discord message eve
 backend availability/uptime and local response time only: no IP or account names.
 Discord timestamps adapt to each reader's timezone. A whole-VPS outage leaves a
 stale timestamp; detecting that independently needs an external monitor. Keep the
-webhook secret out of Git. See [installation and recovery instructions](https://github.com/mixutin/dauntless-revived/blob/dauntless-revived/tools/DISCORD-STATUS.md).
+webhook secret out of Git. See [installation and recovery instructions](https://github.com/Vvoidddd/dauntless-unbroken/blob/main/tools/DISCORD-STATUS.md).
 
-This page covers how we open our Undaunted-based stack (client build **1.4.4**) to a handful of
+This page covers how we open our dauntless-unbroken-based stack (client build **1.4.4**) to a handful of
 friends: network access, firewall, addresses, accounts, capacity and backups. It assumes the stack
 already runs for you locally, with the metagame, the deploy server and a Ramsgate server.
 
@@ -82,8 +82,8 @@ but not built yet is marked as such. The other side of this setup is
 
 | Component | Listens on | Who has to reach it |
 |:----------|:-----------|:--------------------|
-| Metagame (`UndauntedMetagame`: Node, Express, SQLite) | TCP 61000 | Every player's client, every game server, and you as admin |
-| Deploy server (`UndauntedDeployServer`) | TCP 61001, loopback only | Only the metagame on the same PC. **It has no authentication.** |
+| Metagame (`DauntlessUnbrokenMetagame`: Node, Express, SQLite) | TCP 61000 | Every player's client, every game server, and you as admin |
+| Deploy server (`DauntlessUnbrokenDeployServer`) | TCP 61001, loopback only | Only the metagame on the same PC. **It has no authentication.** |
 | Ramsgate server | UDP 8777 (`PORT_RANGE_END`) | Players. Always running. If it dies, the deploy server starts it again when a player travels there, or its watchdog does within a minute. |
 | Training Dojo | UDP 8776 | Players. Our fork starts it on first use; `ENABLE_DOJO=1` restores upstream's always-on behaviour. |
 | Hunt servers | UDP 8770-8775 | Players. One per group of up to 4. Each exits after 50 seconds in total with nobody connected. |
@@ -101,7 +101,7 @@ Port forwarding would put all of the following on the public internet:
   `http://<metagame address>/...`. There is no TLS anywhere in the stack.
 - **Account keys travel in the clear.** At login, the game posts the player's key as the
   `exchange_code` to `/account/api/oauth/token`. The launcher and admin API send it in the
-  `x-undaunted-user-api-key` header. What comes back is a 24-hour RS256 bearer token that gives full
+  `x-dauntless-unbroken-user-api-key` header. What comes back is a 24-hour RS256 bearer token that gives full
   access to that player's data.
 - `POST /undaunted/api/Register` needs no authentication, and nothing in the metagame limits request
   rates.
@@ -146,11 +146,11 @@ interface and Tailscale's address range. Run these in an elevated PowerShell:
 $game = "C:\D144\Dauntless\Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe"
 $node = "C:\Program Files\nodejs\node.exe"
 
-New-NetFirewallRule -DisplayName "Dauntless Revived - metagame (Tailscale)" `
+New-NetFirewallRule -DisplayName "Dauntless Unbroken - metagame (Tailscale)" `
   -Direction Inbound -Action Allow -Protocol TCP -LocalPort 61000 `
   -Program $node -InterfaceAlias Tailscale -RemoteAddress 100.64.0.0/10
 
-New-NetFirewallRule -DisplayName "Dauntless Revived - game servers (Tailscale)" `
+New-NetFirewallRule -DisplayName "Dauntless Unbroken - game servers (Tailscale)" `
   -Direction Inbound -Action Allow -Protocol UDP -LocalPort 8770-8777 `
   -Program $game -InterfaceAlias Tailscale -RemoteAddress 100.64.0.0/10
 ```
@@ -181,11 +181,11 @@ Three settings point at `127.0.0.1` today and have to change:
 
 | Setting | File | New value | Why |
 |:--------|:-----|:----------|:----|
-| `MY_IP` | `UndauntedDeployServer/.env` | `<host 100.x address>` | The only host address the deploy server hands out for Ramsgate, the Dojo and hunts, via the matchmaking result. With `127.0.0.1`, a friend's client would travel to its own PC. |
-| `QOS_TARGET_URL` | `UndauntedMetagame/.env` | `http://<host 100.x address>:61000/QoS` | `/candidate/regions` returns this URL as the region to ping. With `127.0.0.1`, friends ping their own localhost. We have not tested what the client does when that ping fails. |
-| `BIND_HOST` | `UndauntedMetagame/.env` | `<host 100.x address>` | The address the metagame listens on. Our fork defaults to `127.0.0.1`; upstream listened on every interface. |
-| `BIND_HOST` | `UndauntedDeployServer/.env` | stays `127.0.0.1` | No authentication. |
-| `DEPLOYSERVER_URL` | `UndauntedMetagame/.env` | stays `127.0.0.1:61001` | The metagame reaches the deploy server locally. |
+| `MY_IP` | `DauntlessUnbrokenDeployServer/.env` | `<host 100.x address>` | The only host address the deploy server hands out for Ramsgate, the Dojo and hunts, via the matchmaking result. With `127.0.0.1`, a friend's client would travel to its own PC. |
+| `QOS_TARGET_URL` | `DauntlessUnbrokenMetagame/.env` | `http://<host 100.x address>:61000/QoS` | `/candidate/regions` returns this URL as the region to ping. With `127.0.0.1`, friends ping their own localhost. We have not tested what the client does when that ping fails. |
+| `BIND_HOST` | `DauntlessUnbrokenMetagame/.env` | `<host 100.x address>` | The address the metagame listens on. Our fork defaults to `127.0.0.1`; upstream listened on every interface. |
+| `BIND_HOST` | `DauntlessUnbrokenDeployServer/.env` | stays `127.0.0.1` | No authentication. |
+| `DEPLOYSERVER_URL` | `DauntlessUnbrokenMetagame/.env` | stays `127.0.0.1:61001` | The metagame reaches the deploy server locally. |
 
 **The catch: the metagame listens on one address**, and two local things talk to it as well.
 
@@ -276,14 +276,14 @@ only its SHA-256 hash.
 
 ### Making invite codes
 
-Admin calls are authenticated with an admin account's own key in the `x-undaunted-user-api-key`
+Admin calls are authenticated with an admin account's own key in the `x-dauntless-unbroken-user-api-key`
 header, and they work only directly against the metagame, never through a proxy or the public
 gateway. In our layout the owner's key lives in `C:\dr\data\owner.key`. This block asks the server
 for a new single-use code, lists all codes, and revokes one:
 
 ```powershell
 $M = "100.x.y.z:61000"    # wherever the metagame listens
-$h = @{ "x-undaunted-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
+$h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 
 # new single-use code, made by the server (XXXX-XXXX-XXXX)
 $code = (Invoke-RestMethod -Method Post -Uri "http://$M/undaunted/api/CreateInvite" -Headers $h `
@@ -309,19 +309,19 @@ Invoke-RestMethod -Method Delete -Uri "http://$M/undaunted/api/InviteCode/$code"
 ### Making an account an admin
 
 An admin is a row in the `users` table with `isAdmin = 1`. No API sets it. Edit the database while the
-metagame is stopped, for example with a small `better-sqlite3` script run from the `UndauntedMetagame`
+metagame is stopped, for example with a small `better-sqlite3` script run from the `DauntlessUnbrokenMetagame`
 folder (`UPDATE users SET isAdmin = 1 WHERE userId = ?`). An admin key is simply that user's account
 key, so keep it on the host.
 
 ## The admin API {#admin-api}
 
 All routes live under `/undaunted/api` on the metagame port. "Admin" means the
-`x-undaunted-user-api-key` header must belong to a user with `isAdmin`. A missing or unknown key gets
+`x-dauntless-unbroken-user-api-key` header must belong to a user with `isAdmin`. A missing or unknown key gets
 401; a valid key that is not an admin gets 403. **An admin call that carries a proxy header gets 403**
 before the key is even checked, so admin calls work only directly against the metagame: on the host,
 or in private mode from a machine on the tailnet. The public gateway refuses them as well.
 
-[HTTP API]({{ api_page.url | relative_url }}#undaunted-api) lists every route with its body and
+[HTTP API]({{ api_page.url | relative_url }}#dauntless-unbroken-api) lists every route with its body and
 answers. The ones used most for running a group:
 
 | Method and path | Auth | What it does |
@@ -379,7 +379,7 @@ may name another player in `From`.
 
 ```powershell
 $M = "127.0.0.1:61000"    # on the rented server; in private mode the Tailscale address
-$h = @{ "x-undaunted-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
+$h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 $json = @{ ContentType = "application/json"; Headers = $h; TimeoutSec = 10 }
 
 # invite a friend to your party, send a friend request, invite to your guild
@@ -420,14 +420,14 @@ Renaming does exist (`RenameUser`, see [Usernames](#usernames)).
   already issued stays valid for up to 24 hours.
 - **A friend lost their key.** It cannot be recovered, because only its hash is stored. Issue a new one
   by replacing the hash. A re-key admin endpoint is planned. Until then, save this as `rekey.js` in the
-  `UndauntedMetagame` folder, so that `require` finds `better-sqlite3`:
+  `DauntlessUnbrokenMetagame` folder, so that `require` finds `better-sqlite3`:
 
   ```js
   // node rekey.js <UserId>   (take the UserId from GET /undaunted/api/GetAllUsers)
   const crypto = require("crypto");
   const fs = require("fs");
   const Database = require("better-sqlite3");
-  const db = new Database("C:/dr/data/undaunted.db", { fileMustExist: true });
+  const db = new Database("C:/dr/data/dauntless-unbroken.db", { fileMustExist: true });
   const userId = process.argv[2];
   const key = "UUK_" + crypto.randomBytes(24).toString("hex");   // same format as Register
   const hash = crypto.createHash("sha256").update(key, "utf8").digest("hex");
@@ -445,12 +445,12 @@ Renaming does exist (`RenameUser`, see [Usernames](#usernames)).
 ## Switching features on {#switching-features-on}
 
 Several features are built but off by default, and a few that are on have a switch to turn them off.
-Each is one line in the metagame's settings: `.env` in the `UndauntedMetagame` folder on a hand-built
-host, `C:\DauntlessRevived\data\config\metagame.env` on a kit server (edit it from an elevated editor).
+Each is one line in the metagame's settings: `.env` in the `DauntlessUnbrokenMetagame` folder on a hand-built
+host, `C:\DauntlessUnbroken\data\config\metagame.env` on a kit server (edit it from an elevated editor).
 The kit keeps a line you add across re-runs and updates. Then restart the metagame **when nobody is
 playing** (a restart drops parties and matchmaking queues): by hand as in
 [Restarting after a change](#restarting-after-a-change), or on a kit server
-`C:\DauntlessRevived\bin\Stack.ps1 restart -Only metagame`. The metagame's start line `features: ...`
+`C:\DauntlessUnbroken\bin\Stack.ps1 restart -Only metagame`. The metagame's start line `features: ...`
 shows the value it uses. Every setting is on [Configuration]({{ config_page.url | relative_url }}).
 
 **Off by default, and what to do before switching each on:**
@@ -475,11 +475,11 @@ Ramsgate to the watchdog; restart the deploy server after changing it.
 kit server, in an elevated PowerShell:
 
 ```powershell
-Set-Location C:\DauntlessRevived\app\UndauntedMetagame
-node -e "const db = new (require('better-sqlite3'))(process.argv[1], { readonly: true }); console.log(db.prepare('SELECT COUNT(*) AS accountsWithSeveralCharacters FROM (SELECT userId FROM characters GROUP BY userId HAVING COUNT(*) > 1)').get())" C:/DauntlessRevived/data/undaunted.db
+Set-Location C:\DauntlessUnbroken\app\DauntlessUnbrokenMetagame
+node -e "const db = new (require('better-sqlite3'))(process.argv[1], { readonly: true }); console.log(db.prepare('SELECT COUNT(*) AS accountsWithSeveralCharacters FROM (SELECT userId FROM characters GROUP BY userId HAVING COUNT(*) > 1)').get())" C:/DauntlessUnbroken/data/dauntless-unbroken.db
 ```
 
-On a hand-built host, run it from your `UndauntedMetagame` folder with your `DB_FILENAME`. A result of
+On a hand-built host, run it from your `DauntlessUnbrokenMetagame` folder with your `DB_FILENAME`. A result of
 0 means every purchase goes to the player's only character.
 
 ## Usernames
@@ -570,7 +570,7 @@ Operational limits to know about:
 
 The figures above are one player's, measured on our host. A server installed with the
 [Windows server kit]({{ winserver_page.url | relative_url }}) measures itself: its stack supervisor
-takes a sample every minute and adds it to `C:\DauntlessRevived\data\logs\performance\performance-<date>.csv`,
+takes a sample every minute and adds it to `C:\DauntlessUnbroken\data\logs\performance\performance-<date>.csv`,
 one file per UTC day, kept for 30 days. Each sample has:
 
 - one `host` row: the machine's CPU, total and free RAM, free disk space on the install drive,
@@ -580,7 +580,7 @@ one file per UTC day, kept for 30 days. Each sample has:
   percentage of one core, and its memory
 
 Only numbers are written: no player names, account ids or keys. `Stack.ps1 status` shows when the
-last sample was taken. To take one now, run `C:\DauntlessRevived\bin\Write-PerformanceLog.ps1 -Once`
+last sample was taken. To take one now, run `C:\DauntlessUnbroken\bin\Write-PerformanceLog.ps1 -Once`
 in an elevated PowerShell. To turn the log off, set `"PerformanceLog": false` in
 `data\config\server.json` and run `Stack.ps1 restart`. The columns are listed in
 [Files and data]({{ files_page.url | relative_url }}#performance-log). Keep the files private: they
@@ -590,7 +590,7 @@ The files are CSV, so a spreadsheet opens them. A summary tool that turns them i
 and per Ramsgate player, and an estimate of how many players a machine can host, is still to come,
 as are the metagame's own timings (request latency, event-loop lag and database time). Both are part
 of roadmap 4.12. The sampler started from Vvoidddd's first version
-([#6](https://github.com/mixutin/dauntless-revived/pull/6)). A hand-built host like the one on this
+([#6](https://github.com/Vvoidddd/dauntless-unbroken/pull/6)). A hand-built host like the one on this
 page has no sampler yet.
 
 ## Keeping the PC available
@@ -624,7 +624,7 @@ The server is up only while the host PC is on, awake and signed in.
 
 Everything players own (accounts, characters, inventories, loadouts, progression, friends lists,
 invite codes) lives in one SQLite file, the `DB_FILENAME` in the metagame `.env`. Ours is
-`C:\dr\data\undaunted.db`. It starts small (ours was 132 KB with one player), but it also keeps each
+`C:\dr\data\dauntless-unbroken.db`. It starts small (ours was 132 KB with one player), but it also keeps each
 character's save history for rollbacks (the code estimates up to about 3.5 MB per character at the
 default settings) and item and progression logs that only grow. Every table is described on
 [Files and data]({{ files_page.url | relative_url }}#the-database).
@@ -637,7 +637,7 @@ back up before updating the fork or pulling upstream changes.
 every start and after every stop, and it won't start the metagame if that backup fails. A restore test
 passed. These scripts work on our host but are not in the repository yet (items 0.1 and 1.1 on the
 [roadmap]({{ roadmap_page.url | relative_url }})). Copies off the PC are still open. On a server
-installed with the Windows server kit, `Backup-DauntlessServer.ps1` does the same (hourly, before every
+installed with the Windows server kit, `Backup-DauntlessUnbrokenServer.ps1` does the same (hourly, before every
 start and after every stop; it keeps the newest 48 backups plus the newest one of each of the last
 30 days). On any other host, use one of the two
 options below.
@@ -647,17 +647,17 @@ rollback journal, so there is no separate `-wal` file to forget.
 
 **Option 2: live backup.** SQLite's online backup API is safe while the metagame is writing, and
 `better-sqlite3` (already a metagame dependency) exposes it. Save this as `backup-db.js` in the
-`UndauntedMetagame` folder, so that `require` finds the module:
+`DauntlessUnbrokenMetagame` folder, so that `require` finds the module:
 
 ```js
-// node backup-db.js  -> C:/dr/backups/undaunted-YYYYMMDDHHMM.db (UTC time)
+// node backup-db.js  -> C:/dr/backups/dauntless-unbroken-YYYYMMDDHHMM.db (UTC time)
 const Database = require("better-sqlite3");
 const fs = require("fs");
-const src = "C:/dr/data/undaunted.db";
+const src = "C:/dr/data/dauntless-unbroken.db";
 const dir = "C:/dr/backups";
 fs.mkdirSync(dir, { recursive: true });
 const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
-const out = `${dir}/undaunted-${stamp}.db`;
+const out = `${dir}/dauntless-unbroken-${stamp}.db`;
 new Database(src, { readonly: true, fileMustExist: true }).backup(out).then(() => {
   const check = new Database(out, { readonly: true }).pragma("integrity_check", { simple: true });
   console.log(out, check);   // prints "ok" for a sound copy
@@ -691,7 +691,7 @@ back up the owner's account key.
    entitled to its source (section 13). The DLLs you hand them also need their source available
    (section 6). Give them the link to [this site's repository]({{ site.github.repository_url }}) and
    the commit you run. The in-game status text (`/dauntless-status`) welcomes players by your
-   server's name ("Welcome to Dauntless Revived!" unless you set `SERVER_NAME` in the metagame's
+   server's name ("Welcome to Dauntless Unbroken!" unless you set `SERVER_NAME` in the metagame's
    `.env`). After the fields the game reads, the same reply also carries the server's name, version,
    commit and source link (`SOURCE_URL` and `GIT_COMMIT`, see
    [Configuration]({{ config_page.url | relative_url }}#metagame-identity)). If you run modified

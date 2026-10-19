@@ -2,7 +2,7 @@
 title: Ports and network
 parent: Reference
 nav_order: 2
-description: "Every TCP and UDP port of a Dauntless Revived server: who listens where, bind addresses in private and public mode, request paths and the kit firewall rules."
+description: "Every TCP and UDP port of a Dauntless Unbroken server: who listens where, bind addresses in private and public mode, request paths and the kit firewall rules."
 lang: en
 ref: reference/ports
 ---
@@ -21,7 +21,7 @@ ref: reference/ports
 # Ports and network
 {: .no_toc }
 
-Every port the Dauntless Revived stack uses, the address each one listens on, who may reach it,
+Every port the Dauntless Unbroken stack uses, the address each one listens on, who may reach it,
 how a friend's traffic travels, and the firewall rules the Windows server kit creates. The
 environment variables named here are explained in full on
 [Configuration]({{ config_page.url | relative_url }}), and the routes on
@@ -48,16 +48,16 @@ Three setups come up throughout:
 
 | Port | Protocol | Who listens | Runs on | Reachable from other machines |
 |:-----|:---------|:------------|:--------|:------------------------------|
-| 443 | TCP | Gateway (`UndauntedGateway/`), TLS | Server, public mode only | Everyone. The only public TCP port. |
-| 61000 | TCP | Metagame (`UndauntedMetagame/`) | Server | Public mode: never, only through the gateway. Private mode: Tailscale peers. Dev PC: nobody. |
-| 61001 | TCP | Deploy server (`UndauntedDeployServer/`) | Server | Never. |
-| 61002 | TCP | Content server (`UndauntedContent/`), game files for the launcher | Server, when installed | Public mode: never, only through the gateway. Private mode: Tailscale peers. |
-| 61005 | TCP | Allowlist helper (`UndauntedGateway/`, runs as SYSTEM) | Server, public mode only | Never. |
+| 443 | TCP | Gateway (`DauntlessUnbrokenGateway/`), TLS | Server, public mode only | Everyone. The only public TCP port. |
+| 61000 | TCP | Metagame (`DauntlessUnbrokenMetagame/`) | Server | Public mode: never, only through the gateway. Private mode: Tailscale peers. Dev PC: nobody. |
+| 61001 | TCP | Deploy server (`DauntlessUnbrokenDeployServer/`) | Server | Never. |
+| 61002 | TCP | Content server (`DauntlessUnbrokenContent/`), game files for the launcher | Server, when installed | Public mode: never, only through the gateway. Private mode: Tailscale peers. |
+| 61005 | TCP | Allowlist helper (`DauntlessUnbrokenGateway/`, runs as SYSTEM) | Server, public mode only | Never. |
 | 61099 | TCP | Chat, inside the metagame (only with `CHAT=1`), on `127.0.0.1` | Server | Never directly. Public mode: through the gateway. No firewall rule anywhere. |
 | 8777 | UDP | Ramsgate game server | Server | Players. Public mode: only addresses of logged-in players. Private mode: Tailscale peers. |
 | 8776 | UDP | Training Dojo game server | Server | As 8777. |
 | 8770-8775 | UDP | Hunt and tutorial game servers, one process per group | Server | As 8777. |
-| 61000 | TCP | Launcher relay (`UndauntedLauncher/`) | Each player's PC, public mode, only while the game runs | Never: it listens on `127.0.0.1` only. |
+| 61000 | TCP | Launcher relay (`DauntlessUnbrokenLauncher/`) | Each player's PC, public mode, only while the game runs | Never: it listens on `127.0.0.1` only. |
 | 22 | TCP | OpenSSH (Windows, not part of the stack) | Server | Public mode: allowed by the kit, for key-only administration. Limit it to your own address at the provider. |
 | 3389 | TCP, UDP | Remote Desktop (Windows) | Server | Public mode: only from `-AdminIp`; without it the kit turns internet-open rules off, unless `-KeepRdpOpen`. |
 
@@ -123,7 +123,7 @@ argument.
   would never exit; with a lower end, Ramsgate and the Dojo would exit when idle and be restarted over
   and over. For more simultaneous hunts, lower `PORT_RANGE_BEGIN` and widen the firewall rules to match.
 - **The kit's range is fixed at 8770-8777.** It comes from constants in
-  `deploy/windows-server/DauntlessServer.Common.ps1` (`$DRUdpBegin`, `$DRUdpEnd`). There is no
+  `deploy/windows-server/DauntlessUnbrokenServer.Common.ps1` (`$DRUdpBegin`, `$DRUdpEnd`). There is no
   installer parameter, and every installer run writes the range again into `deployserver.env`, the
   allowlist helper's `ALLOWLIST_PORTS` and the firewall rules. `server.json` records it
   (`UdpPortBegin`, `UdpPortEnd`), and `Stack.ps1 status` uses `UdpPortEnd` to label Ramsgate and the
@@ -152,7 +152,7 @@ the account key is a secret (never share it, never commit it). The relay:
 The port is fixed because the metagame hands every player the same QoS address,
 `http://127.0.0.1:61000/QoS` (`QOS_TARGET_URL`), which is each player's own relay. If 61000 is taken,
 for example by a development stack on the same PC, PLAY fails with `relay_port_busy`. The launcher
-reads a hidden override, `DAUNTLESS_REVIVED_RELAY_PORT` (1024-65535), for tests and rehearsals only. It
+reads a hidden override, `DAUNTLESS_UNBROKEN_RELAY_PORT` (1024-65535), for tests and rehearsals only. It
 moves the relay, the game's first argument and the chat port together, but the QoS address from the
 server stays on 61000, and whether the region ping then still works has not been tested. Friends
 always use 61000.
@@ -187,7 +187,7 @@ firewall rule opens it in any mode.
   `CHAT_PORT` and the gateway's `GATEWAY_WS_URL`, so they cannot disagree. With chat off the gateway
   answers the upgrade with 502, and the game retries every 15-45 s, harmlessly.
 - **Dev PC** (one PC): the game connects to `ws://127.0.0.1:61099` straight. Set `CHAT=1` in
-  `UndauntedMetagame/.env` ([Host a server]({{ host_page.url | relative_url }})).
+  `DauntlessUnbrokenMetagame/.env` ([Host a server]({{ host_page.url | relative_url }})).
 - **Private mode** (Tailscale): not supported yet. The game would connect to `ws://<Tailscale
   address>:61099`, but the listener refuses any address other than loopback, so the connection fails
   harmlessly, as before.
@@ -321,7 +321,7 @@ On a **dev PC** every step stays on `127.0.0.1`, and no firewall rule is needed.
 
 ## Firewall rules the kit creates {#kit-firewall}
 
-The installer puts its rules in the Windows Firewall group **Dauntless Revived** and rebuilds them on
+The installer puts its rules in the Windows Firewall group **Dauntless Unbroken** and rebuilds them on
 every run: in public mode all of them except the allowlist rule, whose addresses and on/off state
 belong to the allowlist helper (the installer only resets its protocol, ports and program); in
 private mode all of them. Rule names show the actual port numbers; the tables
@@ -331,9 +331,9 @@ below use the defaults. `-WhatIf` lists the changes without making them.
 
 | Rule | Protocol and port | Program | From | State |
 |:-----|:------------------|:--------|:-----|:------|
-| Dauntless Revived - gateway (TCP 443) | TCP, the gateway port | `node.exe` | Any address | Enabled, every profile |
-| Dauntless Revived game ports (allowlist); rule name `DauntlessRevived-GamePorts-Allowlist` | UDP 8770-8777 | the game executable | Set by the allowlist helper (created with the placeholder 192.0.2.1) | Created disabled. The helper enables it while at least one address is allowed, and disables it when the list is empty. |
-| Dauntless Revived - SSH (TCP 22) | TCP 22 | any | Any address | Only created when OpenSSH is installed and no enabled rule already allows TCP 22 |
+| Dauntless Unbroken - gateway (TCP 443) | TCP, the gateway port | `node.exe` | Any address | Enabled, every profile |
+| Dauntless Unbroken game ports (allowlist); rule name `DauntlessUnbroken-GamePorts-Allowlist` | UDP 8770-8777 | the game executable | Set by the allowlist helper (created with the placeholder 192.0.2.1) | Created disabled. The helper enables it while at least one address is allowed, and disables it when the list is empty. |
+| Dauntless Unbroken - SSH (TCP 22) | TCP 22 | any | Any address | Only created when OpenSSH is installed and no enabled rule already allows TCP 22 |
 
 No rule is created for the metagame, the content server, the deploy server or the allowlist helper.
 The installer also changes existing settings, and records the old values under `FirewallChanges` in
@@ -373,9 +373,9 @@ tied to the Tailscale network adapter when one is found:
 
 | Rule | Protocol and port | Program |
 |:-----|:------------------|:--------|
-| Dauntless Revived - metagame (TCP 61000, Tailscale only) | TCP, the metagame port | `node.exe` |
-| Dauntless Revived - content server (TCP 61002, Tailscale only) | TCP, the content port (only when the content server is installed) | `node.exe` |
-| Dauntless Revived - game servers (UDP 8770-8777, Tailscale only) | UDP 8770-8777 | the game executable |
+| Dauntless Unbroken - metagame (TCP 61000, Tailscale only) | TCP, the metagame port | `node.exe` |
+| Dauntless Unbroken - content server (TCP 61002, Tailscale only) | TCP, the content port (only when the content server is installed) | `node.exe` |
+| Dauntless Unbroken - game servers (UDP 8770-8777, Tailscale only) | UDP 8770-8777 | the game executable |
 
 The deploy server gets no rule. Profiles, SSH and Remote Desktop are left alone; the installer only
 warns if a profile is off or allows inbound traffic by default. It also sets the Tailscale adapter's
@@ -422,12 +422,12 @@ sandbox install or `Test-Sandbox.ps1` is running. How to run the tests is on
 
 | Suite | Ports |
 |:------|:------|
-| `UndauntedMetagame/`, `npm test` | 62014, 62015-62016, 62471-62472, 62481-62483, 62501-62502, 62901-62904, 62921-62922; the chat tests' own listeners take a random free port |
-| `UndauntedDeployServer/`, `npm test` | 62013, 62473 |
-| `UndauntedGateway/`, `npm test` | 62400-62499 (in use: 62400-62405, 62409-62417, 62420-62422, 62430-62436) |
-| `UndauntedContent/`, `npm test` | 62011, 62012, 62019 |
-| `UndauntedContent/`, `npm run test:integration` | 62002 and 62003 (`CONTENT_IT_PORT`, `CONTENT_IT_MOCK_PORT`) |
-| `UndauntedLauncher/`, `npm test` | 62012, 62013, 62401-62404, 62409, 62420-62422, 62429, 62440-62444 |
+| `DauntlessUnbrokenMetagame/`, `npm test` | 62014, 62015-62016, 62471-62472, 62481-62483, 62501-62502, 62901-62904, 62921-62922; the chat tests' own listeners take a random free port |
+| `DauntlessUnbrokenDeployServer/`, `npm test` | 62013, 62473 |
+| `DauntlessUnbrokenGateway/`, `npm test` | 62400-62499 (in use: 62400-62405, 62409-62417, 62420-62422, 62430-62436) |
+| `DauntlessUnbrokenContent/`, `npm test` | 62011, 62012, 62019 |
+| `DauntlessUnbrokenContent/`, `npm run test:integration` | 62002 and 62003 (`CONTENT_IT_PORT`, `CONTENT_IT_MOCK_PORT`) |
+| `DauntlessUnbrokenLauncher/`, `npm test` | 62012, 62013, 62401-62404, 62409, 62420-62422, 62429, 62440-62444 |
 | `deploy/windows-server/tests/Test-KitUnit.ps1` | 62450 and 62451 (`-Port` and the port above it, 62000-62499) |
 | `-Sandbox` install and `Test-Sandbox.ps1` | Metagame 62000, content 62002, allowlist helper 62005, gateway 62443, chat (the gateway's WebSocket target and the metagame's `CHAT_PORT`) 62099. 62001 is written for the deploy server, which does not run in a sandbox. |
 
@@ -437,7 +437,7 @@ controller test uses 62443 like the sandbox gateway; the launcher tests share 62
 
 ## Checking what listens {#checking}
 
-On a kit server, `C:\DauntlessRevived\bin\Stack.ps1 status` shows every component with its process and
+On a kit server, `C:\DauntlessUnbroken\bin\Stack.ps1 status` shows every component with its process and
 ports, the game servers with their UDP ports (it looks for them in 8700-8799 and names `UdpPortEnd`
 Ramsgate and the port below it the Dojo), and the allowlist. `Stack.ps1 start` waits up to 30 seconds
 for each component to listen on its port, and up to 60 seconds for Ramsgate on UDP 8777. On any

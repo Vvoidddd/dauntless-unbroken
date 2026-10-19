@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    One command for the whole Dauntless Revived server: status | start | stop | restart | supervise.
+    One command for the whole Dauntless Unbroken server: status | start | stop | restart | supervise.
 
 .DESCRIPTION
     Components (in start order): the allowlist helper (public mode: opens the game UDP ports for
@@ -15,9 +15,9 @@
 
     On an installed server two scheduled tasks run "supervise" (start, then restart a crashed component
     after 5-60 s, giving up on it after 5 crashes in 10 minutes):
-      "Dauntless Revived stack"      as the low-privilege "dauntless" account: everything except the
+      "Dauntless Unbroken stack"      as the low-privilege "dauntless" account: everything except the
                                      allowlist helper
-      "Dauntless Revived allowlist"  as SYSTEM (public mode only): just the allowlist helper, which
+      "Dauntless Unbroken allowlist"  as SYSTEM (public mode only): just the allowlist helper, which
                                      changes one firewall rule and nothing else
     Run by an administrator, "start" therefore starts those tasks and "stop" ends them, so nothing but
     the allowlist helper ever runs with administrator rights. "restart -Only <component>" stops just
@@ -34,9 +34,9 @@
     "PerformanceLog": false in server.json to turn it off. See Write-PerformanceLog.ps1.
 
 .EXAMPLE
-    C:\DauntlessRevived\bin\Stack.ps1 status
+    C:\DauntlessUnbroken\bin\Stack.ps1 status
 .EXAMPLE
-    C:\DauntlessRevived\bin\Stack.ps1 restart -Only gateway
+    C:\DauntlessUnbroken\bin\Stack.ps1 restart -Only gateway
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
@@ -49,8 +49,8 @@ param(
     [switch]$Direct
 )
 $ErrorActionPreference = 'Stop'
-. "$PSScriptRoot\DauntlessServer.Common.ps1"
-. "$PSScriptRoot\DauntlessServer.Performance.ps1"
+. "$PSScriptRoot\DauntlessUnbrokenServer.Common.ps1"
+. "$PSScriptRoot\DauntlessUnbrokenServer.Performance.ps1"
 
 $Root = Resolve-DRRoot $Root $PSScriptRoot
 $P = Get-DRPaths $Root
@@ -93,8 +93,8 @@ function Label([string]$C) { $DRComponents[$C].Label }
 function Start-OwnerDashboard {
     if ($WhatIfPreference -or -not $ViaTask -or (Get-DRConfigValue $Cfg 'DashboardEnabled' $false) -ne $true) { return }
     try {
-        Start-ScheduledTask -TaskName 'Dauntless Revived dashboard'
-        if ((Get-DRConfigValue $Cfg 'DashboardOpenOnStart' $false) -eq $true) { Start-ScheduledTask -TaskName 'Dauntless Revived open dashboard' }
+        Start-ScheduledTask -TaskName 'Dauntless Unbroken dashboard'
+        if ((Get-DRConfigValue $Cfg 'DashboardOpenOnStart' $false) -eq $true) { Start-ScheduledTask -TaskName 'Dauntless Unbroken open dashboard' }
     } catch { Say '!! Owner dashboard task could not start; game services are unaffected.' }
 }
 function LogDir([string]$C) { if ($C -eq 'allowlist') { $AllowlistDir } else { $P.Logs } }
@@ -130,7 +130,7 @@ function Get-GatewayCheck {
 function Show-Status {
     $name = Get-DRConfigValue $Cfg 'ServerName' '(unnamed)'
     $commit = Get-DRConfigValue $Cfg 'Commit' 'unknown'
-    "Dauntless Revived at $Root  (server '$name', $Mode mode, code $commit)"
+    "Dauntless Unbroken at $Root  (server '$name', $Mode mode, code $commit)"
     if ($Mode -eq 'Public') {
         'public address : {0}:{1}   certificate fingerprint {2}' -f (Get-DRConfigValue $Cfg 'PublicHost' '?'), $Ports.gateway, $Fingerprint
     }
@@ -214,7 +214,7 @@ function Show-Status {
         # by administrators, SYSTEM and the service account; never printed), straight to the
         # metagame's own address.
         $h = $null
-        try { $k = Read-DRAccountKey $P.OwnerKey; if ($k) { $h = @{ 'x-undaunted-user-api-key' = $k } } } catch {}
+        try { $k = Read-DRAccountKey $P.OwnerKey; if ($k) { $h = @{ 'x-dauntless-unbroken-user-api-key' = $k } } } catch {}
         $k = $null
         $r = Invoke-DRHttp -Url ("http://{0}:{1}/undaunted/api/ServerStatus" -f $Bind, $Ports.metagame) -Headers $h -TimeoutSec 5
         $sentKey = $null -ne $h
@@ -236,7 +236,7 @@ function Show-Status {
 function Invoke-Backup {
     if ($script:SkipBackup) { Say 'backup skipped (-NoBackup)'; return $true }
     if (-not $PSCmdlet.ShouldProcess($P.Backups, 'Back up the database and secrets')) { return $true }
-    $bk = Join-Path $PSScriptRoot 'Backup-DauntlessServer.ps1'
+    $bk = Join-Path $PSScriptRoot 'Backup-DauntlessUnbrokenServer.ps1'
     $old = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
     try { $out = & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $bk -Root $Root 2>&1 | Out-String; $code = $LASTEXITCODE }
     finally { $ErrorActionPreference = $old }
@@ -427,7 +427,7 @@ function Stop-Components {
 function Start-ViaTask {
     if (-not (Test-DRAdmin)) { Stop-DR 'Run this in an elevated PowerShell (Run as administrator).' }
     $t = Get-ScheduledTask -TaskName $StackTask -ErrorAction SilentlyContinue
-    if (-not $t) { Stop-DR "The scheduled task '$StackTask' does not exist. Run Install-DauntlessServer.ps1 again." }
+    if (-not $t) { Stop-DR "The scheduled task '$StackTask' does not exist. Run Install-DauntlessUnbrokenServer.ps1 again." }
     if (@(Get-DRComponentProcesses $P 'metagame').Count -eq 0 -and -not (Invoke-Backup)) {
         Say '!! not starting without a backup (use -NoBackup to override)'
         return

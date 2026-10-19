@@ -7,7 +7,7 @@
 //
 // Page titles and notes come from each page's front matter (title, description), so rerun this after
 // adding a page or changing a description. Neither output file has front matter, so Jekyll copies both
-// to the site byte for byte (served at /dauntless-revived/llms.txt and /dauntless-revived/llms-full.txt).
+// to the site byte for byte (served at /dauntless-unbroken/llms.txt and /dauntless-unbroken/llms-full.txt).
 //
 // Usage (from the repository root): node tools/build-llms.js
 "use strict";
@@ -16,12 +16,12 @@ const path = require("path");
 
 const root = path.join(__dirname, "..");
 const docs = path.join(root, "docs");
-const SITE = "https://mixutin.github.io/dauntless-revived";
-const REPO = "https://github.com/mixutin/dauntless-revived";
+const SITE = "https://mixutin.github.io/dauntless-unbroken";
+const REPO = "https://github.com/Vvoidddd/dauntless-unbroken";
 const UPSTREAM = "https://github.com/SyST3MDeV/Undaunted";
 
 const SUMMARY =
-    "Dauntless Revived is a private, non-commercial server revival of Dauntless, the Phoenix Labs co-op " +
+    "Dauntless Unbroken is a private, non-commercial server revival of Dauntless, the Phoenix Labs co-op " +
     "monster-hunting game whose official servers shut down on 30 May 2025. It runs the genuine Dauntless 1.4.4 " +
     "client (October 2020, Unreal Engine 4) against a self-hosted fork of the open-source Undaunted server by " +
     "gwog and contributors (AGPL-3.0).";
@@ -245,7 +245,7 @@ const listed = new Set([
 const projectPages = englishOrdered.filter(p => !listed.has(p.ref));
 
 const llms = [
-    "# Dauntless Revived",
+    "# Dauntless Unbroken",
     "",
     `> ${SUMMARY}`,
     "",
@@ -271,8 +271,8 @@ const llms = [
     "## Project",
     "",
     ...projectPages.map(p => link(p)),
-    `- [Source code on GitHub](${REPO}): The fork's complete source, AGPL-3.0-only, on branch dauntless-revived.`,
-    `- [ROADMAP.md](https://raw.githubusercontent.com/mixutin/dauntless-revived/dauntless-revived/ROADMAP.md): ` +
+    `- [Source code on GitHub](${REPO}): The fork's complete source, AGPL-3.0-only, on branch dauntless-unbroken.`,
+    `- [ROADMAP.md](https://raw.githubusercontent.com/Vvoidddd/dauntless-unbroken/dauntless-unbroken/ROADMAP.md): ` +
         "The live checklist behind the roadmap page, as raw Markdown. Done items start with \"- [x] **<id>\", open ones with \"- [ ] **<id>\".",
     "",
     // Every line under an H2 must be a link entry (llmstxt.org), so the section's language is in its name.
@@ -292,7 +292,7 @@ const llms = [
 
 const rule = "=".repeat(80);
 const full = [
-    "# Dauntless Revived: the English documentation in one file",
+    "# Dauntless Unbroken: the English documentation in one file",
     "",
     `> ${SUMMARY}`,
     "",

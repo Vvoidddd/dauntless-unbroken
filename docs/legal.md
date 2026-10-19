@@ -22,7 +22,7 @@ ref: legal
 
 ## Credits
 
-Dauntless Revived exists because other people did the hard parts first and published their work.
+Dauntless Unbroken exists because other people did the hard parts first and published their work.
 
 | Project | By | What we owe it |
 |---|---|---|
@@ -36,27 +36,27 @@ Dauntless Revived exists because other people did the hard parts first and publi
 
 And **Phoenix Labs**, who made Dauntless. Nothing here would be worth preserving without their game.
 
-### Dauntless Revived contributors
+### Dauntless Unbroken contributors
 
 - **[mixutin](https://github.com/mixutin)** (maintainer): the server kit, the launcher, backend
   fixes, real progression and these docs.
 - **[Vvoidddd](https://github.com/Vvoidddd)**: found the cause of the dark pre-hunt airship (1.4.4's
   automatic exposure; the setting was reverted in launcher 0.1.1 because it darkened Ramsgate), hid
   the console windows of temporary hunt servers, and added the repository's `.gitignore`
-  ([#5](https://github.com/mixutin/dauntless-revived/pull/5)); wrote the first performance sampler,
-  the base of the server's performance log ([#6](https://github.com/mixutin/dauntless-revived/pull/6));
+  ([#5](https://github.com/Vvoidddd/dauntless-unbroken/pull/5)); wrote the first performance sampler,
+  the base of the server's performance log ([#6](https://github.com/Vvoidddd/dauntless-unbroken/pull/6));
   added the launcher's opt-in "Basic adaptive" auto exposure setting for the airship, off by default
-  ([#7](https://github.com/mixutin/dauntless-revived/pull/7)); let the launcher use an existing
-  Dauntless 1.4.4 folder by pasting its path ([#8](https://github.com/mixutin/dauntless-revived/pull/8));
+  ([#7](https://github.com/Vvoidddd/dauntless-unbroken/pull/7)); let the launcher use an existing
+  Dauntless 1.4.4 folder by pasting its path ([#8](https://github.com/Vvoidddd/dauntless-unbroken/pull/8));
   wrote the first in-game text chat server (XMPP) and tested it with a real 1.4.4 client
-  ([#9](https://github.com/mixutin/dauntless-revived/pull/9)).
+  ([#9](https://github.com/Vvoidddd/dauntless-unbroken/pull/9)).
 - **Harmonic** ([Harmonic's 1.4.4 fork](https://github.com/Harmonicrain/Undaunted)): the Escalation season
   registry and save rules, the free store, the first working Slayer Links, the deploy server's restart
   of a dead Ramsgate, the idea of friends' online status, and the test cases we ported from that fork
   (see the table above). Every commit that carries Harmonic's work names Harmonic as co-author.
 
 Everyone who has contributed is on the
-[contributors page](https://github.com/mixutin/dauntless-revived/graphs/contributors). The launcher
+[contributors page](https://github.com/Vvoidddd/dauntless-unbroken/graphs/contributors). The launcher
 shows the same credits on its **Credits** page, and ships the license texts of the software it
 includes (Electron, MinHook, the GitHub mark and a few small libraries) in
 `THIRD-PARTY-NOTICES.txt`.
@@ -67,7 +67,7 @@ includes (Electron, MinHook, the GitHub mark and a few small libraries) in
 
 Undaunted is licensed **AGPL-3.0-only**, and our fork is too. The full text is in `LICENSE.txt` in
 [the repository]({{ site.github.repository_url }}). MinHook's source is included in the server DLL's
-source folder (`UndauntedInternalServer/MinHook`), and it keeps its own BSD 2-Clause license.
+source folder (`DauntlessUnbrokenInternalServer/MinHook`), and it keeps its own BSD 2-Clause license.
 
 Here is what the license asks in practice, in plain words. **This is our reading, not legal advice.**
 If it matters to you, read the license itself.
@@ -127,7 +127,7 @@ MinHook, reproduce MinHook's copyright notice and disclaimer.
   system `dxgi.dll`, forwards three exports (`CreateDXGIFactory`, `CreateDXGIFactory1`,
   `CreateDXGIFactory2`) and loads the server DLL.
   We plan to replace it with a proxy of our own, built from published source. We also plan to build
-  `UndauntedInternalServer.dll` from source ourselves instead of using the prebuilt copy. Both items
+  `DauntlessUnbroken.dll` from source ourselves instead of using the prebuilt copy. Both items
   are on the roadmap.
 
 ---
@@ -137,18 +137,18 @@ MinHook, reproduce MinHook's copyright notice and disclaimer.
 - This site and the repository contain **no files from Dauntless**: no executables, no paks or
   IoStore containers, no assets and no game configuration. They do not link to downloads of the game.
   - One inherited item to be aware of: upstream Undaunted's metagame includes
-    `UndauntedMetagame/src/vendor/progression_config.json` (about 190 KB), which it serves to the
+    `DauntlessUnbrokenMetagame/src/vendor/progression_config.json` (about 190 KB), which it serves to the
     client as progression and reward data. It has the shape of a recorded Phoenix backend response,
     not of a file from the game install. Our fork carries it unchanged from upstream.
   - Upstream also includes four of the game's data tables as JSON exports,
-    `UndauntedDeployServer/src/vendor/*_table.json` (about 2.2 MB: player hunts, matchmaker hunts and
+    `DauntlessUnbrokenDeployServer/src/vendor/*_table.json` (about 2.2 MB: player hunts, matchmaker hunts and
     the two Trials tables), which the deploy server reads to pick a hunt's behemoth and map. They are
     exports of table rows, not files from the install. Our fork carries them unchanged, and our
-    `UndauntedMetagame/src/vendor/hunt_titles.json` is generated from them (hunt ids and their English
+    `DauntlessUnbrokenMetagame/src/vendor/hunt_titles.json` is generated from them (hunt ids and their English
     titles).
-  - From Harmonic's fork we carry four data files: `UndauntedMetagame/src/vendor/escalation/seasons.json`
+  - From Harmonic's fork we carry four data files: `DauntlessUnbrokenMetagame/src/vendor/escalation/seasons.json`
     (the Escalation seasons), `store_catalog.json` and `store_item_kinds.json` (the free store), and
-    `UndauntedMetagame/test/data/store_art_skus.json` (store SKU ids, for a test). They hold identifiers
+    `DauntlessUnbrokenMetagame/test/data/store_art_skus.json` (store SKU ids, for a test). They hold identifiers
     and tuning values read from the installed client for interoperability, and about 330 short English
     names; no textures, models, sounds or other assets. `seasons.json` names the game files it was read
     from by their SHA-256, as our game manifest does. Each file says where it comes from in its
@@ -177,7 +177,7 @@ MinHook, reproduce MinHook's copyright notice and disclaimer.
 Services and Unreal Engine are trademarks of Epic Games, Inc. All other trademarks belong to their
 owners. We use these names only to say what software this project works with.
 
-Dauntless Revived is **not affiliated with, endorsed by, or supported by Phoenix Labs or Epic
+Dauntless Unbroken is **not affiliated with, endorsed by, or supported by Phoenix Labs or Epic
 Games**. It is non-commercial: nothing is sold, and there is no real-money store.
 
 ---

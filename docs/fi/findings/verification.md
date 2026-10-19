@@ -1,7 +1,7 @@
 ---
 title: Pelitiedostojen tarkistaminen
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 1
 lang: fi
 ref: findings/verification
@@ -310,8 +310,8 @@ asennus vastaa Phoenixin omaa tiedostoluetteloa.
 
 Kaksi lisätarkistusta versiolle 1.4.4:
 
-- Pääohjelman ja zip-arkiston SHA-256-tiivisteet ovat samat kuin alkuperäisen Undaunted-käynnistimen
-  kiinnittämät arvot (`UndauntedLauncher/src/main.ts`):
+- Pääohjelman ja zip-arkiston SHA-256-tiivisteet ovat samat kuin alkuperäisen dauntless-unbroken-käynnistimen
+  kiinnittämät arvot (`DauntlessUnbrokenLauncher/src/main.ts`):
 
   | Tiedosto | SHA-256 |
   |:-----|:--------|
@@ -421,14 +421,14 @@ laskenut niitä mukaan.
 
 ---
 
-## Valmiiksi käännetyt Undaunted-DLL:t {#the-prebuilt-undaunted-dlls}
+## Valmiiksi käännetyt dauntless-unbroken-DLL:t {#the-prebuilt-dauntless-unbroken-dlls}
 
 Version 1.4.4 asennus lisää pelikansioon kaksi valmiiksi käännettyä tiedostoa alkuperäisestä
-Undaunted-koodivarastosta: `dxgi.dll` ja `UndauntedInternalServer.dll`. Ne eivät ole pelitiedostoja,
+dauntless-unbroken-koodivarastosta: `dxgi.dll` ja `DauntlessUnbroken.dll`. Ne eivät ole pelitiedostoja,
 mutta ne toimivat pelin prosessin sisällä, joten tarkistimme ne samalla tavalla. Kumpikaan ei ole
 allekirjoitettu, mikä on tavallista harrastusprojektille.
 
-| Tarkistus | `dxgi.dll` | `UndauntedInternalServer.dll` |
+| Tarkistus | `dxgi.dll` | `DauntlessUnbroken.dll` |
 |:------|:-----------|:------------------------------|
 | Koko | 11 264 tavua | 123 392 tavua |
 | SHA-256 | `9A431D7B…4B0D1F` | `520EC588…0D0933` |
@@ -440,7 +440,7 @@ allekirjoitettu, mikä on tavallista harrastusprojektille.
 Mitä `dxgi.dll` tekee, sen `DllMain`-funktion täydellisen disassemblyn (konekielen purkamisen
 luettavaan muotoon) perusteella: se lataa oikean `dxgi.dll`-tiedoston System32-kansiosta, hakee
 funktiot `CreateDXGIFactory`, `CreateDXGIFactory1` ja `CreateDXGIFactory2` ja ohjaa omat kolme
-vientiään niille. Sen jälkeen se lataa `UndauntedInternalServer.dll`-tiedoston nimen perusteella.
+vientiään niille. Sen jälkeen se lataa `DauntlessUnbroken.dll`-tiedoston nimen perusteella.
 Muuta se ei tee. Nuo kolme vientiä ovat täsmälleen se joukko, jota peli tarvitsee: version 1.4.4
 ohjelmatiedosto tuo funktiot `CreateDXGIFactory` ja `CreateDXGIFactory1`, ja järjestelmän `d3d11.dll`
 (meidän Windows 10 -koneellamme) tuo funktion `CreateDXGIFactory2`.
@@ -449,10 +449,10 @@ Jokainen palvelin-DLL:ään kovakoodattu pelin muistiosoite joko näkyy sen julk
 tai tulee luodun SDK:n siirtymistä. Emme löytäneet yhtään, jota lähdekoodi ei selittäisi. Windows
 Defender ei havainnut mitään, kun kopioimme tiedostot pelikansioon.
 
-Yksi avoin kysymys: **`dxgi.dll`-tiedoston lähdekoodi ei ole Undaunted-koodivarastossa.** Sen
+Yksi avoin kysymys: **`dxgi.dll`-tiedoston lähdekoodi ei ole dauntless-unbroken-koodivarastossa.** Sen
 virheenjäljityspolku viittaa erilliseen projektiin, jonka lähdekoodia emme ole löytäneet julkaistuna
 mistään. Sillä on merkitystä AGPL-lisenssin kannalta. Sen korvaaminen omalla välitys-DLL:llämme ja
-`UndauntedInternalServer.dll`-tiedoston kääntäminen itse lähdekoodista ovat molemmat tiekartalla.
+`DauntlessUnbroken.dll`-tiedoston kääntäminen itse lähdekoodista ovat molemmat tiekartalla.
 Siihen asti tarkistamme molemmat tiedostot kiinnitettyjä tiivisteitä vasten ennen jokaista kopiointia.
 Täydet tiivisteet löytyvät [kavereiden asennusohjeesta]({{ friends_page.url | relative_url }}).
 

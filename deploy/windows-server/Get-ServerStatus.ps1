@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Shows who is online and which worlds and hunts are running on a Dauntless Revived server.
+    Shows who is online and which worlds and hunts are running on a Dauntless Unbroken server.
 
 .DESCRIPTION
     Calls GET /undaunted/api/ServerStatus and prints the server's name and version, the players online
@@ -30,9 +30,9 @@
     Exit code 0 when the server answered, 1 when it did not.
 
 .EXAMPLE
-    C:\DauntlessRevived\bin\Get-ServerStatus.ps1
+    C:\DauntlessUnbroken\bin\Get-ServerStatus.ps1
 .EXAMPLE
-    .\Get-ServerStatus.ps1 -Invite 'dauntless-revived://join?v=2&mode=public&host=203.0.113.7&port=443&fp=...&code=...&name=...' -KeyFile .\account.key
+    .\Get-ServerStatus.ps1 -Invite 'dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=...&code=...&name=...' -KeyFile .\account.key
 .EXAMPLE
     .\Get-ServerStatus.ps1 -Server 100.101.102.103 -Json
 #>
@@ -48,7 +48,7 @@ param(
     [int]$TimeoutSec = 8
 )
 $ErrorActionPreference = 'Stop'
-. "$PSScriptRoot\DauntlessServer.Common.ps1"
+. "$PSScriptRoot\DauntlessUnbrokenServer.Common.ps1"
 
 function Format-Age([int]$Seconds) {
     if ($Seconds -lt 90) { return "$Seconds s" }
@@ -114,7 +114,7 @@ try {
             if ($KeyFile) { Stop-DR "Cannot read $KeyFile." }
         }
         if ($KeyFile -and -not $key) { Stop-DR "$KeyFile holds no account key." }
-        if ($key) { $headers = @{ 'x-undaunted-user-api-key' = $key } } else { $keyFrom = $null }
+        if ($key) { $headers = @{ 'x-dauntless-unbroken-user-api-key' = $key } } else { $keyFrom = $null }
         $key = $null
     }
 

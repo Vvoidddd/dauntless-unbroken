@@ -2,7 +2,7 @@
 title: HTTP API
 parent: Reference
 nav_order: 3
-description: "Every HTTP route of the Dauntless Revived metagame, deploy server, content server and gateway, with who may call it and what the internet can reach."
+description: "Every HTTP route of the Dauntless Unbroken metagame, deploy server, content server and gateway, with who may call it and what the internet can reach."
 lang: en
 ref: reference/api
 ---
@@ -25,7 +25,7 @@ ref: reference/api
 # HTTP API
 {: .no_toc }
 
-Dauntless Revived is a handful of small HTTP services. The game client and the game servers talk to
+Dauntless Unbroken is a handful of small HTTP services. The game client and the game servers talk to
 the **metagame**. The metagame asks the **deploy server** to start game servers. The friend launcher
 downloads the game from the **content server**. In public mode a TLS **gateway** is the only part
 the internet can reach. This page lists every route of each service: its method and path, who may
@@ -46,13 +46,13 @@ own. The management routes under `/undaunted/api` come from Undaunted and from t
 
 | Service | Folder | Listens on (default) | From the internet in public mode | Authentication |
 |:--------|:-------|:---------------------|:---------------------------------|:---------------|
-| Metagame | `UndauntedMetagame/` | `BIND_HOST` (`127.0.0.1`) and `PORT` (no default in code; the guides and the kit use 61000) | Only through the gateway, filtered | Player token, account key, admin key or game-server key, depending on the route |
-| Chat (inside the metagame, `CHAT=1`) | `UndauntedMetagame/src/realtime/` | `127.0.0.1:61099` (`CHAT_BIND_HOST`, `CHAT_PORT`) | Only through the gateway (a WebSocket upgrade) | Player token (SASL PLAIN) |
-| Deploy server | `UndauntedDeployServer/` | `BIND_HOST` (`127.0.0.1`) and `PORT` (no default in code; 61001 in the guides and the kit) | Never | None. It answers only direct callers on loopback. |
-| Content server | `UndauntedContent/` | `127.0.0.1:61002` | Through the gateway (`/content`) | Account key for game files; the rest is public |
-| Gateway | `UndauntedGateway/` | HTTPS on `0.0.0.0:443` | Yes: the only public TCP port | Its own refusals; passes credentials through |
-| Allowlist helper | `UndauntedGateway/` (the `allowlist` part) | `127.0.0.1:61005` | Never | Allowlist secret |
-| Launcher relay | `UndauntedLauncher/` | `127.0.0.1:61000` on each player's own PC | Not a service on the server | Refuses anything that is not the local game |
+| Metagame | `DauntlessUnbrokenMetagame/` | `BIND_HOST` (`127.0.0.1`) and `PORT` (no default in code; the guides and the kit use 61000) | Only through the gateway, filtered | Player token, account key, admin key or game-server key, depending on the route |
+| Chat (inside the metagame, `CHAT=1`) | `DauntlessUnbrokenMetagame/src/realtime/` | `127.0.0.1:61099` (`CHAT_BIND_HOST`, `CHAT_PORT`) | Only through the gateway (a WebSocket upgrade) | Player token (SASL PLAIN) |
+| Deploy server | `DauntlessUnbrokenDeployServer/` | `BIND_HOST` (`127.0.0.1`) and `PORT` (no default in code; 61001 in the guides and the kit) | Never | None. It answers only direct callers on loopback. |
+| Content server | `DauntlessUnbrokenContent/` | `127.0.0.1:61002` | Through the gateway (`/content`) | Account key for game files; the rest is public |
+| Gateway | `DauntlessUnbrokenGateway/` | HTTPS on `0.0.0.0:443` | Yes: the only public TCP port | Its own refusals; passes credentials through |
+| Allowlist helper | `DauntlessUnbrokenGateway/` (the `allowlist` part) | `127.0.0.1:61005` | Never | Allowlist secret |
+| Launcher relay | `DauntlessUnbrokenLauncher/` | `127.0.0.1:61000` on each player's own PC | Not a service on the server | Refuses anything that is not the local game |
 
 [Ports and network]({{ ports_page.url | relative_url }}) lists every port and how to change it.
 [Configuration]({{ config_page.url | relative_url }}) describes each setting named on this page.
@@ -74,7 +74,7 @@ server stays on loopback in both modes.
 | Content server | The metagame's `GET /undaunted/api/GetUserInfo`, to check a downloader's key | The downloader's account key |
 | Friend launcher | `Register`, `GetUserInfo`, `ServerStatus` (falls back to `/dauntless-status` on an older metagame), and the content routes | The player's account key |
 | Friend kit (private mode) | `Register` and `GetUserInfo` | The player's account key |
-| Host scripts (`New-Invite.ps1`, `Get-ServerStatus.ps1`, `Stack.ps1`, `Update-DauntlessServer.ps1`) | `ServerStatus`, `/dauntless-status`, `RegistrationStatus`, `GetUserInfo` and the invite routes; `Stack.ps1 status` also reads the allowlist helper's `GET /status` | The owner's admin key where a route takes a key, and the allowlist secret for `/status`, on the server itself |
+| Host scripts (`New-Invite.ps1`, `Get-ServerStatus.ps1`, `Stack.ps1`, `Update-DauntlessUnbrokenServer.ps1`) | `ServerStatus`, `/dauntless-status`, `RegistrationStatus`, `GetUserInfo` and the invite routes; `Stack.ps1 status` also reads the allowlist helper's `GET /status` | The owner's admin key where a route takes a key, and the allowlist secret for `/status`, on the server itself |
 | Gateway | The allowlist helper's `POST /allow` | The allowlist secret |
 
 The scripts are described on [Scripts and parameters]({{ scripts_page.url | relative_url }}).
@@ -85,10 +85,10 @@ The scripts are described on [Scripts and parameters]({{ scripts_page.url | rela
 
 | Credential | Sent as | Format | Held by | What it allows |
 |:-----------|:--------|:-------|:--------|:---------------|
-| Account key | Header `x-undaunted-user-api-key`; also the login's `exchange_code` | `UUK_` followed by 48 lowercase hex characters | Each player (launcher key store, friend kit's `account.key`); the host for the owner account | Logging in as that player, the account's `/undaunted/api` routes, game-file downloads |
+| Account key | Header `x-dauntless-unbroken-user-api-key`; also the login's `exchange_code` | `UUK_` followed by 48 lowercase hex characters | Each player (launcher key store, friend kit's `account.key`); the host for the owner account | Logging in as that player, the account's `/undaunted/api` routes, game-file downloads |
 | Player token | Header `Authorization: Bearer <token>` | JWT signed with RS256, valid 24 hours | The game client after login; game servers forward it | Every game route, for that player's own account |
-| Admin key | Header `x-undaunted-user-api-key` | An account key whose account has `isAdmin` = 1 | The server owner, on the host | The admin routes, including a token for any account |
-| Game-server key | Header `x-undaunted-gameserver-apikey` | Any string; the kit and the guide make 48 hex characters | The deploy server, which hands it to every game server | Reading and writing any player's data, and the game-server-only writes |
+| Admin key | Header `x-dauntless-unbroken-user-api-key` | An account key whose account has `isAdmin` = 1 | The server owner, on the host | The admin routes, including a token for any account |
+| Game-server key | Header `x-dauntless-unbroken-gameserver-apikey` | Any string; the kit and the guide make 48 hex characters | The deploy server, which hands it to every game server | Reading and writing any player's data, and the game-server-only writes |
 | Gateway secret | Header `X-Dauntless-Gateway` | 32-256 printable characters without spaces; the kit makes 64 hex characters | The gateway and the metagame (`GATEWAY_SECRET` in both) | Makes the metagame trust the gateway's `X-Forwarded-For` |
 | Allowlist secret | Header `x-allowlist-secret` | 32-256 printable characters without spaces; the kit makes 64 hex characters | The gateway and the allowlist helper (`ALLOWLIST_SECRET`) | Opening the UDP game ports for an address |
 
@@ -122,7 +122,7 @@ answers in that service's place:
 2. The client posts the key as `exchange_code` to `POST /account/api/oauth/token`, as JSON or
    form-encoded.
 3. With `AUTH_MODE=APIKEY` the metagame looks up the key's hash. It answers an EOS-style body whose
-   `access_token` is a JWT with the payload `{userId}`, issuer and audience `undaunted-metagame`, valid
+   `access_token` is a JWT with the payload `{userId}`, issuer and audience `dauntless-unbroken-metagame`, valid
    for 24 hours (`expires_in` 86400). It signs with `AUTH_SIGNING_PRIVKEY_B64` and checks with
    `AUTH_SIGNING_PUBKEY_B64`. An unknown key gets 400.
 4. From then on the client sends `Authorization: Bearer <token>` on every game route.
@@ -137,7 +137,7 @@ What follows from this:
 - **Anyone with the private signing key can mint a token for any account.**
 - Admins can mint a token for any account with `POST /undaunted/api/GenerateJWTForUserId`.
 - `AUTH_MODE=NONE` is for development only and is honoured only when `NODE_ENV` is not `production`.
-  The `exchange_code` and the `x-undaunted-user-api-key` value are then taken as the account id
+  The `exchange_code` and the `x-dauntless-unbroken-user-api-key` value are then taken as the account id
   itself, so anyone can act as anyone. In this mode the metagame answers 403 to every request that
   came through a proxy.
 - With `AUTH_MODE` unset or set to anything else (or `NONE` together with `NODE_ENV=production`),
@@ -161,7 +161,7 @@ What follows from this:
 
 - Game servers are further copies of the 1.4.4 client in server mode. The deploy server starts each
   one with the key (`METAGAME_API_KEY`) as its first command-line argument, and the server DLL adds
-  `x-undaunted-gameserver-apikey: <key>` to every HTTP request the process makes. When a game server
+  `x-dauntless-unbroken-gameserver-apikey: <key>` to every HTTP request the process makes. When a game server
   acts for a player, it also forwards that player's bearer token, so the metagame knows both.
 - The metagame stores only the key's SHA-256 (table `gameserverapikeys`). A key put into the queue
   table `gameserverapikeystoregister` is hashed and moved at the next start.
@@ -331,14 +331,14 @@ work on the host.
 | POST | `/inventory/:characterId/:changeList` | token | Inventory migration stub. Answers `{code: null, message: ""}`. |
 | POST | `/reconcile` | token | `{balances: {id_currency_notes, CURRENCY_NOTES}, refreshInventory: true}`. With `BALANCE_FROM_INVENTORY` (on by default) each key is the quantity of that currency's stack (`CURRENCY_NOTES`, the Rams) in the inventory of the account's active character, the one saved last; a currency the character does not hold keeps the old value (the notes column of `users`). `0`: the old values only. |
 | GET | `/balance` | token | The currency sheet: the same 52 keys as before (both spellings, `CURRENCY_X` and `id_currency_x`). With `BALANCE_FROM_INVENTORY` (on) every key whose `CURRENCY_*` stack the active character holds reports that quantity; the others keep the old values (notes from the database, 25 weapon tokens, the rest 0). No key is added, removed or reordered. `CURRENCY_PLATINUM_UNIV` is not mapped. `0`: the old fixed sheet. |
-| GET | `/store-images/:file` | none | A store offer's icon (`<catalog id>.png` from `UndauntedMetagame/store-images`, the item's 1.4.4 art). The offers' `images.standard` and `images.feature` point here. Other names: 404. |
+| GET | `/store-images/:file` | none | A store offer's icon (`<catalog id>.png` from `DauntlessUnbrokenMetagame/store-images`, the item's 1.4.4 art). The offers' `images.standard` and `images.feature` point here. Other names: 404. |
 | GET | `/creator` | token | A fixed support-a-creator reply. |
 
 ### Store {#store}
 
 The in-game store ([The in-game store]({{ '/findings/store.html' | relative_url }})). **Only with
 `STORE=free`**; with `STORE=off` (the default) the storefront answers the old 400
-(`{"code": "400", "message": "The store is not available on Dauntless Revived yet."}`) and the other
+(`{"code": "400", "message": "The store is not available on Dauntless Unbroken yet."}`) and the other
 three routes the empty 404. Every route acts for the player of the bearer token: no token 401, the
 game-server key alone 403. Refusals are `{"code": "<status>", "message": ...}`.
 
@@ -366,7 +366,7 @@ routes answer 404. The marks are explained under [Access labels](#access-labels)
 | GET | `/progression/:userId/:progressionId` | real only, token, own | One track; 404 if none is stored. |
 | POST | `/progression/:userId/:progressionId/:amount` | real only, token, game server | Adds `amount` to one track, up to `PROGRESSION_GRANT_CAP`. |
 | POST | `/progression/:userId/:progressionId/:rank/confirm/:kind` | real only, token, game server | Confirms a free (`public`) or premium rank. It grants nothing: the game server pays rank rewards through `/inventory` itself. With `PROGRESSION_CONFIRM_ENTITLEMENTS=1`, a confirm that raises the rank also grants the newly confirmed ranks' permanent config entitlements (never items, currencies or timed ones); the reply is the same. 404 with `PROGRESSION_CONFIRM=off`. |
-| DELETE | `/progression/:userId/:progressionId` | real only; admin key, or the game-server key with `PROGRESSION_ALLOW_DELETE=1` | Resets one track. If `x-undaunted-user-api-key` is present, the admin-key check applies. Otherwise it needs the game-server key and `PROGRESSION_ALLOW_DELETE=1` (403 without). The game only sends it from a debug command. |
+| DELETE | `/progression/:userId/:progressionId` | real only; admin key, or the game-server key with `PROGRESSION_ALLOW_DELETE=1` | Resets one track. If `x-dauntless-unbroken-user-api-key` is present, the admin-key check applies. Otherwise it needs the game-server key and `PROGRESSION_ALLOW_DELETE=1` (403 without). The game only sends it from a debug command. |
 | GET | `/progression/objectives/:userId` | token, own | The stored objectives. Stub: mastery tracks at max and no objectives. |
 | GET | `/progression/objectives/:userId/:objectiveId` | token, own | One objective, zeros if none is stored. Stub: fixed values. |
 | GET | `/huntpass/:userId` | token, own | The selected Hunt Pass: the stored one, else `ACTIVE_HUNT_PASS` (default `season09b`). |
@@ -537,7 +537,7 @@ undoing digit swaps:
 
 | Where | Words |
 |:------|:------|
-| Anywhere in a name or nameplate | `admin`, `moderator`, `official`, `gamemaster`, `staff`, `dauntlessrevived`, `phoenixlabs` |
+| Anywhere in a name or nameplate | `admin`, `moderator`, `official`, `gamemaster`, `staff`, `dauntlessunbroken`, `phoenixlabs` |
 | The whole name | `dauntless`, `phoenix`, `revived`, `support`, `system`, `server`, `servers`, `mods`, `developer`, `developers`, `devteam` |
 | The whole nameplate | `gm`, `gms`, `dev`, `devs`, `mod`, `mods`, `sys`, `phx`, `dr`, `drev`, `undt` |
 
@@ -617,7 +617,7 @@ invite), 409 (yourself, the slot is taken or has a waiting invite, already linke
 already invited you, no free slot, the invite limit, the invite ran out or was answered). **Not answered** (404): the
 reward routes `PUT /slayerlink/links/rewards` and `GET /slayerlink/links/rewards/:accountId/:slot`.
 
-## Metagame: the management API {#undaunted-api}
+## Metagame: the management API {#dauntless-unbroken-api}
 
 All of these live under `/undaunted/api/` on the metagame; the paths below are relative to it.
 **Through the gateway only four answer:**
@@ -707,7 +707,7 @@ read the server's name and registration mode:
 
 ```json
 {
-  "name": "Dauntless Revived", "online": true, "version": "...", "commit": "...",
+  "name": "Dauntless Unbroken", "online": true, "version": "...", "commit": "...",
   "sourceUrl": "https://github.com/...", "registration": "INVITECODE",
   "playersOnline": 1,
   "players": [{ "name": "Slayer_one", "where": "city", "instance": "..." }],
@@ -867,7 +867,7 @@ the host's art pack and news. It only answers `GET` and `HEAD`, and there is no 
 The gateway exists only in public mode. It is HTTPS (TLS 1.2 or newer) with a self-signed
 certificate that the launcher pins by fingerprint, on `GATEWAY_BIND` (`0.0.0.0`) and `GATEWAY_PORT`
 (443).
-[UndauntedGateway/README.md]({{ site.github.repository_url }}/blob/dauntless-revived/UndauntedGateway/README.md)
+[DauntlessUnbrokenGateway/README.md]({{ site.github.repository_url }}/blob/main/DauntlessUnbrokenGateway/README.md)
 covers its limits, timeouts and access log in more depth.
 
 | Request | Goes to | Default |
@@ -885,7 +885,7 @@ There is no route to the deploy server or the allowlist helper.
 |:-------|:--------|:-----|
 | 400 | `bad_request` | The request target is not a plain path (`/...`), an unsupported upgrade, or a malformed request. |
 | 400 | `bad_path` | A backslash, whitespace or a control character in the path, a `.` or `..` segment, `%2f`, `%5c`, `%00` or `%2e`, or broken percent-encoding. |
-| 403 | `forbidden` | Any `x-undaunted-gameserver-apikey` header. Any path under `/undaunted` except the four public ones (also for upgrades). |
+| 403 | `forbidden` | Any `x-dauntless-unbroken-gameserver-apikey` header. Any path under `/undaunted` except the four public ones (also for upgrades). |
 | 405 | `method_not_allowed` | Anything but `GET`, `HEAD`, `POST`, `PUT`, `DELETE`, `PATCH` and `OPTIONS`. |
 | 408, 431 | `request_timeout`, `headers_too_large` | Headers too slow or too large. |
 | 413 | `body_too_large` | A body over `GATEWAY_MAX_BODY_BYTES` (128 KiB). |
@@ -938,7 +938,7 @@ keep `/status` output private.
 ## Launcher relay {#launcher-relay}
 
 In public mode the friend launcher runs a relay on the player's own PC, on `127.0.0.1:61000`, while
-the game runs. `DAUNTLESS_REVIVED_RELAY_PORT` changes the port, for tests and rehearsals only: the
+the game runs. `DAUNTLESS_UNBROKEN_RELAY_PORT` changes the port, for tests and rehearsals only: the
 server side (for example the ping target in `QOS_TARGET_URL`) expects 61000. The game talks plain HTTP to it,
 and the relay forwards every request, including WebSocket upgrades, unchanged over TLS to the
 gateway. The connection is pinned to the certificate fingerprint from the invite.
@@ -978,11 +978,11 @@ Invoke-RestMethod -Uri http://127.0.0.1:61000/undaunted/api/ServerStatus -Timeou
 
 Admin calls, on the server itself. The key is read from its file and never printed. The owner key is
 `C:\dr\data\owner.key` on a host set up with [Host a server]({{ host_page.url | relative_url }}), and
-`C:\DauntlessRevived\data\keys\owner.key` on a kit server:
+`C:\DauntlessUnbroken\data\keys\owner.key` on a kit server:
 
 ```powershell
 $api = "http://127.0.0.1:61000/undaunted/api"
-$h = @{ "x-undaunted-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
+$h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 
 (Invoke-RestMethod -Uri "$api/GetAllUsers" -Headers $h -TimeoutSec 10).Users
 
@@ -998,12 +998,12 @@ invite. On a hand-built host, `POST $api/CreateInvite` with the body `{"uses": 1
 
 ## Changing the routes {#changing-the-routes}
 
-- `UndauntedMetagame/test/permissions.test.ts` pins the list of every metagame route with its access
+- `DauntlessUnbrokenMetagame/test/permissions.test.ts` pins the list of every metagame route with its access
   checks, in registration order. Adding a route or changing its checks fails that test until the list
   is updated, which forces a decision about who may call it.
-- The gateway's tests read `UndauntedMetagame/src/routes/undauntedapi.ts`, so every new
+- The gateway's tests read `DauntlessUnbrokenMetagame/src/routes/unbrokenapi.ts`, so every new
   `/undaunted/api` route is automatically tested as blocked by the gateway. Only a route added to
-  `PUBLIC_UNDAUNTED_API` in `UndauntedGateway/src/policy.ts` becomes reachable from the internet.
+  `PUBLIC_UNDAUNTED_API` in `DauntlessUnbrokenGateway/src/policy.ts` becomes reachable from the internet.
 - A new game route is reachable through the gateway as soon as it exists. Give it an access check.
 
 [Developer guide]({{ dev_page.url | relative_url }}) covers building and running the tests.

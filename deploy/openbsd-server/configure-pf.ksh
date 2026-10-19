@@ -14,9 +14,9 @@ gateway_port=443
 gateway_internal=61443
 udp_begin=8770
 udp_end=8777
-output=/etc/pf.dauntless-revived.conf
+output=/etc/pf.dauntless-unbroken.conf
 install=0
-anchor=dauntless-revived
+anchor=dauntless-unbroken
 table=dauntless_revived_players
 
 while [ "$#" -gt 0 ]; do
@@ -63,7 +63,7 @@ if [ "$install" -eq 1 ]; then
   [ "$(id -u)" -eq 0 ] || { echo "--install requires root" >&2; exit 1; }
   pf=/etc/pf.conf
   if ! grep -Fq "anchor \"$anchor\"" "$pf"; then
-    { printf '%s\n' ""; printf '%s\n' "# Dauntless Revived"; printf '%s\n' "anchor \"$anchor\""; printf '%s\n' "load anchor \"$anchor\" from \"$output\""; } >> "$pf"
+    { printf '%s\n' ""; printf '%s\n' "# Dauntless Unbroken"; printf '%s\n' "anchor \"$anchor\""; printf '%s\n' "load anchor \"$anchor\" from \"$output\""; } >> "$pf"
   elif ! grep -Fq "load anchor \"$anchor\" from \"$output\"" "$pf"; then
     echo "pf.conf already has anchor $anchor but not the expected load rule; configure it by hand" >&2
     exit 1

@@ -25,7 +25,7 @@ ref: findings/harmonic-fork
 [github.com/Harmonicrain/Undaunted](https://github.com/Harmonicrain/Undaunted), under the same
 license (AGPL-3.0-only). In September 2026 Harmonic published a large commit (`895f7c7`, "Preserve Dauntless
 1.4.4 backend work") with progression, a store, Escalation, social features and 119 test cases. The
-owner asked us to bring everything from it that works into Dauntless Revived.
+owner asked us to bring everything from it that works into Dauntless Unbroken.
 
 Both forks start from the same upstream commit (`7f692aa`), and both had built some of the same
 things in the same weeks. So we compared them feature by feature. **Where Harmonic's work adds
@@ -184,7 +184,7 @@ held bounties, and `/bounty/game-data` keeps an empty bounty list).
 
 | Item | Decision | Why |
 |:-----|:---------|:----|
-| The fork's realtime files, derived from Mystic Paradox | **Copy none** | Nothing we took needs them. So our statement that Dauntless Revived contains none of Mystic Paradox's code stays true, and Mystic Paradox's additional terms (AGPLv3 section 7) do not apply here. |
+| The fork's realtime files, derived from Mystic Paradox | **Copy none** | Nothing we took needs them. So our statement that Dauntless Unbroken contains none of Mystic Paradox's code stays true, and Mystic Paradox's additional terms (AGPLv3 section 7) do not apply here. |
 | `NOTICE.md` | **Adopt (without the Mystic Paradox part)** | The repository now has a `NOTICE.md` that records what comes from Undaunted and what from Harmonic's fork. |
 | `ADDITIONAL_TERMS.md` | **Skip** | It covers only Mystic Paradox material, which we do not carry. |
 | The fork's data files: the Escalation registry, the store catalogue, the item kinds, the store art list | **Adopt** | Identifiers and tuning values read from the client for interoperability, about 330 short English names, and no game assets. A provenance note was added to each file. The Escalation registry names the game files it was read from by their SHA-256. |
@@ -193,9 +193,9 @@ held bounties, and `/bounty/game-data` keeps an empty bounty list).
 **How Harmonic's work is credited:**
 
 - The four source files ported from the fork (`escalationConfig.ts`, `escalation.ts`, `freestore.ts` and
-  `slayerlinks.ts` in `UndauntedMetagame/src/controllers/`) start with `Ported from
+  `slayerlinks.ts` in `DauntlessUnbrokenMetagame/src/controllers/`) start with `Ported from
   Harmonicrain/Undaunted (895f7c7), Copyright (C) 2026 Harmonic, AGPL-3.0-only`, followed by how they
-  were modified (or, for Slayer Links, rewritten and corrected) for Dauntless Revived. Code of ours
+  were modified (or, for Slayer Links, rewritten and corrected) for Dauntless Unbroken. Code of ours
   built on Harmonic's ideas names the fork in its comments.
 - Every commit that carries Harmonic's work names Harmonic as co-author and says "Ported from
   github.com/Harmonicrain/Undaunted 895f7c7."

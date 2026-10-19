@@ -2,7 +2,7 @@
 title: Join as a friend
 parent: Setup
 nav_order: 2
-description: "How an invited friend joins a Dauntless Revived server: Tailscale, a hash-checked Dauntless 1.4.4 install, the two DLLs, an invite code and the friend kit."
+description: "How an invited friend joins a Dauntless Unbroken server: Tailscale, a hash-checked Dauntless 1.4.4 install, the two DLLs, an invite code and the friend kit."
 lang: en
 ref: setup/friends
 ---
@@ -20,8 +20,8 @@ client** (October 2020, UE4) against the host's server. You do not need an Epic 
 edits or certificates. All traffic goes over a private Tailscale connection to the host's PC.
 
 **Public-mode servers use the launcher, not this page.** If the host sent you a
-`dauntless-revived://join?...` line (a public server on a rented machine), you do not need Tailscale or
-the manual steps below. On Windows install `DauntlessRevivedLauncher-Setup.exe`; on Linux follow the
+`dauntless-unbroken://join?...` line (a public server on a rented machine), you do not need Tailscale or
+the manual steps below. On Windows install `DauntlessUnbrokenLauncher-Setup.exe`; on Linux follow the
 [Linux launcher]({{ linux_page.url | relative_url }}) guide for your distro. Then paste the invite
 line and the launcher does the rest. If you already have an account key, choose **"I already have an
 account key"** and import/paste it instead of registering. Keep the launcher open while you play. The
@@ -31,26 +31,26 @@ rest of this page is the manual Windows/Tailscale path.
 and paste the path of your 1.4.4 folder (for example `C:\Games\BaseGame144`, or the `Dauntless`
 folder inside it), or browse to it. The launcher finds the game there and uses it in place: it checks
 every file against its pinned manifest, replaces any file that differs from 1.4.4, and puts its own
-`dxgi.dll` and `UndauntedInternalServer.dll` in `Archon\Binaries\Win64`. Missing or different files
+`dxgi.dll` and `DauntlessUnbroken.dll` in `Archon\Binaries\Win64`. Missing or different files
 are downloaded from your host, so that works only if your host has switched on game downloads. If
 another setup (for example the friend kit below) still uses that folder, copy it first. Vvoidddd
-added the pasted path ([#8](https://github.com/mixutin/dauntless-revived/pull/8)).
+added the pasted path ([#8](https://github.com/Vvoidddd/dauntless-unbroken/pull/8)).
 
 **If Windows blocks the installer.** The launcher is not code-signed yet, so Windows SmartScreen warns
 the first time: **More info > Run anyway**. On a PC set to block unrecognised apps, SmartScreen blocks
 it outright and there is no Run anyway. Then:
 
 1. Download `SHA256SUMS.txt` from the same release and check the installer against it. In PowerShell,
-   in the folder you downloaded to, `Get-FileHash .\DauntlessRevivedLauncher-Setup.exe` must print
+   in the folder you downloaded to, `Get-FileHash .\DauntlessUnbrokenLauncher-Setup.exe` must print
    the same SHA-256 as the file's line in `SHA256SUMS.txt` (PowerShell prints it in capital letters
    and the file has small ones; that difference does not matter). If it does not, delete the file and
    do not run it.
 2. Unblock the file: right-click it > **Properties** > tick **Unblock** > **OK**, or run
-   `Unblock-File .\DauntlessRevivedLauncher-Setup.exe` in PowerShell.
+   `Unblock-File .\DauntlessUnbrokenLauncher-Setup.exe` in PowerShell.
 3. Run it again.
 
 Everything on this page is about **build 1.4.4**. The final client, 2.1.1 ("Awakening", UE5), does not
-work here: `UndauntedInternalServer.dll` hooks fixed addresses inside the 1.4.4 executable, so it only
+work here: `DauntlessUnbroken.dll` hooks fixed addresses inside the 1.4.4 executable, so it only
 works with that exact build. That is also why every step below checks a hash.
 
 **Status (22 September 2026).** Our server for friends runs in public mode on a rented machine. On 22
@@ -60,7 +60,7 @@ Ramsgate and hunted together. The manual Tailscale path on this page has not bee
 yet (see [Run it for a group]({{ admin_page.url | relative_url }})).
 
 **The short way: the friend kit.** The host can give you a small zip, built from the repository's
-[`friend-kit/`]({{ site.github.repository_url }}/tree/dauntless-revived/friend-kit) folder. After step 1,
+[`friend-kit/`]({{ site.github.repository_url }}/tree/main/friend-kit) folder. After step 1,
 double-click `Setup.cmd`: it does steps 2 to 4 for you, checking every hash. After that,
 `Play Dauntless.cmd` does step 5 on every launch. The manual steps below show exactly what the kit does.
 
@@ -78,8 +78,8 @@ double-click `Setup.cmd`: it does steps 2 to 4 for you, checking every hash. Aft
 | A Windows PC | 64-bit Windows 10 or 11. The game takes about 10.9 GB (10.1 GiB) on disk. |
 | Your own Dauntless 1.4.4 install | The Shipping build `dauntless_rel-1.4.4_Shipping_2020-10-28_20-11-15_239827`, checked by hash in step 2. |
 | Tailscale | A free account of your own, plus the host's shared PC accepted. |
-| The two DLLs | `dxgi.dll` and `UndauntedInternalServer.dll`, checked by hash in step 3. |
-| Microsoft Visual C++ 2015-2022 Redistributable (x64) | `UndauntedInternalServer.dll` needs `MSVCP140.dll` and `VCRUNTIME140_1.dll`. Many PCs already have it. |
+| The two DLLs | `dxgi.dll` and `DauntlessUnbroken.dll`, checked by hash in step 3. |
+| Microsoft Visual C++ 2015-2022 Redistributable (x64) | `DauntlessUnbroken.dll` needs `MSVCP140.dll` and `VCRUNTIME140_1.dll`. Many PCs already have it. |
 | An invite code | From the host. Codes are usually single use. |
 | A launch script | Given in step 5. |
 
@@ -143,23 +143,23 @@ Both files go into `<game folder>\Archon\Binaries\Win64\`, next to `Dauntless-Wi
 
 | File | Size | SHA-256 |
 |:-----|-----:|:--------|
-| `dxgi.dll` | 11,264 bytes | `9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F` |
-| `UndauntedInternalServer.dll` | 123,392 bytes | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` |
+| `dxgi.dll` | 11,264 bytes | `f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c` |
+| `DauntlessUnbroken.dll` | 123,392 bytes | `520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933` |
 
 You get them from the host, most easily in the friend kit (see above), or from the upstream
 repository under
-[`UndauntedLauncher/assets/`](https://github.com/SyST3MDeV/Undaunted/tree/main/UndauntedLauncher/assets).
+[`DauntlessUnbrokenLauncher/assets/`](https://github.com/SyST3MDeV/Undaunted/tree/main/DauntlessUnbrokenLauncher/assets).
 They are the same files. After copying, check them and clear the "downloaded from the internet" flag:
 
 ```powershell
 $W = "$Game\Archon\Binaries\Win64"
-Get-FileHash "$W\dxgi.dll", "$W\UndauntedInternalServer.dll" -Algorithm SHA256 | Format-Table Hash, Path
-Unblock-File "$W\dxgi.dll", "$W\UndauntedInternalServer.dll"
+Get-FileHash "$W\dxgi.dll", "$W\DauntlessUnbroken.dll" -Algorithm SHA256 | Format-Table Hash, Path
+Unblock-File "$W\dxgi.dll", "$W\DauntlessUnbroken.dll"
 ```
 
 **What they do.** When the game starts, Windows loads `dxgi.dll` from the game folder before the
 system copy. This proxy loads the real system `dxgi.dll`, forwards its three exports, and loads
-`UndauntedInternalServer.dll`. In a normal (client) launch, that DLL reads the first command-line
+`DauntlessUnbroken.dll`. In a normal (client) launch, that DLL reads the first command-line
 argument as the server address. It then rewrites the backend endpoints the game reads from its
 config (a table of 167 keys, plus the account-service settings), from the dead `steelyard.ca` hosts
 to `http://<that address>/...`. When the same DLL is loaded into a process started with `-server`,
@@ -169,7 +169,7 @@ runs Ramsgate and hunts.
 **What we can and cannot vouch for:**
 
 - These are upstream's prebuilt binaries. We pin their hashes. We have not yet rebuilt
-  `UndauntedInternalServer.dll` from source to prove it matches the published code. The version strings
+  `DauntlessUnbroken.dll` from source to prove it matches the published code. The version strings
   match (0.0.3), but that is not proof.
 - The source of `dxgi.dll` was never published. We disassembled it: it does only the three things
   described above and imports nothing beyond `KERNEL32` and the C runtime. We plan to replace it with
@@ -203,7 +203,7 @@ $Server   = "100.x.y.z"             # the host's Tailscale address
 $Username = "YourName"              # 3-16 letters, digits or _
 $Invite   = "code-from-the-host"
 
-$dir = "$env:APPDATA\DauntlessRevived"
+$dir = "$env:APPDATA\DauntlessUnbroken"
 if (Test-Path "$dir\account.key") { throw "You already have a key in $dir. Registering again would create a second account." }
 $body = @{ Username = $Username; InviteCode = $Invite } | ConvertTo-Json
 $r = Invoke-RestMethod -Method Post -Uri "http://${Server}:61000/undaunted/api/Register" -ContentType "application/json" -Body $body
@@ -226,8 +226,8 @@ shows with the error.
 Check that the key works. This prints your user id, your username and whether you are an admin:
 
 ```powershell
-$key = (Get-Content "$env:APPDATA\DauntlessRevived\account.key" -Raw).Trim()
-Invoke-RestMethod "http://${Server}:61000/undaunted/api/GetUserInfo" -Headers @{ "x-undaunted-user-api-key" = $key }
+$key = (Get-Content "$env:APPDATA\DauntlessUnbroken\account.key" -Raw).Trim()
+Invoke-RestMethod "http://${Server}:61000/undaunted/api/GetUserInfo" -Headers @{ "x-dauntless-unbroken-user-api-key" = $key }
 ```
 
 Keep a copy of `account.key` somewhere safe, such as a password manager.
@@ -267,15 +267,15 @@ $W   = Join-Path $Game "Archon\Binaries\Win64"
 $exe = Join-Path $W "Dauntless-Win64-Shipping.exe"
 $pinned = @{
   "Dauntless-Win64-Shipping.exe" = "D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4"
-  "dxgi.dll"                     = "9A431D7B6FD20C43FA92BEBD91C3BC023EC7A3FCBC52871C41F4DF293D4B0D1F"
-  "UndauntedInternalServer.dll"  = "520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933"
+  "dxgi.dll"                     = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
+  "DauntlessUnbroken.dll"  = "520EC588A0554E374B2B0D084CD7F7F08D59A9CB80362679845719D64A0D0933"
 }
 foreach ($f in $pinned.Keys) {
   $p = Join-Path $W $f
   if (-not (Test-Path $p)) { throw "Missing: $p" }
   if ((Get-FileHash $p -Algorithm SHA256).Hash -ne $pinned[$f]) { throw "Hash mismatch: $p" }
 }
-$key = (Get-Content "$env:APPDATA\DauntlessRevived\account.key" -Raw).Trim()
+$key = (Get-Content "$env:APPDATA\DauntlessUnbroken\account.key" -Raw).Trim()
 $a = @("${Server}:61000", "-AUTH_PASSWORD=$key", "-AUTH_LOGIN=unused", "-AUTH_TYPE=exchangecode",
        "-epicapp=appidlol", "-epicenv=Prod", "-EpicPortal", "-epicusername=usernamelol",
        "-epicuserid=useridlol", "-epiclocale=en-US", "-epicsandboxid=sandboxidlol",
@@ -379,13 +379,13 @@ This is a small private revival and a work in progress. As of this writing:
   below. Until parties are proven, you can also queue for the same hunt at about the same time: the
   matchmaker collects players who queue for the same hunt and starts one server for them once 4 have
   joined, or once 20 seconds pass with nobody new joining.
-- Text chat is built but not switched on yet (see below). Use the [Dauntless Revived Discord](https://discord.gg/ZJRprHzsgu).
+- Text chat is built but not switched on yet (see below). Use the [Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu).
 - Bounties and cooldowns are stored, but drafting and claiming a bounty and the daily reset have not
   been tried in the game yet. Escalations are stubbed and do not carry over between sessions, unless
   your host has switched real Escalation on (then everyone starts again from level 0).
 - The in-game store is built but off unless your host switches it on. When it is on, everything in it
   is free.
-- Voice chat ran on Vivox, a paid third-party service, and cannot come back. Use the [Dauntless Revived Discord](https://discord.gg/ZJRprHzsgu).
+- Voice chat ran on Vivox, a paid third-party service, and cannot come back. Use the [Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu).
 - A server hosted on someone's PC is off when that PC is off. A server on a rented machine does not
   depend on anyone's PC.
 
@@ -432,7 +432,7 @@ invites in 10 minutes. If **Invite to Party** does nothing at all while you are 
 host: there is a server setting for exactly that case.
 
 If the in-game invite does not work, the host can send one by name from the server (the
-`PartyInvite` route of the [management API]({{ '/reference/api.html' | relative_url }}#undaunted-api));
+`PartyInvite` route of the [management API]({{ '/reference/api.html' | relative_url }}#dauntless-unbroken-api));
 you still accept it in the game. The same goes for guild invites (`GuildInvite`).
 
 ### Slayer Links {#slayer-links}
@@ -471,7 +471,7 @@ between you that are still waiting. The game may keep the tab hidden; if it does
   online is built into the chat server, but the host switches it on only after chat itself works and
   two players have tried it.
 - **Chat**: whispers, party, guild and Ramsgate chat, with usernames, is built, but the host turns it
-  on only after two players have tried it; until then, use the [Dauntless Revived Discord](https://discord.gg/ZJRprHzsgu). At first Ramsgate chat reaches
+  on only after two players have tried it; until then, use the [Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu). At first Ramsgate chat reaches
   only the players who travelled there with you as a party.
 - **Changes show late.** Friend requests, accepted requests and guild changes reach the other player
   at their next login (for guilds, also after travelling), not at once.
@@ -501,7 +501,7 @@ entitled to its complete source code (section 13). Because the host gives you DL
 also entitled to their source (section 6).
 
 - Our fork's source is in [this site's repository]({{ site.github.repository_url }}), branch
-  `dauntless-revived`. Ask the host which commit their server runs.
+  `dauntless-unbroken`. Ask the host which commit their server runs.
 - Upstream's source is at [github.com/SyST3MDeV/Undaunted](https://github.com/SyST3MDeV/Undaunted).
 - Known gap: upstream never published the source of the prebuilt `dxgi.dll`. We plan to close this by
   shipping our own proxy, built from source (see step 3).

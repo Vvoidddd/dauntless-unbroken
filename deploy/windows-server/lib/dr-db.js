@@ -1,6 +1,6 @@
-// Dauntless Revived - database helpers for the Windows Server kit.
+// Dauntless Unbroken - database helpers for the Windows Server kit.
 //
-//   node dr-db.js <command> <UndauntedMetagame folder> <database> [args]
+//   node dr-db.js <command> <DauntlessUnbrokenMetagame folder> <database> [args]
 //
 //   integrity  <meta> <db>                  read-only integrity check; prints "ok, <n> users"
 //   backup     <meta> <db> <dest>           SQLite online backup (safe while the metagame runs), then
@@ -61,7 +61,7 @@ async function main(args = process.argv.slice(2)) {
                 let response;
                 try {
                     response = await fetch('http://127.0.0.1:61000/internal/backup', {
-                        method: 'POST', headers: {'content-type': 'application/json', 'x-undaunted-gameserver-apikey': env.METAGAME_API_KEY},
+                        method: 'POST', headers: {'content-type': 'application/json', 'x-dauntless-unbroken-gameserver-apikey': env.METAGAME_API_KEY},
                         body: JSON.stringify({name: path.basename(path.dirname(dest))}), signal: AbortSignal.timeout(905000)
                     });
                 } catch (error) {

@@ -2,7 +2,7 @@
 title: Upgrade notes
 parent: Setup
 nav_order: 9
-description: "What changes for players when you update an existing Dauntless Revived server: the port of Harmonic's fork (Slayer Links on; Escalation, the store and online status built but off), text chat, friends, parties and guilds, and real progression on by default. How to keep old max ranks, start fresh, or stay on the stub."
+description: "What changes for players when you update an existing Dauntless Unbroken server: the port of Harmonic's fork (Slayer Links on; Escalation, the store and online status built but off), text chat, friends, parties and guilds, and real progression on by default. How to keep old max ranks, start fresh, or stay on the stub."
 lang: en
 ref: setup/upgrading
 ---
@@ -97,7 +97,7 @@ start line that begins `features:`.
   the tests for each.
 - If something misbehaves, the switches in the first table above turn each change off. The log lines to
   look for are on [Troubleshooting]({{ trouble_page.url | relative_url }}#log-lines-of-the-port).
-- **Going back** to the build before the update (`Update-DauntlessServer.ps1 -Rollback`) needs nothing
+- **Going back** to the build before the update (`Update-DauntlessUnbrokenServer.ps1 -Rollback`) needs nothing
   else: the older code ignores the new switches and tables. Escalation goes back to the stub (saved
   seasons stay unused in their tables), `/slayerlink` answers 404 again, and store purchases already
   made stay in the players' inventories and entitlements. They can be found (`inventorylog.caller =
@@ -138,7 +138,7 @@ a party. A game that was already running when chat went on connects within about
 - If real players are refused room joins with `reason=nick-resource`, `nick-format` or `nick-name`, set
   `CHAT_NICK_CHECK=log` in `metagame.env` and restart when nobody is playing. For anything serious,
   `Set-Chat.ps1 -Off`.
-- **Going back** to the build before the update (`Update-DauntlessServer.ps1 -Rollback`) needs
+- **Going back** to the build before the update (`Update-DauntlessUnbrokenServer.ps1 -Rollback`) needs
   nothing else: the older code ignores `CHAT` and `GATEWAY_RATE_WS`.
 
 ## Friends, parties and guilds {#social}
@@ -289,18 +289,18 @@ up around every update; on a hand-built host, see
 ### Where the setting lives
 
 - **Hand-built host** ([Host a server]({{ host_page.url | relative_url }})): `.env` in the
-  `UndauntedMetagame` folder. Restart the metagame after a change.
+  `DauntlessUnbrokenMetagame` folder. Restart the metagame after a change.
 - **Windows server kit** ([Windows server kit]({{ winserver_page.url | relative_url }})):
-  `C:\DauntlessRevived\data\config\metagame.env`. The installer and `Update-DauntlessServer.ps1` keep
+  `C:\DauntlessUnbroken\data\config\metagame.env`. The installer and `Update-DauntlessUnbrokenServer.ps1` keep
   every setting already in that file (the installer rewrites only the keys that describe the host,
   and neither keeps comment lines), so a server that already had `PROGRESSION_MODE=real` or `stub`
   keeps it. To stay on the stub, add the line **before** you update, or add it afterwards and run
-  `C:\DauntlessRevived\bin\Stack.ps1 restart -Only metagame`. Unless the file says `real` or `stub`,
+  `C:\DauntlessUnbroken\bin\Stack.ps1 restart -Only metagame`. Unless the file says `real` or `stub`,
   the updater repeats the metagame's warning about players without stored progression after a
   successful update.
 - **Restores and rollbacks follow the same rule.** A restore from a backup taken before this change,
   or a rollback to a build from before it (the updater's automatic rollback, or
-  `Update-DauntlessServer.ps1 -Rollback`), uses the settings as they are. With no line, an older
+  `Update-DauntlessUnbrokenServer.ps1 -Rollback`), uses the settings as they are. With no line, an older
   build means the stub again (players see the fake level 50; their stored progression stays in the
   database), and a newer build means real. Set `PROGRESSION_MODE=real` or `stub` explicitly if you
   want the mode fixed across restores and rollbacks.
@@ -323,7 +323,7 @@ const key = fs.readFileSync(keyFile, "utf8").trim();
 async function call(method, path, body) {
   const r = await fetch(base + path, {
     method,
-    headers: { "x-undaunted-user-api-key": key, ...(body ? { "content-type": "application/json" } : {}) },
+    headers: { "x-dauntless-unbroken-user-api-key": key, ...(body ? { "content-type": "application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined,
     signal: AbortSignal.timeout(15000),
   });
@@ -363,11 +363,11 @@ by Administrators. In private mode the kit's metagame listens on the server's Ta
 these lines read the address and port from the kit's configuration and work in both modes:
 
 ```powershell
-$cfg = Get-Content C:\DauntlessRevived\data\config\server.json -Raw | ConvertFrom-Json
+$cfg = Get-Content C:\DauntlessUnbroken\data\config\server.json -Raw | ConvertFrom-Json
 $port = if ($cfg.Ports.metagame) { $cfg.Ports.metagame } else { 61000 }
 $env:METAGAME = "http://$($cfg.BindAddress):$port"
-node seed-progression.js C:\DauntlessRevived\data\keys\owner.key list
-node seed-progression.js C:\DauntlessRevived\data\keys\owner.key UID-... grandfather
+node seed-progression.js C:\DauntlessUnbroken\data\keys\owner.key list
+node seed-progression.js C:\DauntlessUnbroken\data\keys\owner.key UID-... grandfather
 ```
 
 `list` prints every account with its Slayer level as the game will show it and its Hunt Pass XP. It

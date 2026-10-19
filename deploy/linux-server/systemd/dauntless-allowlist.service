@@ -1,5 +1,5 @@
 [Unit]
-Description=Dauntless Revived nftables allowlist
+Description=Dauntless Unbroken nftables allowlist
 After=network-online.target
 Wants=network-online.target
 Before=dauntless-gateway.service

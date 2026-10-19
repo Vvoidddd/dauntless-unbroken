@@ -1,9 +1,9 @@
 ---
 title: HTTP-rajapinta
 parent: Tekninen viite
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 3
-description: "Dauntless Revivedin metagamen, deploy-palvelimen, sisältöpalvelimen ja yhdyskäytävän jokainen HTTP-reitti: kuka saa kutsua sitä ja mihin internetistä pääsee."
+description: "Dauntless Unbrokenin metagamen, deploy-palvelimen, sisältöpalvelimen ja yhdyskäytävän jokainen HTTP-reitti: kuka saa kutsua sitä ja mihin internetistä pääsee."
 lang: fi
 ref: reference/api
 locale: fi_FI
@@ -27,7 +27,7 @@ locale: fi_FI
 # HTTP-rajapinta
 {: .no_toc }
 
-Dauntless Revived koostuu muutamasta pienestä HTTP-palvelusta. Peliohjelma ja pelipalvelimet
+Dauntless Unbroken koostuu muutamasta pienestä HTTP-palvelusta. Peliohjelma ja pelipalvelimet
 puhuvat **metagamelle**. Metagame pyytää **deploy-palvelinta** käynnistämään pelipalvelimia.
 Kaverikäynnistin lataa pelin **sisältöpalvelimelta**. Julkisessa tilassa TLS-salattu
 **yhdyskäytävä** on ainoa osa, johon internetistä pääsee. Tällä sivulla on jokaisen palvelun
@@ -50,13 +50,13 @@ Undauntedista ja tästä forkista.
 
 | Palvelu | Kansio | Kuuntelee (oletus) | Internetistä julkisessa tilassa | Tunnistautuminen |
 |:--------|:-------|:-------------------|:--------------------------------|:-----------------|
-| Metagame | `UndauntedMetagame/` | `BIND_HOST` (`127.0.0.1`) ja `PORT` (koodissa ei oletusta; ohjeet ja paketti käyttävät porttia 61000) | Vain yhdyskäytävän kautta, suodatettuna | Pelaajan tunniste, tiliavain, ylläpitäjän avain tai pelipalvelinavain reitistä riippuen |
-| Chat (metagamen sisällä, `CHAT=1`) | `UndauntedMetagame/src/realtime/` | `127.0.0.1:61099` (`CHAT_BIND_HOST`, `CHAT_PORT`) | Vain yhdyskäytävän kautta (WebSocket-avaus) | Pelaajan tunniste (SASL PLAIN) |
-| Deploy-palvelin | `UndauntedDeployServer/` | `BIND_HOST` (`127.0.0.1`) ja `PORT` (koodissa ei oletusta; ohjeissa ja paketissa 61001) | Ei koskaan | Ei mitään. Se vastaa vain suoraan loopbackin kautta tuleville kutsujille. |
-| Sisältöpalvelin | `UndauntedContent/` | `127.0.0.1:61002` | Yhdyskäytävän kautta (`/content`) | Tiliavain pelitiedostoihin; muu on julkista |
-| Yhdyskäytävä | `UndauntedGateway/` | HTTPS osoitteessa `0.0.0.0:443` | Kyllä: ainoa julkinen TCP-portti | Omat torjuntansa; välittää tunnistetiedot eteenpäin |
-| Sallittujen listan apuri | `UndauntedGateway/` (osa `allowlist`) | `127.0.0.1:61005` | Ei koskaan | Sallittujen listan salaisuus |
-| Käynnistimen välitin | `UndauntedLauncher/` | `127.0.0.1:61000` jokaisen pelaajan omalla koneella | Ei ole palvelimen palvelu | Torjuu kaiken, mikä ei ole paikallinen peli |
+| Metagame | `DauntlessUnbrokenMetagame/` | `BIND_HOST` (`127.0.0.1`) ja `PORT` (koodissa ei oletusta; ohjeet ja paketti käyttävät porttia 61000) | Vain yhdyskäytävän kautta, suodatettuna | Pelaajan tunniste, tiliavain, ylläpitäjän avain tai pelipalvelinavain reitistä riippuen |
+| Chat (metagamen sisällä, `CHAT=1`) | `DauntlessUnbrokenMetagame/src/realtime/` | `127.0.0.1:61099` (`CHAT_BIND_HOST`, `CHAT_PORT`) | Vain yhdyskäytävän kautta (WebSocket-avaus) | Pelaajan tunniste (SASL PLAIN) |
+| Deploy-palvelin | `DauntlessUnbrokenDeployServer/` | `BIND_HOST` (`127.0.0.1`) ja `PORT` (koodissa ei oletusta; ohjeissa ja paketissa 61001) | Ei koskaan | Ei mitään. Se vastaa vain suoraan loopbackin kautta tuleville kutsujille. |
+| Sisältöpalvelin | `DauntlessUnbrokenContent/` | `127.0.0.1:61002` | Yhdyskäytävän kautta (`/content`) | Tiliavain pelitiedostoihin; muu on julkista |
+| Yhdyskäytävä | `DauntlessUnbrokenGateway/` | HTTPS osoitteessa `0.0.0.0:443` | Kyllä: ainoa julkinen TCP-portti | Omat torjuntansa; välittää tunnistetiedot eteenpäin |
+| Sallittujen listan apuri | `DauntlessUnbrokenGateway/` (osa `allowlist`) | `127.0.0.1:61005` | Ei koskaan | Sallittujen listan salaisuus |
+| Käynnistimen välitin | `DauntlessUnbrokenLauncher/` | `127.0.0.1:61000` jokaisen pelaajan omalla koneella | Ei ole palvelimen palvelu | Torjuu kaiken, mikä ei ole paikallinen peli |
 
 [Porttien viitesivu]({{ ports_page.url | relative_url }}) luettelee jokaisen portin ja kertoo, miten
 sen voi vaihtaa. [Asetusten viitesivu]({{ config_page.url | relative_url }}) kuvaa jokaisen tällä
@@ -79,7 +79,7 @@ avaimet palvelinkoneella. Deploy-palvelin pysyy loopbackissa molemmissa tiloissa
 | Sisältöpalvelin | Metagamen reittiä `GET /undaunted/api/GetUserInfo` tarkistaakseen lataajan avaimen | Lataajan tiliavaimella |
 | Kaverikäynnistin | `Register`, `GetUserInfo`, `ServerStatus` (vanhemmalla metagamella varalla `/dauntless-status`) ja sisältöreitit | Pelaajan tiliavaimella |
 | Kaveripaketti (yksityinen tila) | `Register` ja `GetUserInfo` | Pelaajan tiliavaimella |
-| Palvelimen skriptit (`New-Invite.ps1`, `Get-ServerStatus.ps1`, `Stack.ps1`, `Update-DauntlessServer.ps1`) | `ServerStatus`, `/dauntless-status`, `RegistrationStatus`, `GetUserInfo` ja kutsureitit; `Stack.ps1 status` lukee lisäksi sallittujen listan apurin reittiä `GET /status` | Omistajan ylläpitäjän avaimella niillä reiteillä, jotka ottavat avaimen, ja `/status`-reitillä sallittujen listan salaisuudella, palvelimella itsellään |
+| Palvelimen skriptit (`New-Invite.ps1`, `Get-ServerStatus.ps1`, `Stack.ps1`, `Update-DauntlessUnbrokenServer.ps1`) | `ServerStatus`, `/dauntless-status`, `RegistrationStatus`, `GetUserInfo` ja kutsureitit; `Stack.ps1 status` lukee lisäksi sallittujen listan apurin reittiä `GET /status` | Omistajan ylläpitäjän avaimella niillä reiteillä, jotka ottavat avaimen, ja `/status`-reitillä sallittujen listan salaisuudella, palvelimella itsellään |
 | Yhdyskäytävä | Sallittujen listan apurin reittiä `POST /allow` | Sallittujen listan salaisuudella |
 
 Skriptit kuvataan [skriptien viitesivulla]({{ scripts_page.url | relative_url }}).
@@ -90,10 +90,10 @@ Skriptit kuvataan [skriptien viitesivulla]({{ scripts_page.url | relative_url }}
 
 | Tunnistetieto | Lähetetään | Muoto | Kenellä | Mitä se sallii |
 |:--------------|:-----------|:------|:--------|:---------------|
-| Tiliavain | Otsake `x-undaunted-user-api-key`; myös kirjautumisen `exchange_code` | `UUK_` ja perässä 48 pientä heksadesimaalimerkkiä | Jokaisella pelaajalla (käynnistimen avainsäilö, kaveripaketin `account.key`); omistajatilin avain palvelinkoneella | Kirjautuminen kyseisenä pelaajana, tilin `/undaunted/api`-reitit, pelitiedostojen lataukset |
+| Tiliavain | Otsake `x-dauntless-unbroken-user-api-key`; myös kirjautumisen `exchange_code` | `UUK_` ja perässä 48 pientä heksadesimaalimerkkiä | Jokaisella pelaajalla (käynnistimen avainsäilö, kaveripaketin `account.key`); omistajatilin avain palvelinkoneella | Kirjautuminen kyseisenä pelaajana, tilin `/undaunted/api`-reitit, pelitiedostojen lataukset |
 | Pelaajan tunniste | Otsake `Authorization: Bearer <token>` | RS256-allekirjoitettu JWT, voimassa 24 tuntia | Peliohjelmalla kirjautumisen jälkeen; pelipalvelimet välittävät sen eteenpäin | Jokainen pelireitti pelaajan omalle tilille |
-| Ylläpitäjän avain | Otsake `x-undaunted-user-api-key` | Tiliavain, jonka tilillä `isAdmin` = 1 | Palvelimen omistajalla, palvelinkoneella | Ylläpitoreitit, myös tunnisteen luominen mille tahansa tilille |
-| Pelipalvelinavain | Otsake `x-undaunted-gameserver-apikey` | Mikä tahansa merkkijono; paketti ja ohje tekevät 48 heksadesimaalimerkkiä | Deploy-palvelimella, joka antaa sen jokaiselle pelipalvelimelle | Minkä tahansa pelaajan tietojen lukeminen ja kirjoittaminen sekä vain pelipalvelimille sallitut kirjoitukset |
+| Ylläpitäjän avain | Otsake `x-dauntless-unbroken-user-api-key` | Tiliavain, jonka tilillä `isAdmin` = 1 | Palvelimen omistajalla, palvelinkoneella | Ylläpitoreitit, myös tunnisteen luominen mille tahansa tilille |
+| Pelipalvelinavain | Otsake `x-dauntless-unbroken-gameserver-apikey` | Mikä tahansa merkkijono; paketti ja ohje tekevät 48 heksadesimaalimerkkiä | Deploy-palvelimella, joka antaa sen jokaiselle pelipalvelimelle | Minkä tahansa pelaajan tietojen lukeminen ja kirjoittaminen sekä vain pelipalvelimille sallitut kirjoitukset |
 | Yhdyskäytävän salaisuus | Otsake `X-Dauntless-Gateway` | 32–256 tulostettavaa merkkiä ilman välilyöntejä; paketti tekee 64 heksadesimaalimerkkiä | Yhdyskäytävällä ja metagamella (`GATEWAY_SECRET` kummassakin) | Saa metagamen luottamaan yhdyskäytävän `X-Forwarded-For`-otsakkeeseen |
 | Sallittujen listan salaisuus | Otsake `x-allowlist-secret` | 32–256 tulostettavaa merkkiä ilman välilyöntejä; paketti tekee 64 heksadesimaalimerkkiä | Yhdyskäytävällä ja sallittujen listan apurilla (`ALLOWLIST_SECRET`) | UDP-peliporttien avaaminen osoitteelle |
 
@@ -128,7 +128,7 @@ metagame vastaa sen palvelun sijasta:
    JSON- tai lomakemuodossa.
 3. Asetuksella `AUTH_MODE=APIKEY` metagame hakee avaimen tiivisteen. Se vastaa EOS-tyylisellä
    rungolla, jonka `access_token` on JWT: sisältönä `{userId}`, myöntäjänä (issuer) ja yleisönä
-   (audience) `undaunted-metagame`, voimassa 24 tuntia (`expires_in` 86400). Metagame allekirjoittaa
+   (audience) `dauntless-unbroken-metagame`, voimassa 24 tuntia (`expires_in` 86400). Metagame allekirjoittaa
    sen avaimella `AUTH_SIGNING_PRIVKEY_B64` ja tarkistaa avaimella `AUTH_SIGNING_PUBKEY_B64`.
    Tuntematon avain saa vastauksen 400.
 4. Siitä eteenpäin peliohjelma lähettää jokaisella pelireitillä otsakkeen
@@ -147,7 +147,7 @@ Tästä seuraa:
 - Ylläpitäjät voivat luoda tunnisteen mille tahansa tilille reitillä
   `POST /undaunted/api/GenerateJWTForUserId`.
 - `AUTH_MODE=NONE` on vain kehitystä varten, ja sitä noudatetaan vain, kun `NODE_ENV` ei ole
-  `production`. Silloin `exchange_code` ja `x-undaunted-user-api-key`-otsakkeen arvo otetaan suoraan
+  `production`. Silloin `exchange_code` ja `x-dauntless-unbroken-user-api-key`-otsakkeen arvo otetaan suoraan
   tilitunnukseksi, joten kuka tahansa voi esiintyä kenenä tahansa. Tässä tilassa metagame vastaa 403
   jokaiseen pyyntöön, joka tuli välityspalvelimen kautta.
 - Kun `AUTH_MODE` puuttuu tai on jokin muu (tai `NONE` yhdessä asetuksen `NODE_ENV=production`
@@ -174,7 +174,7 @@ Tästä seuraa:
 
 - Pelipalvelimet ovat 1.4.4-peliohjelman lisäkopioita palvelintilassa. Deploy-palvelin käynnistää
   jokaisen niistä niin, että avain (`METAGAME_API_KEY`) on ensimmäinen komentoriviparametri, ja
-  palvelin-DLL lisää otsakkeen `x-undaunted-gameserver-apikey: <key>` jokaiseen prosessin tekemään
+  palvelin-DLL lisää otsakkeen `x-dauntless-unbroken-gameserver-apikey: <key>` jokaiseen prosessin tekemään
   HTTP-pyyntöön. Kun pelipalvelin toimii pelaajan puolesta, se välittää myös pelaajan
   bearer-tunnisteen, joten metagame tietää molemmat.
 - Metagame tallentaa avaimesta vain SHA-256-tiivisteen (taulu `gameserverapikeys`). Jonotauluun
@@ -356,7 +356,7 @@ toimivat vain palvelinkoneella.
 
 Pelin kauppa ([Pelin kauppa]({{ '/fi/findings/store.html' | relative_url }})). **Vain asetuksella
 `STORE=free`**; asetuksella `STORE=off` (oletus) kauppa vastaa vanhan 400:n
-(`{"code": "400", "message": "The store is not available on Dauntless Revived yet."}`) ja kolme muuta
+(`{"code": "400", "message": "The store is not available on Dauntless Unbroken yet."}`) ja kolme muuta
 reittiä tyhjän 404:n. Jokainen reitti toimii bearer-tunnisteen pelaajan puolesta: ilman tunnistetta 401,
 pelkkä pelipalvelinavain 403. Torjunnat ovat muotoa `{"code": "<tila>", "message": ...}`.
 
@@ -385,7 +385,7 @@ kiinteillä vastauksilla, ja *vain oikea* -reitit vastaavat 404. Merkinnät seli
 | GET | `/progression/:userId/:progressionId` | vain oikea, tunniste, oma | Yksi rata; 404, jos mitään ei ole tallennettu. |
 | POST | `/progression/:userId/:progressionId/:amount` | vain oikea, tunniste, pelipalvelin | Lisää yhteen rataan määrän `amount`, enintään `PROGRESSION_GRANT_CAP`. |
 | POST | `/progression/:userId/:progressionId/:rank/confirm/:kind` | vain oikea, tunniste, pelipalvelin | Vahvistaa ilmaisen (`public`) tai premium-tason. Se ei anna mitään: pelipalvelin maksaa tasopalkinnot itse reitin `/inventory` kautta. Asetuksella `PROGRESSION_CONFIRM_ENTITLEMENTS=1` tasoa nostava vahvistus antaa myös juuri vahvistettujen tasojen pysyvät oikeudet asetuksista (ei koskaan tavaroita, valuuttoja tai määräaikaisia); vastaus on sama. 404 asetuksella `PROGRESSION_CONFIRM=off`. |
-| DELETE | `/progression/:userId/:progressionId` | vain oikea; ylläpitäjän avain, tai pelipalvelinavain asetuksella `PROGRESSION_ALLOW_DELETE=1` | Nollaa yhden radan. Jos `x-undaunted-user-api-key` on mukana, sovelletaan ylläpitäjän avaimen tarkistusta. Muuten tarvitaan pelipalvelinavain ja `PROGRESSION_ALLOW_DELETE=1` (ilman niitä 403). Peli lähettää tämän vain vianetsintäkomennosta. |
+| DELETE | `/progression/:userId/:progressionId` | vain oikea; ylläpitäjän avain, tai pelipalvelinavain asetuksella `PROGRESSION_ALLOW_DELETE=1` | Nollaa yhden radan. Jos `x-dauntless-unbroken-user-api-key` on mukana, sovelletaan ylläpitäjän avaimen tarkistusta. Muuten tarvitaan pelipalvelinavain ja `PROGRESSION_ALLOW_DELETE=1` (ilman niitä 403). Peli lähettää tämän vain vianetsintäkomennosta. |
 | GET | `/progression/objectives/:userId` | tunniste, oma | Tallennetut tavoitteet (objectives). Tynkä: mestaruusradat maksimissa eikä tavoitteita. |
 | GET | `/progression/objectives/:userId/:objectiveId` | tunniste, oma | Yksi tavoite, nollat, jos mitään ei ole tallennettu. Tynkä: kiinteät arvot. |
 | GET | `/huntpass/:userId` | tunniste, oma | Valittu Hunt Pass: tallennettu, muuten `ACTIVE_HUNT_PASS` (oletus `season09b`). |
@@ -561,7 +561,7 @@ pienaakkosina ja numerokorvaukset purettuina:
 
 | Missä | Sanat |
 |:------|:------|
-| Missä tahansa nimessä tai nimikyltissä | `admin`, `moderator`, `official`, `gamemaster`, `staff`, `dauntlessrevived`, `phoenixlabs` |
+| Missä tahansa nimessä tai nimikyltissä | `admin`, `moderator`, `official`, `gamemaster`, `staff`, `dauntlessunbroken`, `phoenixlabs` |
 | Koko nimenä | `dauntless`, `phoenix`, `revived`, `support`, `system`, `server`, `servers`, `mods`, `developer`, `developers`, `devteam` |
 | Koko nimikylttinä | `gm`, `gms`, `dev`, `devs`, `mod`, `mods`, `sys`, `phx`, `dr`, `drev`, `undt` |
 
@@ -647,7 +647,7 @@ jo linkitetty, toinen pelaaja on jo kutsunut sinut, ei vapaata paikkaa, kutsuraj
 tai siihen on vastattu). **Ei vastata** (404): palkintoreitit `PUT /slayerlink/links/rewards` ja
 `GET /slayerlink/links/rewards/:accountId/:slot`.
 
-## Metagame: hallintarajapinta {#undaunted-api}
+## Metagame: hallintarajapinta {#dauntless-unbroken-api}
 
 Kaikki nämä ovat metagamessa polun `/undaunted/api/` alla, ja alla olevat polut ovat suhteessa
 siihen. **Yhdyskäytävän kautta vastaa vain neljä:** `POST Register` sekä `GetUserInfo`,
@@ -739,7 +739,7 @@ rekisteröitynyt, voi silti lukea palvelimen nimen ja rekisteröintitilan:
 
 ```json
 {
-  "name": "Dauntless Revived", "online": true, "version": "...", "commit": "...",
+  "name": "Dauntless Unbroken", "online": true, "version": "...", "commit": "...",
   "sourceUrl": "https://github.com/...", "registration": "INVITECODE",
   "playersOnline": 1,
   "players": [{ "name": "Slayer_one", "where": "city", "instance": "..." }],
@@ -910,7 +910,7 @@ hakemistolistausta ole.
 Yhdyskäytävä on olemassa vain julkisessa tilassa. Se on HTTPS-palvelu (TLS 1.2 tai uudempi) itse
 allekirjoitetulla varmenteella, jonka käynnistin kiinnittää sormenjäljen perusteella, osoitteessa `GATEWAY_BIND`
 (`0.0.0.0`) ja portissa `GATEWAY_PORT` (443).
-[UndauntedGateway/README.md]({{ site.github.repository_url }}/blob/dauntless-revived/UndauntedGateway/README.md)
+[DauntlessUnbrokenGateway/README.md]({{ site.github.repository_url }}/blob/main/DauntlessUnbrokenGateway/README.md)
 (englanniksi) kertoo tarkemmin sen rajoista, aikakatkaisuista ja pääsylokista.
 
 | Pyyntö | Menee | Oletus |
@@ -928,7 +928,7 @@ koskaan poistu koneelta. Reittiä deploy-palvelimelle tai sallittujen listan apu
 |:----------|:--------|:--------|
 | 400 | `bad_request` | Pyynnön kohde ei ole tavallinen polku (`/...`), tukematon yhteyden päivitys (upgrade) tai virheellinen pyyntö. |
 | 400 | `bad_path` | Polussa on kenoviiva, tyhjätilaa tai ohjausmerkki, `.`- tai `..`-osa, `%2f`, `%5c`, `%00` tai `%2e`, tai rikkinäinen prosenttikoodaus. |
-| 403 | `forbidden` | Mikä tahansa `x-undaunted-gameserver-apikey`-otsake. Mikä tahansa polku `/undaunted`-alla paitsi neljä julkista (myös yhteyden päivityksille). |
+| 403 | `forbidden` | Mikä tahansa `x-dauntless-unbroken-gameserver-apikey`-otsake. Mikä tahansa polku `/undaunted`-alla paitsi neljä julkista (myös yhteyden päivityksille). |
 | 405 | `method_not_allowed` | Mikä tahansa muu kuin `GET`, `HEAD`, `POST`, `PUT`, `DELETE`, `PATCH` ja `OPTIONS`. |
 | 408, 431 | `request_timeout`, `headers_too_large` | Otsakkeet tulevat liian hitaasti tai ovat liian suuria. |
 | 413 | `body_too_large` | Runko on suurempi kuin `GATEWAY_MAX_BODY_BYTES` (128 KiB). |
@@ -985,7 +985,7 @@ rungolle. `entries` ovat pelaajien osoitteita: pidä `/status`-tuloste yksityise
 ## Käynnistimen välitin {#launcher-relay}
 
 Julkisessa tilassa kaverikäynnistin pyörittää pelin ajan välitintä pelaajan omalla koneella
-osoitteessa `127.0.0.1:61000`. `DAUNTLESS_REVIVED_RELAY_PORT` vaihtaa portin, mutta vain testejä ja
+osoitteessa `127.0.0.1:61000`. `DAUNTLESS_UNBROKEN_RELAY_PORT` vaihtaa portin, mutta vain testejä ja
 harjoitusajoja varten: palvelimen puoli (esimerkiksi pingin kohde asetuksessa `QOS_TARGET_URL`)
 odottaa porttia 61000. Peli puhuu välittimelle
 tavallista HTTP:tä, ja välitin välittää jokaisen pyynnön, myös WebSocket-yhteydet, muuttamattomana
@@ -1027,11 +1027,11 @@ Invoke-RestMethod -Uri http://127.0.0.1:61000/undaunted/api/ServerStatus -Timeou
 Ylläpitokutsut palvelimella itsellään. Avain luetaan tiedostostaan eikä sitä koskaan tulosteta.
 Omistajan avain on tiedostossa `C:\dr\data\owner.key` palvelimella, joka on pystytetty sivun
 [Pystytä palvelin]({{ host_page.url | relative_url }}) ohjeilla, ja tiedostossa
-`C:\DauntlessRevived\data\keys\owner.key` paketilla asennetulla palvelimella:
+`C:\DauntlessUnbroken\data\keys\owner.key` paketilla asennetulla palvelimella:
 
 ```powershell
 $api = "http://127.0.0.1:61000/undaunted/api"
-$h = @{ "x-undaunted-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
+$h = @{ "x-dauntless-unbroken-user-api-key" = (Get-Content C:\dr\data\owner.key -Raw).Trim() }
 
 (Invoke-RestMethod -Uri "$api/GetAllUsers" -Headers $h -TimeoutSec 10).Users
 
@@ -1048,13 +1048,13 @@ tunnistetieto**: lähetä se yhdelle kaverille, yksityisesti.
 
 ## Reittien muuttaminen {#changing-the-routes}
 
-- `UndauntedMetagame/test/permissions.test.ts` lukitsee listan metagamen jokaisesta reitistä
+- `DauntlessUnbrokenMetagame/test/permissions.test.ts` lukitsee listan metagamen jokaisesta reitistä
   pääsytarkistuksineen rekisteröintijärjestyksessä. Reitin lisääminen tai sen tarkistusten
   muuttaminen kaataa testin, kunnes lista päivitetään, mikä pakottaa päättämään, kuka reittiä saa
   kutsua.
-- Yhdyskäytävän testit lukevat tiedoston `UndauntedMetagame/src/routes/undauntedapi.ts`, joten
+- Yhdyskäytävän testit lukevat tiedoston `DauntlessUnbrokenMetagame/src/routes/unbrokenapi.ts`, joten
   jokainen uusi `/undaunted/api`-reitti testataan automaattisesti yhdyskäytävän estämäksi. Vain
-  reitti, joka lisätään `PUBLIC_UNDAUNTED_API`-listaan tiedostossa `UndauntedGateway/src/policy.ts`,
+  reitti, joka lisätään `PUBLIC_UNDAUNTED_API`-listaan tiedostossa `DauntlessUnbrokenGateway/src/policy.ts`,
   tulee tavoitettavaksi internetistä.
 - Uusi pelireitti on tavoitettavissa yhdyskäytävän kautta heti, kun se on olemassa. Anna sille
   pääsytarkistus.

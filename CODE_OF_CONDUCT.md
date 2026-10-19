@@ -1,6 +1,6 @@
 # Code of conduct
 
-Dauntless Revived is a small hobby project about keeping a game alive with friends. Let's keep it a
+Dauntless Unbroken is a small hobby project about keeping a game alive with friends. Let's keep it a
 friendly place to be.
 
 🇫🇮 [Suomeksi alempana](#suomeksi)
@@ -23,7 +23,7 @@ friendly place to be.
 
 ## Where this applies
 
-Everywhere in this project: issues, pull requests, Discussions, the official [Dauntless Revived Discord](https://discord.gg/ZJRprHzsgu), commit messages, and anywhere else
+Everywhere in this project: issues, pull requests, Discussions, the official [Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu), commit messages, and anywhere else
 you represent the project.
 
 ## Enforcement
@@ -39,7 +39,7 @@ on the comment, issue or discussion and choose **Report content**.
 
 ## Suomeksi
 
-Dauntless Revived on pieni harrastusprojekti. Sen tarkoitus on pitää peli hengissä kavereiden
+Dauntless Unbroken on pieni harrastusprojekti. Sen tarkoitus on pitää peli hengissä kavereiden
 kanssa. Pidetään tämä mukavana paikkana.
 
 **Ole ystävällinen.** Auta ja ole kärsivällinen, varsinkin aloittelijoiden kanssa. Oleta, että
@@ -49,7 +49,7 @@ muut tarkoittavat hyvää. Voit olla eri mieltä asioista, mutta älä loukkaa i
 yksityisten tietojen jakaminen, pelitiedostojen tai piraattikopioiden pyytäminen tai jakaminen,
 roskaviestit ja tahallinen keskustelun sotkeminen.
 
-**Missä tämä pätee.** GitHubin lisäksi myös virallisessa [Dauntless Revived Discordissa](https://discord.gg/ZJRprHzsgu).
+**Missä tämä pätee.** GitHubin lisäksi myös virallisessa [Dauntless Unbroken Discordissa](https://discord.gg/ZJRprHzsgu).
 
 **Valvonta.** Ylläpitäjä (mixutin) voi poistaa tai piilottaa sisältöä, lukita keskusteluja sekä
 estää käyttäjiä GitHubissa tai Discordissa. Käytä kyseisen palvelun ilmoitus- ja moderointitoimintoja;

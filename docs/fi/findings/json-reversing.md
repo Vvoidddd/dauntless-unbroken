@@ -1,7 +1,7 @@
 ---
 title: JSON-rakenteen lukeminen ohjelmatiedostosta
 parent: Löydökset
-grand_parent: Dauntless Revived suomeksi
+grand_parent: Dauntless Unbroken suomeksi
 nav_order: 4
 lang: fi
 ref: findings/json-reversing

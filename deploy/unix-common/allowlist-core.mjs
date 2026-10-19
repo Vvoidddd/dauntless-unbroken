@@ -46,7 +46,7 @@ export function loadUnixAllowlistConfig(env = process.env) {
   const low = Number(match[1]);
   const high = Number(match[2] ?? match[1]);
   if (low < 1 || high > 65535 || low > high) throw new Error("ALLOWLIST_PORTS is invalid");
-  const root = path.resolve(env.DR_GATEWAY_DIR || path.join(path.dirname(new URL(import.meta.url).pathname), "..", "..", "UndauntedGateway"));
+  const root = path.resolve(env.DR_GATEWAY_DIR || path.join(path.dirname(new URL(import.meta.url).pathname), "..", "..", "DauntlessUnbrokenGateway"));
   const require = createRequire(import.meta.url);
   const { CheckAllowlistIp } = require(path.join(root, "dist", "ip.js"));
   return {

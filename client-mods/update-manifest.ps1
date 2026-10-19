@@ -1,5 +1,5 @@
 # Rebuilds client-mods\manifest.json: every file of the UE4SS + mods bundle with its SHA-256 and size.
-# The friend kit (friend-kit\setup.ps1) and the launcher (UndauntedLauncher, src\main\client-mods.ts) only
+# The friend kit (friend-kit\setup.ps1) and the launcher (DauntlessUnbrokenLauncher, src\main\client-mods.ts) only
 # install files that match this list, and check them again after copying - like the pinned server DLLs.
 # Run it after changing any file in this folder, and commit manifest.json with the change.
 #

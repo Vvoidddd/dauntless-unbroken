@@ -18,17 +18,17 @@ monitor on another host. Do not interpret a stale Online message as current heal
 
 ## Windows kit installation
 
-Keep the webhook URL in `C:\DauntlessRevived\data\keys\discord-status.key` on the VPS,
+Keep the webhook URL in `C:\DauntlessUnbroken\data\keys\discord-status.key` on the VPS,
 never in Git, a command transcript or a public configuration file. Treat it as a
 password. Then, from an elevated PowerShell prompt:
 
 ```powershell
-C:\DauntlessRevived\bin\Install-DiscordStatus.ps1 -Root C:\DauntlessRevived
+C:\DauntlessUnbroken\bin\Install-DiscordStatus.ps1 -Root C:\DauntlessUnbroken
 ```
 
 The source must be available in `app\tools\discord-status.mjs`. The installer copies
 it to a protected runtime directory and starts a boot-triggered LocalService task
-named `Dauntless Revived Discord status`. It reads the existing owner key locally
+named `Dauntless Unbroken Discord status`. It reads the existing owner key locally
 to obtain the authenticated aggregate count. The owner key never goes to Discord.
 Only `discord-status\state` is writable by the worker. Error logs contain generic
 messages and are bounded to approximately 256 KiB.
@@ -41,8 +41,8 @@ A deleted message or revoked webhook also pauses delivery; replace the private
 configuration and restart the task after review. Logs: `state\errors.log`.
 
 ```powershell
-Stop-ScheduledTask -TaskName 'Dauntless Revived Discord status'
-Disable-ScheduledTask -TaskName 'Dauntless Revived Discord status'
+Stop-ScheduledTask -TaskName 'Dauntless Unbroken Discord status'
+Disable-ScheduledTask -TaskName 'Dauntless Unbroken Discord status'
 ```
 
 ## Memory and matching follow-up

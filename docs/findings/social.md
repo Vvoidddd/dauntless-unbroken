@@ -54,7 +54,7 @@ Each fact is marked with where it comes from and how sure we are.
 | **B** | The 1.4.4 executable (`Dauntless-Win64-Shipping.exe`, 103 MB): its strings (ASCII and UTF-16), and disassembly of the functions that build requests and parse replies. Addresses are virtual addresses with image base `0x140000000`. |
 | **L** | The live server: a census of every route the real clients and game servers called on 22 September 2026, with counts and unanswered routes, and what the two players reported. |
 | **R** | Requests the 2.1.1 client sent to our research server (the same Phoenix services, recorded with their bodies). |
-| **K** | Reflected class and struct names (the SDK dump of the game's classes), and the endpoint table in `UndauntedInternalServer/dllmain.cpp`. |
+| **K** | Reflected class and struct names (the SDK dump of the game's classes), and the endpoint table in `DauntlessUnbrokenInternalServer/dllmain.cpp`. |
 | **C** | Our own code and tests. |
 | **G** | A design decision of ours, where nothing in the client decides it. |
 
@@ -561,7 +561,7 @@ token's 24 hours, with no logout and no reconnect loop.
 
 The fixes are tested over HTTP against the real metagame, with the client's own bodies and headers:
 
-- **A model of the client** (`UndauntedMetagame/test/socialclient.ts`) reimplements the parse rules
+- **A model of the client** (`DauntlessUnbrokenMetagame/test/socialclient.ts`) reimplements the parse rules
   above: the mapping parser, the user-info cache with its first-reply-wins key, the toolkit's Epic id
   check, the Phoenix envelope, the guild error mapping, the friends list and the party invitations.
   Fed the replies our server sent on 22 September 2026, it reproduces what the players saw: the array

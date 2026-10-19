@@ -294,7 +294,7 @@ agrees with Phoenix's own file list.
 Two more cross-checks for 1.4.4:
 
 - The SHA-256 of the main executable and of the zip both equal the values pinned in the upstream
-  Undaunted launcher (`UndauntedLauncher/src/main.ts`):
+  Undaunted launcher (`DauntlessUnbrokenLauncher/src/main.ts`):
 
   | File | SHA-256 |
   |:-----|:--------|
@@ -401,10 +401,10 @@ zero-byte `debug.log` files: ClamAV reported each as `Empty file` and did not co
 ## The prebuilt Undaunted DLLs
 
 The 1.4.4 setup adds two prebuilt files from the upstream Undaunted repository to the game folder:
-`dxgi.dll` and `UndauntedInternalServer.dll`. They are not game files, but they run inside the game
+`dxgi.dll` and `DauntlessUnbroken.dll`. They are not game files, but they run inside the game
 process, so we checked them the same way. Both are unsigned, which is normal for a hobby project.
 
-| Check | `dxgi.dll` | `UndauntedInternalServer.dll` |
+| Check | `dxgi.dll` | `DauntlessUnbroken.dll` |
 |:------|:-----------|:------------------------------|
 | Size | 11,264 bytes | 123,392 bytes |
 | SHA-256 | `9A431D7B…4B0D1F` | `520EC588…0D0933` |
@@ -415,7 +415,7 @@ process, so we checked them the same way. Both are unsigned, which is normal for
 
 What `dxgi.dll` does, from a full disassembly of its `DllMain`: it loads the real `dxgi.dll` from
 System32, looks up `CreateDXGIFactory`, `CreateDXGIFactory1` and `CreateDXGIFactory2`, and forwards its
-three exports to them. It then loads `UndauntedInternalServer.dll` by name. It does nothing else. Those
+three exports to them. It then loads `DauntlessUnbroken.dll` by name. It does nothing else. Those
 three exports are exactly the set the game needs: the 1.4.4 executable imports `CreateDXGIFactory` and
 `CreateDXGIFactory1`, and the system `d3d11.dll` (on our Windows 10 machine) imports
 `CreateDXGIFactory2`.
@@ -426,7 +426,7 @@ raised no detections when we copied the files into the game folder.
 
 One open issue: **the source of `dxgi.dll` is not in the Undaunted repository.** Its debug path points
 to a separate project whose source we have not found published anywhere. That matters under the AGPL. Replacing it with our
-own proxy, and building `UndauntedInternalServer.dll` from source ourselves, are both on the roadmap.
+own proxy, and building `DauntlessUnbroken.dll` from source ourselves, are both on the roadmap.
 Until then we check both files against the pinned hashes before every copy. The full hashes are in the
 [friends' setup guide]({{ friends_page.url | relative_url }}).
 
