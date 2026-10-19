@@ -538,7 +538,7 @@ undoing digit swaps:
 | Where | Words |
 |:------|:------|
 | Anywhere in a name or nameplate | `admin`, `moderator`, `official`, `gamemaster`, `staff`, `dauntlessunbroken`, `phoenixlabs` |
-| The whole name | `dauntless`, `phoenix`, `revived`, `support`, `system`, `server`, `servers`, `mods`, `developer`, `developers`, `devteam` |
+| The whole name (examples) | `dauntless`, `phoenix`, `support`, `system`, `server`, `servers`, `mods`, `developer`, `developers`, `devteam`; full list: `DauntlessUnbrokenMetagame/src/controllers/guild.ts` |
 | The whole nameplate | `gm`, `gms`, `dev`, `devs`, `mod`, `mods`, `sys`, `phx`, `dr`, `drev`, `undt` |
 
 So `DauntlessCrew` and `PhoenixRising` are fine, but `Dauntless`, `ServerAdmins` and the tag `GM` are

@@ -562,7 +562,7 @@ pienaakkosina ja numerokorvaukset purettuina:
 | Missä | Sanat |
 |:------|:------|
 | Missä tahansa nimessä tai nimikyltissä | `admin`, `moderator`, `official`, `gamemaster`, `staff`, `dauntlessunbroken`, `phoenixlabs` |
-| Koko nimenä | `dauntless`, `phoenix`, `revived`, `support`, `system`, `server`, `servers`, `mods`, `developer`, `developers`, `devteam` |
+| Koko nimenä (esimerkkejä) | `dauntless`, `phoenix`, `support`, `system`, `server`, `servers`, `mods`, `developer`, `developers`, `devteam`; koko lista: `DauntlessUnbrokenMetagame/src/controllers/guild.ts` |
 | Koko nimikylttinä | `gm`, `gms`, `dev`, `devs`, `mod`, `mods`, `sys`, `phx`, `dr`, `drev`, `undt` |
 
 Siis `DauntlessCrew` ja `PhoenixRising` käyvät, mutta `Dauntless`, `ServerAdmins` ja nimikyltti `GM`
