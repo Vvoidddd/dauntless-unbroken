@@ -16,5 +16,5 @@ export function launcherInvite(config, code) {
 }
 
 export function inviteMessage(config, code) {
-  return `🔑 **Your Revived Invite**\n\`\`\`\n${launcherInvite(config, code)}\n\`\`\`\nCopy the entire invite above into the launcher's **Join** box, then choose your username on **Register**. The registration code is already included. The launcher saves your account key after registration.\nAlready registered? Keep your original launcher key; use /key link to link it to Discord.\n**Clear skies, Slayer.**`;
+  return `🔑 **Your Dauntless Unbroken Invite**\n\`\`\`\n${launcherInvite(config, code)}\n\`\`\`\nCopy the entire invite above into the launcher's **Join** box, then choose your username on **Register**. The registration code is already included. The launcher saves your account key after registration.\nAlready registered? Keep your original launcher key; use /key link to link it to Discord.\n**Clear skies, Slayer.**`;
 }

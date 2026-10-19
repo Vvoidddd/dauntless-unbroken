@@ -50,7 +50,7 @@ client.once(Events.ClientReady, async () => {
     const changed = await syncKeyCommands(rest, client.application.id, guilds);
     await syncCounterCommand(rest,client.application.id);
     console.log(`Key command registration: ${changed} scopes updated`);
-    console.log('Revived key bot ready');
+    console.log('Dauntless Unbroken key bot ready');
     if(memberIntentEnabled) void counters.start().catch(() => console.error('Counter startup failed; key commands remain online'));
   } catch { console.error('Could not register /key'); await client.destroy(); process.exitCode = 1; }
 });
@@ -71,7 +71,7 @@ client.on(Events.InteractionCreate, async interaction => {
   try {
     await interaction.deferReply({flags: MessageFlags.Ephemeral});
     if (process.env.DISCORD_GUILD_ID && interaction.guildId && interaction.guildId !== process.env.DISCORD_GUILD_ID) {
-      await interaction.editReply('Use this command in the Revived server or in a DM with me.'); return;
+      await interaction.editReply('Use this command in the Dauntless Unbroken server or in a DM with me.'); return;
     }
     if (active.has(id) || Date.now() < (cooldown.get(id) || 0)) {
       await interaction.editReply('Your key request is being handled. Try again in a few seconds.'); return;
@@ -104,16 +104,16 @@ client.on(Events.InteractionCreate, async interaction => {
           sent: '🔑 **Invite Sent**\nCheck your DMs. Paste the complete invite into the launcher’s Join box.\n**Clear skies, Slayer.**',
           already_sent: '🔑 **Already Claimed**\nUse `/key resend` to receive another private copy of your existing unused invite. No additional invite will be issued.',
           dm_disabled: 'Enable direct messages, then run `/key claim` again. Your existing code is saved.',
-          no_mutual_guild: 'Join the Revived Discord server first, enable direct messages from server members, then run `/key claim` again. Discord cannot DM you without a shared server. Your existing invite is saved.',
+          no_mutual_guild: 'Join the Dauntless Unbroken Discord server first, enable direct messages from server members, then run `/key claim` again. Discord cannot DM you without a shared server. Your existing invite is saved.',
           delivery_uncertain: 'Discord did not confirm delivery. Check your DMs, then contact the server team if missing. No replacement key will be issued.',
-          linked: '🔑 **Key Accepted**\nYour Discord has been linked to your existing Revived account. Keep using the same launcher key—nothing to replace.\n**Clear skies, Slayer.**',
+          linked: '🔑 **Key Accepted**\nYour Discord has been linked to your existing Dauntless Unbroken account. Keep using the same launcher key—nothing to replace.\n**Clear skies, Slayer.**',
           invite_not_key: `🔑 **Use Your Saved Account Key**\nThat is a Join invite or registration code. It cannot identify your existing account.\n\n${keyInstructions}\n\nIf you have not registered yet, paste the complete invite into the launcher’s Join screen first.`,
           invalid_key_format: `🔑 **Copy Your Saved Account Key**\n${keyInstructions}`,
           invalid_key: `🔑 **Account Key Not Recognized**\nThis server did not recognize that account key.\n\n${keyInstructions}\n\nIf the saved key still fails, contact the server team with your launcher username and this message, not your key.`,
           discord_already_linked: 'Your Discord is already linked to another account. Contact the server team to change it.',
           account_already_linked: 'This account is already linked to another Discord. Contact the server team to change it.',
           ready: '🔑 **Key Ready**\nYour code has not been redeemed. Run `/key claim` to receive your existing invite by DM.',
-          redeemed: '🔑 **Key Accepted**\nYour Revived code has been redeemed successfully.\n**Clear skies, Slayer.**',
+          redeemed: '🔑 **Key Accepted**\nYour Dauntless Unbroken code has been redeemed successfully.\n**Clear skies, Slayer.**',
           none: '🔑 **No Key Yet**\nRun `/key claim` to receive a saved copy of your invite by DM.',
           pending: 'Your code is being prepared. Try `/key claim` again shortly.',
           revoked: 'Your code is unavailable. Contact the server team.',
