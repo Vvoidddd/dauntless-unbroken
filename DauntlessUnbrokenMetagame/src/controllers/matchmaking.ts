@@ -93,7 +93,7 @@ const LauncherAdmissions = new Map<string, string>();
 
 // This is the same candidate the retail client joins, not a second seat/queue.
 export async function JoinLauncherAdmission(playerId: string) {
-    await HandlePlayerMatchmaking('CITY', '', '', playerId);
+    await HandlePlayerMatchmakingOnce('CITY', '', '', playerId, false, true);
     const entry = MatchmakingResultMap.get(playerId);
     if (entry) {LauncherAdmissions.set(playerId, entry.CandidateId);entry.LauncherAdmission=true;}
     return LauncherQueueStatus(playerId);
@@ -1180,7 +1180,7 @@ export async function HandlePlayerMatchmaking(GameMode: string, GameArgs: string
     return HandlePlayerMatchmakingOnce(GameMode, GameArgs, HuntId, PlayerId, Private);
 }
 
-async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, HuntId: string, PlayerId: string, Private = false){
+async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, HuntId: string, PlayerId: string, Private = false, LauncherOnly = false){
     const BadInput = CheckMatchmakingInput(GameMode, GameArgs, HuntId);
 
     if(BadInput != undefined){
@@ -1195,7 +1195,11 @@ async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, H
         return false;
     }
     else if(MATCHMAKING_MODE === "DEPLOYSERVER"){
-        const PartyDecision = await HandlePartyMatchmaking(GameMode, GameArgs, HuntId, PlayerId);
+        const admission=MatchmakingResultMap.get(PlayerId);
+        // Restarting the leader's launcher is an individual login, not a request
+        // to take their still-fighting party back to town. Retail login reuses it.
+        const individualAdmission=LauncherOnly || (GameMode==='CITY' && admission?.LauncherAdmission && admission.FirstSentAt===undefined);
+        const PartyDecision = individualAdmission ? 'solo' : await HandlePartyMatchmaking(GameMode, GameArgs, HuntId, PlayerId);
 
         if(PartyDecision !== "solo"){
             return PartyDecision;

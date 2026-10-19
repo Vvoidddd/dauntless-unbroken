@@ -29,6 +29,8 @@ The launcher and retail client reuse one matchmaking candidate and one reserved
 city seat. A full primary city pool tries the second EU host before refusing
 capacity. The existing hunt allocator still enforces CPU, memory, port and hunt
 limits; queueing does not disable those protections.
+Reconnecting a party leader admits that player individually and leaves other
+members on their existing hunt.
 
 Capacity attempts are ordered by original queue age within their eligible region
 and resource type. A later poll cannot take an older active candidate's turn.

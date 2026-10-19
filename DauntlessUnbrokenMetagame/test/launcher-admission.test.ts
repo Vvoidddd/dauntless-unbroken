@@ -8,9 +8,35 @@ import http from 'node:http';
 import {RegisterUser} from '../src/controllers/unbrokenapi';
 import {unbrokenApiRouter} from '../src/routes/unbrokenapi';
 import {GetDb} from '../src/db';
-import {SetPartyClockForTests} from '../src/controllers/party';
-import {JoinLauncherAdmission, PollLauncherAdmission, CancelLauncherAdmission, LauncherQueueStatus, HandlePlayerMatchmaking, CheckAndUpdateQueueStatus, ResetMatchmakingForTests} from '../src/controllers/matchmaking';
+import {SetPartyClockForTests, PollParty, InviteToParty, AcceptPartyInvite, ResetPartiesForTests} from '../src/controllers/party';
+import {JoinLauncherAdmission, PollLauncherAdmission, CancelLauncherAdmission, LauncherQueueStatus, HandlePlayerMatchmaking, CheckAndUpdateQueueStatus, DecideCandidateStatus, ResetMatchmakingForTests} from '../src/controllers/matchmaking';
 after(()=>RemoveTestDb(()=>GetDb().$client.close()));
+
+test('a returning party leader enters alone without pulling active hunters into Ramsgate',async()=>{
+    ResetMatchmakingForTests();ResetPartiesForTests();
+    const a='UID-admission-party-a',b='UID-admission-party-b';
+    for(const id of [a,b])GetDb().$client.prepare('INSERT INTO users(userId,name,notes,isAdmin) VALUES (?,?,0,0)').run(id,id);
+    const original=globalThis.fetch,calls:any[]=[];
+    globalThis.fetch=(async(_url:any,init:any)=>{
+        calls.push(JSON.parse(init.body));
+        return new Response(JSON.stringify({host:'127.0.0.1',port:39000+calls.length}),{status:200});
+    }) as typeof fetch;
+    try {
+        const party=await PollParty(a) as any;
+        assert.equal(InviteToParty(a,b,party.partyId).Status,200);
+        assert.equal((await AcceptPartyInvite(b,party.partyId)).Status,200);
+        await HandlePlayerMatchmaking('ISLAND','','Hunt_Test_A',a);
+        await DecideCandidateStatus(a);await DecideCandidateStatus(b);
+        const hunting=(await CheckAndUpdateQueueStatus(b))!.CandidateId;
+        await JoinLauncherAdmission(a);
+        assert.equal((await CheckAndUpdateQueueStatus(b))?.CandidateId,hunting,'other party members must stay on their hunt');
+        assert.deepEqual(calls.at(-1).ExpectedPlayers,[a]);
+        const count=calls.length;
+        await HandlePlayerMatchmaking('CITY','','ShatteredIsles_ReturnToRamsgate',a);
+        assert.equal(calls.length,count,'retail login must reuse the individual admission');
+        assert.equal((await CheckAndUpdateQueueStatus(b))?.CandidateId,hunting);
+    } finally {globalThis.fetch=original;ResetMatchmakingForTests();ResetPartiesForTests();}
+});
 
 test('admission API requires a valid account and ignores attempts to select another account or priority',async()=>{
     ResetMatchmakingForTests();
