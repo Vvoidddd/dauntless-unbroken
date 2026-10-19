@@ -240,12 +240,12 @@ export type ExternalTarget =
   | "project_contributors"
   | "upstream_source"
   | "upstream_contributors"
-  | "eugamehost"
-  | "eugamehost_game1"
-  | "eugamehost_game2"
-  | "eugamehost_game3"
-  | "eugamehost_game5"
-  | "eugamehost_5800x"
+
+
+
+
+
+
   | "discord"
   | "patreon";
 

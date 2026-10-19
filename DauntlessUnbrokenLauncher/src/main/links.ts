@@ -17,12 +17,6 @@ import {
 // Tailscale share link in a private invite, and the host's own source link.
 export type FixedTarget = Exclude<ExternalTarget, "tailscale_share" | "server_source">;
 
-const EUGAMEHOST_URL = "https://www.eugamehost.com/";
-const EUGAMEHOST_GAME1_URL = "https://www.eugamehost.com/clients/cart.php?a=add&pid=238&promocode=SIGNUP6MONTH&skipconfig=1";
-const EUGAMEHOST_GAME2_URL = "https://www.eugamehost.com/clients/cart.php?a=add&pid=239&promocode=SIGNUP6MONTH&skipconfig=1";
-const EUGAMEHOST_GAME3_URL = "https://www.eugamehost.com/clients/cart.php?a=add&pid=240&promocode=SIGNUP6MONTH&skipconfig=1";
-const EUGAMEHOST_GAME5_URL = "https://www.eugamehost.com/clients/cart.php?a=add&pid=242&promocode=SIGNUP6MONTH&skipconfig=1";
-const EUGAMEHOST_5800X_URL = "https://www.eugamehost.com/clients/cart.php?a=add&pid=500";
 const DISCORD_URL = "https://github.com/Vvoidddd/dauntless-unbroken/discussions";
 const PATREON_URL = "https://github.com/Vvoidddd/dauntless-unbroken";
 
@@ -35,12 +29,7 @@ export const FIXED_LINKS: Readonly<Record<FixedTarget, string>> = Object.freeze(
   project_contributors: PROJECT_CONTRIBUTORS_URL,
   upstream_source: UPSTREAM_URL,
   upstream_contributors: UPSTREAM_CONTRIBUTORS_URL,
-  eugamehost: EUGAMEHOST_URL,
-  eugamehost_game1: EUGAMEHOST_GAME1_URL,
-  eugamehost_game2: EUGAMEHOST_GAME2_URL,
-  eugamehost_game3: EUGAMEHOST_GAME3_URL,
-  eugamehost_game5: EUGAMEHOST_GAME5_URL,
-  eugamehost_5800x: EUGAMEHOST_5800X_URL,
+
   discord: DISCORD_URL,
   patreon: PATREON_URL,
 });
@@ -80,8 +69,7 @@ export function isAllowedStaticUrl(url: string): boolean {
       return u.pathname.startsWith("/vs/");
     case "github.com":
       return GITHUB_PAGES.has(url);
-    case "www.eugamehost.com":
-      return url === EUGAMEHOST_URL || url === EUGAMEHOST_GAME1_URL || url === EUGAMEHOST_GAME2_URL || url === EUGAMEHOST_GAME3_URL || url === EUGAMEHOST_GAME5_URL || url === EUGAMEHOST_5800X_URL;
+
     case "discord.gg":
       return url === DISCORD_URL;
     case "patreon.com":

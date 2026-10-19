@@ -83,12 +83,12 @@ test("the page opens links by name only, and community/source controls are in th
     project_contributors: true,
     upstream_source: true,
     upstream_contributors: true,
-    eugamehost: true,
-    eugamehost_game1: true,
-    eugamehost_game2: true,
-    eugamehost_game3: true,
-    eugamehost_game5: true,
-    eugamehost_5800x: true,
+
+
+
+
+
+
     discord: true,
     patreon: true,
   };

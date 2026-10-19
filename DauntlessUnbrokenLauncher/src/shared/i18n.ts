@@ -12,8 +12,8 @@ const en = {
   nav_news: "News",
   nav_server: "Server",
   nav_settings: "Settings",
-  nav_partners: "Partners",
-  partners_subtitle: "Hosting for your next adventure together.",
+
+
   nav_mods: "Client Mods",
   mods_subtitle: "Extra in-game HUD features.",
 
@@ -37,25 +37,6 @@ const en = {
   mods_note_windows: "Windows only: on Linux the mods are not loaded and the game runs as usual.",
   mods_note_settings: "Your choices in the Mod Menu are kept through updates.",
 
-  partner_ad: "HOSTING PARTNER · AD",
-  partner_banner_label: "EU Gamehost advertisement — view hosting partner plans",
-  partner_banner_title: "Game VDS from £24.99/mo · full-stack start: GAME 3.",
-  partner_banner_cta: "Explore partner hosting →",
-  partner_title: "Your world. Your community.",
-  partner_intro: "EU Gamehost is a partnered and recommended hosting provider for Dauntless Unbroken. Their gaming VDS range starts at £24.99/mo; our full default-stack estimate is about 9.5 GB, so we recommend GAME 3 (12 GB) or larger for a normal all-in-one host.",
-  partner_small: "Testing / control plane",
-  partner_recommended: "Recommended starting point",
-  partner_headroom: "More capacity headroom",
-  partner_dedicated: "Dedicated hardware",
-  partner_per_month: " / month",
-  partner_network_vds: "5 Gbps unmetered",
-  partner_network_dedicated: "10 Gbps port",
-  partner_plan_cta: "View plan",
-  partner_explore: "Visit EU Gamehost",
-  partner_disclosure: "Partner advertisement. These are example prices from our hosting guide, not a live quote. Confirm current pricing, availability, location and operating system support with EU Gamehost before ordering.",
-  partner_capacity_title: "Choosing a plan",
-  partner_capacity: "Our measured RAM footprint: Ramsgate ≈ 1.1 GB, each hunt server ≈ 0.9 GB, Training Dojo ≈ 0.9 GB and the Node control plane ≈ 130 MB. With all default hunt ports active and a client on the host, our light-load estimate is roughly 9.5 GB.",
-  partner_capacity_note: "For the full default stack, start at GAME 3 (12 GB) or larger. GAME 1/2 are best treated as testing, control-plane or deliberately trimmed deployments. Player capacity is not guaranteed; combat CPU load at scale is still under measurement.",
   // The rail's logo tile: the logo image's text alternative, and the game version under it.
   logo_alt: "Dauntless Unbroken logo",
   tile_sub: "Game 1.4.4",
@@ -375,17 +356,6 @@ const en = {
   credits_title: "Licenses",
   credits_intro: "Open-source software and license notices.",
 
-
-
-
-
-
-
-
-
-
-
-
   credits_software: "Open-source software",
   credits_software_text: "The launcher and the server DLL it ships are built with these. Their full license texts ship with the launcher in THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "No license file",
@@ -559,8 +529,8 @@ const fi: Record<StringKey, string> = {
   nav_news: "Uutiset",
   nav_server: "Palvelin",
   nav_settings: "Asetukset",
-  nav_partners: "Kumppanit",
-  partners_subtitle: "Hosting yhteisiä seikkailuja varten.",
+
+
   nav_mods: "Modit",
   mods_subtitle: "Pelin käyttöliittymän lisäominaisuuksia.",
 
@@ -584,25 +554,6 @@ const fi: Record<StringKey, string> = {
   mods_note_windows: "Vain Windows: Linuxissa modeja ei ladata, ja peli toimii tavalliseen tapaan.",
   mods_note_settings: "Modivalikossa tekemäsi valinnat säilyvät päivitysten yli.",
 
-  partner_ad: "HOSTING-KUMPPANI · MAINOS",
-  partner_banner_label: "EU Gamehost -mainos — katso hosting-kumppanin paketit",
-  partner_banner_title: "Game VDS alkaen £24.99/kk · koko paketin lähtötaso: GAME 3.",
-  partner_banner_cta: "Tutustu kumppanin hostingiin →",
-  partner_title: "Oma maailma. Oma yhteisö.",
-  partner_intro: "EU Gamehost on Dauntless Unbrokenin kumppani ja suositeltu hosting-palvelu. Gaming VDS -paketit alkavat £24.99/kk; koko oletuskokoonpanon arviomme on noin 9,5 Gt, joten tavalliseen yhden koneen hostiin suosittelemme GAME 3:a (12 Gt) tai suurempaa.",
-  partner_small: "Testaus / ohjauspalvelut",
-  partner_recommended: "Suositeltu lähtötaso",
-  partner_headroom: "Enemmän kapasiteettivaraa",
-  partner_dedicated: "Dedikoitu palvelin",
-  partner_per_month: " / kk",
-  partner_network_vds: "5 Gbps, rajaton liikenne",
-  partner_network_dedicated: "10 Gbps verkkoliitäntä",
-  partner_plan_cta: "Katso paketti",
-  partner_explore: "Siirry EU Gamehostiin",
-  partner_disclosure: "Kumppanimainos. Hinnat ovat hosting-oppaamme esimerkkejä, eivät ajantasainen tarjous. Tarkista hinta, saatavuus, sijainti ja käyttöjärjestelmätuki EU Gamehostilta ennen tilausta.",
-  partner_capacity_title: "Sopivan paketin valinta",
-  partner_capacity: "Mittaamamme RAM-kulutus: Ramsgate noin 1,1 Gt, kukin metsästyspalvelin noin 0,9 Gt, Training Dojo noin 0,9 Gt ja Node-ohjauspalvelut noin 130 Mt. Kun kaikki oletusmetsästysportit ovat käytössä ja peliasiakas toimii samalla koneella, kevyen kuorman arvio on noin 9,5 Gt.",
-  partner_capacity_note: "Koko oletuskokoonpanolle lähtötaso on GAME 3 (12 Gt) tai suurempi. GAME 1/2 sopivat paremmin testaukseen, ohjauspalveluille tai tarkoituksella kevennettyyn kokoonpanoon. Pelaajamäärää ei taata, ja taistelun CPU-kuormaa mitataan vielä.",
   logo_alt: "Dauntless Unbroken -logo",
   tile_sub: "Peli 1.4.4",
   rail_not_joined: "Et ole vielä liittynyt",
@@ -921,17 +872,6 @@ const fi: Record<StringKey, string> = {
   credits_title: "Lisenssit",
   credits_intro: "Open-source software and license notices.",
 
-
-
-
-
-
-
-
-
-
-
-
   credits_software: "Avoimen lähdekoodin ohjelmistot",
   credits_software_text: "Käynnistin ja sen mukana tuleva palvelin-DLL on tehty näiden avulla. Niiden lisenssitekstit kokonaisuudessaan tulevat käynnistimen mukana tiedostossa THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Ei lisenssitiedostoa",
@@ -1103,8 +1043,8 @@ const es: Record<StringKey, string> = {
   nav_news: "Noticias",
   nav_server: "Servidor",
   nav_settings: "Ajustes",
-  nav_partners: "Socios",
-  partners_subtitle: "Alojamiento para vuestra próxima aventura juntos.",
+
+
   nav_mods: "Mods",
   mods_subtitle: "Funciones adicionales para la interfaz del juego.",
 
@@ -1128,25 +1068,6 @@ const es: Record<StringKey, string> = {
   mods_note_windows: "Solo Windows: en Linux los mods no se cargan y el juego funciona como siempre.",
   mods_note_settings: "Lo que elijas en el Menú de mods se conserva entre actualizaciones.",
 
-  partner_ad: "SOCIO DE ALOJAMIENTO · ANUNCIO",
-  partner_banner_label: "Anuncio de EU Gamehost: ver los planes del socio de alojamiento",
-  partner_banner_title: "VDS para juegos desde 24,99 £/mes · para el paquete completo: GAME 3.",
-  partner_banner_cta: "Ver alojamiento del socio →",
-  partner_title: "Tu mundo. Tu comunidad.",
-  partner_intro: "EU Gamehost es un proveedor de alojamiento asociado y recomendado para Dauntless Unbroken. Sus VDS para juegos empiezan en 24,99 £/mes; nuestra estimación para el paquete completo por defecto es de unos 9,5 GB, así que recomendamos GAME 3 (12 GB) o superior para un servidor normal con todo en uno.",
-  partner_small: "Pruebas / plano de control",
-  partner_recommended: "Punto de partida recomendado",
-  partner_headroom: "Más margen de capacidad",
-  partner_dedicated: "Hardware dedicado",
-  partner_per_month: " / mes",
-  partner_network_vds: "5 Gbps sin límite de tráfico",
-  partner_network_dedicated: "Puerto de 10 Gbps",
-  partner_plan_cta: "Ver plan",
-  partner_explore: "Visitar EU Gamehost",
-  partner_disclosure: "Anuncio de un socio. Son precios de ejemplo de nuestra guía de alojamiento, no un presupuesto en vivo. Confirma con EU Gamehost el precio actual, la disponibilidad, la ubicación y el sistema operativo compatible antes de contratar.",
-  partner_capacity_title: "Cómo elegir un plan",
-  partner_capacity: "Uso de RAM que hemos medido: Ramsgate ≈ 1,1 GB, cada servidor de cacería ≈ 0,9 GB, el Dojo de entrenamiento ≈ 0,9 GB y el plano de control de Node ≈ 130 MB. Con todos los puertos de cacería por defecto activos y un cliente en el mismo equipo, nuestra estimación con poca carga ronda los 9,5 GB.",
-  partner_capacity_note: "Para el paquete completo por defecto, empieza con GAME 3 (12 GB) o superior. GAME 1/2 son más adecuados para pruebas, plano de control o instalaciones recortadas a propósito. La capacidad de jugadores no está garantizada; la carga de CPU en combate a gran escala todavía se está midiendo.",
   logo_alt: "Logotipo de Dauntless Unbroken",
   tile_sub: "Juego 1.4.4",
   rail_not_joined: "Aún no te has unido",
@@ -1463,17 +1384,6 @@ const es: Record<StringKey, string> = {
   credits_title: "Lizenzen",
   credits_intro: "Open-source software and license notices.",
 
-
-
-
-
-
-
-
-
-
-
-
   credits_software: "Software de código abierto",
   credits_software_text: "El launcher y la DLL de servidor que incluye están hechos con esto. Los textos completos de sus licencias vienen con el launcher en THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Sin archivo de licencia",
@@ -1646,8 +1556,8 @@ const de: Record<StringKey, string> = {
   nav_news: "Neuigkeiten",
   nav_server: "Server",
   nav_settings: "Einstellungen",
-  nav_partners: "Partner",
-  partners_subtitle: "Hosting für euer nächstes gemeinsames Abenteuer.",
+
+
   nav_mods: "Mods",
   mods_subtitle: "Zusätzliche HUD-Funktionen im Spiel.",
 
@@ -1671,25 +1581,6 @@ const de: Record<StringKey, string> = {
   mods_note_windows: "Nur unter Windows: Unter Linux werden die Mods nicht geladen und das Spiel läuft wie gewohnt.",
   mods_note_settings: "Deine Auswahl im Mod-Menü bleibt bei Updates erhalten.",
 
-  partner_ad: "HOSTING-PARTNER · ANZEIGE",
-  partner_banner_label: "Anzeige von EU Gamehost: Tarife des Hosting-Partners ansehen",
-  partner_banner_title: "Game-VDS ab 24,99 £/Monat · für den kompletten Stack: GAME 3.",
-  partner_banner_cta: "Partner-Hosting ansehen →",
-  partner_title: "Deine Welt. Deine Community.",
-  partner_intro: "EU Gamehost ist ein Partner und empfohlener Hosting-Anbieter für Dauntless Unbroken. Ihre Gaming-VDS beginnen bei 24,99 £/Monat; unsere Schätzung für den kompletten Standard-Stack liegt bei etwa 9,5 GB, daher empfehlen wir GAME 3 (12 GB) oder größer für einen normalen All-in-one-Host.",
-  partner_small: "Tests / Steuerungsebene",
-  partner_recommended: "Empfohlener Einstieg",
-  partner_headroom: "Mehr Kapazitätsreserve",
-  partner_dedicated: "Dedizierte Hardware",
-  partner_per_month: " / Monat",
-  partner_network_vds: "5 Gbit/s ohne Volumenbegrenzung",
-  partner_network_dedicated: "10-Gbit/s-Port",
-  partner_plan_cta: "Tarif ansehen",
-  partner_explore: "EU Gamehost besuchen",
-  partner_disclosure: "Partneranzeige. Das sind Beispielpreise aus unserem Hosting-Leitfaden, kein aktuelles Angebot. Prüfe aktuelle Preise, Verfügbarkeit, Standort und Betriebssystem-Unterstützung bei EU Gamehost, bevor du bestellst.",
-  partner_capacity_title: "Einen Tarif wählen",
-  partner_capacity: "Unser gemessener RAM-Bedarf: Ramsgate ≈ 1,1 GB, jeder Jagdserver ≈ 0,9 GB, Trainings-Dojo ≈ 0,9 GB und die Node-Steuerungsebene ≈ 130 MB. Mit allen Standard-Jagdports aktiv und einem Client auf dem Host liegt unsere Schätzung bei geringer Last bei etwa 9,5 GB.",
-  partner_capacity_note: "Für den kompletten Standard-Stack beginne mit GAME 3 (12 GB) oder größer. GAME 1/2 eignen sich eher für Tests, die Steuerungsebene oder bewusst verkleinerte Installationen. Eine Spielerzahl ist nicht garantiert; die CPU-Last im Kampf bei vielen Spielern wird noch gemessen.",
   logo_alt: "Dauntless-Unbroken-Logo",
   tile_sub: "Spiel 1.4.4",
   rail_not_joined: "Noch keinem Server beigetreten",
@@ -1956,17 +1847,6 @@ const de: Record<StringKey, string> = {
   credits_title: "Licencias",
   credits_intro: "Open-source software and license notices.",
 
-
-
-
-
-
-
-
-
-
-
-
   credits_software: "Open-Source-Software",
   credits_software_text: "Der Launcher und die mitgelieferte Server-DLL werden damit gebaut. Ihre vollständigen Lizenztexte liegen dem Launcher in THIRD-PARTY-NOTICES.txt bei.",
   credits_no_license: "Keine Lizenzdatei",
@@ -2118,8 +1998,8 @@ const fr: Record<StringKey, string> = {
   nav_news: "Actualités",
   nav_server: "Serveur",
   nav_settings: "Paramètres",
-  nav_partners: "Partenaires",
-  partners_subtitle: "L'hébergement pour votre prochaine aventure ensemble.",
+
+
   nav_mods: "Mods",
   mods_subtitle: "Fonctions supplémentaires pour l’interface du jeu.",
 
@@ -2143,25 +2023,6 @@ const fr: Record<StringKey, string> = {
   mods_note_windows: "Windows uniquement : sous Linux, les mods ne sont pas chargés et le jeu fonctionne comme d'habitude.",
   mods_note_settings: "Vos choix dans le menu de mods sont conservés lors des mises à jour.",
 
-  partner_ad: "PARTENAIRE D'HÉBERGEMENT · PUBLICITÉ",
-  partner_banner_label: "Publicité EU Gamehost : voir les offres du partenaire d'hébergement",
-  partner_banner_title: "VDS de jeu dès 24,99 £/mois · pour la pile complète : GAME 3.",
-  partner_banner_cta: "Découvrir l'hébergement partenaire →",
-  partner_title: "Votre monde. Votre communauté.",
-  partner_intro: "EU Gamehost est un hébergeur partenaire et recommandé pour Dauntless Unbroken. Leurs VDS de jeu commencent à 24,99 £/mois ; notre estimation pour la pile complète par défaut est d'environ 9,5 Go, nous recommandons donc GAME 3 (12 Go) ou plus pour un hôte tout-en-un normal.",
-  partner_small: "Tests / plan de contrôle",
-  partner_recommended: "Point de départ recommandé",
-  partner_headroom: "Plus de marge de capacité",
-  partner_dedicated: "Matériel dédié",
-  partner_per_month: " / mois",
-  partner_network_vds: "5 Gbit/s sans limite de trafic",
-  partner_network_dedicated: "Port 10 Gbit/s",
-  partner_plan_cta: "Voir l'offre",
-  partner_explore: "Visiter EU Gamehost",
-  partner_disclosure: "Publicité partenaire. Ce sont des prix d'exemple tirés de notre guide d'hébergement, pas un devis en direct. Vérifiez les prix, la disponibilité, l'emplacement et la prise en charge du système d'exploitation auprès d'EU Gamehost avant de commander.",
-  partner_capacity_title: "Choisir une offre",
-  partner_capacity: "Notre consommation de RAM mesurée : Ramsgate ≈ 1,1 Go, chaque serveur de chasse ≈ 0,9 Go, Dojo d'entraînement ≈ 0,9 Go et le plan de contrôle Node ≈ 130 Mo. Avec tous les ports de chasse par défaut actifs et un client sur l'hôte, notre estimation à faible charge est d'environ 9,5 Go.",
-  partner_capacity_note: "Pour la pile complète par défaut, commencez par GAME 3 (12 Go) ou plus. GAME 1/2 conviennent plutôt aux tests, au plan de contrôle ou à des déploiements volontairement réduits. La capacité en joueurs n'est pas garantie ; la charge CPU des combats à grande échelle est encore en cours de mesure.",
   logo_alt: "Logo de Dauntless Unbroken",
   tile_sub: "Jeu 1.4.4",
   rail_not_joined: "Pas encore de serveur",
@@ -2428,17 +2289,6 @@ const fr: Record<StringKey, string> = {
   credits_title: "Licences",
   credits_intro: "Open-source software and license notices.",
 
-
-
-
-
-
-
-
-
-
-
-
   credits_software: "Logiciels open source",
   credits_software_text: "Le launcher et la DLL serveur qu'il fournit sont construits avec ceux-ci. Leurs textes de licence complets sont fournis avec le launcher dans THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Pas de fichier de licence",
@@ -2590,8 +2440,8 @@ const it: Record<StringKey, string> = {
   nav_news: "Notizie",
   nav_server: "Server",
   nav_settings: "Impostazioni",
-  nav_partners: "Partner",
-  partners_subtitle: "Hosting per la vostra prossima avventura insieme.",
+
+
   nav_mods: "Mod",
   mods_subtitle: "Funzioni aggiuntive per l’interfaccia di gioco.",
 
@@ -2615,25 +2465,6 @@ const it: Record<StringKey, string> = {
   mods_note_windows: "Solo Windows: su Linux le mod non vengono caricate e il gioco funziona come al solito.",
   mods_note_settings: "Le tue scelte nel menu delle mod restano con gli aggiornamenti.",
 
-  partner_ad: "PARTNER DI HOSTING · PUBBLICITÀ",
-  partner_banner_label: "Pubblicità di EU Gamehost: guarda i piani del partner di hosting",
-  partner_banner_title: "VDS da gioco da 24,99 £/mese · per lo stack completo: GAME 3.",
-  partner_banner_cta: "Scopri l'hosting partner →",
-  partner_title: "Il tuo mondo. La tua community.",
-  partner_intro: "EU Gamehost è un provider di hosting partner e consigliato per Dauntless Unbroken. I loro VDS da gioco partono da 24,99 £/mese; la nostra stima per lo stack predefinito completo è di circa 9,5 GB, quindi consigliamo GAME 3 (12 GB) o superiore per un normale host tutto in uno.",
-  partner_small: "Test / piano di controllo",
-  partner_recommended: "Punto di partenza consigliato",
-  partner_headroom: "Più margine di capacità",
-  partner_dedicated: "Hardware dedicato",
-  partner_per_month: " / mese",
-  partner_network_vds: "5 Gbps senza limiti di traffico",
-  partner_network_dedicated: "Porta da 10 Gbps",
-  partner_plan_cta: "Vedi il piano",
-  partner_explore: "Visita EU Gamehost",
-  partner_disclosure: "Pubblicità del partner. Sono prezzi di esempio dalla nostra guida all'hosting, non un preventivo aggiornato. Verifica prezzi, disponibilità, località e supporto del sistema operativo con EU Gamehost prima di ordinare.",
-  partner_capacity_title: "Scegliere un piano",
-  partner_capacity: "Il nostro consumo di RAM misurato: Ramsgate ≈ 1,1 GB, ogni server di caccia ≈ 0,9 GB, Dojo di addestramento ≈ 0,9 GB e il piano di controllo Node ≈ 130 MB. Con tutte le porte di caccia predefinite attive e un client sull'host, la nostra stima a basso carico è di circa 9,5 GB.",
-  partner_capacity_note: "Per lo stack predefinito completo, parti da GAME 3 (12 GB) o superiore. GAME 1/2 vanno usati per test, piano di controllo o installazioni volutamente ridotte. La capacità di giocatori non è garantita; il carico della CPU in combattimento su larga scala è ancora in fase di misura.",
   logo_alt: "Logo di Dauntless Unbroken",
   tile_sub: "Gioco 1.4.4",
   rail_not_joined: "Nessun server ancora",
@@ -2900,17 +2731,6 @@ const it: Record<StringKey, string> = {
   credits_title: "Licenze",
   credits_intro: "Open-source software and license notices.",
 
-
-
-
-
-
-
-
-
-
-
-
   credits_software: "Software open source",
   credits_software_text: "Il launcher e la DLL del server che include sono costruiti con questi. I testi completi delle licenze sono inclusi nel launcher in THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Nessun file di licenza",
@@ -3062,8 +2882,8 @@ const ja: Record<StringKey, string> = {
   nav_news: "ニュース",
   nav_server: "サーバー",
   nav_settings: "設定",
-  nav_partners: "パートナー",
-  partners_subtitle: "仲間との次の冒険のためのホスティング。",
+
+
   nav_mods: "MOD",
   mods_subtitle: "ゲーム内HUDの追加機能。",
 
@@ -3087,25 +2907,6 @@ const ja: Record<StringKey, string> = {
   mods_note_windows: "Windows のみ：Linux では MOD は読み込まれず、ゲームは通常どおり動作します。",
   mods_note_settings: "MOD メニューでの選択はアップデート後も保持されます。",
 
-  partner_ad: "ホスティングパートナー · 広告",
-  partner_banner_label: "EU Gamehost の広告：ホスティングパートナーのプランを見る",
-  partner_banner_title: "ゲーム用 VDS は月額 £24.99 から · フルスタックなら GAME 3。",
-  partner_banner_cta: "パートナーのホスティングを見る →",
-  partner_title: "あなたの世界。あなたのコミュニティ。",
-  partner_intro: "EU Gamehost は Dauntless Unbroken のパートナーで推奨ホスティング事業者です。ゲーム用 VDS は月額 £24.99 から。標準スタック全体の見積もりは約 9.5 GB なので、通常のオールインワン構成には GAME 3（12 GB）以上をおすすめします。",
-  partner_small: "テスト / コントロールプレーン",
-  partner_recommended: "おすすめの出発点",
-  partner_headroom: "容量に余裕を持たせたい場合",
-  partner_dedicated: "専用ハードウェア",
-  partner_per_month: " / 月",
-  partner_network_vds: "5 Gbps 無制限",
-  partner_network_dedicated: "10 Gbps ポート",
-  partner_plan_cta: "プランを見る",
-  partner_explore: "EU Gamehost を見る",
-  partner_disclosure: "パートナー広告。ホスティングガイドに載せている参考価格で、最新の見積もりではありません。注文前に最新の価格、在庫、設置場所、対応 OS を EU Gamehost で確認してください。",
-  partner_capacity_title: "プランの選び方",
-  partner_capacity: "実測した RAM 使用量：Ramsgate ≈ 1.1 GB、狩りサーバー 1 つあたり ≈ 0.9 GB、トレーニング道場 ≈ 0.9 GB、Node のコントロールプレーン ≈ 130 MB。標準の狩り用ポートをすべて使い、ホストでクライアントも動かす場合、低負荷時の見積もりは約 9.5 GB です。",
-  partner_capacity_note: "標準スタック全体なら GAME 3（12 GB）以上から始めてください。GAME 1/2 はテスト、コントロールプレーン、意図的に縮小した構成向けです。プレイヤー数は保証されません。大人数での戦闘時の CPU 負荷はまだ計測中です。",
   logo_alt: "Dauntless Unbroken のロゴ",
   tile_sub: "ゲーム 1.4.4",
   rail_not_joined: "まだ参加していません",
@@ -3372,17 +3173,6 @@ const ja: Record<StringKey, string> = {
   credits_title: "ライセンス",
   credits_intro: "Open-source software and license notices.",
 
-
-
-
-
-
-
-
-
-
-
-
   credits_software: "オープンソースソフトウェア",
   credits_software_text: "ランチャーと同梱のサーバー DLL は、これらを使って作られています。ライセンスの全文はランチャーに THIRD-PARTY-NOTICES.txt として同梱されています。",
   credits_no_license: "ライセンスファイルなし",
@@ -3534,8 +3324,8 @@ const pt: Record<StringKey, string> = {
   nav_news: "Notícias",
   nav_server: "Servidor",
   nav_settings: "Configurações",
-  nav_partners: "Parceiros",
-  partners_subtitle: "Hospedagem para a sua próxima aventura em grupo.",
+
+
   nav_mods: "Mods",
   mods_subtitle: "Recursos adicionais para a interface do jogo.",
 
@@ -3559,25 +3349,6 @@ const pt: Record<StringKey, string> = {
   mods_note_windows: "Somente Windows: no Linux os mods não são carregados e o jogo roda normalmente.",
   mods_note_settings: "Suas escolhas no Menu de Mods são mantidas entre atualizações.",
 
-  partner_ad: "PARCEIRO DE HOSPEDAGEM · ANÚNCIO",
-  partner_banner_label: "Anúncio da EU Gamehost: ver os planos do parceiro de hospedagem",
-  partner_banner_title: "VDS para jogos a partir de £24,99/mês · para a pilha completa: GAME 3.",
-  partner_banner_cta: "Conhecer a hospedagem parceira →",
-  partner_title: "Seu mundo. Sua comunidade.",
-  partner_intro: "A EU Gamehost é uma provedora de hospedagem parceira e recomendada do Dauntless Unbroken. Os VDS para jogos começam em £24,99/mês; nossa estimativa para a pilha padrão completa é de cerca de 9,5 GB, então recomendamos o GAME 3 (12 GB) ou maior para um host normal com tudo em um só lugar.",
-  partner_small: "Testes / plano de controle",
-  partner_recommended: "Ponto de partida recomendado",
-  partner_headroom: "Mais folga de capacidade",
-  partner_dedicated: "Hardware dedicado",
-  partner_per_month: " / mês",
-  partner_network_vds: "5 Gbps sem limite de tráfego",
-  partner_network_dedicated: "Porta de 10 Gbps",
-  partner_plan_cta: "Ver plano",
-  partner_explore: "Visitar a EU Gamehost",
-  partner_disclosure: "Anúncio de parceiro. Estes são preços de exemplo do nosso guia de hospedagem, não uma cotação ao vivo. Confirme o preço atual, a disponibilidade, a localização e o suporte ao sistema operacional com a EU Gamehost antes de contratar.",
-  partner_capacity_title: "Como escolher um plano",
-  partner_capacity: "Nosso consumo de RAM medido: Ramsgate ≈ 1,1 GB, cada servidor de caçada ≈ 0,9 GB, o Dojo de Treinamento ≈ 0,9 GB e o plano de controle Node ≈ 130 MB. Com todas as portas de caçada padrão ativas e um cliente no host, nossa estimativa com carga leve é de aproximadamente 9,5 GB.",
-  partner_capacity_note: "Para a pilha padrão completa, comece no GAME 3 (12 GB) ou maior. GAME 1/2 são mais indicados para testes, plano de controle ou instalações reduzidas de propósito. A capacidade de jogadores não é garantida; a carga de CPU em combate em escala ainda está sendo medida.",
   logo_alt: "Logotipo do Dauntless Unbroken",
   tile_sub: "Jogo 1.4.4",
   rail_not_joined: "Ainda não entrou",
@@ -3844,17 +3615,6 @@ const pt: Record<StringKey, string> = {
   credits_title: "Licenças",
   credits_intro: "Open-source software and license notices.",
 
-
-
-
-
-
-
-
-
-
-
-
   credits_software: "Software de código aberto",
   credits_software_text: "O launcher e a DLL de servidor que ele traz são feitos com estes. Os textos completos das licenças vêm com o launcher em THIRD-PARTY-NOTICES.txt.",
   credits_no_license: "Sem arquivo de licença",
@@ -4006,8 +3766,8 @@ const ru: Record<StringKey, string> = {
   nav_news: "Новости",
   nav_server: "Сервер",
   nav_settings: "Настройки",
-  nav_partners: "Партнёры",
-  partners_subtitle: "Хостинг для вашего следующего совместного приключения.",
+
+
   nav_mods: "Моды",
   mods_subtitle: "Дополнительные функции игрового интерфейса.",
 
@@ -4031,25 +3791,6 @@ const ru: Record<StringKey, string> = {
   mods_note_windows: "Только для Windows: в Linux моды не загружаются, и игра работает как обычно.",
   mods_note_settings: "Ваши настройки в меню модов сохраняются при обновлениях.",
 
-  partner_ad: "ПАРТНЁР ПО ХОСТИНГУ · РЕКЛАМА",
-  partner_banner_label: "Реклама EU Gamehost: посмотреть тарифы партнёра по хостингу",
-  partner_banner_title: "Игровые VDS от 24,99 £/мес. · для полного стека: GAME 3.",
-  partner_banner_cta: "Посмотреть партнёрский хостинг →",
-  partner_title: "Ваш мир. Ваше сообщество.",
-  partner_intro: "EU Gamehost - партнёр и рекомендуемый хостинг-провайдер Dauntless Unbroken. Их игровые VDS стоят от 24,99 £/мес.; по нашей оценке полный стандартный стек занимает около 9,5 ГБ, поэтому для обычного сервера «всё в одном» мы советуем GAME 3 (12 ГБ) или выше.",
-  partner_small: "Тесты / управляющий уровень",
-  partner_recommended: "Рекомендуемый вариант для начала",
-  partner_headroom: "Больше запаса мощности",
-  partner_dedicated: "Выделенное оборудование",
-  partner_per_month: " / мес.",
-  partner_network_vds: "5 Гбит/с без ограничения трафика",
-  partner_network_dedicated: "Порт 10 Гбит/с",
-  partner_plan_cta: "Посмотреть тариф",
-  partner_explore: "Перейти на EU Gamehost",
-  partner_disclosure: "Партнёрская реклама. Это примерные цены из нашего руководства по хостингу, а не актуальное предложение. Перед заказом уточните у EU Gamehost текущие цены, наличие, расположение и поддерживаемые операционные системы.",
-  partner_capacity_title: "Как выбрать тариф",
-  partner_capacity: "Измеренный нами расход памяти: Ramsgate ≈ 1,1 ГБ, каждый сервер охоты ≈ 0,9 ГБ, тренировочное додзё ≈ 0,9 ГБ и управляющий уровень на Node ≈ 130 МБ. Со всеми стандартными портами охоты и клиентом на самом сервере наша оценка при малой нагрузке около 9,5 ГБ.",
-  partner_capacity_note: "Для полного стандартного стека начинайте с GAME 3 (12 ГБ) или выше. GAME 1/2 лучше подходят для тестов, управляющего уровня или намеренно урезанных установок. Количество игроков не гарантируется; нагрузку на процессор в боях при большом числе игроков мы ещё измеряем.",
   logo_alt: "Логотип Dauntless Unbroken",
   tile_sub: "Игра 1.4.4",
   rail_not_joined: "Вы ещё не подключились к серверу",
@@ -4315,17 +4056,6 @@ const ru: Record<StringKey, string> = {
   nav_credits: "Лицензии",
   credits_title: "Лицензии",
   credits_intro: "Open-source software and license notices.",
-
-
-
-
-
-
-
-
-
-
-
 
   credits_software: "Открытое ПО",
   credits_software_text: "Лаунчер и поставляемая с ним серверная DLL собраны с их помощью. Полные тексты лицензий поставляются с лаунчером в файле THIRD-PARTY-NOTICES.txt.",

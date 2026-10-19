@@ -11,8 +11,8 @@ const renderer = readFileSync(path.join(ROOT, "src", "renderer", "index.ts"), "u
 const css = readFileSync(path.join(ROOT, "src", "renderer", "styles.css"), "utf8");
 
 test("Client Mods keeps its navigation and shows feature descriptions without author promotions", () => {
-  assert.match(html, /id="view-partners"[^>]*><\/section>\s*<section class="view" id="view-mods" aria-labelledby="mods-title" hidden><\/section>\s*<section class="view" id="view-settings"/);
-  assert.match(renderer, /\{ view: "partners", icon: "people", key: "nav_partners" \},\s*\{ view: "mods", icon: "puzzle", key: "nav_mods" \},\s*\{ view: "settings"/);
+  assert.match(html, /id="view-mods" aria-labelledby="mods-title" hidden><\/section>\s*<section class="view" id="view-settings"/);
+  assert.match(renderer, /\{ view: "mods", icon: "puzzle", key: "nav_mods" \},\s*\{ view: "settings"/);
   assert.match(renderer, /function renderMods\(\): void/);
   assert.match(renderer, /if \(state\.view === "mods"\) renderMods\(\);/);
   assert.match(css, /\.mods-overview\s*\{/);

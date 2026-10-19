@@ -3,7 +3,7 @@
 // all come through the main process.
 
 import { $, forceRender, githubMark, h, icon, renderRegion, type IconName } from "./dom";
-import partnerLogo from "./brand/eugamehost-partner.png";
+
 import newsBadge from "./brand/news-badge.svg";
 import { buildScene } from "./scene";
 import { isStringKey, translate, type StringKey } from "../shared/i18n";
@@ -15,8 +15,8 @@ import { formatBytes, formatDate, formatDuration, formatRunningTime } from "../s
 import { sortInstances, type InstanceKind, type ServerStatus, type StatusInstance } from "../shared/status";
 import { EXPOSURE_MODES, GAME_LANGUAGES, GRAPHICS_PRESETS, LANGUAGES, type Branding, type ExposureMode, type ExternalTarget, type GameLanguage, type GraphicsPreset, type Language, type LauncherError, type NewsItem, type OfflinePhase, type OfflineStatus, type Snapshot, type TaskProgress } from "../shared/types";
 
-type View = "play" | "news" | "server" | "settings" | "partners" | "mods" | "credits";
-const VIEWS: readonly View[] = ["play", "news", "server", "settings", "partners", "mods", "credits"];
+type View = "play" | "news" | "server" | "settings" | "mods" | "credits";
+const VIEWS: readonly View[] = ["play", "news", "server", "settings", "mods", "credits"];
 type Modal =
   | { kind: "invite"; link: string; name: string; host: string; mode: "public" | "private"; fp: string | null }
   // A public invite whose certificate is not the one this PC's key for that server belongs to.
@@ -774,7 +774,7 @@ function renderPlay(): void {
         parts = playRunning(snap);
         break;
     }
-    return [h("div", { class: "play-content" }, ...parts, partnerBanner())];
+    return [h("div", { class: "play-content" }, ...parts)];
   });
 }
 
@@ -1148,81 +1148,10 @@ function renderNews(): void {
         );
       }
     }
-    return [h("div", { class: "page" }, h("h1", { class: "page-title", id: "news-title" }, title), ...body, partnerBanner())];
+    return [h("div", { class: "page" }, h("h1", { class: "page-title", id: "news-title" }, title), ...body)];
   });
 }
 
-// ------------------------------------------------------------------ partners page
-
-function partnerBanner(): HTMLElement {
-  const banner = h(
-    "button",
-    { type: "button", class: "partner-banner", "data-fk": "partner-banner", "aria-label": t("partner_banner_label") },
-    h("img", { src: partnerLogo, alt: "EU Gamehost", draggable: "false" }),
-    h("span", { class: "partner-banner-copy" },
-      h("span", { class: "partner-mini-label" }, t("partner_ad")),
-      h("strong", {}, t("partner_banner_title")),
-      h("span", { class: "partner-banner-cta" }, t("partner_banner_cta")),
-    ),
-  );
-  banner.addEventListener("click", () => setView("partners"));
-  return banner;
-}
-
-function partnerHostingCard(): HTMLElement {
-  const plans: readonly { name: string; price: string; spec: string; target: ExternalTarget; note: StringKey }[] = [
-    { name: "VDS GAME 1", price: "£24.99", spec: "1 vCPU · 4 GB RAM · 60 GB NVMe", target: "eugamehost_game1", note: "partner_small" },
-    { name: "VDS GAME 3", price: "£44.99", spec: "3 vCPU · 12 GB RAM · 180 GB NVMe", target: "eugamehost_game3", note: "partner_recommended" },
-    { name: "VDS GAME 5", price: "£66.99", spec: "6 vCPU · 24 GB RAM · 360 GB NVMe", target: "eugamehost_game5", note: "partner_headroom" },
-    { name: "Ryzen 7 5800X", price: "£85", spec: "8c/16t · 32 GB DDR4 · 1 TB NVMe", target: "eugamehost_5800x", note: "partner_dedicated" },
-  ];
-  const grid = h("div", { class: "partner-plans" });
-  for (const p of plans) {
-    const b = h(
-      "button",
-      { type: "button", class: `partner-plan${p.note === "partner_recommended" ? " recommended" : ""}`, "data-fk": p.target },
-      h("span", { class: "partner-plan-note" }, t(p.note)),
-      h("strong", {}, p.name),
-      h("span", { class: "partner-price" }, p.price, h("span", {}, t("partner_per_month"))),
-      h("span", { class: "partner-spec" }, p.spec),
-      h("span", { class: "partner-spec" }, t(p.target === "eugamehost_5800x" ? "partner_network_dedicated" : "partner_network_vds")),
-      h("span", { class: "partner-cta" }, t("partner_plan_cta"), icon("external")),
-    );
-    b.addEventListener("click", () => open(p.target));
-    grid.append(b);
-  }
-  return card(
-    "partner-card",
-    h("div", { class: "partner-head" },
-      h("img", { class: "partner-logo", src: partnerLogo, alt: "EU Gamehost", draggable: "false" }),
-      h("div", {},
-        h("span", { class: "badge partner-badge" }, t("partner_ad")),
-        h("h2", { class: "partner-title" }, t("partner_title")),
-      ),
-    ),
-    h("p", { class: "card-text partner-copy" }, t("partner_intro")),
-    grid,
-    h("div", { class: "card-row partner-actions" },
-      linkButton(t("partner_explore"), () => open("eugamehost"), { icon: "external", fk: "host-all" }),
-    ),
-    h("p", { class: "small-print partner-disclosure" }, t("partner_disclosure")),
-  );
-}
-
-function renderPartners(): void {
-  renderRegion($("#view-partners"), state.lang, () => [
-    h("div", { class: "page partners-page" },
-      h("h1", { class: "page-title", id: "partners-title" }, t("nav_partners")),
-      h("p", { class: "page-sub" }, t("partners_subtitle")),
-      partnerHostingCard(),
-      card("",
-        h("h2", { class: "card-title" }, icon("server"), t("partner_capacity_title")),
-        h("p", { class: "card-text" }, t("partner_capacity")),
-        h("p", { class: "small-print" }, t("partner_capacity_note")),
-      ),
-    ),
-  ]);
-}
 
 // ------------------------------------------------------------------ mods page
 
@@ -1273,7 +1202,7 @@ function renderServer(): void {
   const sig = JSON.stringify([state.lang, snap?.server ?? null, snap?.savedServers ?? [], snap?.status ?? null, snap?.phase, snap?.connect.problem, snap?.busy, !!snap?.task, snap?.game.running, minute]);
   renderRegion(container, sig, () => {
     if (!snap?.server) {
-      return [h("div", { class: "page" }, h("h1", { class: "page-title", id: "server-title" }, t("nav_server")), card("", h("p", { class: "card-text" }, t("sp_nojoin"))), partnerBanner())];
+      return [h("div", { class: "page" }, h("h1", { class: "page-title", id: "server-title" }, t("nav_server")), card("", h("p", { class: "card-text" }, t("sp_nojoin"))))];
     }
     const sv = snap.server;
     const status = snap.status;
@@ -1292,7 +1221,6 @@ function renderServer(): void {
     const parts: HTMLElement[] = [
       h("h1", { class: "page-title", id: "server-title" }, serverName()),
       h("p", { class: "page-sub" }, t("server_auto")),
-      partnerBanner(),
       card("", kv, h("div", { class: "card-row", style: undefined }, button(t("sp_refresh"), () => void api.refreshStatus(), { icon: "refresh", fk: "srv-refresh" }), status?.sourceUrl ? linkButton(t("sp_source"), () => open("server_source"), { icon: "external", fk: "srv-source" }) : null)),
     ];
     if (status?.limited) {
@@ -1739,7 +1667,7 @@ const NAV: { view: View; icon: IconName; key: StringKey }[] = [
   { view: "play", icon: "play", key: "nav_play" },
   { view: "news", icon: "news", key: "nav_news" },
   { view: "server", icon: "server", key: "nav_server" },
-  { view: "partners", icon: "people", key: "nav_partners" },
+
   { view: "mods", icon: "puzzle", key: "nav_mods" },
   { view: "settings", icon: "settings", key: "nav_settings" },
 ];
@@ -1818,8 +1746,8 @@ function setView(v: View): void {
   for (const view of VIEWS) $(`#view-${view}`).hidden = view !== v;
   $("#actionbar").hidden = false;
   // The Server page shows everything the side panel shows, in full: no need for both. The Credits
-  // Partners and Mods pages have long content and get the room too.
-  $(".world").classList.toggle("no-panel", v === "server" || v === "credits" || v === "partners" || v === "mods");
+  // The Mods page has long content and gets the room too.
+  $(".world").classList.toggle("no-panel", v === "server" || v === "credits" || v === "mods");
   renderAll();
   if (changed && !reducedMotion.matches) {
     const selected = $(`#view-${v}`);
@@ -1874,7 +1802,7 @@ function renderAll(): void {
   if (state.view === "server") renderServer();
   if (state.view === "settings") renderSettings();
   if (state.view === "credits") renderCredits();
-  if (state.view === "partners") renderPartners();
+
   if (state.view === "mods") renderMods();
   renderActionBar();
   renderPanel();
@@ -2209,7 +2137,7 @@ function initChrome(): void {
   const github = $("#github-btn");
   github.appendChild(githubMark());
   github.addEventListener("click", () => open("project_source"));
-  $("#eugamehost-btn").addEventListener("click", () => setView("partners"));
+
   $("#discord-btn").addEventListener("click", () => open("discord"));
   $("#patreon-btn").addEventListener("click", () => open("patreon"));
   document.addEventListener("visibilitychange", () => void api.setStatusPolling(!document.hidden));

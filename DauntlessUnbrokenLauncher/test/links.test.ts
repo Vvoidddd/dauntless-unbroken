@@ -31,12 +31,12 @@ const EXPECTED: Record<FixedTarget, string> = {
   project_contributors: "https://github.com/Vvoidddd/dauntless-unbroken/graphs/contributors",
   upstream_source: "https://github.com/SyST3MDeV/Undaunted",
   upstream_contributors: "https://github.com/SyST3MDeV/Undaunted/graphs/contributors",
-  eugamehost: "https://www.eugamehost.com/",
-  eugamehost_game1: "https://www.eugamehost.com/clients/cart.php?a=add&pid=238&promocode=SIGNUP6MONTH&skipconfig=1",
-  eugamehost_game2: "https://www.eugamehost.com/clients/cart.php?a=add&pid=239&promocode=SIGNUP6MONTH&skipconfig=1",
-  eugamehost_game3: "https://www.eugamehost.com/clients/cart.php?a=add&pid=240&promocode=SIGNUP6MONTH&skipconfig=1",
-  eugamehost_game5: "https://www.eugamehost.com/clients/cart.php?a=add&pid=242&promocode=SIGNUP6MONTH&skipconfig=1",
-  eugamehost_5800x: "https://www.eugamehost.com/clients/cart.php?a=add&pid=500",
+
+
+
+
+
+
   discord: "https://github.com/Vvoidddd/dauntless-unbroken/discussions",
   patreon: "https://github.com/Vvoidddd/dauntless-unbroken",
 };
@@ -53,12 +53,12 @@ const ALL_TARGETS: Record<ExternalTarget, true> = {
   project_contributors: true,
   upstream_source: true,
   upstream_contributors: true,
-  eugamehost: true,
-  eugamehost_game1: true,
-  eugamehost_game2: true,
-  eugamehost_game3: true,
-  eugamehost_game5: true,
-  eugamehost_5800x: true,
+
+
+
+
+
+
   discord: true,
   patreon: true,
 };
