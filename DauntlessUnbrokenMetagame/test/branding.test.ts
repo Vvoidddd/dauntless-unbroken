@@ -11,15 +11,8 @@ import ts from "typescript";
 // upstream's DLL send, the JWT issuer/audience, and import paths). Credits live in the docs.
 const SRC = path.join(__dirname, "..", "..", "src");
 
-const WIRE = [
-    /\/unbroken\/api\b/gi,
-    /\bx-dauntless-unbroken-(user-api-key|gameserver-apikey)\b/g,
-    /^dauntless-unbroken-metagame$/g,
-    /^undaunted\.db$/g // existing Windows backup format; not a product-facing label
-];
-
 function NamesProduct(Text: string){
-    return /unbroken/i.test(WIRE.reduce((Rest, Pattern) => Rest.replace(Pattern, ""), Text));
+    return /undaunted|dauntless[\s-]*revived/i.test(Text);
 }
 
 function SourceFiles(Dir: string): string[] {

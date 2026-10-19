@@ -360,7 +360,7 @@ describe("GET /dauntless-status", () => {
             const Texts = Object.values(StatusTexts(Default));
             assert.equal(new Set(Texts).size, Texts.length);
             for(const Text of Texts){
-                assert.doesNotMatch(Text, /unbroken|\d+\.\d+/i);
+                assert.doesNotMatch(Text, /undaunted|dauntless[\s-]*revived|\d+\.\d+/i);
             }
 
             process.env.SERVER_NAME = "Friday Hunts";
@@ -434,7 +434,7 @@ describe("player-visible replies", () => {
         for(const [Path, Options] of Calls){
             const Reply = await Call("GET", Path, Options);
             assert.ok(Reply.status < 500, `${Path}: ${Reply.status}`);
-            assert.doesNotMatch(Reply.text.replace(/\/unbroken\/api\//gi, "/"), /unbroken/i, Path);
+            assert.doesNotMatch(Reply.text.replace(/\/unbroken\/api\//gi, "/"), /undaunted|dauntless[\s-]*revived/i, Path);
         }
     });
 });
