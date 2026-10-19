@@ -1,7 +1,7 @@
 {
   "name": "dauntless-unbroken-launcher",
   "productName": "Dauntless Unbroken Launcher",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Cross-platform launcher for Dauntless Unbroken: join community servers, download and verify the pinned Dauntless 1.4.4 client, and play on Windows or Linux via Proton/Wine.",
   "main": ".vite/build/main.js",
   "private": true,
@@ -37,7 +37,8 @@
   },
   "license": "AGPL-3.0-only",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22.17",
+    "npm": ">=11.19"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.11.2",

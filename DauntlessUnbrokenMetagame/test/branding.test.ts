@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import ts from "typescript";
+// TypeScript 7 supplies the native compiler; the branding audit still uses the JS AST API.
+import ts from "typescript-api";
 
 // Our product is Dauntless Unbroken. No text the metagame sends or logs may call it Undaunted:
 // every string in src/ is checked. What stays are wire identifiers and file names, which are

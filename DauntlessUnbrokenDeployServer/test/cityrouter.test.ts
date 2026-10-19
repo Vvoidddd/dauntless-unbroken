@@ -34,7 +34,7 @@ test('landing reservations expire and failed launches release capacity',async()=
 });
 
 test('native occupancy reads the last complete game driver line including arriving connections',async()=>{
- const {ParseNativeOccupancy}=await import('../src/controllers/nativeoccupancy');
+ const {ParseNativeOccupancy}=await import('../src/controllers/nativeoccupancy.js');
  assert.equal(ParseNativeOccupancy('net driver=IpNetDriver_1 connections=35 owned=32 open=32\n'),35);
  assert.equal(ParseNativeOccupancy('net driver=IpNetDriver_1 connections=35 owned=32 open=32\nnet driver=IpNetDriver_1 connections=12 owned=11 open=11\npartial'),12);
  assert.equal(ParseNativeOccupancy('first_chance code=c0000005\n'),undefined);

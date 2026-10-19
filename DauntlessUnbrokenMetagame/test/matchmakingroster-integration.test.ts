@@ -18,7 +18,7 @@ const A = 'UID-roster-queue-a';
 const B = 'UID-roster-queue-b';
 let now = 0;
 let server: http.Server;
-let matchmaking: typeof import('../src/controllers/matchmaking');
+let matchmaking: typeof import('../src/controllers/matchmaking.js');
 let refuse = false;
 let holdFirst = false;
 let held: http.ServerResponse | undefined;
@@ -55,7 +55,7 @@ before(async () => {
     });
     process.env.MATCHMAKING_MODE = 'DEPLOYSERVER';
     process.env.DEPLOYSERVER_URL = `127.0.0.1:${(server.address() as AddressInfo).port}`;
-    matchmaking = await import('../src/controllers/matchmaking');
+    matchmaking = await import('../src/controllers/matchmaking.js');
 });
 
 beforeEach(() => {

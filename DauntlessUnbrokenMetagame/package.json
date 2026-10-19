@@ -4,6 +4,10 @@
   "description": "A private server for the defunct monster-hunting action RPG",
   "license": "AGPL-3.0-only",
   "author": "gwog :3",
+  "engines": {
+    "node": ">=22",
+    "npm": ">=11.19"
+  },
   "scripts": {
     "dev": "tsx watch --env-file=.env src/server.ts",
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc",
@@ -32,7 +36,8 @@
     "@types/ws": "^8.18.2",
     "drizzle-kit": "0.31.11",
     "tsx": "4.23.15",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "typescript-api": "npm:typescript@6.0.3"
   },
   "overrides": {
     "esbuild": "0.25.12",

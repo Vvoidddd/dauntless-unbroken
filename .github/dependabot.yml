@@ -21,6 +21,11 @@ updates:
     directory: /DauntlessUnbrokenMetagame
     schedule:
       interval: monthly
+    # This alias preserves the JS Compiler API used by the branding AST audit.
+    ignore:
+      - dependency-name: typescript-api
+        update-types:
+          - version-update:semver-major
     open-pull-requests-limit: 3
     cooldown:
       default-days: 7

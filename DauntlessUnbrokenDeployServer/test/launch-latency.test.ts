@@ -10,7 +10,7 @@ import path from 'node:path';
 import { createSocket, type Socket } from 'node:dgram';
 
 process.env.SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP = "0.3";
-const game = require("../src/controllers/gameservers") as typeof import("../src/controllers/gameservers");
+const game = require("../src/controllers/gameservers") as typeof import("../src/controllers/gameservers.js");
 const args = "/Game/Test?MaxPlayers=1?MonsterClass=test";
 let pid = 50000;
 const children: EventEmitter[] = [];

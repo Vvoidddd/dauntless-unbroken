@@ -698,7 +698,7 @@ it('duplicate tutorial joins share one allocation and the immediate retry keeps 
 });
 
 it('cross-region party members follow the leader for shared worlds, then recover their own region on leaving', async () => {
-    const {SetRegionReader}=await import('../src/controllers/huntregion');
+    const {SetRegionReader}=await import('../src/controllers/huntregion.js');
     SetRegionReader(id=>id===B?'aus':'main');
     try {
         await FormParty(B,A);
@@ -713,7 +713,7 @@ it('cross-region party members follow the leader for shared worlds, then recover
 });
 
 it('OCE party leader retains region when inviting Main players and city requests carry the selection', async () => {
-    const {SetRegionReader}=await import('../src/controllers/huntregion');
+    const {SetRegionReader}=await import('../src/controllers/huntregion.js');
     SetRegionReader(id=>id===B?'aus':'main');
     try {
         await HandlePlayerMatchmaking('CITY','','',B);

@@ -110,7 +110,9 @@ that come from a web page.
 
 ## Development
 
-Requirements: Windows or x86_64 Linux and Node.js 24. Linux packaging also needs `rpmbuild`,
+Requirements: Windows or x86_64 Linux, Node.js 24 and npm 11.19 or newer. Use the npm bundled
+with a current Node.js 24 installation; an older global npm can incorrectly rebuild SQLite's
+bundled Node-API binaries. Linux packaging also needs `rpmbuild`,
 `fakeroot` and `mksquashfs` (the Ubuntu CI job installs `rpm`, `fakeroot` and `squashfs-tools`).
 
 ```text

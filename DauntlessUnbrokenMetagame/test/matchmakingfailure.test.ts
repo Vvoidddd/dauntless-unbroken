@@ -79,7 +79,7 @@ before(async () => {
     delete process.env.MISC_ROUTES;
     delete process.env.GATEWAY_SECRET;
 
-    const { app } = await import("../src/app");
+    const { app } = await import("../src/app.js");
     Api = http.createServer(app);
     BASE = `http://127.0.0.1:${await Listen(Api)}`;
 });
@@ -185,7 +185,7 @@ it('private hunts allocate immediately, poll quickly, and never take a public wa
     finish();
     await WaitForStatus(privatePlayer.Token, 'IN_PROGRESS');
     assert.equal((await Call('GET', '/candidate/status', publicPlayer.Token)).json.status, 'MATCHING');
-    const {CancelMatchmaking} = await import('../src/controllers/matchmaking');
+    const {CancelMatchmaking} = await import('../src/controllers/matchmaking.js');
     CancelMatchmaking(publicPlayer.UserId);
 });
 
@@ -224,7 +224,7 @@ describe("matchmaking when the deploy server starts no game server", () => {
     });
 
     it('capacity waits retry once after ten seconds and reach the same server on every path', async () => {
-        const { SetPartyClockForTests } = await import('../src/controllers/party');
+        const { SetPartyClockForTests } = await import('../src/controllers/party.js');
         let now = Date.now();
         SetPartyClockForTests(() => now);
         try {
@@ -235,7 +235,7 @@ describe("matchmaking when the deploy server starts no game server", () => {
                 await WaitForCalls(1);
                 for (const player of players) assert.equal((await Call('GET', '/candidate/status', player.Token)).json.status, 'MATCHING');
                 if (path.Players === 4) {
-                    const { CancelMatchmaking, HandlePlayerMatchmaking } = await import('../src/controllers/matchmaking');
+                    const { CancelMatchmaking, HandlePlayerMatchmaking } = await import('../src/controllers/matchmaking.js');
                     assert.equal(await HandlePlayerMatchmaking('ISLAND', '', Calls[0].HuntId, 'UID-fifth-capacity'), true);
                     CancelMatchmaking('UID-fifth-capacity');
                 }
@@ -250,7 +250,7 @@ describe("matchmaking when the deploy server starts no game server", () => {
         } finally { SetPartyClockForTests(); }
     });
     it('a steady trickle of joins still sends the queue 5 seconds after the first join', async () => {
-        const { SetPartyClockForTests } = await import('../src/controllers/party');
+        const { SetPartyClockForTests } = await import('../src/controllers/party.js');
         let now = Date.now();
         SetPartyClockForTests(() => now);
         try {
@@ -267,7 +267,7 @@ describe("matchmaking when the deploy server starts no game server", () => {
         } finally { SetPartyClockForTests(); }
     });
     it('players who join while a launch is out share its capacity wait and its server', async () => {
-        const { SetPartyClockForTests } = await import('../src/controllers/party');
+        const { SetPartyClockForTests } = await import('../src/controllers/party.js');
         let now = Date.now();
         SetPartyClockForTests(() => now);
         try {
@@ -290,17 +290,17 @@ describe("matchmaking when the deploy server starts no game server", () => {
         } finally { SetPartyClockForTests(); }
     });
     it('a waiting solo candidate can be cancelled without launching when capacity returns', async () => {
-        const { CancelMatchmaking } = await import('../src/controllers/matchmaking');
+        const { CancelMatchmaking } = await import('../src/controllers/matchmaking.js');
         CurrentMode = {Name: 'ports full', Reply: Json(503, JSON.stringify({error: 'capacity_unavailable', reason: 'ports'}))};
         const [player] = await JoinAll(PATHS[1]);
         CancelMatchmaking(player.UserId);
-        const { CheckAndUpdateQueueStatus } = await import('../src/controllers/matchmaking');
+        const { CheckAndUpdateQueueStatus } = await import('../src/controllers/matchmaking.js');
         assert.equal(await CheckAndUpdateQueueStatus(player.UserId), undefined);
         assert.equal(Calls.length, 1);
     });
     it('active capacity waiters remain queued beyond a minute and enter when capacity returns', async () => {
-        const { SetPartyClockForTests } = await import('../src/controllers/party');
-        const { ResetMatchmakingForTests } = await import('../src/controllers/matchmaking');
+        const { SetPartyClockForTests } = await import('../src/controllers/party.js');
+        const { ResetMatchmakingForTests } = await import('../src/controllers/matchmaking.js');
         let now = Date.now();
         SetPartyClockForTests(() => now);
         try {
@@ -321,7 +321,7 @@ describe("matchmaking when the deploy server starts no game server", () => {
         } finally { ResetMatchmakingForTests(); SetPartyClockForTests(); }
     });
     it('capacity waiting fails after one minute on every path without another allocation', async () => {
-        const { SetPartyClockForTests } = await import('../src/controllers/party');
+        const { SetPartyClockForTests } = await import('../src/controllers/party.js');
         let now = Date.now();
         SetPartyClockForTests(() => now);
         try {
@@ -358,7 +358,7 @@ describe("matchmaking when the deploy server starts no game server", () => {
     // fails, 503) and :77 (a dropped connection), each run on all three paths
     for(const Failure of FAILURES){
         it(`${Failure.Name} is FAILED for every player, never Ready, on every path`, async () => {
-            const { DecideCandidateStatus } = await import("../src/controllers/matchmaking");
+            const { DecideCandidateStatus } = await import("../src/controllers/matchmaking.js");
 
             CurrentMode = Failure;
 

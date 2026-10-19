@@ -320,7 +320,7 @@ describe("SoftAccountAuth", () => {
 });
 
 it("attributes multiple Ramsgates by the player's allocated port", async () => {
-    const {SelectPersistentInstance} = await import('../src/controllers/serverstatus');
+    const {SelectPersistentInstance} = await import('../src/controllers/serverstatus.js');
     const main={port:8777}, worker={port:8761};
     assert.equal(SelectPersistentInstance([main,worker],8761),worker);
     assert.equal(SelectPersistentInstance([main,worker],8777),main);

@@ -25,6 +25,13 @@ if (process.argv.includes("--install-build-dependencies")) {
 }
 
 function runNpm(directory, args) {
+    // Keep Forge's npm version; a global npm on PATH may be older than the caller.
+    if (process.env.npm_execpath) {
+        execFileSync(process.execPath, [process.env.npm_execpath, ...args], {
+            cwd: directory, stdio: "inherit",
+        });
+        return;
+    }
     if (process.platform === "win32") {
         execFileSync(
             process.env.ComSpec ?? "cmd.exe",
@@ -46,16 +53,26 @@ function runNpm(directory, args) {
 
 async function installServiceDependencies(directory) {
     console.log(`Installing production dependencies in ${directory}...`);
-    runNpm(directory, ["ci", "--omit=dev"]);
+    // Native modules are prepared explicitly below for Electron. Host install scripts
+    // can pick Forge's node-gyp from PATH and build for the wrong runtime/toolchain.
+    runNpm(directory, ["ci", "--omit=dev", "--ignore-scripts"]);
 
-    // npm installs for the host Node ABI; the staged addon must match Electron.
-    console.log(`Rebuilding better-sqlite3 for Electron ${electronVersion}...`);
-    await rebuild({
-        buildPath: directory,
-        electronVersion,
-        force: true,
-        onlyModules: ["better-sqlite3"],
-    });
+    const sqlitePackage = JSON.parse(await readFile(path.join(directory, "node_modules/better-sqlite3/package.json"), "utf8"));
+    // v13 bundles stable Node-API binaries and explicitly disables GYP. Older releases
+    // use the host Node ABI and must still be rebuilt for Electron.
+    if (sqlitePackage.gypfile !== false) {
+        console.log(`Rebuilding better-sqlite3 for Electron ${electronVersion}...`);
+        await rebuild({ buildPath: directory, electronVersion, force: true, onlyModules: ["better-sqlite3"] });
+    }
+    // Validate the actual staged binding under Electron before it can enter an installer.
+    execFileSync(require("electron"), ["-e", `
+        const { createRequire } = require('node:module');
+        const path = require('node:path');
+        const load = createRequire(path.join(process.argv[1], 'package.json'));
+        const db = load('better-sqlite3')(':memory:');
+        if (db.pragma('quick_check', { simple: true }) !== 'ok') throw Error('SQLite native check failed');
+        db.close();
+    `, directory], { env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }, stdio: "inherit" });
 }
 
 async function copyServiceBase(source, destination) {
