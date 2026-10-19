@@ -51,7 +51,8 @@ export async function GetUserIDForAPIKey(UserAPIKey: string){
 }
 
 function SignMetagameJWTForUid(userId: string){
-    if(BanFor(userId)) throw Error('account_banned');
+    const ban=BanFor(userId);
+    if(ban) throw Object.assign(Error('account_banned'),{reason:ban.reason});
     return jwt.sign({
         userId: userId,
         epoch: AuthEpoch(userId)
@@ -70,8 +71,15 @@ function ValidateMetagameJWTAndGetPayload(token: string){
         audience: "dauntless-unbroken-metagame"
     });
     if(typeof payload === 'string' || typeof payload.userId !== 'string' || (payload.epoch ?? 0)!==AuthEpoch(payload.userId)) throw Error('session_revoked');
-    if(typeof payload !== 'string' && BanFor(payload.userId)) throw Error('account_banned');
+    const ban=BanFor(payload.userId);
+    if(ban) throw Object.assign(Error('account_banned'),{reason:ban.reason});
     return payload;
+}
+
+export function AccessFailure(error:unknown):{status:number,body:{error:string,reason?:string}}|undefined {
+    if(error instanceof Error && error.message==='account_banned' && typeof (error as any).reason==='string')return {status:403,body:{error:'account_banned',reason:(error as any).reason}};
+    if(error instanceof Error && error.message==='session_revoked')return {status:401,body:{error:'session_revoked'}};
+    return undefined;
 }
 
 export { SignMetagameJWTForUid, ValidateMetagameJWTAndGetPayload }

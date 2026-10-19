@@ -1,24 +1,18 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { keyCommand, syncKeyCommands } from './commands.mjs';
-
-test('unchanged global command preserves version and removes duplicate guild copies', async()=>{
-  let deleted=0;
-  const rest={delete:async()=>deleted++,get:async route=>[{...keyCommand,id:'existing',version:'cached-version',type:1,application_id:'app',
-    contexts:route.includes('/guilds/') ? undefined : [1,0],name_localizations:null}],
-    post:async()=>assert.fail('unchanged command must not be posted'),patch:async()=>assert.fail('unchanged command must not be patched')};
-  assert.equal(await syncKeyCommands(rest,'app',['guild','guild']),1);
-  assert.equal(await syncKeyCommands(rest,'app',['guild']),1);
+import {test} from 'node:test';
+import {keyCommand,moderationCommands,syncKeyCommands} from './commands.mjs';
+test('unchanged global and guild commands preserve their IDs',async()=>{
+  const rest={get:async route=>(route.includes('/guilds/')?[keyCommand,...moderationCommands]:[keyCommand]).map((c,i)=>({...c,id:String(i),type:1})),
+    post:async()=>assert.fail('no replacement'),patch:async()=>assert.fail('no patch')};
+  assert.equal(await syncKeyCommands(rest,'app',['guild','guild']),0);
 });
-
-test('outdated key command is patched in place, absent guild command is not created, unrelated commands preserved',async()=>{
+test('missing guild commands are registered without deleting unrelated commands',async()=>{
   const calls=[];
-  const rest={get:async route=>route.includes('/guilds/') ? [{type:1,name:'other',id:'other'}] :
-    [{...keyCommand,type:1,id:'keep-this-id',options:keyCommand.options.slice(0,2)}],
-    patch:async(route,{body})=>calls.push({method:'patch',route,body}),
-    post:async(route,{body})=>calls.push({method:'post',route,body})};
-  assert.equal(await syncKeyCommands(rest,'app',['guild']),1);
-  assert.ok(calls[0].route.endsWith('/keep-this-id'));
-  assert.equal(calls[0].body.options.at(-1).name,'link');
-  assert.equal(calls.length,1);
+  const rest={get:async route=>route.includes('/guilds/')?[{name:'other',type:1,id:'other'}]:[{...keyCommand,type:1,id:'same-id',options:[]}],
+    post:async(route,{body})=>calls.push({route,body}),patch:async(route,{body})=>calls.push({route,body})};
+  assert.equal(await syncKeyCommands(rest,'app',['guild']),4);
+  assert.ok(calls[0].route.endsWith('/same-id'));
+  assert.deepEqual(calls.slice(1).map(c=>c.body.name),['key','ban','unban']);
+  assert.ok(calls.slice(1).every(c=>!('contexts' in c.body)));
+  assert.equal(calls[2].body.default_member_permissions,'4');
 });

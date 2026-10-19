@@ -50,6 +50,18 @@ export const discordlinks = sqliteTable('discordlinks', {
     linkedAt: text('linkedAt').notNull()
 });
 
+export const discordinvites = sqliteTable('discord_invites', {
+    discordId:text('discordId').primaryKey().notNull(),inviteCode:text('inviteCode').unique().notNull(),createdAt:integer('createdAt').notNull()
+});
+export const discordmoderation = sqliteTable('discord_moderation', {
+    discordId:text('discordId').primaryKey().notNull(),guildId:text('guildId').notNull(),active:integer('active').notNull(),reason:text('reason').notNull(),
+    actor:text('actor').notNull(),revision:integer('revision').notNull(),updatedAt:integer('updatedAt').notNull(),syncStatus:text('syncStatus').notNull(),syncError:text('syncError')
+});
+export const accountaccessevents = sqliteTable('account_access_events', {
+    id:integer('id').primaryKey({autoIncrement:true}),accountId:text('accountId'),discordId:text('discordId'),action:text('action').notNull(),
+    reason:text('reason').notNull(),actor:text('actor').notNull(),createdAt:integer('createdAt').notNull()
+});
+
 export const huntregions = sqliteTable('huntregions', {
     userId: text('userId').notNull().primaryKey().references(() => users.userId),
     region: text('region', {enum:['main','aus','ger','us']}).notNull()

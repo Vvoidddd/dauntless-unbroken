@@ -28,7 +28,15 @@ the saved file, and copy the value after `Key:` into `/key link key:`. The bot a
 accepts a labelled backup or a key wrapped in Discord backticks. It never links an
 account by display name or by a shared/redeemed invite, and never replaces its key.
 
-Registration keeps one global `/key` command for servers and DMs and removes legacy guild copies. Existing global command IDs and unrelated commands are preserved. Reload Discord if an old duplicate remains cached.
+Registration keeps `/key` available globally for DMs and registers a server copy immediately, alongside `/ban` and `/unban`. Existing command IDs and unrelated commands are preserved. Invites issued by `/key claim` are bound to the Discord user; registration atomically links the new game account to that identity. Existing accounts can use `/key link` with their saved account key.
+
+## Moderation and owner controls
+
+`/ban user:<Discord user> reason:<reason>` permanently blocks their Discord account, linked game account and new invite claims. `/unban` revokes both restrictions. Both require **Ban Members**, respect Discord role hierarchy and protect game administrator accounts. The default is **account-only**; `ip:true` additionally blocks a recently observed game IP. Offline users without a recent trusted IP can still receive an account-only ban.
+
+The same reason appears in the private dashboard, launcher access refusal and game authentication refusal. The backend commits the game restriction first and stores a durable Discord action. The bot retries unsynchronized actions every 15 seconds; the dashboard distinguishes pending, completed and failed Discord synchronization. A Discord API failure does not silently undo the game ban. Keep the bot role above players and grant Ban Members.
+
+The dashboard's **Players** page supports verified manual Discord linking/unlinking, login-key revocation/replacement, unused-invite revocation and Discord/game bans. **Access** can create a single-use invite bound to a Discord user ID. Revoking a key invalidates previous sessions and recovery copies without deleting progression. Administrative accounts are protected. Keys are private credentials: replacement keys are shown only to the authenticated owner, never in audit logs. All access changes require an audit reason. Unlinking an identity does not unban either account or issue another invite.
 
 ## Windows supervision
 

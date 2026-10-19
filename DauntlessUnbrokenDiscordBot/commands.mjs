@@ -1,4 +1,4 @@
-import { Routes, SlashCommandBuilder } from 'discord.js';
+import { PermissionFlagsBits, Routes, SlashCommandBuilder } from 'discord.js';
 
 export const keyCommand = new SlashCommandBuilder().setName('key').setDescription('Your Dauntless Unbroken access code')
   .setContexts(0, 1)
@@ -22,6 +22,7 @@ function optionShape(option) {
 }
 function shape(command, guild) {
   return {...optionShape(command), type:command.type ?? 1,
+    default_member_permissions:command.default_member_permissions??null,
     contexts:guild ? [] : [...(command.contexts ?? [])].sort()};
 }
 
@@ -35,15 +36,27 @@ export async function syncKeyCommands(rest, applicationId, guildIds = []) {
     else await rest.post(route,{body:keyCommand});
     changed++;
   }
-  // One global command serves both guilds and DMs; remove only our old guild copies.
+  // Guild registration is immediately available; the global copy also supports DMs.
   for (const id of new Set(guildIds)) {
     const guildRoute=Routes.applicationGuildCommands(applicationId,id);
-    for (const command of await rest.get(guildRoute)) {
-      if (command.name==='key' && command.type===1) {
-        await rest.delete(`${guildRoute}/${command.id}`);
+    const commands=await rest.get(guildRoute);
+    for(const desired of [keyCommand,...moderationCommands]) {
+      const {contexts,...body}=desired;
+      const command=commands.find(c=>c.name===desired.name && c.type===1);
+      if(!command||JSON.stringify(shape(command,true))!==JSON.stringify(shape(body,true))){
+        if(command)await rest.patch(`${guildRoute}/${command.id}`,{body});
+        else await rest.post(guildRoute,{body});
         changed++;
       }
     }
   }
   return changed;
 }
+
+export const moderationCommands=['ban','unban'].map(name=>new SlashCommandBuilder().setName(name)
+  .setDescription(name==='ban'?'Ban a Discord member and their linked game account':'Unban a Discord member and their linked game account')
+  .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
+  .addUserOption(option=>option.setName('user').setDescription('Discord account to moderate').setRequired(true))
+  .addStringOption(option=>option.setName('reason').setDescription('Reason shown in the launcher and dashboard').setRequired(true).setMaxLength(500))
+  .addBooleanOption(option=>option.setName('ip').setDescription('Also block the recently observed game IP; default is account only'))
+  .toJSON());

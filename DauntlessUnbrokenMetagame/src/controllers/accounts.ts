@@ -1,7 +1,7 @@
 import { randomBytes, randomInt, randomUUID } from "node:crypto";
 import { and, eq, gt, ne, or, sql } from "drizzle-orm";
 import { GetDb } from "../db";
-import { characters, invitecodes, userapikeys, users } from "../db/schema";
+import { characters, invitecodes, userapikeys, users, discordlinks } from "../db/schema";
 import { HashUserAPIKey } from "./auth";
 import type { RegistrationMode } from "./unbrokenapi";
 import type { Tx } from "./savehistory";
@@ -98,6 +98,9 @@ export function RegisterAccount(Mode: RegistrationMode, RequestedUsername: unkno
     const UUK = `UUK_${randomBytes(24).toString("hex")}`;
 
     return GetDb().transaction((tx): RegisterResult => {
+        const owner = Mode === 'INVITECODE' ? GetDb().$client.prepare('SELECT discordId FROM discord_invites WHERE inviteCode=?').get(Code) as {discordId:string}|undefined : undefined;
+        if(owner && (GetDb().$client.prepare('SELECT 1 FROM discord_moderation WHERE discordId=? AND active=1').get(owner.discordId) ||
+            GetDb().$client.prepare('SELECT 1 FROM discordlinks WHERE discordId=?').get(owner.discordId))) return Failure(401,'invite_invalid');
         if(Mode === "INVITECODE" && tx.select({ inviteCode: invitecodes.inviteCode }).from(invitecodes).where(UsableInvite(Code)).get() == undefined){
             return Failure(401, "invite_invalid");
         }
@@ -119,6 +122,7 @@ export function RegisterAccount(Mode: RegistrationMode, RequestedUsername: unkno
 
         tx.insert(users).values({ userId: UserId, name: Username, notes: 0 }).run();
         tx.insert(userapikeys).values({ userId: UserId, keyHash: HashUserAPIKey(UUK) }).run();
+        if(owner)tx.insert(discordlinks).values({discordId:owner.discordId,userId:UserId,linkedAt:new Date().toISOString()}).run();
 
         return { ok: true, UserId: UserId, Username: Username, UUK: UUK };
     });

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
-import { ValidateMetagameJWTAndGetPayload } from "../controllers/auth";
+import { AccessFailure, ValidateMetagameJWTAndGetPayload } from "../controllers/auth";
 import { logger } from "../logger";
 
 // Player-facing auth for the party and friends routes (roadmap 1.9).
@@ -39,7 +39,9 @@ export function SoftMetagameAuth(req: Request, res: Response, next: NextFunction
                 (req as any).AuthData = Payload;
             }
         }
-        catch{
+        catch(error){
+            const failure=AccessFailure(error);
+            if(failure){res.status(failure.status).json(failure.body);return;}
             if(Date.now() - LastSoftAuthWarning > 60 * 1000){
                 LastSoftAuthWarning = Date.now();
                 logger.warn(`${req.method} ${req.path} with a bad or expired token: answering the static reply`);

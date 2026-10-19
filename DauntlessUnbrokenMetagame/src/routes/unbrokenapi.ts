@@ -6,6 +6,8 @@ import { DiscordKeyStats } from '../controllers/discordstats';
 import { GetHuntRegion, SaveHuntRegion } from '../controllers/regionpreferences';
 
 import { DiscordAccount, LinkDiscordAccount } from '../controllers/discordlinks';
+import {AckDiscordBan,CreateDiscordInvite,DiscordAccess,PendingDiscordBans,SetDiscordBan} from '../controllers/discordaccess';
+import {ManageAccountAccess} from '../controllers/accountaccess';
 
 import { Router } from "express";
 import { DeleteInviteCode, GetAllUserIds, GetInviteCodes, GetRecentPlayerData, IsRegistrationMode, RegisterInviteCode, REGISTRATION_MODE, SetRegistrationMode } from "../controllers/unbrokenapi";
@@ -31,7 +33,7 @@ import { RefuseAdminKeyThroughProxy } from "../middleware/RequestOrigin";
 import { IsSoftRegisteredCaller, SoftAccountAuth } from "../middleware/SoftAccountAuth";
 import { AdminMutationRateLimit, HealthReadRateLimit } from "../middleware/RateLimits";
 import { BackendHealthEnabled, BackendRuntimeHealth } from '../middleware/BackendHealth';
-import { userapikeys, users } from '../db/schema';
+import { discordlinks, userapikeys, users } from '../db/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export const unbrokenApiRouter = Router();
@@ -95,6 +97,43 @@ unbrokenApiRouter.get('/DiscordLink/:discordId', HealthReadRateLimit, HasDauntle
     res.json({account: DiscordAccount(String(req.params.discordId)) ?? null});
 });
 
+function AccessError(res:any,error:unknown) {
+    const message=error instanceof Error?error.message:'';
+    const allowed=['invalid_discord_id','invalid_guild_id','invalid_discord_invite','discord_banned','already_linked','invite_already_assigned','invite_not_unused','invalid_discord_ban','address_not_observed','account_not_linked','admin_account_protected','invalid_sync_result','reason_required','invalid_account_id','account_not_found','invalid_action','discord_already_linked','account_already_linked','invalid_key'];
+    res.status(allowed.includes(message)?400:500).json({error:allowed.includes(message)?message:'account_access_failed'});
+}
+unbrokenApiRouter.get('/DiscordAccess/:discordId',HealthReadRateLimit,HasDauntlessUnbrokenAdminApiKey,(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    try{res.json(DiscordAccess(req.params.discordId));}catch(e){AccessError(res,e);}
+});
+unbrokenApiRouter.post('/DiscordInvite',AdminMutationRateLimit,HasDauntlessUnbrokenAdminApiKey,(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    try{res.json(CreateDiscordInvite(req.body?.discordId,req.body?.code));}catch(e){AccessError(res,e);}
+});
+unbrokenApiRouter.post('/DiscordModeration',AdminMutationRateLimit,HasDauntlessUnbrokenAdminApiKey,(req:any,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    try{
+        const actor=typeof req.body?.moderatorId==='string' && /^\d{17,20}$/.test(req.body.moderatorId)?`discord:${req.body.guildId}/${req.body.moderatorId}`:req.DauntlessUnbrokenUserInfo.UserId;
+        res.json(SetDiscordBan(req.body,actor));
+    }catch(e){AccessError(res,e);}
+});
+unbrokenApiRouter.get('/DiscordModerationPending',HealthReadRateLimit,HasDauntlessUnbrokenAdminApiKey,(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    try{res.json({rows:PendingDiscordBans(req.query.guildId)});}catch(e){AccessError(res,e);}
+});
+unbrokenApiRouter.post('/DiscordModerationAck',AdminMutationRateLimit,HasDauntlessUnbrokenAdminApiKey,(req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    try{res.json(AckDiscordBan(req.body));}catch(e){AccessError(res,e);}
+});
+unbrokenApiRouter.post('/AccountAccess',AdminMutationRateLimit,HasDauntlessUnbrokenAdminApiKey,(req:any,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    try{res.json(ManageAccountAccess(req.body,req.DauntlessUnbrokenUserInfo.UserId));}catch(e){AccessError(res,e);}
+});
+unbrokenApiRouter.get('/AccountAccessLog',HealthReadRateLimit,HasDauntlessUnbrokenAdminApiKey,(_req,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    res.json({rows:GetDb().$client.prepare('SELECT * FROM account_access_events ORDER BY id DESC LIMIT 100').all()});
+});
+
 
 unbrokenApiRouter.get('/BackendHealth', HealthReadRateLimit, HasDauntlessUnbrokenAdminApiKey, (_req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -110,12 +149,13 @@ unbrokenApiRouter.get('/DashboardAccounts', HealthReadRateLimit, HasDauntlessUnb
     if (!Number.isSafeInteger(offset) || offset < 0 || offset > 10000000) { res.status(400).json({error: 'invalid_offset'}); return; }
     const query=typeof req.query.q==='string'?req.query.q.trim():'';
     if(query.length>100){res.status(400).json({error:'invalid_query'});return;}
-    const rows = GetDb().select({id: users.userId, name: users.name, admin: users.isAdmin, hash: userapikeys.keyHash})
+    const rows = GetDb().select({id: users.userId, name: users.name, admin: users.isAdmin, hash: userapikeys.keyHash,discordId:discordlinks.discordId})
         .from(users).leftJoin(userapikeys, eq(users.userId, userapikeys.userId))
+        .leftJoin(discordlinks,eq(users.userId,discordlinks.userId))
         .where(query ? sql`instr(lower(${users.name}), lower(${query})) > 0 OR instr(lower(${users.userId}), lower(${query})) > 0 OR instr(lower(substr(${userapikeys.keyHash},1,16)), lower(${query})) > 0` : undefined)
         .orderBy(users.userId).limit(101).offset(offset).all();
     res.json({accounts: rows.slice(0, 100).map(row => ({id: row.id, name: row.name, admin: row.admin, developer:(process.env.DEVELOPER_ACCOUNT_IDS || '').split(',').map(x=>x.trim()).includes(row.id),
-        keyFingerprint: row.hash && /^[a-f0-9]{64}$/i.test(row.hash) ? row.hash.slice(0, 16).toLowerCase() : null})),
+        discordId:row.discordId,keyFingerprint: row.hash && /^[a-f0-9]{64}$/i.test(row.hash) ? row.hash.slice(0, 16).toLowerCase() : null})),
         nextOffset: rows.length > 100 ? offset + 100 : null});
 });
 

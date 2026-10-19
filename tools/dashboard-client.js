@@ -227,6 +227,10 @@
     table('accountRows',visible.map(a => [a.name,a.id,a.developer?'Server Developer':a.admin?'Administrator':'Player',a.keyFingerprint || 'No active key']));
     Array.from(el('accountRows').children).forEach((row,i)=>{
       const account=visible[i],cell=row.children[3];
+      const select=document.createElement('button');select.textContent='Manage account';
+      select.onclick=()=>{el('accessAccount').value=account.id;el('accessDiscord').value=account.discordId??'';el('moderationAccount').value=account.id;};
+      row.children[1].append(document.createTextNode(' '),select);
+      if(account.discordId)row.children[2].append(document.createTextNode(' · Discord '+account.discordId));
       const reveal=document.createElement('button');reveal.textContent='Show login key';
       reveal.onclick=async()=>{
         reveal.disabled=true;
@@ -295,6 +299,51 @@
   el('refreshModerationLog').onclick=()=>loadModerationLog('events');
   el('moreBans').onclick=()=>loadModerationLog('bans',true);
   el('moreModerationLog').onclick=()=>loadModerationLog('events',true);
+  async function accessPost(route,body){
+    const response=await fetch(route,{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(65000)});
+    const result=await response.json();if(!response.ok)throw Error(result.error??'Access request failed');return result;
+  }
+  async function showDiscordAccess(){
+    const result=await get('/api/discord-access?discordId='+encodeURIComponent(el('accessDiscord').value.trim()));
+    if(result.invite)result.invite={status:result.invite.status};
+    el('accessInfo').textContent=JSON.stringify(result,null,2);return result;
+  }
+  el('loadDiscordAccess').onclick=()=>showDiscordAccess().catch(e=>{el('accessStatus').textContent=e.message;});
+  el('manageAccess').onclick=async()=>{
+    const action=el('accessAction').value;
+    if(!el('accessReason').value.trim()){el('accessStatus').textContent='A reason is required.';return;}
+    if(!confirm('Apply '+action+'? Login key changes sign out existing sessions.'))return;
+    el('manageAccess').disabled=true;el('replacementKey').value='';
+    try{
+      const result=await accessPost('/api/account-access',{action,accountId:el('accessAccount').value.trim(),discordId:el('accessDiscord').value.trim(),reason:el('accessReason').value.trim()});
+      el('replacementKey').value=result.key??'';
+      el('accessStatus').textContent=result.key?'Replacement key created. Copy it privately; previous credentials and sessions are invalid.':'Account access updated. Progression preserved.';
+      void loadAccounts();
+    }catch(e){el('accessStatus').textContent=e.message;}
+    finally{el('manageAccess').disabled=false;}
+  };
+  async function discordModerate(active){
+    if(!el('accessReason').value.trim()){el('accessStatus').textContent='A reason is required.';return;}
+    if(!confirm((active?'Ban':'Unban')+' this Discord account and linked game account?'))return;
+    el('banDiscord').disabled=el('unbanDiscord').disabled=true;
+    try{
+      await accessPost('/api/discord-moderation',{discordId:el('accessDiscord').value.trim(),guildId:el('accessGuild').value.trim(),reason:el('accessReason').value.trim(),active,includeIp:active&&el('discordBanIp').checked});
+      await showDiscordAccess();
+      el('accessStatus').textContent='Game access updated. Discord action saved for the bot; refresh status to confirm.';
+    }catch(e){el('accessStatus').textContent=e.message;}
+    finally{el('banDiscord').disabled=el('unbanDiscord').disabled=false;}
+  }
+  el('banDiscord').onclick=()=>discordModerate(true);
+  el('unbanDiscord').onclick=()=>discordModerate(false);
+  el('copyReplacementKey').onclick=async()=>{
+    if(!el('replacementKey').value)return;
+    try{await navigator.clipboard.writeText(el('replacementKey').value);el('accessStatus').textContent='Key copied. Share privately with the account owner.';}
+    catch{el('accessStatus').textContent='Clipboard unavailable.';}
+  };
+  el('refreshAccessLog').onclick=async()=>{
+    try{el('accessLog').textContent=JSON.stringify((await get('/api/access-log')).rows,null,2);}
+    catch(e){el('accessStatus').textContent=e.message;}
+  };
   el('refreshAccounts').onclick = loadAccounts;
   el('nextAccounts').onclick = () => { if (!accountsBusy && nextOffset !== null) { accountOffset = nextOffset; loadAccounts(); } };
   el('previousAccounts').onclick = () => { if (!accountsBusy) { accountOffset = Math.max(0, accountOffset - 100); loadAccounts(); } };
@@ -309,7 +358,7 @@
     el('createInvite').disabled = true; el('copyInvite').disabled = true; el('inviteLink').value = '';
     el('inviteStatus').textContent = 'Creating invite…';
     try {
-      const response = await fetch('/api/invites', {method: 'POST', headers: {'x-dashboard-key': key, 'content-type': 'application/json'}, body: JSON.stringify({name: el('inviteName').value.trim(), uses: Number(el('inviteUses').value)}), signal: AbortSignal.timeout(20000)});
+      const response = await fetch('/api/invites', {method: 'POST', headers: {'x-dashboard-key': key, 'content-type': 'application/json'}, body: JSON.stringify({name: el('inviteName').value.trim(), uses: Number(el('inviteUses').value),...(el('inviteDiscord').value.trim()?{discordId:el('inviteDiscord').value.trim()}:{})}), signal: AbortSignal.timeout(20000)});
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || `Invite request refused (${response.status}).`);
       el('inviteLink').value = result.invite; el('copyInvite').disabled = false;

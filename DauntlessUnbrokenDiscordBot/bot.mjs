@@ -7,6 +7,7 @@ import {acquireInstance} from './instance.mjs';
 import { backend, Keys, loadState, saveState } from './keys.mjs';
 import { loadInviteConfig, inviteMessage } from './invite.mjs';
 import { syncKeyCommands } from './commands.mjs';
+import {moderationService} from './moderation.mjs';
 import { keyInstructions, linkInput } from './link-input.mjs';
 
 const token = process.env.DISCORD_BOT_TOKEN;
@@ -25,7 +26,9 @@ if (!token || !adminKey) throw new Error('Configure DISCORD_BOT_TOKEN and METAGA
 const stateFile = resolve(process.env.KEY_STATE_FILE || './data/keys.json');
 await acquireInstance(stateFile);
 const inviteConfig = await loadInviteConfig(process.env.SERVER_CONFIG_FILE);
-const keys = new Keys(await loadState(stateFile), state => saveState(stateFile, state), backend(process.env.METAGAME_URL || 'http://127.0.0.1:61000', adminKey));
+const api=backend(process.env.METAGAME_URL || 'http://127.0.0.1:61000', adminKey);
+const keys = new Keys(await loadState(stateFile), state => saveState(stateFile, state), api);
+const moderation=moderationService(api);
 await keys.migrateLinks();
 console.log('Key state and account links loaded');
 
@@ -48,19 +51,23 @@ client.once(Events.ClientReady, async () => {
   try {
     const guilds = [...new Set([...client.guilds.cache.keys(), ...(process.env.DISCORD_GUILD_ID ? [process.env.DISCORD_GUILD_ID] : [])])];
     const changed = await syncKeyCommands(rest, client.application.id, guilds);
-    await syncCounterCommand(rest,client.application.id);
+    await syncCounterCommand(rest,client.application.id,guilds);
     console.log(`Key command registration: ${changed} scopes updated`);
     console.log('Dauntless Unbroken key bot ready');
     if(memberIntentEnabled) void counters.start().catch(() => console.error('Counter startup failed; key commands remain online'));
   } catch { console.error('Could not register /key'); await client.destroy(); process.exitCode = 1; }
 });
 const active = new Set();
+setInterval(()=>void moderation.poll(client).catch(()=>console.error('Discord moderation sync unavailable; pending changes are saved.')),15000).unref();
 client.on(Events.GuildMemberAdd,member=>counters.schedule(member.guild));
 client.on(Events.GuildMemberRemove,member=>counters.schedule(member.guild));
 setInterval(()=>{if(memberIntentEnabled) for(const guild of client.guilds.cache.values()) counters.schedule(guild);},300000).unref();
 const cooldown = new Map();
 setInterval(() => { const now = Date.now(); for (const [id, until] of cooldown) if (until <= now) cooldown.delete(id); }, 60000).unref();
 client.on(Events.InteractionCreate, async interaction => {
+  if(interaction.isChatInputCommand() && ['ban','unban'].includes(interaction.commandName)){
+    await moderation.interaction(interaction).catch(()=>console.error('Moderation interaction failed'));return;
+  }
   if(interaction.isChatInputCommand() && interaction.commandName==='counter') {
     if(!memberIntentEnabled) {await interaction.reply({content:'Enable Server Members Intent for this bot in Discord Developer Portal. The bot will reconnect automatically within a minute.',flags:MessageFlags.Ephemeral});return;}
     await counters.configure(interaction).catch(()=>console.error('Counter interaction failed')); return;
@@ -101,6 +108,7 @@ client.on(Events.InteractionCreate, async interaction => {
       if (result.status === 'sent') console.log(JSON.stringify({event:'key_dm_sent',at:new Date().toISOString()}));
       {
         const messages = {
+          banned: `Access denied: ${String(result.reason??'Contact the server team.').slice(0,500)}`,
           sent: '🔑 **Invite Sent**\nCheck your DMs. Paste the complete invite into the launcher’s Join box.\n**Clear skies, Slayer.**',
           already_sent: '🔑 **Already Claimed**\nUse `/key resend` to receive another private copy of your existing unused invite. No additional invite will be issued.',
           dm_disabled: 'Enable direct messages, then run `/key claim` again. Your existing code is saved.',
@@ -118,12 +126,12 @@ client.on(Events.InteractionCreate, async interaction => {
           pending: 'Your code is being prepared. Try `/key claim` again shortly.',
           revoked: 'Your code is unavailable. Contact the server team.',
         };
-        await interaction.editReply(messages[result.status]);
+        await interaction.editReply({content:messages[result.status],allowedMentions:{parse:[]}});
       }
     } finally { active.delete(id); }
   } catch (error) {
     console.error(JSON.stringify({event:'key_interaction_failed',at:new Date().toISOString(),discordId:id,stage,frames:error.stack?.split('\n').slice(1,4),code:Number.isInteger(error.code)||['ENOSPC','EACCES','EPERM','ENOENT','EIO','EMFILE'].includes(error.code)?error.code:undefined,status:Number.isInteger(error.status)?error.status:undefined,kind:['AbortError','TimeoutError','TypeError','SyntaxError'].includes(error.name)?error.name:'Error'})); // No tokens/codes/payloads.
-    if (interaction.deferred) await interaction.editReply('The key service is unavailable. Please try again shortly.').catch(() => {});
+    if (interaction.deferred) await interaction.editReply({content:error.serviceError==='account_banned'?`Access denied: ${String(error.reason??'Contact the server team.').slice(0,500)}`:'The key service is unavailable. Please try again shortly.',allowedMentions:{parse:[]}}).catch(() => {});
   }
 });
 client.on(Events.Error, () => console.error('Discord connection error'));

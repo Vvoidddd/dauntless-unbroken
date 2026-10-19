@@ -1,4 +1,5 @@
 import {GetDb} from '../db';
+import {KeyRevocations} from './keyrotation';
 import {DeviceSignalInfo,SnapshotDeviceBan} from './devicesignals';
 import {ClientAddressOf, IsLoopbackAddress, NormalizeAddress} from '../middleware/RequestOrigin';
 import type {Request, Response} from 'express';
@@ -14,8 +15,9 @@ export function RecordPlayingAddress(req:Request,accountId:string,now=Date.now()
     if(NormalizeAddress(address) && !IsLoopbackAddress(address)) playingAddresses.set(accountId,{address,last_seen:now});
 }
 export function BanFor(accountId?: string, address?: string): {reason:string}|undefined {
-    return GetDb().$client.prepare('SELECT reason FROM account_bans WHERE active=1 AND (expires_at IS NULL OR expires_at>?) AND (account_id=? OR address=?) LIMIT 1')
-        .get(Date.now(), accountId ?? '', address ?? '') as {reason:string}|undefined;
+    return GetDb().$client.prepare(`SELECT reason FROM account_bans WHERE active=1 AND (expires_at IS NULL OR expires_at>?) AND (account_id=? OR address=?)
+        UNION ALL SELECT m.reason FROM discord_moderation m JOIN discordlinks d ON d.discordId=m.discordId WHERE m.active=1 AND d.userId=? LIMIT 1`)
+        .get(Date.now(), accountId ?? '', address ?? '',accountId??'') as {reason:string}|undefined;
 }
 export function CheckPlayerAccess(req:Request,res:Response,accountId?:string):boolean {
     const address=ClientAddressOf(req);
@@ -28,7 +30,9 @@ export function ModerationInfo(accountId:string){
     const db=GetDb().$client;
     ExpirePlayingAddresses();
     const user=db.prepare('SELECT name FROM users WHERE userId=?').get(accountId) as {name:string}|undefined;
-    return {username:user?.name ?? null,ban:db.prepare('SELECT reason,address,CASE WHEN expires_at<=? THEN 0 ELSE active END AS active,updated_at,expires_at FROM account_bans WHERE account_id=?').get(Date.now(),accountId) ?? null,
+    return {username:user?.name ?? null,discord:db.prepare('SELECT d.discordId,m.active,m.reason,m.syncStatus,m.syncError,m.updatedAt FROM discordlinks d LEFT JOIN discord_moderation m ON m.discordId=d.discordId WHERE d.userId=?').get(accountId)??null,
+        accessEvents:db.prepare('SELECT action,reason,actor,createdAt FROM account_access_events WHERE accountId=? ORDER BY id DESC LIMIT 25').all(accountId),
+        ban:db.prepare('SELECT reason,address,CASE WHEN expires_at<=? THEN 0 ELSE active END AS active,updated_at,expires_at FROM account_bans WHERE account_id=?').get(Date.now(),accountId) ?? null,
         devices:DeviceSignalInfo(accountId),addresses:playingAddresses.has(accountId)?[playingAddresses.get(accountId)!]:[]};
 }
 export function SetAccountBan(accountId:unknown,reason:unknown,active:unknown,address:unknown,actor:string,durationHours?:unknown,includeDevice:unknown=false){
@@ -39,7 +43,7 @@ export function SetAccountBan(accountId:unknown,reason:unknown,active:unknown,ad
     if(durationHours!==undefined && (typeof durationHours!=='number' || !Number.isInteger(durationHours) || durationHours<1 || durationHours>720)) throw Error('invalid_duration');
     const expiresAt=active && typeof durationHours==='number' ? Date.now()+durationHours*3600000 : null;
     const db=GetDb().$client;
-    return db.transaction(()=>{
+    const result=db.transaction(()=>{
         const user=db.prepare('SELECT isAdmin FROM users WHERE userId=?').get(accountId) as {isAdmin:number}|undefined;
         if(!user)throw Error('account_not_found');
         if(user.isAdmin)throw Error('admin_account_protected');
@@ -52,6 +56,8 @@ export function SetAccountBan(accountId:unknown,reason:unknown,active:unknown,ad
         db.prepare('INSERT INTO moderation_events(account_id,reason,address,active,created_at,actor,expires_at) VALUES (?,?,?,?,?,?,?)').run(...args,expiresAt);
         return ModerationInfo(accountId);
     })();
+    if(active && !db.inTransaction)KeyRevocations.emit('revoke',accountId);
+    return result;
 }
 
 export function ModerationLog(kind:'bans'|'events',offset=0){

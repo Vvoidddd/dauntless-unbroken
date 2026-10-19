@@ -44,7 +44,8 @@ for(const [name,delta] of cases)test(`Nova ${name} is refused, including forged 
   assert.ok([401,403].includes((await Call('POST','/inventory',{headers,body})).status));
   assert.ok([401,403].includes((await Call('POST','/inventory',{headers,body:{...body,transactionId:randomUUID()}})).status));
  }
- assert.equal((await Call('GET',`/inventory/${p.UserId}/${p.CharacterId}`,{headers})).status,401);
+ const banned=await Call('GET',`/inventory/${p.UserId}/${p.CharacterId}`,{headers});
+ assert.equal(banned.status,403);assert.equal(banned.json.error,'account_banned');assert.match(banned.json.reason,/Nova 1\.0\.3 signature/);
  assert.deepEqual((await Call('GET',`/inventory/${p.UserId}/${p.CharacterId}`,{gs:true})).json,snapshot.json);
 });
 

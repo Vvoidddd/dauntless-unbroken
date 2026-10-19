@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { logger } from "../logger";
-import { ValidateMetagameJWTAndGetPayload } from "../controllers/auth";
+import { AccessFailure, ValidateMetagameJWTAndGetPayload } from "../controllers/auth";
 import { IsValidGameserverAPIKey } from "../controllers/apikeys";
 import { JwtPayload } from "jsonwebtoken";
 import { RefuseGameserverKeyFromOutside } from "./RequestOrigin";
@@ -26,7 +26,7 @@ export async function HasDauntlessUnbrokenMetagameAuth(req: Request, res: Respon
 
                 let Payload;
                 try { Payload = ValidateMetagameJWTAndGetPayload(Token); }
-                catch { res.status(401).send(); return; }
+                catch(error) { const failure=AccessFailure(error);res.status(failure?.status??401).json(failure?.body??{error:'invalid_token'});return; }
 
                 (req as any).AuthData = {
                     IsGameserver: true,
@@ -68,9 +68,9 @@ export async function HasDauntlessUnbrokenMetagameAuth(req: Request, res: Respon
         (req as any).AuthData = Payload;
 
         next();
-    } catch {
-        res.status(401);
-        res.send();
+    } catch(error) {
+        const failure=AccessFailure(error);
+        res.status(failure?.status??401).json(failure?.body??{error:'invalid_token'});
 
         logger.warn("Request with bad metagame auth!");
 

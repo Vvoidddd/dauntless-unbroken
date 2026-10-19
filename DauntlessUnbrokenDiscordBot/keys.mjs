@@ -41,18 +41,29 @@ export function backend(base, key, request = fetch) {
       headers: {'x-dauntless-unbroken-user-api-key': key, 'content-type': 'application/json'},
       body: body ? JSON.stringify(body) : undefined,
     });
-    if (!response.ok) throw Object.assign(new Error('Metagame request failed'), {status: response.status});
+    if (!response.ok) {
+      const result=await response.json().catch(()=>({}));
+      throw Object.assign(new Error('Metagame request failed'), {status: response.status,serviceError:result.error});
+    }
     return path === 'RegisterInviteCode' ? undefined : response.json();
   }
   return {
+    async access(discordId) {return api(`DiscordAccess/${discordId}`);},
     async linkAccount(discordId, userId) { return api('DiscordLink', {DiscordId: discordId, UserId: userId}); },
-    async linkedAccount(discordId) { return (await api(`DiscordLink/${discordId}`)).account; },
+    async linkedAccount(discordId) {
+      const result=await api(`DiscordAccess/${discordId}`);
+      if(result.ban)throw Object.assign(new Error('Account banned'),{serviceError:'account_banned',reason:result.ban.reason});
+      return result.account;
+    },
+    async moderation(body) {return api('DiscordModeration',body);},
+    async pendingModeration(guildId) {return (await api(`DiscordModerationPending?guildId=${guildId}`)).rows;},
+    async acknowledgeModeration(body) {return api('DiscordModerationAck',body);},
     async find(code) {
       const result = await api('InviteCodes');
       if (!Array.isArray(result.InviteCodes)) throw new Error('Invalid metagame response');
       return result.InviteCodes.find(row => row.inviteCode === code);
     },
-    async create(code) { await api('RegisterInviteCode', {NewInviteCode: code, Uses: 1, InfiniteUses: false}); },
+    async create(code,discordId) { await api('DiscordInvite', {code,discordId}); },
     async identity(launcherKey) {
       const response = await request(new URL('/unbroken/api/GetUserInfo', url), {
         headers: {'x-dauntless-unbroken-user-api-key': launcherKey}, redirect: 'error', signal: AbortSignal.timeout(5000),
@@ -73,10 +84,14 @@ export class Keys {
     this.state = state; this.save = save; this.api = api; this.generate = generate;
   }
   async migrateLinks() {
+    if(!Object.keys(this.state.links??{}).length)return;
     for (const [discordId, account] of Object.entries(this.state.links || {})) {
       const result = await this.api.linkAccount(discordId, account.userId);
-      if (result.status !== 'linked') throw new Error('Legacy account link needs operator review');
+      if (!['linked','discord_banned'].includes(result.status)) throw new Error('Legacy account link needs operator review');
     }
+    // Central links now own the association. Do not resurrect an operator-unlinked legacy link.
+    delete this.state.links;
+    await this.save(this.state);
   }
   run(user, claim) {
     const task = this.queue.catch(() => {}).then(() => this.handle(user, claim));
@@ -166,8 +181,17 @@ export class Keys {
   }
   async handle(user, claim) {
     if (!/^\d{17,20}$/.test(user)) throw new Error('Invalid Discord user');
-    if (await this.api.linkedAccount(user)) return {status:'linked'};
+    const access=await this.api.access(user);
+    if(access.ban)return {status:'banned',reason:access.ban.reason};
+    if(access.account)return {status:'linked'};
+    if(access.invite && access.invite.status!=='ready')return {status:access.invite.status};
     let entry = this.state.users[user];
+    let bound=!!access.invite;
+    if(access.invite && !entry){
+      if(access.invite.status!=='ready')return {status:access.invite.status};
+      entry=this.state.users[user]={code:access.invite.code,pending:false,delivery:'unsent',createdAt:new Date().toISOString()};
+      try{await this.save(this.state);}catch(error){delete this.state.users[user];throw error;}
+    }
     if (!entry) {
       if (!claim) return {status: 'none'};
       entry = this.state.users[user] = {code: this.generate(), pending: true, delivery: 'unsent', createdAt: new Date().toISOString()};
@@ -177,11 +201,14 @@ export class Keys {
     }
     let row = await this.api.find(entry.code);
     if (!row && entry.pending && claim) {
-      await this.api.create(entry.code);
+      await this.api.create(entry.code,user);
+      bound=true;
       row = await this.api.find(entry.code);
     }
     if (!row) return {status: entry.pending ? 'pending' : 'revoked'};
     if (row.infiniteUses || !Number.isInteger(row.usesRemaining) || row.usesRemaining < 0 || row.usesRemaining > 1) throw new Error('Unexpected code state');
+    // Bind legacy unused claims before delivery too; redemption then links atomically.
+    if(claim && row.usesRemaining===1 && !bound)await this.api.create(entry.code,user);
     if (entry.pending) { entry.pending = false; await this.save(this.state); }
     return row.usesRemaining === 0 ? {status: 'redeemed'} : {status: 'ready', code: entry.code};
   }

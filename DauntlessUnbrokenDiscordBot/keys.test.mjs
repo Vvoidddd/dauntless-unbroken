@@ -21,6 +21,19 @@ test('claims produce complete launcher invites and valid registration code chara
 });
 const user = '123456789012345678';
 
+test('banned Discord accounts cannot claim, resend or mint replacement invites',async()=>{
+ const f=setup();f.api.access=async()=>({ban:{reason:'Verified harassment'}});
+ assert.deepEqual(await f.service.run(user,true),{status:'banned',reason:'Verified harassment'});
+ assert.equal((await f.service.deliverPrivate(user,()=>assert.fail('must not send'))).status,'banned');
+ assert.equal(f.count(),0);
+});
+test('a dashboard-created invite is adopted instead of issuing another',async()=>{
+ const f=setup();f.rows.set('DR-dashboard',{usesRemaining:1,infiniteUses:false});
+ f.api.access=async()=>({invite:{code:'DR-dashboard',status:'ready'}});
+ assert.deepEqual(await f.service.run(user,true),{status:'ready',code:'DR-dashboard'});
+ assert.equal(f.count(),0);
+});
+
 test('private claims recover uncertain DMs and reuse one invite across repeated claims',async()=>{
   const f=setup(); const first=await f.service.run(user,true);
   f.state.users[user].delivery='reserved';
@@ -63,13 +76,15 @@ function setup() {
   const state = {version: 1, users: {}};
   const rows = new Map();
   const links = new Map();
+  const owners = new Map();
   let creates = 0;
-  const api = {linkedAccount: async id => links.get(id), linkAccount: async (id, uid) => {
+  const api = {access:async id=>({account:links.get(id),invite:owners.has(id)?{code:owners.get(id),status:rows.get(owners.get(id))?.usesRemaining===1?'ready':rows.has(owners.get(id))?'redeemed':'revoked'}:null}),linkedAccount: async id => links.get(id), linkAccount: async (id, uid) => {
     if (links.has(id) && links.get(id).userId !== uid) return {status:'discord_already_linked'};
     if ([...links].some(([other, value]) => other !== id && value.userId === uid)) return {status:'account_already_linked'};
     links.set(id,{userId:uid}); return {status:'linked'};
-  }, find: async code => rows.get(code), create: async code => {
-    creates++; rows.set(code, {inviteCode: code, usesRemaining: 1, infiniteUses: false});
+  }, find: async code => rows.get(code), create: async (code,id=user) => {
+    owners.set(id,code);
+    if(!rows.has(code)){creates++; rows.set(code, {inviteCode: code, usesRemaining: 1, infiniteUses: false});}
   }};
   return {state, rows, links, api, count: () => creates, service: new Keys(state, async () => {}, api, () => 'DR-test')};
 }

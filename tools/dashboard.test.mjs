@@ -8,6 +8,29 @@ import { parsePerformance, readPerformance } from './dashboard-performance.mjs';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 
+test('account and Discord controls require owner auth, same origin, bounded JSON and no forged Discord operator',async()=>{
+ const key='test-access-owner-key';const writes=[];
+ const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',fetcher:async(url,options)=>{
+   if(options?.method==='POST'){writes.push({path:url.pathname,body:JSON.parse(options.body)});return Response.json({ok:true});}
+   return Response.json({Users:[],players:[],instances:[],playersOnline:0});
+ }});
+ try{
+  const base=`http://127.0.0.1:${server.address().port}`;
+  for(const route of ['/api/account-access','/api/discord-moderation']){
+   const body=JSON.stringify({action:'revoke-key',accountId:'UID-player',reason:'Verified',moderatorId:'spoofed'});
+   assert.equal((await fetch(base+route,{method:'POST',body})).status,401);
+   assert.equal((await fetch(base+route,{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json'},body})).status,403);
+   assert.equal((await fetch(base+route,{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json',origin:base},body})).status,200);
+   assert.equal(writes.at(-1).body.moderatorId,undefined);
+  }
+  assert.deepEqual(writes.map(x=>x.path),['/unbroken/api/AccountAccess','/unbroken/api/DiscordModeration']);
+  assert.equal((await fetch(base+'/api/discord-access?discordId=invalid',{headers:{'x-dashboard-key':key}})).status,400);
+  assert.equal((await fetch(base+'/api/access-log')).status,401);
+  const large=await fetch(base+'/api/account-access',{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json',origin:base},body:'x'.repeat(4097)});
+  assert.equal(large.status,413);assert.equal(writes.length,2);
+ }finally{await new Promise(resolve=>server.close(resolve));}
+});
+
 test('chart inspection selects timestamps, preserves selection on refresh and handles missing samples', async () => {
   const source = await readFile(new URL('./dashboard-client.js', import.meta.url), 'utf8');
   const renderer = source.slice(source.indexOf('  function graph('), source.indexOf('  function renderDiscord('));

@@ -333,6 +333,13 @@ const EXPECTED_ROUTES = [
 
     "POST /unbroken/api/DiscordLink [HasDauntlessUnbrokenAdminApiKey]",
     "GET /unbroken/api/DiscordLink/:discordId [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/DiscordAccess/:discordId [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/DiscordInvite [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/DiscordModeration [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/DiscordModerationPending [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/DiscordModerationAck [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/AccountAccess [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/AccountAccessLog [HasDauntlessUnbrokenAdminApiKey]",
 
     "GET /unbroken/api/BackendHealth [HasDauntlessUnbrokenAdminApiKey]",
     "GET /unbroken/api/DashboardAccounts [HasDauntlessUnbrokenAdminApiKey]",

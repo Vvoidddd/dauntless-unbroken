@@ -10,6 +10,7 @@ export function LinkDiscordAccount(discordId: unknown, userId: unknown) {
     if (typeof discordId !== 'string' || !/^\d{17,20}$/.test(discordId) || typeof userId !== 'string' || !/^UID-[A-Za-z0-9-]{1,100}$/.test(userId)) return {status:'invalid_key'};
     const db = GetDb().$client;
     return db.transaction(() => {
+        if(db.prepare('SELECT 1 FROM discord_moderation WHERE discordId=? AND active=1').get(discordId))return {status:'discord_banned'};
         if (!db.prepare('SELECT 1 FROM users WHERE userId=?').get(userId)) return {status:'invalid_key'};
         const existing = DiscordAccount(discordId);
         if (existing && existing.userId !== userId) return {status:'discord_already_linked'};

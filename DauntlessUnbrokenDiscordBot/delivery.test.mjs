@@ -5,7 +5,7 @@ const user = '123456789012345678';
 function fixture(state = {version:1,users:{}}) {
   let saved, sends = 0;
   const rows = new Map();
-  const api = {linkedAccount:async()=>null,find:async code=>rows.get(code),create:async code=>rows.set(code,{usesRemaining:1,infiniteUses:false})};
+  const api = {access:async()=>({account:null}),linkedAccount:async()=>null,find:async code=>rows.get(code),create:async code=>{if(!rows.has(code))rows.set(code,{usesRemaining:1,infiniteUses:false});}};
   const save = async value=>{saved=structuredClone(value);};
   return {service:new Keys(state,save,api),api,save,state,rows,get saved(){return saved;},send:async()=>{sends++;},get sends(){return sends;}};
 }
