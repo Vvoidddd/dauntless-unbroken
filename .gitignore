@@ -12,6 +12,7 @@
 /.test-tmp-security/
 **/.token-optimizer/
 **/node_modules/
+/.sass-cache/
 *.log
 performance*.csv
 

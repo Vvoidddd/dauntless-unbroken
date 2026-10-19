@@ -1508,12 +1508,11 @@ img {
 .mods-page .card-title .icon { width: 16px; height: 16px; flex: 0 0 16px; }
 .mods-page .card-text + .card-text { margin-top: 8px; }
 .mods-page .card-text + .small-print { margin-top: 10px; }
-.mods-author {
+.mods-overview {
   border-color: var(--dr-azure);
   background: linear-gradient(135deg, var(--dr-deep), var(--dr-navy) 48%);
   box-shadow: inset 3px 0 0 var(--dr-ice), 0 18px 40px var(--shadow);
 }
-.mods-badge { color: var(--dr-glow); border: 1px solid var(--dr-azure); letter-spacing: 0.08em; font-size: 10px; }
 .mods-title { margin: 10px 0 8px; font-size: 26px; font-family: var(--font-display); line-height: 1.15; }
 .mods-intro { max-width: 860px; }
 .mods-grid { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
@@ -1523,12 +1522,10 @@ img {
   transition: border-color 0.15s, background 0.15s, transform 0.15s;
 }
 .mod-card:hover { border-color: var(--dr-glow); background: var(--dr-deep); transform: translateY(-1px); }
-.mod-by { color: var(--dr-glow); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
 .mod-name { display: flex; align-items: center; gap: 8px; font-size: 18px; }
 .mod-name .icon { width: 18px; height: 18px; flex: 0 0 18px; color: var(--dr-glow); }
 .mod-text { color: var(--dr-frost); }
 .mod-use { color: var(--dr-steel); font-size: 12px; }
-.mods-credit { text-align: center; }
 
 .partner-banner {
   width: 100%;

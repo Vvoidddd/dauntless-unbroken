@@ -1214,7 +1214,7 @@ function renderPartners(): void {
 
 // ------------------------------------------------------------------ mods page
 
-// The optional client mods (client-mods/ in the repository, by ZFXSTATIC): what each one does.
+// The optional client mods (client-mods/ in the repository): what each one does.
 // Information only; the launcher installs them and the in-game Mod Menu switches them.
 const MODS: readonly { icon: IconName; name: StringKey; text: StringKey; use: StringKey }[] = [
   { icon: "puzzle", name: "mod_cst_name", text: "mod_cst_text", use: "mod_cst_use" },
@@ -1229,14 +1229,12 @@ function renderMods(): void {
       h("h1", { class: "page-title", id: "mods-title" }, t("nav_mods")),
       h("p", { class: "page-sub" }, t("mods_subtitle")),
       card(
-        "mods-author",
-        h("span", { class: "badge mods-badge" }, t("mods_badge")),
+        "mods-overview",
         h("h2", { class: "mods-title" }, t("mods_title")),
         h("p", { class: "card-text mods-intro" }, t("mods_intro")),
         h("div", { class: "mods-grid" },
           ...MODS.map((m) =>
             h("div", { class: "mod-card" },
-              h("span", { class: "mod-by" }, t("mods_by")),
               h("strong", { class: "mod-name" }, icon(m.icon), t(m.name)),
               h("span", { class: "mod-text" }, t(m.text)),
               h("span", { class: "mod-use" }, t(m.use)),
@@ -1250,7 +1248,6 @@ function renderMods(): void {
         h("p", { class: "card-text" }, t("mods_note_settings")),
         h("p", { class: "small-print" }, t("mods_note_windows")),
       ),
-      h("p", { class: "small-print mods-credit" }, t("mods_credit")),
     ),
   ]);
 }

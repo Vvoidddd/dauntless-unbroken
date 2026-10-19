@@ -58,8 +58,6 @@ local TITLE_SIZE = 22
 local SECTION_SIZE = 15
 local TEXT_SIZE = 17
 local HINT_SIZE = 13
-local SIGNATURE = "-zfxstatic"          -- shown at the right end of the title line
-local SIGNATURE_SIZE = 14
 local ROW_H = math.floor(TEXT_SIZE * 1.8 + 0.5)
 local SWITCH_W, SWITCH_H = 44, 20       -- the on/off switch at the right of every row
 local KNOB = 14
@@ -431,9 +429,7 @@ local function BuildUI()
 
     -- texts
     local textW = PANEL_W - 2 * PAD_X - SWITCH_W - 10
-    MakeLabel("MODS", TITLE_SIZE, WHITE, x + PAD_X, y + PAD_Y, PANEL_W - 2 * PAD_X, 1003)
-    MakeLabelRight(SIGNATURE, SIGNATURE_SIZE, LINE_COLOR, x + PANEL_W - PAD_X,
-        y + PAD_Y + math.floor((TITLE_SIZE - SIGNATURE_SIZE) * 1.1 + 0.5), 1003)
+    MakeLabel("CLIENT MODS", TITLE_SIZE, WHITE, x + PAD_X, y + PAD_Y, PANEL_W - 2 * PAD_X, 1003)
     if noMods then MakeLabel("No mods to show", TEXT_SIZE, GREY, x + PAD_X, div1 + 10, textW, 1003) end
     MakeLabel("SETTINGS", SECTION_SIZE, LINE_COLOR, x + PAD_X, sectionY, textW, 1003)
     for i, it in ipairs(items) do
