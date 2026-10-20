@@ -14,7 +14,7 @@ const selectedGame = gameDirIndex === -1 ? null : process.argv[gameDirIndex + 1]
 const restoredIndex = process.argv.indexOf("--restored-profile");
 const restoredProfile = restoredIndex === -1 ? null : path.resolve(process.argv[restoredIndex + 1]);
 const expectedUsername = restoredProfile ? "PortableSmoke" : "OfflineSmoke_1";
-const listenerScript = 'Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in 61000,61001,61099 } | Select-Object LocalAddress,LocalPort | ConvertTo-Json -Compress; Get-NetUDPEndpoint -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -ge 8770 -and $_.LocalPort -le 8777 } | Select-Object LocalAddress,LocalPort | ConvertTo-Json -Compress';
+const listenerScript = 'Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in 61000,61001,61099 } | Select-Object LocalAddress,LocalPort,OwningProcess | ConvertTo-Json -Compress; Get-NetUDPEndpoint -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -ge 8770 -and $_.LocalPort -le 8777 } | Select-Object LocalAddress,LocalPort,OwningProcess | ConvertTo-Json -Compress';
 function listeners() {
     return execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", listenerScript], { encoding: "utf8", windowsHide: true }).trim();
 }

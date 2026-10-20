@@ -1,5 +1,5 @@
 // The public-mode relay (contract C4) against a local HTTPS "gateway" with a throwaway
-// self-signed certificate. Ports: 62401 upstream, 62402-62404 relays, 62409 nothing listening.
+// self-signed certificate. Test listeners use OS-assigned ports.
 
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -14,10 +14,8 @@ import { filterHeaders, Relay, RelayError } from "../src/main/relay";
 import { createRelayOwnerCheck } from "../src/main/relay-owner";
 import { makeTestCert, type TestCert } from "./certs";
 
-const UPSTREAM_PORT = 62401;
-const RELAY_PORT = 62402;
-const WRONG_PIN_RELAY_PORT = 62403;
-const DOWN_RELAY_PORT = 62404;
+let UPSTREAM_PORT: number;
+let RELAY_PORT: number;
 const NOTHING_PORT = 62409;
 
 interface Seen {
@@ -169,13 +167,15 @@ before(async () => {
     );
     wsEcho(socket);
   });
-  await new Promise<void>((resolve) => upstream.listen(UPSTREAM_PORT, "127.0.0.1", resolve));
+  await new Promise<void>((resolve, reject) => upstream.once("error", reject).listen(0, "127.0.0.1", resolve));
+  UPSTREAM_PORT = (upstream.address() as net.AddressInfo).port;
   relay = new Relay({
     target: { host: "127.0.0.1", port: UPSTREAM_PORT, fingerprint: cert.fingerprint },
-    port: RELAY_PORT,
+    port: 0,
     onPinError: (actual) => pinErrors.push(actual),
   });
   await relay.start();
+  RELAY_PORT = relay.port!;
 });
 
 after(async () => {
@@ -462,10 +462,11 @@ test("the game's chat connection as libwebsockets 3.0 sends it: GET //, a loopba
 test("a server with a different certificate gets nothing: 502, no request, no WebSocket", async () => {
   const wrong = new Relay({
     target: { host: "127.0.0.1", port: UPSTREAM_PORT, fingerprint: otherCert.fingerprint },
-    port: WRONG_PIN_RELAY_PORT,
+    port: 0,
     onPinError: (actual) => pinErrors.push(actual),
   });
   await wrong.start();
+  const WRONG_PIN_RELAY_PORT = wrong.port!;
   try {
     const before = seen.length;
     pinErrors.length = 0;
@@ -513,15 +514,19 @@ test("a port that is already taken is reported as port_busy", async () => {
   await assert.rejects(second.start(), (e: unknown) => e instanceof RelayError && e.code === "port_busy");
   // Something that is not a relay at all holding the port.
   const squatter = net.createServer();
-  await new Promise<void>((resolve) => squatter.listen(DOWN_RELAY_PORT, "127.0.0.1", resolve));
-  const third = new Relay({ target: { host: "127.0.0.1", port: UPSTREAM_PORT, fingerprint: cert.fingerprint }, port: DOWN_RELAY_PORT });
-  await assert.rejects(third.start(), (e: unknown) => e instanceof RelayError && e.code === "port_busy");
-  await new Promise<void>((resolve) => squatter.close(() => resolve()));
+  await new Promise<void>((resolve, reject) => squatter.once("error", reject).listen(0, "127.0.0.1", resolve));
+  try {
+    const third = new Relay({ target: { host: "127.0.0.1", port: UPSTREAM_PORT, fingerprint: cert.fingerprint }, port: (squatter.address() as net.AddressInfo).port });
+    await assert.rejects(third.start(), (e: unknown) => e instanceof RelayError && e.code === "port_busy");
+  } finally {
+    await new Promise<void>((resolve) => squatter.close(() => resolve()));
+  }
 });
 
 test("a server that is down gives 502 upstream_unreachable, and stop() frees the port", async () => {
-  const down = new Relay({ target: { host: "127.0.0.1", port: NOTHING_PORT, fingerprint: cert.fingerprint }, port: DOWN_RELAY_PORT, connectTimeoutMs: 2000 });
+  const down = new Relay({ target: { host: "127.0.0.1", port: NOTHING_PORT, fingerprint: cert.fingerprint }, port: 0, connectTimeoutMs: 2000 });
   await down.start();
+  const DOWN_RELAY_PORT = down.port!;
   const res = await call(DOWN_RELAY_PORT, { path: "/anything" });
   assert.equal(res.status, 502);
   assert.deepEqual(JSON.parse(res.body.toString()), { error: "upstream_unreachable" });

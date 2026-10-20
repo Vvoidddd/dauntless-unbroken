@@ -64,7 +64,10 @@ test('real Windows loopback socket resolves current PID and rejects another PID'
     client=net.connect((server.address() as net.AddressInfo).port,'127.0.0.1');
     const connected=once(client,'connect');
     accepted=await incoming;
-    await connected; // Production checks a request after the client's TCP handshake.
+    await connected;
+    const received=once(accepted,'data');
+    client.write('request');
+    await received; // Production checks ownership after receiving an HTTP request.
     const check=createRelayOwnerCheck();const start=performance.now();
     assert.equal(await check(accepted,process.pid),true);
     console.log(`Windows TCP owner snapshot: ${Math.round(performance.now()-start)}ms`);
