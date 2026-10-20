@@ -37,6 +37,36 @@ function Ok($text) { Write-Host "   OK  $text" -ForegroundColor Green }
 function Fail($text) { Write-Host "   !!  $text" -ForegroundColor Red; exit 1 }
 function Hash($path) { (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash }
 
+# Keep preferences, but never tear down live Lua states through Ctrl+R or file auto-reload.
+function Safe-Ue4ssSettings([string]$Text) {
+  $eol = if ($Text.Contains("`r`n")) { "`r`n" } else { "`n" }
+  $lines = New-Object 'System.Collections.Generic.List[string]'
+  $lines.AddRange([string[]]($Text -split '\r?\n'))
+  $missing = [ordered]@{ EnableHotReloadSystem = $true; EnableAutoReloadingLuaMods = $true }
+  $general = $false; $insertAt = -1
+  for ($i = 0; $i -lt $lines.Count; $i++) {
+    if ($lines[$i] -match '^\s*\[([^\]]+)\]') {
+      $general = $Matches[1].Trim() -ieq 'General'
+      if ($general) { $insertAt = $i + 1 }
+      continue
+    }
+    if (-not $general) { continue }
+    $equals = $lines[$i].IndexOf('=')
+    if ($equals -lt 0) { continue }
+    $key = $lines[$i].Substring(0, $equals).Trim()
+    if ($key -notin 'EnableHotReloadSystem', 'EnableAutoReloadingLuaMods') { continue }
+    $missing.Remove($key)
+    $value = $lines[$i].Substring($equals + 1)
+    $comment = [regex]::Match($value, '[;#].*').Value
+    if (($value -replace '[;#].*$', '').Trim() -ne '0') {
+      $lines[$i] = $lines[$i].Substring(0, $equals + 1) + ' 0' + $(if ($comment) { ' ' + $comment } else { '' })
+    }
+  }
+  if ($insertAt -lt 0) { $insertAt = $lines.Count + 1; $lines.Add('[General]') }
+  $lines.InsertRange($insertAt, [string[]]@($missing.Keys | ForEach-Object { "$_ = 0" }))
+  return $lines -join $eol
+}
+
 if (-not $Server) { $Server = (Read-Host "Host address (from the host, e.g. 100.x.y.z)").Trim() }
 if (-not $Server) { Fail "No host address given." }
 $ServerHost = ($Server -split ":")[0]
@@ -75,7 +105,7 @@ foreach ($name in "dxgi.dll", "DauntlessUnbroken.dll") {
 
 # 2b. UE4SS and the client mods (health bars, tracker, mod menu), from client-mods\.
 # Every file is checked against client-mods\manifest.json before and after copying. mods.txt and
-# UE4SS-settings.ini are only written when missing, so a player's own choices are kept. Files an
+# UE4SS-settings.ini preserve player choices, with unsafe Lua reload flags forced off. Files an
 # earlier kit installed that the bundle dropped since (manifest "remove") are deleted.
 # Problems here only warn: the game still works without the mods.
 if (-not $NoMods) {
@@ -111,6 +141,12 @@ if (-not $NoMods) {
       $want = $f.sha256.ToUpper()
       if (Test-Path -LiteralPath $dst) {
         if ($f.keep) {
+          if ($f.path -eq 'ue4ss/UE4SS-settings.ini') {
+            if ((Hash $src) -ne $want) { $bad++; continue }
+            $text = [IO.File]::ReadAllText($dst)
+            $safe = Safe-Ue4ssSettings $text
+            if ($safe -cne $text) { [IO.File]::WriteAllText($dst, $safe, (New-Object Text.UTF8Encoding $false)) }
+          }
           if ($f.path -eq 'ue4ss/Mods/mods.txt') {
             if ((Hash $src) -ne $want) { $bad++; continue }
             $text = [IO.File]::ReadAllText($dst)

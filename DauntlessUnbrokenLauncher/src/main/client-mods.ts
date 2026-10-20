@@ -2,8 +2,8 @@
 // client-mods/ folder, shipped as the launcher resource "client-mods" (forge.config.ts extraResource).
 // Installed next to the game exe on install, repair and before every launch, the same way as the
 // pinned DLLs: every file must match client-mods/manifest.json before it is copied and after.
-// Files marked "keep" (mods.txt, UE4SS-settings.ini) are only written when missing, so a player's
-// own choices (mods switched off in the in-game menu) survive. Failures never block the game:
+// Files marked "keep" preserve player choices; the two unsafe Lua reload flags are forced off.
+// Mod on/off choices survive. Failures never block the game:
 // the caller logs them and launches anyway. Files that earlier versions installed and that the
 // bundle dropped since (manifest "remove") are deleted, with any folder they leave empty, and mods
 // named in "disable" are switched off in the kept mods.txt (only their own line changes).
@@ -124,11 +124,13 @@ export async function installClientMods(resourcesDir: string, installDir: string
       /* missing: copy it */
     }
     if (present && f.keep) {
-      if (f.path === "ue4ss/Mods/mods.txt") {
+      if (f.path === "ue4ss/Mods/mods.txt" || f.path === "ue4ss/UE4SS-settings.ini") {
         const source = path.join(srcRoot, rel);
         if ((await hashFile(source)) !== want) throw new ClientModsError(f.path, "the launcher's copy does not match manifest.json");
         const before = await fsp.readFile(target, "utf8");
-        const after = addMissingModLines(before, await fsp.readFile(source, "utf8"));
+        const after = f.path === "ue4ss/UE4SS-settings.ini"
+          ? safeUe4ssSettings(before)
+          : addMissingModLines(before, await fsp.readFile(source, "utf8"));
         if (after !== before) {
           await fsp.writeFile(`${target}.new`, after, "utf8");
           await fsp.rename(`${target}.new`, target);
@@ -176,6 +178,39 @@ export async function installClientMods(resourcesDir: string, installDir: string
 
   result.disabled = await disableInModsTxt(path.join(dstRoot, "ue4ss", "Mods", "mods.txt"), Array.isArray(manifest.disable) ? manifest.disable : []);
   return result;
+}
+
+// Existing INIs are kept, so safety defaults must also migrate old installations.
+// Only these two keys in [General] change; other sections and player preferences survive.
+export function safeUe4ssSettings(text: string): string {
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const lines = text.split(/\r?\n/);
+  const missing = new Set(["EnableHotReloadSystem", "EnableAutoReloadingLuaMods"]);
+  let general = false;
+  let insertAt = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const section = /^\s*\[([^\]]+)\]/.exec(lines[i]);
+    if (section) {
+      general = section[1].trim().toLowerCase() === "general";
+      if (general) insertAt = i + 1;
+      continue;
+    }
+    if (!general) continue;
+    const equals = lines[i].indexOf("=");
+    if (equals < 0) continue;
+    const key = lines[i].slice(0, equals).trim().toLowerCase();
+    const name = ["EnableHotReloadSystem", "EnableAutoReloadingLuaMods"].find(k => k.toLowerCase() === key);
+    if (!name) continue;
+    missing.delete(name);
+    const value = lines[i].slice(equals + 1);
+    const comment = value.search(/[;#]/);
+    if (value.slice(0, comment < 0 ? undefined : comment).trim() !== "0") {
+      lines[i] = lines[i].slice(0, equals + 1) + " 0" + (comment < 0 ? "" : " " + value.slice(comment));
+    }
+  }
+  if (insertAt < 0) { insertAt = lines.length; lines.push("[General]"); ++insertAt; }
+  lines.splice(insertAt, 0, ...[...missing].map(key => `${key} = 0`));
+  return lines.join(eol);
 }
 
 // "Name : 1" -> "Name : 0" in mods.txt for each name (mod folder names only), keeping every other

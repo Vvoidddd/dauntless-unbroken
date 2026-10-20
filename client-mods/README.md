@@ -6,7 +6,7 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
 - **Behemoth Health Bars**: a fixed HP and shield bar at the bottom of the screen (two bars when two behemoths are up).
 - **Behemoth Tracker**: an arrow and distance to the behemoth in the top right.
 - **Mod Menu**: Home opens it, Up/Down (or PgUp/PgDn) choose, End flips the chosen switch. MODS turns
-  whole mods on or off (applied on Ctrl+R); SETTINGS changes the mods live (shield bar, HP numbers,
+  whole mods on or off (applied after restarting the game); SETTINGS changes the mods live (shield bar, HP numbers,
   two bars in escalations, tracker at any distance, uncrafted weapon colour). Settings are saved in
   `ue4ss/Mods/shared/ModSettings/settings.txt` on each PC and never shipped or overwritten.
 - **Uncrafted Weapons** (`CraftStar`): in the weapon crafting list, weapons you have never crafted get
@@ -31,7 +31,7 @@ They only change what you see on your own screen. The game works without them.
 - **Friend kit**: `friend-kit/setup.ps1` (skip with `-NoMods`).
 
 Both install only files whose SHA-256 matches `manifest.json`, and check them again after copying.
-`ue4ss/UE4SS-settings.ini` is written only when missing. Existing `mods.txt` switches are kept; new bundled mods are added and retired mods are disabled. Mods are Windows only: under Wine/Proton UE4SS is not loaded.
+`ue4ss/UE4SS-settings.ini` preserves existing preferences, except that Lua hot reload and automatic script reload are forced off to prevent live Lua-state teardown crashes. **Ctrl+R safely refreshes the mod menu and settings; restart the game to apply whole-mod on/off changes.** Existing `mods.txt` switches are kept; new bundled mods are added and retired mods are disabled. Mods are Windows only: under Wine/Proton UE4SS is not loaded.
 
 The launcher puts deleted files back before the next launch. To turn a mod off, use the Mod Menu or
 set it to 0 in `ue4ss/Mods/mods.txt` (that file is kept).

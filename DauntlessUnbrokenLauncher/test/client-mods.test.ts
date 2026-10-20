@@ -1,12 +1,64 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { disableModLines, insideRoot, installClientMods, safeRelative } from "../src/main/client-mods";
+import { disableModLines, insideRoot, installClientMods, safeRelative, safeUe4ssSettings } from "../src/main/client-mods";
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
+
+const reloadSettingsCases = [
+  {
+    before: "; preferences\r\n[General]\r\nEnableHotReloadSystem = 1 ; unsafe\r\nEnableAutoReloadingLuaMods = 1\r\nHotReloadKey = F6\r\nUseCache = 0\r\n[Other]\r\nEnableHotReloadSystem = 1\r\n",
+    after: "; preferences\r\n[General]\r\nEnableHotReloadSystem = 0 ; unsafe\r\nEnableAutoReloadingLuaMods = 0\r\nHotReloadKey = F6\r\nUseCache = 0\r\n[Other]\r\nEnableHotReloadSystem = 1\r\n",
+  },
+  { before: "[general]\nenablehotreloadsystem=1\nEnableHotReloadSystem=1 # duplicate\n", after: "[general]\nEnableAutoReloadingLuaMods = 0\nenablehotreloadsystem= 0\nEnableHotReloadSystem= 0 # duplicate\n" },
+  { before: "[Other]\nUseCache = 0", after: "[Other]\nUseCache = 0\n[General]\nEnableHotReloadSystem = 0\nEnableAutoReloadingLuaMods = 0" },
+  { before: "[General]\nEnableHotReloadSystem = 0\nEnableAutoReloadingLuaMods = 0\n", after: "[General]\nEnableHotReloadSystem = 0\nEnableAutoReloadingLuaMods = 0\n" },
+];
+
+test("existing UE4SS preferences migrate only unsafe reload flags, including duplicates and missing keys", () => {
+  for (const { before, after } of reloadSettingsCases) {
+    assert.equal(safeUe4ssSettings(before), after);
+    assert.equal(safeUe4ssSettings(after), after, "migration must be idempotent");
+  }
+});
+
+test("friend-kit migration agrees with launcher without executing setup/network/account actions", { skip: process.platform !== "win32" }, () => {
+  const script = `
+    [Console]::OutputEncoding = New-Object Text.UTF8Encoding $false
+    $tokens=$null; $errors=$null
+    $ast=[Management.Automation.Language.Parser]::ParseFile($env:UE4SS_SETUP_SCRIPT,[ref]$tokens,[ref]$errors)
+    if($errors.Count){throw 'Setup script parse error'}
+    $definition=$ast.Find({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Safe-Ue4ssSettings'},$true)
+    if(-not $definition){throw 'Migration function missing'}
+    . ([scriptblock]::Create($definition.Extent.Text))
+    $cases=[Console]::In.ReadToEnd() | ConvertFrom-Json
+    @($cases | ForEach-Object { Safe-Ue4ssSettings $_.before }) | ConvertTo-Json -Compress
+  `;
+  const result = spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], {
+    input: JSON.stringify(reloadSettingsCases), encoding: "utf8", timeout: 30000, windowsHide: true,
+    env: { ...process.env, UE4SS_SETUP_SCRIPT: path.resolve(__dirname, "../../../friend-kit/setup.ps1") },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), reloadSettingsCases.map(c => c.after));
+});
+
+test("updating a kept UE4SS INI installs the crash prevention and preserves mod choices", async () => {
+  const ini = "ue4ss/UE4SS-settings.ini";
+  const t = setup({ ...BUNDLE, [ini]: reloadSettingsCases[3].after }, [ini, "ue4ss/Mods/mods.txt"], []);
+  try {
+    t.put(ini, reloadSettingsCases[0].before);
+    t.put("ue4ss/Mods/mods.txt", "BehemothHealthBars : 0\nMyMod : 1\n");
+    await installClientMods(t.res, t.game);
+    assert.equal(readFileSync(t.at(ini), "utf8"), reloadSettingsCases[0].after);
+    assert.equal(readFileSync(t.at("ue4ss/Mods/mods.txt"), "utf8"), "BehemothHealthBars : 0\nMyMod : 1\n");
+    await installClientMods(t.res, t.game);
+    assert.equal(readFileSync(t.at(ini), "utf8"), reloadSettingsCases[0].after);
+  } finally { rmSync(t.root, { recursive: true, force: true }); }
+});
 
 // A launcher resources folder with a client-mods bundle, and a game folder (Archon/Binaries/Win64).
 function setup(files: Record<string, string>, keep: string[], remove: string[], disable: string[] = []) {

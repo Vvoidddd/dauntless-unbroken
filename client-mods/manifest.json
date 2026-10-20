@@ -244,8 +244,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/ModMenu/Scripts/main.lua",
-                      "sha256":  "5015b75612b118e7d4b1f361b97a7d164c73f8cd907c8da409abc7c75746e539",
-                      "size":  28491,
+                      "sha256":  "1017a3217b3af65c9964e7ea76e069c1e29cbefe89ab27ff29881edbee9352d4",
+                      "size":  28419,
                       "keep":  false
                   },
                   {
@@ -280,8 +280,8 @@
                   },
                   {
                       "path":  "ue4ss/UE4SS-settings.ini",
-                      "sha256":  "a570cf325e142f5e01c99e72c4fe41dee05cb8980f230be40136e779465a381c",
-                      "size":  9420,
+                      "sha256":  "49de4facdf3e0a86e01d1037a19cf3ace9fe5f31d3bcd682955046761168ee5f",
+                      "size":  9521,
                       "keep":  true
                   }
               ],

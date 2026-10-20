@@ -3,8 +3,7 @@ local FrameTick = require("FrameTick")
 local ModSettings = require("ModSettings")
 
 -- In-game menu with two sections:
---   MODS     - turns UE4SS mods on/off by rewriting Mods\mods.txt (applies on Ctrl+R, because
---              UE4SS reads mods.txt at startup and on every hot reload)
+--   MODS     - turns UE4SS mods on/off by rewriting Mods\mods.txt (applies after restarting the game)
 --   SETTINGS - on/off settings of the mods, saved by ModSettings (shared\ModSettings) and picked
 --              up by the mods within a second - no Ctrl+R needed
 --
@@ -403,7 +402,7 @@ end
 local function RefreshHint()
     if not ui then return end
     local text, color = "Up/Down  select     End  switch     Home  close", GREY
-    if AnyPending() then text, color = "*  mods change after Ctrl+R  (settings apply at once)", PENDING_COLOR end
+    if AnyPending() then text, color = "*  restart the game to apply mod switches; settings apply live", PENDING_COLOR end
     SetLabel("hint", text, HINT_SIZE, color, MENU_X + PAD_X, ui.hintY, PANEL_W - 2 * PAD_X, 1003)
 end
 
@@ -551,7 +550,7 @@ local function SwitchMod()
     e.on = not e.on
     lines[e.lineIndex] = e.name .. " : " .. (e.on and "1" or "0")
     if WriteModsTxt() then
-        log(e.name .. " -> " .. (e.on and "ON" or "OFF") .. " (Ctrl+R to apply)")
+        log(e.name .. " -> " .. (e.on and "ON" or "OFF") .. " (restart the game to apply)")
     end
 end
 
@@ -653,9 +652,9 @@ pcall(function()
 end)
 
 -- Key callbacks arrive on UE4SS's input thread. They only add the action to a plain Lua list;
--- the per-frame FrameTick (game thread) runs it. Nothing is handed to ExecuteInGameThread, so a
--- hot reload (Ctrl+R) can never leave a queued call pointing into an unloaded script - that
--- crashed the game. Without FrameTick (no HUD yet) the action runs directly.
+-- the per-frame FrameTick (game thread) runs it. Actions stay in this mod's own Lua queue.
+-- Lua-state hot reload is disabled. Ctrl+R only refreshes this menu/settings through the same
+-- game-thread path as Home. Before the HUD is ready, actions wait instead of touching UI off-thread.
 local pending = {}
 
 local function RunPending()
@@ -666,18 +665,15 @@ local function RunPending()
     end
 end
 
-local function Bind(keyName, fn)
+local function Bind(keyName, fn, modifiers)
     local k = Key[keyName]
     if k == nil then log("key name not valid in this UE4SS: " .. keyName) return end
     local ok, err = pcall(function()
-        RegisterKeyBind(k, function()
-            if FrameTick.IsRunning() then
-                if #pending < 8 then pending[#pending + 1] = {key = keyName, fn = fn} end
-            else
-                local okF, eF = pcall(fn)
-                if not okF then log("ERROR " .. keyName .. ": " .. tostring(eF)) end
-            end
-        end)
+        local callback = function()
+            if #pending < 8 then pending[#pending + 1] = {key = keyName, fn = fn} end
+        end
+        if modifiers then RegisterKeyBind(k, modifiers, callback)
+        else RegisterKeyBind(k, callback) end
     end)
     if not ok then log("ERROR binding " .. keyName .. ": " .. tostring(err)) end
 end
@@ -691,6 +687,7 @@ Bind("DOWN_ARROW", Down)
 Bind("PAGE_UP", Up)
 Bind("PAGE_DOWN", Down)
 Bind("END", Switch)
+Bind("R", Open, {ModifierKey.CONTROL})
 
 FrameTick.Every(0, "menu", function()
     RunPending()
