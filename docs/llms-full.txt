@@ -11089,6 +11089,7 @@ that every possible gameplay or operating-system failure is fixed.
 | Ramsgate admission | A new city accepted a party larger than its configured player cap. | Check the next city's cap before launching it; existing cities, reservations and party grouping retain their existing behavior. |
 | Launcher keys | Concurrent save and removal could recreate a removed key; concurrent saves shared temporary files. | Serialize key mutations and recheck identity before automatic recovery repair. Certificate binding remains enforced. |
 | Database initialization | A migration failure marked initialization complete, so later calls skipped migrations. | Mark initialization complete only after migration succeeds. |
+| Creator requests | Creator status reads and invalid-token submissions had no request limit before authentication. | Apply a shared 120-per-minute client-address budget before authenticating GET and POST requests; keep the existing per-account mutation limit. |
 
 Each failure has a focused regression test. The Discord bot's existing tests now
 also run in the required CI matrix before an automatic launcher release.

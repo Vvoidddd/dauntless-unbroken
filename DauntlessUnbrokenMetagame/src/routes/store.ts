@@ -7,7 +7,7 @@ import { GetHeldCurrencies, GetNotesForUser, OverlayHeldCurrencies } from "../co
 import { PlayerTokenOnly } from "../middleware/PlayerAuth";
 import { CreateStorePurchase, GetStoreOffer, IsAnyStoreEnabled, IsKnownStoreTag, IsStoreSkuEnabled, IsStoreTagEnabled, ListStoreOffers, RedeemStorePurchase, StoreError } from "../controllers/freestore";
 import { BalanceFromInventory } from "../features";
-import { PlayerMutationRateLimit, StoreImageRateLimit } from "../middleware/RateLimits";
+import { CreatorRequestRateLimit, PlayerMutationRateLimit, StoreImageRateLimit } from "../middleware/RateLimits";
 import { RamsWireOffer, RamsWireCurrency } from "../controllers/ramspricing";
 import StoreCatalog from '../vendor/store_catalog.json';
 import { GetCreatorSupport, RedeemCreatorCode } from "../controllers/creator";
@@ -70,11 +70,11 @@ const CreatorAuth: import("express").RequestHandler = (req, res, next) => {
     return HasDauntlessUnbrokenMetagameAuth(req, res, next);
 };
 
-storeRouter.get("/creator", CreatorAuth, PlayerTokenOnly, (req: any, res) => {
+storeRouter.get("/creator", CreatorRequestRateLimit, CreatorAuth, PlayerTokenOnly, (req: any, res) => {
     res.set("Cache-Control", "no-store").json(GetCreatorSupport(req.AuthData.userId));
 });
 
-storeRouter.post("/creator", CreatorAuth, PlayerTokenOnly, PlayerMutationRateLimit, (req: any, res) => {
+storeRouter.post("/creator", CreatorRequestRateLimit, CreatorAuth, PlayerTokenOnly, PlayerMutationRateLimit, (req: any, res) => {
     res.set("Cache-Control", "no-store");
     try{
         res.json(RedeemCreatorCode(req.AuthData.userId, req.body?.slug));

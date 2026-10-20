@@ -11,6 +11,9 @@ const Reply = { error: "rate_limited", message: "Too many requests; try again la
 // Separate image budget: a shop page fetches many icons without mutating an account.
 export const StoreImageRateLimit = rateLimit({keyGenerator: ClientRateLimitKey, windowMs: 60000, limit: 600, standardHeaders: 'draft-8', legacyHeaders: false, message: Reply});
 
+// Bound native creator requests before token authentication, including status reads.
+export const CreatorRequestRateLimit = rateLimit({keyGenerator: ClientRateLimitKey, windowMs: 60000, limit: 120, standardHeaders: 'draft-8', legacyHeaders: false, message: Reply});
+
 // Authenticated players have separate buckets. Native reward batches are not
 // pooled behind one gateway-address quota.
 export const PlayerMutationRateLimit = rateLimit({
