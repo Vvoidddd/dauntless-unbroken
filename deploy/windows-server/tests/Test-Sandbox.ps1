@@ -311,6 +311,10 @@ try {
 } catch {
     Check "test run: $($_.Exception.Message)" $false
 } finally {
+    $backupError = Join-Path $Root 'data\logs\backup-db.err.log'
+    if ($script:Fail -and (Test-Path -LiteralPath $backupError)) {
+        Add-Content -LiteralPath $Log -Value (@('----- backup helper diagnostics') + @(Get-Content -LiteralPath $backupError -Tail 30))
+    }
     Stop-Sandbox $Root
     Stop-Sandbox $Root2
     $after = (Get-LivePids) -join ' '

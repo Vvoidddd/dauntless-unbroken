@@ -401,14 +401,38 @@ Check 'Set-Chat -On after an install or update: metagame.env unchanged' ([IO.Fil
 $setChatOut = & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $Kit 'Set-Chat.ps1') -Root $setChatRoot -On 2>&1 | Out-String
 Check 'Set-Chat -On with any other header: still "already on"' ($LASTEXITCODE -eq 0 -and $setChatOut -match 'chat is already on' -and -not (Test-Path -LiteralPath $stackMarker)) $setChatOut.Trim()
 Check 'every script writes the same header for metagame.env' (@(Select-String -LiteralPath (Join-Path $Kit 'Install-DauntlessUnbrokenServer.ps1'), (Join-Path $Kit 'Update-DauntlessUnbrokenServer.ps1'), (Join-Path $Kit 'Set-Chat.ps1') -Pattern 'Holds secrets|holds secrets').Count -eq 0)
-# A real change: written with the shared header, the stack restarted once (the stub records it), the
+# A real change: written with the shared header, one restart (and one verified backup), the
 # listener found stopped (nothing listens on the sandbox chat port here)
 if (@(Get-NetTCPConnection -State Listen -LocalPort (Get-DRChatPort $true) -ErrorAction SilentlyContinue).Count -eq 0) {
     $setChatOut = & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $Kit 'Set-Chat.ps1') -Root $setChatRoot -Off 2>&1 | Out-String
     $offEnv = Read-DREnv $setChatPaths.MetaEnv
-    Check 'Set-Chat -Off: "chat off" after one stop and start' ($LASTEXITCODE -eq 0 -and $setChatOut -match 'chat off' -and (Test-Path -LiteralPath $stackMarker) -and ((Get-Content -LiteralPath $stackMarker) -join ',') -eq 'stop,start') $setChatOut.Trim()
+    Check 'Set-Chat -Off: "chat off" after one restart' ($LASTEXITCODE -eq 0 -and $setChatOut -match 'chat off' -and (Test-Path -LiteralPath $stackMarker) -and ((Get-Content -LiteralPath $stackMarker) -join ',') -eq 'restart') $setChatOut.Trim()
     Check 'Set-Chat -Off: CHAT=0 under the shared header, other keys kept, "Chat": "Off"' ($offEnv['CHAT'] -eq '0' -and $offEnv['GIT_COMMIT'] -eq 'abc1234' -and ([IO.File]::ReadAllLines($setChatPaths.MetaEnv)[0] -ceq "# $($script:DRSecretEnvHeader[0])") -and (Get-Content -LiteralPath $setChatPaths.ServerJson -Raw | ConvertFrom-Json).Chat -eq 'Off')
 } else { Write-Host '  skip  Set-Chat -Off (something listens on the sandbox chat port)' -ForegroundColor DarkGray }
+
+# A failed restart must roll back settings, never report chat successfully changed.
+[IO.File]::WriteAllText((Join-Path $setChatPaths.Bin 'Stack.ps1'), "param([string]`$Action, [string]`$Root)`r`nexit 1`r`n")
+$beforeFailure = [IO.File]::ReadAllText($setChatPaths.MetaEnv)
+$previousChat = (Get-Content -LiteralPath $setChatPaths.ServerJson -Raw | ConvertFrom-Json).Chat
+$change = if ($previousChat -eq 'Off') { '-On' } else { '-Off' }
+$failedChange = & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $Kit 'Set-Chat.ps1') -Root $setChatRoot $change 2>&1 | Out-String
+Check 'Set-Chat: failed restart returns an error and restores previous settings' ($LASTEXITCODE -ne 0 -and $failedChange -match 'Chat setting rolled back' -and [IO.File]::ReadAllText($setChatPaths.MetaEnv) -ceq $beforeFailure -and (Get-Content -LiteralPath $setChatPaths.ServerJson -Raw | ConvertFrom-Json).Chat -eq $previousChat) $failedChange.Trim()
+
+Write-Host '== stack failure exit codes (no services started)'
+$failedRoot = Join-Path $WorkDir 'failed-stack'
+$failedPaths = Get-DRPaths $failedRoot
+New-Item -ItemType Directory -Force -Path $failedPaths.Config, $failedPaths.Bin | Out-Null
+foreach ($name in 'Stack.ps1', 'DauntlessUnbrokenServer.Common.ps1', 'DauntlessUnbrokenServer.Performance.ps1') {
+    Copy-Item -LiteralPath (Join-Path $Kit $name) -Destination $failedPaths.Bin
+}
+[IO.File]::WriteAllText($failedPaths.ServerJson, '{ "Mode": "Private", "Sandbox": true, "BindAddress": "127.0.0.1", "Components": ["metagame"] }')
+[IO.File]::WriteAllText((Join-Path $failedPaths.Bin 'Backup-DauntlessUnbrokenServer.ps1'), "param([string]`$Root)`r`nWrite-Output 'fixture backup failure'`r`nexit 1`r`n")
+foreach ($action in 'start', 'restart') {
+    $failedOut = & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $failedPaths.Bin 'Stack.ps1') $action -Root $failedRoot 2>&1 | Out-String
+    Check "Stack ${action}: failed backup returns nonzero without launching services" ($LASTEXITCODE -ne 0 -and $failedOut -match 'backup fail|without a backup' -and @(Get-DRComponentProcesses $failedPaths 'metagame').Count -eq 0) $failedOut.Trim()
+}
+$failedOut = & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $failedPaths.Bin 'Stack.ps1') start -Root $failedRoot -NoBackup 2>&1 | Out-String
+Check 'Stack start: missing component returns nonzero even with -NoBackup' ($LASTEXITCODE -ne 0 -and $failedOut -match 'Not everything started' -and @(Get-DRComponentProcesses $failedPaths 'metagame').Count -eq 0) $failedOut.Trim()
 
 Write-Host ''
 Write-Host "unit checks: $script:Pass passed, $script:Fail failed" -ForegroundColor $(if ($script:Fail) { 'Red' } else { 'Green' })

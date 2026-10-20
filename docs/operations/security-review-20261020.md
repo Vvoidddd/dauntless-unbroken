@@ -10,6 +10,7 @@ The review covers the 49 open CodeQL alerts (#3–51) and dependency pull reques
 - Chat-wire tests compare domain-containing text literally; the only ping-pattern expression validates its numeric request ID (`DauntlessUnbrokenMetagame/test/chat.test.ts`).
 - Dependency updates: DeployServer `better-sqlite3` 13.0.3, Metagame `dotenv` 18.0.7, launcher `@electron/fuses` 2.1.3, Forge fuse plugin and RPM maker 8.0.1. Launcher version: 1.0.11. The existing Forge CLI remains in place; the updated maker/plugin interfaces are validated by actual packaging.
 - Relay tests use OS-assigned listener ports to avoid Windows excluded-port ranges. The Windows ownership test receives application data before checking ownership, matching the production HTTP request boundary. Exact peer tuple/PID rejection remains unchanged.
+- The server-kit sandbox exposed a failed redundant backup during chat switching: `Stack.ps1 start` returned success while every service stayed down. Chat switching now uses one restart and one verified stopped-database backup. Stack startup, restart and backup failures return nonzero; regression fixtures verify failure reporting, no service launch after a failed backup, and chat-setting rollback. Backup-helper diagnostics are retained when the sandbox fails.
 
 ## Intentional exceptions requiring an explicit disposition
 

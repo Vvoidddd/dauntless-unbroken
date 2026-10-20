@@ -429,8 +429,7 @@ function Start-ViaTask {
     $t = Get-ScheduledTask -TaskName $StackTask -ErrorAction SilentlyContinue
     if (-not $t) { Stop-DR "The scheduled task '$StackTask' does not exist. Run Install-DauntlessUnbrokenServer.ps1 again." }
     if (@(Get-DRComponentProcesses $P 'metagame').Count -eq 0 -and -not (Invoke-Backup)) {
-        Say '!! not starting without a backup (use -NoBackup to override)'
-        return
+        Stop-DR 'Not starting without a verified backup (use -NoBackup to override).'
     }
     if ($PSCmdlet.ShouldProcess($P.StopFlag, 'Clear the stop flag')) { Clear-StopFlagSafe }
     if ($AllowlistTask) {
@@ -456,10 +455,10 @@ function Start-ViaTask {
             if ((Get-DRConfigValue $Cfg 'InteractiveSession' $false) -eq $true) {
                 Say "   (interactive mode: the '$ServiceUser' account must be signed in; it signs in automatically after a reboot)"
             }
-            return
+            Stop-DR 'The stack task exited before the metagame and gateway became ready.'
         }
     }
-    Say "!! the stack is not up after 2 minutes. See $($P.Logs)\supervisor.log and metagame.err.log"
+    Stop-DR "The stack is not up after 2 minutes. See $($P.Logs)\supervisor.log and metagame.err.log"
 }
 
 function Invoke-Supervise {
@@ -523,14 +522,14 @@ try {
         'status' { Show-Status }
         'start' {
             if ($ViaTask -and $Only) { Stop-DR "-Only does not apply to a start through the scheduled tasks (they start everything). Use 'restart -Only <component>'." }
-            if ($ViaTask) { Start-ViaTask } else { $ok = Start-Components; if (-not $ok) { Say '!! not everything started' } }
+            if ($ViaTask) { Start-ViaTask } else { $ok = Start-Components; if (-not $ok) { Stop-DR 'Not everything started.' } }
             Start-OwnerDashboard
             if (-not $WhatIfPreference) { ''; Show-Status }
         }
         'stop' {
             if ($ViaTask -and $Only) { Stop-DR "A component stopped alone would be restarted by its supervisor. Use 'restart -Only <component>', or stop everything." }
             Stop-Components
-            [void](Invoke-Backup)
+            if (-not (Invoke-Backup)) { Stop-DR 'The stack stopped, but its backup failed.' }
             if (-not $WhatIfPreference) { ''; Show-Status }
         }
         'restart' {
@@ -540,8 +539,11 @@ try {
                 Say "the supervisor starts $($Enabled -join ', ') again within a minute"
             } else {
                 Stop-Components
-                if (-not $Only) { [void](Invoke-Backup); $script:SkipBackup = $true }   # the copy was just taken
-                if ($ViaTask) { Start-ViaTask } else { $ok = Start-Components; if (-not $ok) { Say '!! not everything started' } }
+                if (-not $Only) {
+                    if (-not (Invoke-Backup)) { Stop-DR 'Restart refused: the stopped database backup failed.' }
+                    $script:SkipBackup = $true   # the verified copy was just taken
+                }
+                if ($ViaTask) { Start-ViaTask } else { $ok = Start-Components; if (-not $ok) { Stop-DR 'Not everything started.' } }
                 Start-OwnerDashboard
             }
             if (-not $WhatIfPreference) { ''; Show-Status }

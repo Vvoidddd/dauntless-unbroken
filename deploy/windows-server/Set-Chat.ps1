@@ -5,8 +5,8 @@
     Chat (roadmap 3.10) is a listener inside the metagame on 127.0.0.1:61099 (62099 in a sandbox). The
     gateway already forwards the game's chat connection (a WebSocket upgrade) there, so no firewall
     rule is needed and none is opened. This writes CHAT, CHAT_BIND_HOST and CHAT_PORT in
-    metagame.env and "Chat" in server.json, restarts the stack (with the usual backups around the stop
-    and start), and waits up to 30 s for the listener to reach the new state. If the restart or the
+    metagame.env and "Chat" in server.json, restarts the stack with one verified stopped-database
+    backup, and waits up to 30 s for the listener to reach the new state. If the restart or the
     check fails, the old settings are put back and the stack restarted again.
 
     A restart drops the parties and matchmaking queues, which live in memory: switch it when nobody is
@@ -63,8 +63,7 @@ try {
     Save-DRConfig $Root $config
     $stack = Join-Path $paths.Bin 'Stack.ps1'
     try {
-        if (-not (Invoke-Stack $stack 'stop')) { throw 'Stack stop failed' }
-        if (-not (Invoke-Stack $stack 'start')) { throw 'Stack start failed' }
+        if (-not (Invoke-Stack $stack 'restart')) { throw 'Stack restart failed' }
         $listening = $false
         for ($attempt = 0; $attempt -lt 30; $attempt++) {
             $listening = @(Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue | Where-Object { $_.LocalAddress -eq '127.0.0.1' }).Count -gt 0
@@ -78,8 +77,7 @@ try {
         Write-DRText -Path $paths.MetaEnv -Text $previousEnv
         Set-DRConfigValue $config 'Chat' $previousChat
         Save-DRConfig $Root $config
-        [void](Invoke-Stack $stack 'stop')
-        [void](Invoke-Stack $stack 'start')
+        [void](Invoke-Stack $stack 'restart')
         Stop-DR "Chat setting rolled back: $reason. The metagame log in $($paths.Logs) says why."
     }
 } catch {
