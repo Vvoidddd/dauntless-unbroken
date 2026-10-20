@@ -1,5 +1,6 @@
 import { PlayerRegion, RegionQueueKey, HuntRegion, RegionChoice } from './huntregion';
 import { CapacityTurns } from './capacityturns';
+import { HasServerPriority } from './priorityaccess';
 import { logger } from "../logger";
 import crypto from "node:crypto";
 import { MatchmakingRoster } from './matchmakingroster';
@@ -122,7 +123,7 @@ export function LauncherQueueStatus(playerId: string) {
     const kind = entry.GameMode === 'CITY' ? 'ramsgate' : 'hunt';
     if (entry.Ready) return {state:'ready', kind};
     const region = entry.Region ?? PlayerRegion(GetPartyOf(playerId)?.LeaderId ?? playerId);
-    const groups = new Map<string, {at:number, players:Set<string>}>();
+    const groups = new Map<string, {at:number, players:Set<string>, priority:boolean}>();
     let own = '';
     for (const [id, candidate] of MatchmakingResultMap) {
         if (candidate.Ready || candidate.Failed) continue;
@@ -131,14 +132,15 @@ export function LauncherQueueStatus(playerId: string) {
         if (candidate.LaunchDeadline === undefined && !MatchmakingRoster.queueMemberActive(id, candidate.CandidateId)) continue;
         const queue = PlayerQueueMap.get(id);
         const key = queue?.CandidateIds.values().next().value ?? candidate.CandidateId;
-        const group = groups.get(key) ?? {at:candidate.QueuedAt ?? PartyNow(), players:new Set<string>()};
+        const group = groups.get(key) ?? {at:candidate.QueuedAt ?? PartyNow(), players:new Set<string>(), priority:false};
+        group.priority ||= HasServerPriority(id);
         group.at = Math.min(group.at, candidate.QueuedAt ?? PartyNow());
         group.players.add(id);
         groups.set(key, group);
         if (id === playerId) own = key;
     }
     let position = 1, total = 0;
-    const ordered = [...groups.entries()].sort((a,b)=>a[1].at-b[1].at);
+    const ordered = [...groups.entries()].sort((a,b)=>Number(b[1].priority)-Number(a[1].priority) || a[1].at-b[1].at);
     for (const [key, group] of ordered) {
         if (key === own) position = total + 1;
         total += group.players.size;
@@ -332,7 +334,7 @@ async function LaunchGameOnDeployserver(GameMode: string, GameArgs: string, Hunt
     const active = new Set([...MatchmakingResultMap.values()].filter(e=>!e.Ready && !e.Failed).map(e=>e.CandidateId));
     const queuedAt = Math.min(...AskedPlayers!.map(id => MatchmakingResultMap.get(id)?.QueuedAt ?? PartyNow()));
     // City seats and hunt processes are separate resources; a full city must not hold up hunts.
-    if (!CapacityOrder.start(candidate, `${Region}:${GameMode}`, PartyNow(), active, queuedAt))
+    if (!CapacityOrder.start(candidate, `${Region}:${GameMode}`, PartyNow(), active, queuedAt, AskedPlayers!.some(HasServerPriority)))
         return {succeeded:false,readyNow:false,host:'',port:0,capacity:true};
     let capacity = false;
     try {

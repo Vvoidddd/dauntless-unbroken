@@ -64,6 +64,7 @@
 - [Feature integrations](https://vvoidddd.github.io/dauntless-unbroken/findings/feature-integrations.html): Progression, shop, social and world-lifecycle systems in Unbroken.
 - [Fleet admission and database storage](https://vvoidddd.github.io/dauntless-unbroken/operations/fleet-admission-backups.html): Two EU game hosts, UK key distribution and verified database copies.
 - [Game downloads](https://vvoidddd.github.io/dauntless-unbroken/r2-downloads.html): Configure verified HTTPS game downloads from the owner-operated R2 catalog.
+- [Priority access](https://vvoidddd.github.io/dauntless-unbroken/setup/priority-access.html): Configure account-based priority queues and reserved hunt and Ramsgate capacity.
 - [Run a server](https://vvoidddd.github.io/dauntless-unbroken/server.html): How the Unbroken services, networking, database, hunt lifecycle and operator tools fit together.
 - [Source code on GitHub](https://github.com/Vvoidddd/dauntless-unbroken): Dauntless Unbroken source, AGPL-3.0-only, on branch main.
 - [ROADMAP.md](https://raw.githubusercontent.com/Vvoidddd/dauntless-unbroken/main/ROADMAP.md): The live checklist behind the roadmap page, as raw Markdown. Done items start with "- [x] **<id>", open ones with "- [ ] **<id>".

@@ -1,4 +1,4 @@
-import {CapacityUnavailable} from './capacity';
+import {CapacityUnavailable, PriorityReservedCitySeats} from './capacity';
 
 export const CITY_PLAYER_LIMIT = 20;
 // RAMSGATE_CITY_CAPS="10,10,8": at most that many cities, filled in the order they started (the oldest first),
@@ -19,11 +19,16 @@ export class CityPool<T extends {id:string}> {
     private reservations = new Map<string, {size:number, until:number}[]>();
     constructor(private list: () => City[], private start: () => Promise<T>, private get: (id:string) => T,
         private now = Date.now, private caps: () => number[] | undefined = CityCaps) {}
-    allocate(size = 1): Promise<T> {
+    allocate(size = 1, priority = false): Promise<T> {
         if (!Number.isInteger(size) || size < 1 || size > CITY_PLAYER_LIMIT) return Promise.reject(new CapacityUnavailable('hunts'));
         const work = this.queue.catch(() => {}).then(async () => {
             const cities = this.list().slice().sort((a, b) => a.startedAt - b.startedAt);
             const caps = this.caps();
+            // Keep seats in the oldest city for priority accounts; other cities retain their full cap.
+            const limitAt = (index: number) => {
+                const cap = caps ? (caps[index] ?? 0) : CITY_PLAYER_LIMIT;
+                return !priority && index === 0 ? Math.max(0, cap - Math.min(PriorityReservedCitySeats(), Math.max(0, cap - 1))) : cap;
+            };
             let slot = 0;
             for (const id of this.reservations.keys()) if (!cities.some(c => c.id === id)) { this.reservations.delete(id); this.lastPlayers.delete(id); this.retiring.delete(id); }
             let chosen: T | undefined;
@@ -46,7 +51,7 @@ export class CityPool<T extends {id:string}> {
                 // Missing telemetry is not proof of free seats. For a fresh launch, all
                 // admissions are still reserved; otherwise leave an unknown city alone.
                 const occupied = city.players ?? (this.now() - city.startedAt < 180000 && leases.length > 0 ? 0 : CITY_PLAYER_LIMIT);
-                const limit = caps ? (caps[slot] ?? 0) : CITY_PLAYER_LIMIT;
+                const limit = limitAt(slot);
                 slot++;
                 if (occupied + leases.reduce((n,r) => n+r.size, 0) + size <= limit) {
                     chosen = this.get(city.id);
@@ -54,7 +59,7 @@ export class CityPool<T extends {id:string}> {
                 }
             }
             // Cold starts must obey the next city's cap too, not just existing cities.
-            if (!chosen && caps && (slot >= caps.length || size > caps[slot])) throw new CapacityUnavailable('hunts');
+            if (!chosen && ((caps && slot >= caps.length) || size > limitAt(slot))) throw new CapacityUnavailable('hunts');
             chosen ??= await this.start();
             const leases = this.reservations.get(chosen.id) ?? [];
             leases.push({size, until:this.now() + 180000});

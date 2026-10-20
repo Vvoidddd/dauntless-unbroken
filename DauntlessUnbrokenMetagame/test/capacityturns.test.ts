@@ -63,3 +63,18 @@ test('cancelled and disconnected waiters cannot block the next hunt', () => {
         assert.equal(q.start('b','ger',cancel ? 2 : 60001,active),true);
     }
 });
+
+test('priority passes waiting normal groups, keeps its FIFO order and never interrupts an in-flight launch', () => {
+    const q=new CapacityTurns(60000), active=new Set(['normal','first','second']);
+    assert.equal(q.start('normal','eu',0,active,0),true);
+    assert.equal(q.start('first','eu',1,active,1,true),false);
+    q.finish('normal',true,2);
+    assert.equal(q.start('normal','eu',3,active,0),false);
+    assert.equal(q.start('second','eu',4,active,2,true),false);
+    assert.equal(q.start('first','eu',5,active,1,true),true);
+    q.finish('first',false,6);
+    assert.equal(q.start('normal','eu',7,active,0),false);
+    assert.equal(q.start('second','eu',8,active,2,true),true);
+    q.finish('second',false,9);
+    assert.equal(q.start('normal','eu',10,active,0),true);
+});

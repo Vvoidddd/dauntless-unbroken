@@ -1,7 +1,22 @@
 import './setup';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MemoryAdmission, CapacityUnavailable, HuntAdmission, HuntLimit, PendingHuntLimit, HuntsDraining } from '../src/controllers/capacity';
+import { MemoryAdmission, CapacityUnavailable, HuntAdmission, HuntLimit, PendingHuntLimit, HuntsDraining, HasPriorityPlayers } from '../src/controllers/capacity';
+
+test('reserved hunt slots require configured account IDs and cannot exceed the hard cap',()=>{
+    process.env.SERVER_PRIORITY_ACCOUNTS='UID-one, UID-two';process.env.PRIORITY_RESERVED_HUNTS='2';
+    try {
+        assert.equal(HasPriorityPlayers(['Void']),false);
+        assert.equal(HasPriorityPlayers(['UID-other','UID-two']),true);
+        assert.equal(HasPriorityPlayers(undefined),false);
+        let running=3;const slots=new HuntAdmission(()=>running,()=>5);
+        assert.throws(()=>slots.reserve(),CapacityUnavailable);
+        const release=slots.reserve(true);running++;release();
+        const last=slots.reserve(true);running++;last();
+        assert.throws(()=>slots.reserve(true),CapacityUnavailable);
+        running=0;process.env.PRIORITY_RESERVED_HUNTS='-1';assert.throws(()=>slots.reserve(),/Invalid/);
+    }finally{delete process.env.SERVER_PRIORITY_ACCOUNTS;delete process.env.PRIORITY_RESERVED_HUNTS;}
+});
 
 test('hard hunt slots include pending allocations and release exactly once',()=>{
     let running=4;

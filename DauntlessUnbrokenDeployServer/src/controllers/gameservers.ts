@@ -18,7 +18,7 @@ import TrialsEliteHuntTable from "../vendor/trials_elite_table.json";
 import TrialsPool from "../vendor/trials_pool.json";
 import { kill } from "node:process";
 import { logger } from "../logger";
-import { CapacityUnavailable, memoryAdmission, HuntAdmission } from './capacity';
+import { CapacityUnavailable, memoryAdmission, HuntAdmission, HasPriorityPlayers } from './capacity';
 
 const RAMSGATE_MAP_PATH = "/Game/Maps/ramsgate/ramsgate_01_persistent";
 const TRAINING_DOJO_MAP_PATH = "/Game/Maps/islands/dojo/training_dojo_persistent";
@@ -237,7 +237,7 @@ function StartServer(Map: string, Behemoth: string | undefined, MatchmakerHuntId
     if(ShuttingDown) throw new Error("Deploy service is shutting down");
     if(process.env.SERVER_ROLE === "database-only") throw new Error("Game allocation disabled on database-only node");
     if (!IsRamsgate && !IsTrainingDojo) CheckCpuAdmission();
-    const ReleaseHunt = !IsRamsgate && !IsTrainingDojo ? huntAdmission.reserve() : () => {};
+    const ReleaseHunt = !IsRamsgate && !IsTrainingDojo ? huntAdmission.reserve(HasPriorityPlayers(ExpectedPlayers?.map(player => player.playerUid))) : () => {};
     const Previous = ServerLaunchQueue;
     let ReleaseLaunch!: () => void;
     ServerLaunchQueue = new Promise<void>(Resolve => { ReleaseLaunch = Resolve; });
@@ -407,9 +407,9 @@ const CityInstances = new CityPool<Gameserver>(
     id => Gameservers.find(s => s.id === id)!
 );
 
-export async function GetRamsgateConnectionDetails(size = 1){
+export async function GetRamsgateConnectionDetails(size = 1, priority = false){
     if (CityPoolEnabled()) {
-        const server = await CityInstances.allocate(size);
+        const server = await CityInstances.allocate(size, priority);
         return {host:MY_IP, port:server.port, sessionId:server.id};
     }
     let Server = RamsgateServer;

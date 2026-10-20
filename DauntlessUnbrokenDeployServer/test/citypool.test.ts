@@ -12,6 +12,19 @@ function fixture(caps?:number[]) {
     }, id=>cities.find(c=>c.id===id)!,()=>now,()=>caps);
     return {pool,cities,advance:(ms:number)=>{now+=ms;}};
 }
+
+test('oldest-city reserved seats admit priority parties without overfilling or shrinking later cities',async()=>{
+    process.env.PRIORITY_RESERVED_CITY_SEATS='5';
+    try {
+        const {pool,cities}=fixture([20,20]);
+        for(let i=0;i<35;i++)await pool.allocate();
+        assert.equal(cities.length,2);
+        await assert.rejects(pool.allocate(),CapacityUnavailable);
+        assert.equal((await pool.allocate(4,true)).id,'1');
+        assert.equal((await pool.allocate(1,true)).id,'1');
+        await assert.rejects(pool.allocate(1,true),CapacityUnavailable);
+    }finally{delete process.env.PRIORITY_RESERVED_CITY_SEATS;}
+});
 test('21 concurrent travellers share one cold city until its 20th seat, then start another',async()=>{
     const {pool,cities}=fixture();
     const allocations=await Promise.all(Array.from({length:21},()=>pool.allocate()));

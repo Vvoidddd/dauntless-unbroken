@@ -5,6 +5,19 @@ export class CapacityUnavailable extends Error {
     constructor(public readonly reason: 'memory' | 'ports' | 'hunts' | 'cpu') { super(`Game-server capacity unavailable: ${reason}`); }
 }
 
+// Account identity comes from the backend's authenticated matchmaking roster.
+export function HasPriorityPlayers(players: string[] | undefined): boolean {
+    const accounts = (process.env.SERVER_PRIORITY_ACCOUNTS ?? '').split(',').map(id => id.trim()).filter(Boolean);
+    return players?.some(id => accounts.includes(id)) ?? false;
+}
+
+export function PriorityReservedCitySeats() { return reserved('PRIORITY_RESERVED_CITY_SEATS', 19); }
+function reserved(name: string, maximum = 10000) {
+    const value=process.env[name] ?? '0', number=Number(value);
+    if(!/^\d+$/.test(value) || !Number.isSafeInteger(number) || number > maximum) throw new Error(`Invalid ${name}`);
+    return number;
+}
+
 export function HuntLimit() {
     const name = process.env.HUNT_WORKER === '1' ? 'MAX_HUNTS' : 'MAX_LOCAL_HUNTS';
     if (process.env[name] === 'auto') {
@@ -38,13 +51,18 @@ export function PendingHuntLimit() {
 export class HuntAdmission {
     pending = 0;
     constructor(private running: () => number, private limit = HuntLimit) {}
-    status() { return {running: this.running(), pending: this.pending, limit: this.limit()}; }
-    reserve() {
-        const {running, pending, limit} = this.status();
+    status() {
+        const limit=this.limit(), protectedSlots=limit === null ? 0 : Math.min(reserved('PRIORITY_RESERVED_HUNTS'), Math.max(0,limit-1));
+        return {running:this.running(), pending:this.pending, limit,
+            ...(protectedSlots ? {reserved:protectedSlots,publicLimit:limit!-protectedSlots} : {})};
+    }
+    reserve(priority = false) {
+        const {running, pending, limit, publicLimit} = this.status();
         // Keep paced launches within the caller's request timeout instead of spawning abandoned hunts.
         if (HuntsDraining()) throw new CapacityUnavailable('hunts');
         if (pending >= PendingHuntLimit()) throw new CapacityUnavailable('hunts');
-        if (limit !== null && running + pending >= limit) throw new CapacityUnavailable('hunts');
+        const available = priority ? limit : publicLimit ?? limit;
+        if (available !== null && running + pending >= available) throw new CapacityUnavailable('hunts');
         this.pending++;
         let active = true;
         return () => { if (active) {active = false; this.pending--;} };

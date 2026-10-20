@@ -1,4 +1,4 @@
-import {CapacityUnavailable} from './capacity';
+import {CapacityUnavailable, HasPriorityPlayers} from './capacity';
 import { logger } from "../logger";
 import { GetRamsgateConnectionDetails, GetTrainingDojoConnectionDetails, StartupGameserverWithArgs, StartupGameserverWithHuntIdAndPlayers } from "./gameservers";
 import { Gameservers, KindOfGameserver, huntAdmission, DescribeGameservers, CityPoolEnabled } from './gameservers';
@@ -51,7 +51,7 @@ export async function HandleMatchmakingRequest(GameMode: string, GameArgs: strin
     const body = {GameMode, GameArgs, HuntId, ExpectedPlayers};
     return Regions.launch(body, Region, async () => {
         if (GameMode === 'CITY' && CityPoolEnabled() && process.env.HUNT_WORKER !== '1') {
-            try {return await GetRamsgateConnectionDetails(ExpectedPlayers?.length ?? 1);}
+            try {return await GetRamsgateConnectionDetails(ExpectedPlayers?.length ?? 1, HasPriorityPlayers(ExpectedPlayers));}
             catch(error) {
                 if(!(error instanceof CapacityUnavailable))throw error;
                 const url=OverflowUrl();
@@ -76,7 +76,7 @@ async function HandleLocalMatchmaking(GameMode: string, GameArgs: string, HuntId
     logger.info(`Handling matchmaking with GameMode: ${GameMode} HuntId: ${HuntId} and GameArgs: ${GameArgs} and ExpectedPlayers ${ExpectedPlayers}`);
 
     if(GameMode === "CITY"){
-        return await GetRamsgateConnectionDetails(ExpectedPlayers?.length ?? 1);
+        return await GetRamsgateConnectionDetails(ExpectedPlayers?.length ?? 1, HasPriorityPlayers(ExpectedPlayers));
     }
     else if(GameMode === "SHARED"){
         if (HuntId != undefined && HuntId.trim().length > 0){
@@ -98,5 +98,5 @@ async function HandleLocalMatchmaking(GameMode: string, GameArgs: string, HuntId
     if (process.env.HUNT_WORKER === '1') throw new Error('No hunt could be resolved on worker');
     logger.error("Matchmaking failed, sending you to Ramsgate!");
 
-    return await GetRamsgateConnectionDetails(ExpectedPlayers?.length ?? 1);
+    return await GetRamsgateConnectionDetails(ExpectedPlayers?.length ?? 1, HasPriorityPlayers(ExpectedPlayers));
 }

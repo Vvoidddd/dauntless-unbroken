@@ -53,11 +53,39 @@ test('admission API requires a valid account and ignores attempts to select anot
         assert.equal((await call('GET','invalid')).status,401);
         assert.equal((await (await call('POST',a,{userId:'victim',position:1})).json()).position,1);
         assert.equal((await (await call('GET',b)).json()).state,'idle');
-        assert.equal((await (await call('POST',b,{userId:'victim',queuedAt:0,position:1})).json()).position,2);
+        assert.equal((await (await call('POST',b,{userId:'victim',queuedAt:0,position:1,priority:true})).json()).position,2);
         assert.equal((await call('DELETE',b,{userId:'Admission_A'})).status,204);
         assert.equal((await (await call('GET',a)).json()).state,'waiting');
         assert.equal((await (await call('GET',b)).json()).state,'idle');
     } finally {globalThis.fetch=original;server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));ResetMatchmakingForTests();}
+});
+
+test('configured priority accounts lead Ramsgate admission and launcher positions while normal callers retain FIFO',async()=>{
+    ResetMatchmakingForTests();
+    let now=100000, full=true;const original=globalThis.fetch,calls:string[]=[];
+    const normal='UID-priority-normal',first='UID-priority-first',second='UID-priority-second';
+    for(const id of [normal,first,second])GetDb().$client.prepare('INSERT INTO users(userId,name,notes,isAdmin) VALUES (?,?,0,0)').run(id,id);
+    process.env.SERVER_PRIORITY_ACCOUNTS=`${first}, ${second}`;
+    SetPartyClockForTests(()=>now);
+    globalThis.fetch=(async(_url:any,init:any)=>{
+        calls.push(JSON.parse(init.body).ExpectedPlayers[0]);
+        return full ? new Response(JSON.stringify({error:'capacity_unavailable',reason:'hunts'}),{status:503}) :
+            new Response(JSON.stringify({host:'127.0.0.1',port:39001}),{status:200});
+    }) as typeof fetch;
+    try {
+        await JoinLauncherAdmission(normal);now++;
+        await JoinLauncherAdmission(first);now++;
+        await JoinLauncherAdmission(second);
+        assert.equal(LauncherQueueStatus(first).position,1);
+        assert.equal(LauncherQueueStatus(second).position,2);
+        assert.equal(LauncherQueueStatus(normal).position,3);
+        full=false;now+=5000;const count=calls.length;
+        await PollLauncherAdmission(normal);assert.equal(calls.length,count);
+        assert.equal((await PollLauncherAdmission(first)).state,'ready');
+        assert.equal((await PollLauncherAdmission(second)).state,'ready');
+        now+=5000;assert.equal((await PollLauncherAdmission(normal)).state,'ready');
+        assert.deepEqual(calls.slice(-3),[first,second,normal]);
+    }finally{delete process.env.SERVER_PRIORITY_ACCOUNTS;globalThis.fetch=original;SetPartyClockForTests();ResetMatchmakingForTests();}
 });
 
 test('launcher Ramsgate admission keeps FIFO for twenty minutes and the game reuses its seat',async()=>{
