@@ -73,7 +73,7 @@ async function login(id: string): Promise<WebSocket> {
     assert.match(await frame(socket), /bind/);
     const bound = frame(socket);
     socket.send('<iq type="set" id="bind1"><bind xmlns="urn:ietf:params:xml:ns:xmpp-bind"><resource>game</resource></bind></iq>');
-    assert.match(await bound, new RegExp(`${id}@prod.ol.epicgames.com/game`));
+    assert.ok((await bound).includes(`${id}@prod.ol.epicgames.com/game`));
     return socket;
 }
 
@@ -452,7 +452,8 @@ describe("chat listener", () => {
 
             // The game answers from its game-thread tick, which a map load holds up: 99 s later is in time
             const Ping = await Client.Expect("server ping");
-            assert.match(Ping, new RegExp(`^<iq xmlns="jabber:client" type="get" id="(sp\\d+)" from="${DOMAIN.replaceAll('.', '\\.')}" to="${C}@${DOMAIN.replaceAll('.', '\\.')}/${Client.Resource}"><ping xmlns="urn:xmpp:ping"/></iq>$`));
+            assert.match(Ping, / id="sp\d+" /);
+            assert.equal(Ping.replace(/id="sp\d+"/, 'id="ping"'), `<iq xmlns="jabber:client" type="get" id="ping" from="${DOMAIN}" to="${C}@${DOMAIN}/${Client.Resource}"><ping xmlns="urn:xmpp:ping"/></iq>`);
             Now += 99 * 1000;
             Wire.Tick();
             assert.ok(Client.IsOpen, "still waiting for the answer");
