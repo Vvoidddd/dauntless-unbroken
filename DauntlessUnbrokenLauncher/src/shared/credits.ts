@@ -3,6 +3,19 @@ import type { Language } from "./types";
 export type Localized = Readonly<Record<Language, string>>;
 export interface CreditSoftware { name: string; author: string | Localized; license: string | null; note: Localized; }
 
+// Original feature author: source PRs #70, #71 and #72 by anxo0.
+export const ANXO_FEATURES: Localized = {
+  en: "Lock-on, DualSense hot-plug support, and playtime tracking with hour milestones.",
+  fi: "Kohdelukitus, DualSense-ohjaimen liittäminen pelin aikana sekä peliajan seuranta ja tuntivirstanpylväät.",
+  es: "Fijado de objetivo, conexión de DualSense durante la partida y seguimiento del tiempo con hitos por horas.",
+  de: "Zielerfassung, DualSense-Verbindung während des Spiels und Spielzeiterfassung mit Stunden-Meilensteinen.",
+  fr: "Verrouillage de cible, connexion DualSense en jeu et suivi du temps avec paliers horaires.",
+  it: "Aggancio del bersaglio, connessione DualSense durante il gioco e tempo di gioco con traguardi orari.",
+  ja: "ロックオン、ゲーム中の DualSense 接続対応、プレイ時間の記録と時間別マイルストーン。",
+  pt: "Travar alvo, conexão do DualSense durante o jogo e acompanhamento do tempo com marcos de horas.",
+  ru: "Захват цели, подключение DualSense во время игры и учёт игрового времени с часовыми вехами.",
+};
+
 export const SOFTWARE: readonly CreditSoftware[] = [
   { name: "Bundled launcher fonts", author: "Sora and Manrope projects", license: "OFL-1.1", note: {
     en: "Sora and Manrope are bundled locally. Full notices are in font-licenses.",

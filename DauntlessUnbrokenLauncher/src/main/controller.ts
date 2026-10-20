@@ -52,6 +52,7 @@ import {
   fetchContentManifest,
   fetchNews,
   fetchServerStatus,
+  fetchPlaytime,
   fetchUserInfo,
   probeContent,
   registerAccount,
@@ -60,6 +61,7 @@ import {
 import { compareManifests, resolveInside, type GameManifest, type ManifestFile } from "./manifest";
 import { contentDownloadBase, DownloadError, DownloadJob } from "./downloader";
 import { AbortedError, hashFile, removePartFiles, verifyInstall, VerifiedCache } from "./verify";
+import { PlaytimeStore } from "./playtime";
 import { dllStatus, installPinnedDlls, DllError, win64Dir } from "./dlls";
 import { installClientMods } from "./client-mods";
 import { applyGameConfig } from "./engineini";
@@ -172,6 +174,10 @@ export class Controller {
   private saveTask: Promise<ActionResult> | null = null;
   private shuttingDown = false;
   private readonly verified: VerifiedCache;
+  private readonly playtime: PlaytimeStore;
+  private serverPlaytime: { sid: string; gen: number; seconds: number } | null = null;
+  private playtimeCheckedAt = 0;
+  private playtimeChecking = false;
 
   private reachable: boolean | null = null;
   private checking = false;
@@ -217,8 +223,15 @@ export class Controller {
     this.offlineKeys = new KeyStore(path.join(p.userDataDir, "keys"), p.encryptor);
     this.game = new GameProcess(p.spawn);
     this.verified = new VerifiedCache(path.join(p.userDataDir, "verified-files.json"));
+    this.playtime = new PlaytimeStore(path.join(p.userDataDir, "playtime.json"));
     this.game.onChange((running, code) => {
       log.info(running ? "game started" : `game exited (code ${code ?? "none"})`);
+      if (running) this.playtime.start(this.offlineSession !== null);
+      else {
+        const online = this.offlineSession === null;
+        void this.playtime.stop();
+        if (online) void this.refreshServerPlaytime();
+      }
       if (!running) {
         this.queue = null;
         const end=this.endPlayingSession; this.endPlayingSession=null;
@@ -362,6 +375,7 @@ export class Controller {
       task: this.task,
       queue: this.queue,
       game: { running: this.game.running, relayPort: this.relay?.port ?? null },
+      playtime: { ...this.playtime.view(), onlineSeconds: this.serverPlaytime !== null && this.serverPlaytime.sid === sid && this.serverPlaytime.gen === this.statusGen ? this.serverPlaytime.seconds : null },
       settings: { graphics: this.s.graphics, exposure: this.s.exposure, windowed: this.s.windowed, language: this.s.language, gameLanguage: this.s.gameLanguage, streamerMode: this.s.streamerMode, discordPresence: this.s.discordPresence, showConsole: this.s.showConsole, ...(this.s.huntRegion ? {huntRegion:this.s.huntRegion} : {}) },
       app: { version: this.p.appVersion, packaged: this.p.packaged, updateReady: this.updateReady },
       status: this.status,
@@ -622,6 +636,7 @@ export class Controller {
     if (info.ok) {
       this.keyRejected = false;
       await this.backupToDesktop(slot, key, info.info.username);
+      void this.refreshServerPlaytime();
       if (this.s.usernames[sid] !== info.info.username) {
         await this.settings.update((s) => {
           s.usernames[sid] = info.info.username;
@@ -635,6 +650,39 @@ export class Controller {
       this.lastError = { code: "key_rejected" };
       log.warn("the server does not accept the stored key");
     }
+  }
+
+  // The signed-in account's online playtime from the server, after the key check and each online game.
+  private async refreshServerPlaytime(): Promise<void> {
+    if(this.playtimeChecking) return;
+    const gen = this.statusGen;
+    const ep = this.endpoint();
+    const slot = this.slot();
+    const sid = this.sid();
+    if (!ep || !slot || !sid) return;
+    this.playtimeChecking = true;
+    this.playtimeCheckedAt = Date.now();
+    try {
+    let key: string | null = null;
+    try {
+      key = await this.keys.load(slot);
+    } catch {
+      key = null;
+    }
+    if (!key) return;
+    const seconds = await fetchPlaytime(ep, key);
+    if (seconds === null || this.sid() !== sid || gen !== this.statusGen) return;
+    this.serverPlaytime = { sid, gen, seconds };
+    this.publish();
+    } finally { this.playtimeChecking = false; }
+  }
+
+  // Offline hours live in the offline save; its local server counts them like any server.
+  private async readOfflinePlaytime(ep: Endpoint, key: string): Promise<void> {
+    const seconds = await fetchPlaytime(ep, key);
+    if (seconds === null) return;
+    await this.playtime.setOfflineSeconds(seconds);
+    this.publish();
   }
 
   // ------------------------------------------------------------------ status polling, news, art
@@ -661,6 +709,7 @@ export class Controller {
     const { res, stale } = await this.fetchStatus(ep);
     // Overtaken: drop it; the next poll asks again under the new state.
     if (stale) return;
+    if(this.game.running && !this.offlineSession && Date.now()-this.playtimeCheckedAt >= 60_000) void this.refreshServerPlaytime();
     if (this.game.running && !this.offlineSession && !this.queuePollBusy) {
       this.queuePollBusy = true;
       try {
@@ -887,6 +936,7 @@ export class Controller {
     this.statusGen++;
     await this.backupToDesktop(slot, key, info.info.username);
     log.info(`using an existing key for ${info.info.username}`);
+    void this.refreshServerPlaytime();
     await this.inspectInstall();
     await this.pollStatus();
     return OK;
@@ -1412,6 +1462,7 @@ export class Controller {
 
       const ep = offlineSession.endpoint;
       const key = account.key;
+      await this.readOfflinePlaytime(ep, key);
 
       this.setOfflineStatus({ phase: "launching-game" });
 
@@ -1424,6 +1475,7 @@ export class Controller {
             this.setOfflineStatus({ phase: "stopping" });
 
             try {
+              await this.readOfflinePlaytime(ep, key);
               await endPlaying(ep, key);
             } finally {
               await this.releaseOfflineSession();

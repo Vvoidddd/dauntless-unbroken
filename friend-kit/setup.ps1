@@ -26,7 +26,7 @@ $Pinned = @{
   "zip"                          = "556B9A648A5E5E7E11B6F8DD3D80FF8E88FCEB0D3448297AAF47CE7BF756BC6D"
   "Dauntless-Win64-Shipping.exe" = "D3D41E614908D2BEFD518B27046D9822D6130EF12BA3504BABBDB786BEF9CFF4"
   "dxgi.dll"                     = "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c"
-  "DauntlessUnbroken.dll"  = "6ce7e0ea3eff8c6841ea81c67a0eb177d84223af844f15c6679ef0827143be8d"
+  "DauntlessUnbroken.dll"  = "9db74c8ede2c49bb4d00987cb6ea5feb4151bb4ad61fc9ee7424c143858b48db"
 }
 $Dir = Join-Path $env:APPDATA "DauntlessUnbroken"
 $KeyFile = Join-Path $Dir "account.key"

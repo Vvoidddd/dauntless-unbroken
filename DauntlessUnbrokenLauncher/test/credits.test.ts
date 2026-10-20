@@ -81,6 +81,7 @@ test("the page opens links by name only, and community/source controls are in th
     project_source: true,
     project_license: true,
     project_contributors: true,
+    creator_anxo: true,
     upstream_source: true,
     upstream_contributors: true,
 

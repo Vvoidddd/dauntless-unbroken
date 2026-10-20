@@ -536,3 +536,11 @@ in the source. The variable fonts are bundled locally; no font CDN is contacted.
 Sources:
 https://github.com/google/fonts/tree/main/ofl/sora
 https://github.com/google/fonts/tree/main/ofl/manrope
+
+Community feature contributions
+-------------------------------
+Lock-on, DualSense hot-plug support, and playtime tracking with hour milestones
+were created by anxo0 (https://github.com/anxo0), adapted from source PRs #70,
+#71 and #72. Dauntless Unbroken uses text and progress bars without badge art.
+Source: https://github.com/anxo0/dauntless-revived
+These contributions retain the project's AGPL-3.0-only license.

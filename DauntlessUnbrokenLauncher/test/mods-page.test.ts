@@ -10,7 +10,7 @@ const html = readFileSync(path.join(ROOT, "index.html"), "utf8");
 const renderer = readFileSync(path.join(ROOT, "src", "renderer", "index.ts"), "utf8");
 const css = readFileSync(path.join(ROOT, "src", "renderer", "styles.css"), "utf8");
 
-test("Client Mods keeps its navigation and shows feature descriptions without author promotions", () => {
+test("Client Mods keeps its navigation and credits anxo0 for Lock-on", () => {
   assert.match(html, /id="view-mods" aria-labelledby="mods-title" hidden><\/section>\s*<section class="view" id="view-settings"/);
   assert.match(renderer, /\{ view: "mods", icon: "puzzle", key: "nav_mods" \},\s*\{ view: "settings"/);
   assert.match(renderer, /function renderMods\(\): void/);
@@ -18,7 +18,9 @@ test("Client Mods keeps its navigation and shows feature descriptions without au
   assert.match(css, /\.mods-overview\s*\{/);
   assert.match(css, /\.mods-grid\s*\{/);
   assert.equal(STRINGS.en.mods_title, "Client Mods");
-  assert.doesNotMatch(renderer, /mods_badge|mods_by|mods_credit|mod-by|ZFXSTATIC/i);
+  assert.doesNotMatch(renderer, /t\("mods_(badge|by|credit)"\)|ZFXSTATIC/i);
+  assert.match(renderer, /open\("creator_anxo"\)/);
+  assert.match(renderer, /ANXO_FEATURES/);
   for (const lang of LANGUAGES) {
     for (const [key, text] of Object.entries(STRINGS[lang])) {
       assert.doesNotMatch(text, /ZFXSTATIC/i, `${lang}.${key}`);

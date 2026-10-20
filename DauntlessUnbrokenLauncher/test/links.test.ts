@@ -29,6 +29,7 @@ const EXPECTED: Record<FixedTarget, string> = {
   project_source: "https://github.com/Vvoidddd/dauntless-unbroken",
   project_license: "https://github.com/Vvoidddd/dauntless-unbroken/blob/main/LICENSE.txt",
   project_contributors: "https://github.com/Vvoidddd/dauntless-unbroken/graphs/contributors",
+  creator_anxo: "https://github.com/anxo0",
   upstream_source: "https://github.com/SyST3MDeV/Undaunted",
   upstream_contributors: "https://github.com/SyST3MDeV/Undaunted/graphs/contributors",
 
@@ -51,6 +52,7 @@ const ALL_TARGETS: Record<ExternalTarget, true> = {
   project_source: true,
   project_license: true,
   project_contributors: true,
+  creator_anxo: true,
   upstream_source: true,
   upstream_contributors: true,
 

@@ -52,7 +52,7 @@ function isObject(v: unknown): v is Record<string, unknown> {
 
 export type StatusResult =
   | { kind: "ok"; status: ServerStatus }
-  | { kind: "unsupported" } // reachable Dauntless Unbroken / Undaunted server without ServerStatus
+  | { kind: "unsupported" } // reachable Dauntless Unbroken / DauntlessUnbroken server without ServerStatus
   | { kind: "bad_answer" }
   | { kind: "cert_mismatch" } // public mode: the certificate is not the one from the invite
   | { kind: "unreachable" };
@@ -175,6 +175,21 @@ export async function fetchUserInfo(ep: Endpoint, key: string): Promise<UserInfo
   const username = cleanText(body.Username, 32);
   if (userId === null || username === null) return { ok: false, error: "server_error" };
   return { ok: true, info: { userId, username, isAdmin: body.IsAdmin === true } };
+}
+
+// The account's time in the game as the server counted it from the game's heartbeats
+// (GET /unbroken/api/Playtime). null: a server without that route, or no answer.
+export async function fetchPlaytime(ep: Endpoint, key: string): Promise<number | null> {
+  if (!isPlausibleAccountKey(key)) return null;
+  try {
+    const res = await request(ep, "/unbroken/api/Playtime", { headers: { [KEY_HEADER]: key }, timeoutMs: 8000, maxBytes: 4096 });
+    if (res.status !== 200) return null;
+    const body = parseJsonBody(res);
+    const seconds = isObject(body) ? body.PlaytimeSeconds : null;
+    return typeof seconds === "number" && Number.isFinite(seconds) && seconds >= 0 ? Math.floor(seconds) : null;
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------- Content server

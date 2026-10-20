@@ -39,3 +39,4 @@ performance*.csv
 *.bak
 *.bak-*
 *.drizzle-generated
+DauntlessUnbrokenLauncher/dist/

@@ -27,6 +27,7 @@ export const FIXED_LINKS: Readonly<Record<FixedTarget, string>> = Object.freeze(
   project_source: PROJECT_URL,
   project_license: PROJECT_LICENSE_URL,
   project_contributors: PROJECT_CONTRIBUTORS_URL,
+  creator_anxo: "https://github.com/anxo0",
   upstream_source: UPSTREAM_URL,
   upstream_contributors: UPSTREAM_CONTRIBUTORS_URL,
 
@@ -41,7 +42,7 @@ export function fixedLinkUrl(target: unknown): string | null {
 }
 
 // On github.com only these exact pages: the project's and upstream Undaunted's.
-const GITHUB_PAGES: ReadonlySet<string> = new Set([PROJECT_URL, PROJECT_LICENSE_URL, PROJECT_CONTRIBUTORS_URL, UPSTREAM_URL, UPSTREAM_CONTRIBUTORS_URL, DISCORD_URL]);
+const GITHUB_PAGES: ReadonlySet<string> = new Set([PROJECT_URL, PROJECT_LICENSE_URL, PROJECT_CONTRIBUTORS_URL, UPSTREAM_URL, UPSTREAM_CONTRIBUTORS_URL, DISCORD_URL, FIXED_LINKS.creator_anxo]);
 
 // Plain https without user info. An explicit port only where the caller allows one.
 function parse(url: string, allowPort = false): URL | null {

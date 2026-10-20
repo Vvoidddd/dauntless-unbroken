@@ -7,11 +7,12 @@ import { $, forceRender, githubMark, h, icon, renderRegion, type IconName } from
 import newsBadge from "./brand/news-badge.svg";
 import { buildScene } from "./scene";
 import { isStringKey, translate, type StringKey } from "../shared/i18n";
-import { localized, SOFTWARE } from "../shared/credits";
+import { localized, SOFTWARE, ANXO_FEATURES } from "../shared/credits";
 import { parseInvite } from "../shared/invite";
 import { checkUsername, extractAccountKey } from "../shared/username";
 import { exposureKey, graphicsKey, primaryButton, shortFile, stepIndex, taskView, updateReason, whereKey } from "../shared/ui-model";
-import { formatBytes, formatDate, formatDuration, formatRunningTime } from "../shared/format";
+import { formatBytes, formatDate, formatDuration, formatPlaytime, formatRunningTime } from "../shared/format";
+import { BADGE_HOURS, badgeProgress } from "../shared/badges";
 import { sortInstances, type InstanceKind, type ServerStatus, type StatusInstance } from "../shared/status";
 import { EXPOSURE_MODES, GAME_LANGUAGES, GRAPHICS_PRESETS, LANGUAGES, type Branding, type ExposureMode, type ExternalTarget, type GameLanguage, type GraphicsPreset, type Language, type LauncherError, type NewsItem, type OfflinePhase, type OfflineStatus, type Snapshot, type TaskProgress } from "../shared/types";
 
@@ -859,6 +860,86 @@ function actionHint(snap: Snapshot): string {
   }
 }
 
+// The running session's seconds so far (0 when the game is closed).
+function sessionSeconds(snap: Snapshot): number {
+  const start = snap.playtime.sessionStartedAt !== null ? Date.parse(snap.playtime.sessionStartedAt) : NaN;
+  return Number.isFinite(start) ? Math.max(0, (Date.now() - start) / 1000) : 0;
+}
+
+// Online seconds (as the server counted them for this account) and offline seconds (the offline
+// save's own count), each with the running session of its kind; the server's count is fetched again
+// when an online game ends.
+function onlineSeconds(snap: Snapshot): number {
+  return snap.playtime.onlineSeconds ?? 0;
+}
+
+function offlineSeconds(snap: Snapshot): number {
+  return snap.playtime.offlineSeconds + (snap.playtime.sessionOffline ? sessionSeconds(snap) : 0);
+}
+
+// Under the hint: the time played in that mode (online on the Play page, offline in offline play),
+// and this session's time while the game runs.
+function playtimeText(snap: Snapshot, offline = false): string {
+  const played = offline ? offlineSeconds(snap) : onlineSeconds(snap);
+  const total = t("playtime_total", { time: formatPlaytime(played, state.lang) });
+  if (snap.playtime.sessionStartedAt !== null) return `${t("playtime_session", { time: formatPlaytime(sessionSeconds(snap), state.lang) })} · ${total}`;
+  return played >= 60 ? total : "";
+}
+
+function playtimeLine(snap: Snapshot, offline = false): HTMLElement | null {
+  const text = playtimeText(snap, offline);
+  return text ? h("div", { class: "playtime" }, text) : null;
+}
+
+// Settings > Account: the time played and the hour badges (locked ones in grey). The badges count
+// online hours only: those are the server's count, which a player cannot change.
+function playtimeCard(snap: Snapshot): HTMLElement {
+  const total = onlineSeconds(snap) + offlineSeconds(snap);
+  const p = badgeProgress(onlineSeconds(snap));
+  const summary = t("playtime_summary", { n: String(snap.playtime.sessions), time: formatPlaytime(snap.playtime.lastSessionSeconds, state.lang) });
+  const online = t("playtime_online", { server: snap.server?.name ?? "Dauntless Unbroken", time: snap.playtime.onlineSeconds === null ? "—" : formatPlaytime(onlineSeconds(snap), state.lang) });
+  const offline = t("playtime_offline", { time: formatPlaytime(offlineSeconds(snap), state.lang) });
+  // The page's CSP refuses style attributes; the CSSOM sets the width.
+  const fill = h("div", { class: "playtime-bar-fill" });
+  fill.style.width = `${(p.fraction * 100).toFixed(1)}%`;
+  const next =
+    p.next === null
+      ? t("playtime_all")
+      : t("playtime_next", { name: t(`badge_${p.next}`), time: formatPlaytime(Math.ceil(p.secondsToNext / 60) * 60, state.lang) });
+  return card(
+    "settings-section playtime-card",
+    h("h2", { class: "card-title" }, t("playtime_title")),
+    h(
+      "div",
+      { class: "playtime-head" },
+      h("div", { class: "playtime-total" }, formatPlaytime(total, state.lang)),
+      h("div", { class: "playtime-meta" }, h("span", { class: "settings-row-sub" }, online), h("span", { class: "settings-row-sub" }, offline), h("span", { class: "settings-row-sub" }, summary), h("span", { class: "settings-row-sub" }, t("playtime_note"))),
+    ),
+    h(
+      "div",
+      { class: "playtime-next" },
+      h("span", {}, next),
+      h("span", { class: "settings-row-sub" }, t("playtime_badges_online")),
+      h("div", { class: "playtime-bar", role: "progressbar", "aria-label": next, "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(Math.floor(p.fraction * 100)) }, fill),
+    ),
+    h(
+      "ul",
+      { class: "pt-badges" },
+      ...BADGE_HOURS.map((hours) => {
+        const got = p.unlocked.includes(hours);
+        const name = t(`badge_${hours}`);
+        return h(
+          "li",
+          { class: `pt-badge${got ? " is-unlocked" : ""}`, title: `${name} · ${hours} h` },
+          h("span", { class: "pt-badge-name" }, name),
+          h("span", { class: "pt-badge-hours" }, `${hours} h`),
+          h("progress", { class: "pt-badge-progress", max: String(hours * 3600), value: String(Math.min(onlineSeconds(snap), hours * 3600)), "aria-label": name }),
+        );
+      }),
+    ),
+  );
+}
+
 const primary = $("#primary") as HTMLButtonElement;
 
 function renderActionBar(): void {
@@ -886,7 +967,7 @@ function renderActionBar(): void {
     primary.classList.remove("is-pause");
     primary.classList.toggle("is-ready", !active && !reducedMotion.matches);
     primary.setAttribute("data-action", active ? "none" : "offline");
-    renderRegion(info, JSON.stringify([state.lang, "offline", state.offline.phase]), () => [h("div", { class: "action-hint" }, t(active ? "off_hint_active" : "off_hint_idle"))]);
+    renderRegion(info, JSON.stringify([state.lang, "offline", state.offline.phase, playtimeText(snap, true)]), () => [h("div", { class: "action-hint" }, t(active ? "off_hint_active" : "off_hint_idle")), playtimeLine(snap, true)]);
     return;
   }
   const b = primaryButton(snap, formState());
@@ -905,7 +986,7 @@ function renderActionBar(): void {
     const v = taskView(task, state.lang);
     announce(v.indeterminate ? t(v.titleKey) : `${t(v.titleKey)}: ${Math.floor(v.percent / 10) * 10} %`);
   } else {
-    renderRegion(info, JSON.stringify([state.lang, snap.phase, snap.connect.checking, snap.connect.problem, snap.install.totalBytes]), () => [h("div", { class: "launch-readiness" }, h("span", { class: "launch-status-icon", "aria-hidden": "true" }, icon(snap.phase === "ready" || snap.phase === "running" ? "check" : "play")), h("span", { class: "action-hint" }, actionHint(snap)))]);
+    renderRegion(info, JSON.stringify([state.lang, snap.phase, snap.connect.checking, snap.connect.problem, snap.install.totalBytes, playtimeText(snap)]), () => [h("div", { class: "launch-readiness" }, h("span", { class: "launch-status-icon", "aria-hidden": "true" }, icon(snap.phase === "ready" || snap.phase === "running" ? "check" : "play")), h("span", { class: "action-hint" }, actionHint(snap))), playtimeLine(snap)]);
     announce(actionHint(snap));
   }
 }
@@ -1161,6 +1242,20 @@ const MODS: readonly { icon: IconName; name: StringKey; text: StringKey; use: St
   { icon: "settings", name: "mod_menu_name", text: "mod_menu_text", use: "mod_menu_use" },
 ];
 
+// Mods by anxo0, in their own section at the bottom of the page.
+const ANXO_MODS: readonly { icon: IconName; name: StringKey; text: StringKey; use: StringKey }[] = [
+  { icon: "eye", name: "mod_lock_name", text: "mod_lock_text", use: "mod_lock_use" },
+];
+
+function modCard(by: StringKey | null, m: { icon: IconName; name: StringKey; text: StringKey; use: StringKey }): HTMLElement {
+  return h("div", { class: "mod-card" },
+    by ? h("span", { class: "mod-by" }, t(by)) : null,
+    h("strong", { class: "mod-name" }, icon(m.icon), t(m.name)),
+    h("span", { class: "mod-text" }, t(m.text)),
+    h("span", { class: "mod-use" }, t(m.use)),
+  );
+}
+
 function renderMods(): void {
   renderRegion($("#view-mods"), state.lang, () => [
     h("div", { class: "page mods-page" },
@@ -1170,15 +1265,7 @@ function renderMods(): void {
         "mods-overview",
         h("h2", { class: "mods-title" }, t("mods_title")),
         h("p", { class: "card-text mods-intro" }, t("mods_intro")),
-        h("div", { class: "mods-grid" },
-          ...MODS.map((m) =>
-            h("div", { class: "mod-card" },
-              h("strong", { class: "mod-name" }, icon(m.icon), t(m.name)),
-              h("span", { class: "mod-text" }, t(m.text)),
-              h("span", { class: "mod-use" }, t(m.use)),
-            ),
-          ),
-        ),
+        h("div", { class: "mods-grid" }, ...MODS.map((m) => modCard(null, m))),
       ),
       card("",
         h("h2", { class: "card-title" }, icon("info"), t("mods_notes_title")),
@@ -1186,6 +1273,16 @@ function renderMods(): void {
         h("p", { class: "card-text" }, t("mods_note_settings")),
         h("p", { class: "small-print" }, t("mods_note_windows")),
       ),
+
+      card(
+        "mods-author",
+        h("span", { class: "badge mods-badge" }, t("mods_anxo_badge")),
+        h("h2", { class: "mods-title" }, t("mods_anxo_title")),
+        h("p", { class: "card-text mods-intro" }, t("mods_anxo_intro")),
+        h("div", { class: "mods-grid" }, ...ANXO_MODS.map((m) => modCard("mods_anxo_by", m))),
+      ),
+      h("p", { class: "small-print mods-credit" }, t("mods_anxo_credit")),
+      linkButton("anxo0 · GitHub", () => open("creator_anxo"), { icon: "external", fk: "mods-anxo" }),
     ),
   ]);
 }
@@ -1373,7 +1470,7 @@ function renderSettings(): void {
   const container = $("#view-settings");
   const snap = state.snap;
   if (!snap) return;
-  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
+  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
   renderRegion(container, sig, () => {
     const busy = snap.busy || snap.task !== null || snap.game.running;
 
@@ -1539,7 +1636,7 @@ function renderSettings(): void {
     const panels: Record<SettingsTab, (HTMLElement | null)[]> = {
       game: [game],
       graphics: [graphics],
-      account: [account, h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
+      account: [account, playtimeCard(snap), h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
       launcher: [language, offlineCard, troubleshooting, streaming, about],
     };
     const tabs = h("div", { class: "settings-tabs", role: "tablist", "aria-label": t("set_title") });
@@ -1599,6 +1696,10 @@ function renderCredits(): void {
     h("div", { class: "page credits-page" },
       h("h1", { class: "page-title", id: "credits-title" }, t("credits_title")),
       h("p", { class: "page-sub" }, t("credits_intro")),
+      card("settings-section",
+        h("h2", { class: "card-title" }, "anxo0"),
+        h("p", { class: "card-text" }, localized(ANXO_FEATURES, state.lang)),
+        linkButton("github.com/anxo0", () => open("creator_anxo"), { icon: "external", fk: "credit-anxo" })),
       card("settings-section", h("h2", { class: "card-title" }, t("credits_software")), creditSoftware()),
       card("settings-section",
         h("h2", { class: "card-title" }, t("credits_license_title")),
@@ -2141,6 +2242,10 @@ function initChrome(): void {
   window.setInterval(() => {
     renderPanel();
     if (state.view === "server") renderServer();
+    if (state.snap?.playtime.sessionStartedAt) {
+      renderActionBar();
+      if (state.view === "settings") renderSettings();
+    }
   }, 30000);
 }
 

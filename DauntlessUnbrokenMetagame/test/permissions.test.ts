@@ -360,6 +360,7 @@ const EXPECTED_ROUTES = [
     "POST /unbroken/api/RenameUser [HasDauntlessUnbrokenAdminApiKey]",
     "GET /unbroken/api/ServerStatus [SoftAccountAuth]",
     "GET /unbroken/api/GetUserInfo [HasDauntlessUnbrokenUserApiKey]",
+    "GET /unbroken/api/Playtime [HasDauntlessUnbrokenUserApiKey]",
     "GET /unbroken/api/PrivateOnlineStats [HasDauntlessUnbrokenAdminApiKey]",
     "GET /unbroken/api/PublicOnlineStats [HasDauntlessUnbrokenUserApiKey]",
     "GET /unbroken/api/SaveHistory [HasDauntlessUnbrokenAdminApiKey]",
