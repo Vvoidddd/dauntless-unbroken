@@ -1,6 +1,6 @@
 # Ctrl+R mod refresh crash prevention
 
-Launcher 1.0.12 disables UE4SS Lua-state hot reload and automatic script reload. Ctrl+R now opens/refreshed the existing mod menu and settings on its game-thread hook; it never requests a loader restart. Whole-mod on/off switches still persist to `mods.txt` and apply after restarting the game. Individual settings continue applying live.
+Launcher 1.0.12 disables UE4SS Lua-state hot reload and automatic script reload. Ctrl+R now opens or refreshes the existing mod menu and settings on its game-thread hook; it never requests a loader restart. Whole-mod on/off switches still persist to `mods.txt` and apply after restarting the game. Individual settings continue applying live.
 
 ## Why the behavior changed
 
