@@ -230,7 +230,8 @@ export async function GetUserInfoForApiKey(UserApiKey: string): Promise<UserInfo
     }
 
     return {
-        UserId: UserId,
+        // Return persisted identity fields, never the credential used to look them up.
+        UserId: UserFromDb.userId,
         Username: UserFromDb.name,
         IsAdmin: UserFromDb.isAdmin
     };

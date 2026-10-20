@@ -3,47 +3,8 @@ import { NextFunction, Request, Response } from "express";
 import { logger } from "../logger";
 import { BodyLogPerPath } from "../features";
 
-// Removes credentials from a URL or a serialised body before it is logged: tokens (JWTs, which some
-// routes carry in the path, e.g. DELETE /account/api/oauth/sessions/kill/<token>), account keys (UUK_
-// and 48 hex characters) and any other run of 64 or more token characters (keys, purchase tokens).
-export function Redact(Text: string){
-    return RedactJwt(Text)
-        .replace(/UUK_[0-9a-fA-F]{48}(?![0-9a-fA-F])/g, "<redacted>")
-        .replace(/[\w-]{64,}/g, "<redacted>");
-}
-
-function IsJwtCharacter(Character: string | undefined): boolean {
-    return Character !== undefined && /[A-Za-z0-9_-]/.test(Character);
-}
-
-// Linear scanner rather than a backtracking expression: request bodies and paths are untrusted.
-function RedactJwt(Text: string): string {
-    let Out = "";
-    let From = 0;
-
-    while(From < Text.length){
-        const Start = Text.indexOf("eyJ", From);
-        if(Start < 0){ Out += Text.slice(From); break; }
-        let At = Start + 3;
-        while(IsJwtCharacter(Text[At])) At++;
-        if(At === Start + 3 || Text[At++] !== "."){
-            Out += Text.slice(From, Start + 3); From = Start + 3; continue;
-        }
-        const Payload = At;
-        while(IsJwtCharacter(Text[At])) At++;
-        if(At === Payload || Text[At++] !== "."){
-            Out += Text.slice(From, Start + 3); From = Start + 3; continue;
-        }
-        const Signature = At;
-        while(IsJwtCharacter(Text[At])) At++;
-        if(At === Signature){
-            Out += Text.slice(From, Start + 3); From = Start + 3; continue;
-        }
-        Out += Text.slice(From, Start) + "<token>";
-        From = At;
-    }
-    return Out;
-}
+import { Redact } from "../credential-redaction";
+export { Redact } from "../credential-redaction";
 
 // The routes whose request bodies LOG_BODIES records: the save routes that are still stubbed or
 // missing (their request formats are only inferred from the client binary, and a wrong response shape

@@ -195,13 +195,15 @@ describe("LOG_BODIES", () => {
         assert.deepEqual(Uncapped.map((Entry) => JSON.parse(Entry.body).i), [0, 1, 9]);
     });
 
-    it("Redact keeps the old rules for tokens and long runs", () => {
+    it("Redact masks tokens, short imported keys and long runs while retaining account IDs", () => {
         const Jwt = ["eyJhbGciOiJSUzI1NiJ9", "eyJ1c2VySWQiOiJVSUQtYSJ9", "c2lnbmF0dXJlLW5vdC1yZWFs"].join(".");
 
         assert.equal(Redact(`/account/api/oauth/sessions/kill/${Jwt}`), "/account/api/oauth/sessions/kill/<token>");
         assert.equal(Redact("x".repeat(64)), "<redacted>");
         assert.equal(Redact("x".repeat(63)), "x".repeat(63));
-        assert.equal(Redact("UUK_" + "0".repeat(47)), "UUK_" + "0".repeat(47), "not a whole key");
+        assert.equal(Redact("UUK_" + "0".repeat(47)), "<redacted>");
+        assert.equal(Redact("UUK_test_imported_key"), "<redacted>");
+        assert.equal(Redact("eyJ".repeat(100_000)), "<token>");
         assert.equal(Redact("/party/UID-00000000-0000-4000-8000-00000000f609"), "/party/UID-00000000-0000-4000-8000-00000000f609");
     });
 });

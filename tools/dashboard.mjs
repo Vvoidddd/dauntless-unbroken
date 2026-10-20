@@ -134,9 +134,14 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
         }
         const id=new URL(req.url,'http://localhost').searchParams.get('discordId');
         if(!accessAction && req.url!=='/api/access-log' && !/^\d{17,20}$/.test(id??'')){res.writeHead(400).end();return;}
+        if(accessAction && (!body || typeof body!=='object' || Array.isArray(body))){res.writeHead(400).end();return;}
         if(body)delete body.moderatorId;
-        const route=accessAction?(req.url==='/api/account-access'?'/AccountAccess':'/DiscordModeration'):req.url==='/api/access-log'?'/AccountAccessLog':'/DiscordAccess/'+id;
-        const response=await fetcher(new URL('/unbroken/api'+route,target),{method:accessAction?'POST':'GET',headers:{'x-dauntless-unbroken-user-api-key':key,'content-type':'application/json'},body:accessAction?JSON.stringify(body):undefined,signal:AbortSignal.timeout(30000),redirect:'error'});
+        const endpoint=accessAction
+          ? new URL(req.url==='/api/account-access'?'/unbroken/api/AccountAccess':'/unbroken/api/DiscordModeration',target)
+          : new URL(req.url==='/api/access-log'?'/unbroken/api/AccountAccessLog':'/unbroken/api/DiscordAccess/',target);
+        // Request input may change a validated path segment, never the destination origin.
+        if(!accessAction && req.url!=='/api/access-log')endpoint.pathname+=id;
+        const response=await fetcher(endpoint,{method:accessAction?'POST':'GET',headers:{'x-dauntless-unbroken-user-api-key':key,'content-type':'application/json'},body:accessAction?JSON.stringify(body):undefined,signal:AbortSignal.timeout(30000),redirect:'error'});
         res.writeHead(response.status).end(JSON.stringify(await response.json()));
       }catch{res.writeHead(502).end(JSON.stringify({error:'Account access service unavailable. Refresh status before retrying.'}));}
       return;

@@ -25,6 +25,12 @@ test('account and Discord controls require owner auth, same origin, bounded JSON
   }
   assert.deepEqual(writes.map(x=>x.path),['/unbroken/api/AccountAccess','/unbroken/api/DiscordModeration']);
   assert.equal((await fetch(base+'/api/discord-access?discordId=invalid',{headers:{'x-dashboard-key':key}})).status,400);
+  for(const id of ['https://evil.example','//evil.example','12345678901234567/../../anything']){
+   assert.equal((await fetch(base+'/api/discord-access?discordId='+encodeURIComponent(id),{headers:{'x-dashboard-key':key}})).status,400);
+  }
+  for(const value of [null,[],42]){
+   assert.equal((await fetch(base+'/api/account-access',{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json',origin:base},body:JSON.stringify(value)})).status,400);
+  }
   assert.equal((await fetch(base+'/api/access-log')).status,401);
   const large=await fetch(base+'/api/account-access',{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json',origin:base},body:'x'.repeat(4097)});
   assert.equal(large.status,413);assert.equal(writes.length,2);
