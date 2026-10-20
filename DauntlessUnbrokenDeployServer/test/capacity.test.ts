@@ -148,6 +148,7 @@ test('a drain file stops new hunts and lets running ones finish',()=>{
         fs.writeFileSync(file,'');
         assert.equal(HuntsDraining(),true);
         assert.throws(()=>slots.reserve(),CapacityUnavailable);
+        assert.throws(()=>slots.reserve(true),CapacityUnavailable);
         held();
         fs.unlinkSync(file);
         slots.reserve()();

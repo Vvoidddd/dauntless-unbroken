@@ -12,6 +12,24 @@ const body = {GameMode: 'ISLAND', GameArgs: '', HuntId: 'pursuit', ExpectedPlaye
 const local = {host:'main',port:8770};
 const worker = {host:'worker',port:8780};
 
+test('public capacity cooldown cannot suppress a reserved priority allocation', async t => {
+    process.env.SERVER_PRIORITY_ACCOUNTS='UID-priority';let posts=0;
+    t.mock.method(globalThis,'fetch',async(_url:unknown,options:RequestInit)=>{
+        if(options?.method!=='POST')return Response.json({servers:[]});
+        posts++;
+        const request=JSON.parse(options.body as string);
+        return request.ExpectedPlayers.includes('UID-priority') ? Response.json(worker) :
+            Response.json({error:'capacity_unavailable'},{status:503,headers:{'retry-after':'10'}});
+    });
+    try {
+        const url=new URL('http://127.0.0.1:64001');
+        assert.equal(await RemoteLaunch(url,body),undefined);
+        assert.equal(await RemoteLaunch(url,body),undefined);
+        assert.deepEqual(await RemoteLaunch(url,{...body,ExpectedPlayers:['UID-priority']}),worker);
+        assert.equal(posts,2);
+    }finally{delete process.env.SERVER_PRIORITY_ACCOUNTS;}
+});
+
 test('threshold spills whole hunt/party; persistent worlds stay local', async () => {
     let calls = 0;
     const router = new HuntRouter(() => 4, async (_url, request) => { calls++; assert.deepEqual(request, body); return worker; });

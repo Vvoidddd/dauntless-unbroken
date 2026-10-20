@@ -1,4 +1,4 @@
-import { CapacityUnavailable, HuntLimit } from './capacity';
+import { CapacityUnavailable, HuntLimit, HasPriorityPlayers } from './capacity';
 import { logger } from '../logger';
 
 type Request = { GameMode: string; GameArgs: string; HuntId: string; ExpectedPlayers: string[] | undefined; Overflow?: boolean };
@@ -16,7 +16,7 @@ export function OverflowUrl() {
 
 export async function RemoteLaunch(url: URL, body: Request): Promise<Connection | undefined> {
     // Capacity refusals are shared by waiting parties, not by persistent-world launches.
-    const capacityKey = `${url.origin}|${body.GameMode}`;
+    const capacityKey = `${url.origin}|${body.GameMode}|${HasPriorityPlayers(body.ExpectedPlayers) ? 'priority' : 'public'}`;
     const now = Date.now();
     for (const [key, until] of capacityRetryAt) if (until <= now) capacityRetryAt.delete(key);
     if (capacityRetryAt.has(capacityKey)) return undefined;
