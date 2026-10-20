@@ -3,7 +3,7 @@ import { GetDb } from "../db";
 import { inventory, onetimejobs } from "../db/schema";
 import { GetActiveCharacter } from "./activecharacter";
 import { StoreError } from "./freestore";
-import { ApplyInventoryTransactionInTx } from "./inventory";
+import { ApplyInventoryTransactionInTx, MAX_STACK_QUANTITY } from "./inventory";
 
 const CODE = "Void";
 export const CREATOR_REWARD_RAMS = 10000;
@@ -34,7 +34,7 @@ export function RedeemCreatorCode(AccountId: string, Slug: unknown){
         const Saved = tx.select({stackedItems: inventory.stackedItems}).from(inventory).where(eq(inventory.characterId, Character.characterId)).get();
         const Balance = Saved ? JSON.parse(Saved.stackedItems).find((Item: any) => Item.catalogId === "CURRENCY_NOTES")?.quantity ?? 0 : 0;
         // Native inventory quantities are signed 32-bit integers.
-        if(!Number.isSafeInteger(Balance) || Balance < 0 || Balance > 2147483647 - CREATOR_REWARD_RAMS){
+        if(!Number.isSafeInteger(Balance) || Balance < 0 || Balance > MAX_STACK_QUANTITY - CREATOR_REWARD_RAMS){
             throw new StoreError(409, "Rams balance cannot receive this reward");
         }
 

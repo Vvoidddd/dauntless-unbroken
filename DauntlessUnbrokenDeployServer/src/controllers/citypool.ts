@@ -53,7 +53,8 @@ export class CityPool<T extends {id:string}> {
                     break;
                 }
             }
-            if (!chosen && caps && slot >= caps.length) throw new CapacityUnavailable('hunts');
+            // Cold starts must obey the next city's cap too, not just existing cities.
+            if (!chosen && caps && (slot >= caps.length || size > caps[slot])) throw new CapacityUnavailable('hunts');
             chosen ??= await this.start();
             const leases = this.reservations.get(chosen.id) ?? [];
             leases.push({size, until:this.now() + 180000});

@@ -91,3 +91,26 @@ test("Documents recovery survives lost local key storage and keeps certificate b
   await restored.remove(pub(FP_A));
   assert.equal(await restored.load(pub(FP_A)), null);
 });
+
+test("concurrent key saves finish in order and keep recovery consistent", async () => {
+  const {dir} = store();
+  const ks = new KeyStore(path.join(dir, 'local'), enc, path.join(dir, 'Documents'));
+  const replacement = 'UUK_' + 'cd'.repeat(24);
+  await Promise.all([ks.save(pub(FP_A), KEY), ks.save(pub(FP_A), replacement)]);
+  assert.equal(await ks.load(pub(FP_A)), replacement);
+  rmSync(path.join(dir, 'local'), {recursive:true, force:true});
+  assert.equal(await ks.load(pub(FP_A)), replacement);
+});
+
+test("removing a key during a pending save cannot resurrect it", async () => {
+  const {ks} = store();
+  await Promise.all([ks.save(pub(FP_A), KEY), ks.remove(pub(FP_A))]);
+  assert.equal(await ks.load(pub(FP_A)), null);
+});
+
+test("a rejected save does not block later valid key changes", async () => {
+  const {ks} = store();
+  await assert.rejects(ks.save(pub(null), KEY), KeyStoreError);
+  await ks.save(pub(FP_A), KEY);
+  assert.equal(await ks.load(pub(FP_A)), KEY);
+});

@@ -133,11 +133,14 @@ function AssertItemList(Items: unknown, Name: string){
 // Stack quantities are JSON numbers; a numeric string used to be coerced by the
 // arithmetic, so it is still accepted. Anything negative, fractional or non-numeric
 // would let a removal add items (or an add remove them), so it is refused.
+// The game serializes stack quantities as signed 32-bit integers.
+export const MAX_STACK_QUANTITY = 2147483647;
+
 export function ParseStackQuantity(Item: any, Operation: string){
     const Quantity = typeof Item.quantity === "string" && /^\d+$/.test(Item.quantity) ? Number(Item.quantity) : Item.quantity;
 
-    if(!Number.isSafeInteger(Quantity) || Quantity < 0){
-        throw new InventoryValidationError(`Refusing stacked item ${Operation} ${Item.catalogId}: quantity ${JSON.stringify(Item.quantity)} is not a whole number of at least 0`);
+    if(!Number.isSafeInteger(Quantity) || Quantity < 0 || Quantity > MAX_STACK_QUANTITY){
+        throw new InventoryValidationError(`Refusing stacked item ${Operation} ${Item.catalogId}: quantity ${JSON.stringify(Item.quantity)} must be an integer from 0 to ${MAX_STACK_QUANTITY}`);
     }
 
     if(typeof Item.catalogId !== "string" || Item.catalogId.length === 0){
@@ -162,7 +165,7 @@ export function IsOverspendRefused(){
 // /bounty/game-data num_tokens_per_day), to 6.
 function DailyAmount(Value: string | undefined, Default: number){
     const Amount = Number(Value);
-    return Number.isInteger(Amount) && Amount >= 1 ? Amount : Default;
+    return Number.isInteger(Amount) && Amount >= 1 && Amount <= MAX_STACK_QUANTITY ? Amount : Default;
 }
 
 const PATROL_BONUS_DAILY = DailyAmount(process.env.PATROL_BONUS_DAILY, 10);
@@ -180,10 +183,12 @@ function TopUpDailyTokens(StackedItems: any[], StackedItemsToAdd: any[], Source:
         }
 
         const Held = StackedItems.find((Item) => Item.catalogId === Token.CatalogId)?.quantity ?? 0;
+        let Needed = Math.max(Token.Amount - Held, 0);
 
         for(const Item of StackedItemsToAdd){
             if(Item?.catalogId === Token.CatalogId){
-                Item.quantity = Math.max(Token.Amount - Held, 0);
+                Item.quantity = Needed;
+                Needed = 0; // Repeated entries in the same native batch share one top-up.
             }
         }
     }
@@ -265,6 +270,17 @@ export function ApplyStackedChanges(StackedItems: any[], StackedItemsToRemove: a
 
     const Added = new Map<string, number>();
     StackedItemsToAdd.forEach((Item, Index) => Added.set(Item.catalogId, (Added.get(Item.catalogId) ?? 0) + AddQuantities[Index]));
+
+    // Validate the final balance before mutating any stack, including unrelated items.
+    // Repeated deltas may individually fit while their combined result overflows the client.
+    for(const CatalogId of new Set([...Wanted.keys(), ...Added.keys()])){
+        const Held = StackedItems.find((Item) => Item.catalogId === CatalogId)?.quantity ?? 0;
+        const Final = Math.max(Held + (Added.get(CatalogId) ?? 0) - (Wanted.get(CatalogId) ?? 0), 0);
+        if(!Number.isSafeInteger(Held) || Held < 0 || Held > MAX_STACK_QUANTITY ||
+           !Number.isSafeInteger(Final) || Final > MAX_STACK_QUANTITY){
+            throw new InventoryValidationError(`Refusing stacked item ${CatalogId}: final quantity is outside the native integer range`);
+        }
+    }
 
     for(const [CatalogId, Quantity] of Wanted){
         const Held = StackedItems.find((Item) => Item.catalogId === CatalogId)?.quantity ?? 0;

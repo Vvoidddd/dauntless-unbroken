@@ -60,6 +60,7 @@
 - [Tools](https://vvoidddd.github.io/dauntless-unbroken/tools.html): Three small Python scripts behind our Dauntless analysis: xref.py for PE string cross-references, utocdir.py for IoStore, pak9.py for pak v9, plus libooz.
 - [Credits and license](https://vvoidddd.github.io/dauntless-unbroken/legal.html): Software licenses, source notices and distribution requirements for Dauntless Unbroken.
 - [Discord access and moderation](https://vvoidddd.github.io/dauntless-unbroken/operations/discord-access.html): Account-bound invites, game and Discord bans, and manual access administration.
+- [Edge case audit · 20 October 2026](https://vvoidddd.github.io/dauntless-unbroken/reference/audit-2026-10-20.html): Confirmed transaction, admission, key-storage and migration fixes, database validation, and remaining dependency limitations.
 - [Feature integrations](https://vvoidddd.github.io/dauntless-unbroken/findings/feature-integrations.html): Progression, shop, social and world-lifecycle systems in Unbroken.
 - [Fleet admission and database storage](https://vvoidddd.github.io/dauntless-unbroken/operations/fleet-admission-backups.html): Two EU game hosts, UK key distribution and verified database copies.
 - [Game downloads](https://vvoidddd.github.io/dauntless-unbroken/r2-downloads.html): Configure verified HTTPS game downloads from the owner-operated R2 catalog.

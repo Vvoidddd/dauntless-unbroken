@@ -49,7 +49,15 @@ interface StoredKey {
 }
 
 export class KeyStore {
+  // One launcher process owns this store; serialize its infrequent key mutations.
+  private pending: Promise<void> = Promise.resolve();
   constructor(private readonly dir: string, private readonly crypto: Encryptor, private readonly recoveryDir?: string) {}
+
+  private update<T>(work: () => Promise<T>): Promise<T> {
+    const result = this.pending.then(work);
+    this.pending = result.then(() => undefined, () => undefined);
+    return result;
+  }
 
   private file(slot: KeySlot): string {
     return path.join(this.dir, `${serverId(slot.host, slot.port, slot.mode)}.key`);
@@ -88,6 +96,10 @@ export class KeyStore {
   }
 
   async save(slot: KeySlot, key: string): Promise<void> {
+    return this.update(() => this.write(slot, key));
+  }
+
+  private async write(slot: KeySlot, key: string): Promise<void> {
     if (!isPlausibleAccountKey(key)) throw new KeyStoreError("invalid");
     if (slot.mode === "public" && !isValidFingerprint(slot.fp)) throw new KeyStoreError("invalid");
     if (!this.crypto.isAvailable()) throw new KeyStoreError("unavailable");
@@ -109,13 +121,19 @@ export class KeyStore {
   // The key for this slot, or null. A public server's key is returned only for the exact
   // certificate it was saved with.
   async load(slot: KeySlot): Promise<string | null> {
+    await this.pending;
     const stored = await this.read(slot);
     if (!stored) return null;
     if (slot.mode === "public" && (slot.fp === null || stored.fp !== slot.fp)) return null;
     addSecret(stored.key);
     if (this.recoveryDir) {
       const backup = path.join(this.recoveryDir, `${serverId(slot.host, slot.port, slot.mode)}.txt`);
-      await fsp.access(backup).catch(() => this.save(slot, stored.key)).catch(() => log.warn("Automatic Documents account backup unavailable"));
+      await this.update(async () => {
+        // A replacement, rebind or removal may have happened since the initial read.
+        const current = await this.read(slot);
+        if (!current || current.key !== stored.key || current.fp !== stored.fp) return;
+        await fsp.access(backup).catch(() => this.write(slot, stored.key));
+      }).catch(() => log.warn("Automatic Documents account backup unavailable"));
     }
     return stored.key;
   }
@@ -123,6 +141,7 @@ export class KeyStore {
   // Public servers: whether a key is stored for this host:port, and which certificate it belongs
   // to (fp null = a key from before keys were tied to certificates). null = no key stored.
   async certificateOf(slot: KeySlot): Promise<{ fp: string | null } | null> {
+    await this.pending;
     const stored = await this.read(slot).catch(() => null);
     return stored ? { fp: stored.fp } : null;
   }
@@ -130,17 +149,21 @@ export class KeyStore {
   // Moves this host:port's key to a new certificate. Only after the user confirmed the change.
   async rebind(slot: KeySlot, fp: string): Promise<boolean> {
     if (slot.mode !== "public" || !isValidFingerprint(fp)) throw new KeyStoreError("invalid");
-    const stored = await this.read(slot);
-    if (!stored) return false;
-    await this.save({ ...slot, fp }, stored.key);
-    return true;
+    return this.update(async () => {
+      const stored = await this.read(slot);
+      if (!stored) return false;
+      await this.write({ ...slot, fp }, stored.key);
+      return true;
+    });
   }
 
   async remove(slot: KeySlot): Promise<void> {
-    const stored = await this.read(slot).catch(() => null);
-    if (stored) removeSecret(stored.key);
-    await fsp.unlink(this.file(slot)).catch(() => undefined);
-    if (this.recoveryDir) await fsp.unlink(path.join(this.recoveryDir, `${serverId(slot.host, slot.port, slot.mode)}.txt`)).catch(() => undefined);
+    return this.update(async () => {
+      const stored = await this.read(slot).catch(() => null);
+      if (stored) removeSecret(stored.key);
+      await fsp.unlink(this.file(slot)).catch(() => undefined);
+      if (this.recoveryDir) await fsp.unlink(path.join(this.recoveryDir, `${serverId(slot.host, slot.port, slot.mode)}.txt`)).catch(() => undefined);
+    });
   }
 }
 

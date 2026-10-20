@@ -1,5 +1,5 @@
 # Checks every push and pull request:
-#  - the four server packages: npm ci, build, unit tests
+#  - the four server packages: npm ci, build, unit tests; Discord bot: npm ci and unit tests
 #  - the launcher: typecheck, unit tests and the Windows installer, kept as a download for 7 days
 #  - the separate Linux and OpenBSD server ports (native Node services, Wine/SSH game launch wrappers, nftables/PF)
 #  - the Windows Server kit under Windows PowerShell 5.1: parse check, PSScriptAnalyzer errors, and the
@@ -47,6 +47,7 @@ jobs:
           - DauntlessUnbrokenGateway
           - DauntlessUnbrokenContent
           - DauntlessUnbrokenDeployServer
+          - DauntlessUnbrokenDiscordBot
     defaults:
       run:
         shell: pwsh
@@ -66,6 +67,7 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Build
+        if: matrix.package != 'DauntlessUnbrokenDiscordBot'
         run: npm run build
 
       # DauntlessUnbrokenContent's test:integration is not run here: it serves a real 1.4.4 install, which CI

@@ -34,9 +34,9 @@ let didMigration = false;
 
 export function GetDb(){
     if(!didMigration){
-        didMigration = true;
-
         migrate(db, {migrationsFolder: "./src/drizzle"});
+        // A failed attempt must not permanently bypass schema initialization.
+        didMigration = true;
     }
 
     return db;

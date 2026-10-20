@@ -11069,6 +11069,60 @@ In the private dashboard, open **Players** to select an account, link or unlink 
 All operator APIs require the owner key on the private backend connection; public gateway requests and ordinary player keys are refused. Keep the dashboard accessible only through the private localhost SSH tunnel. Never share owner keys, bot tokens or player login keys in public channels.
 
 ================================================================================
+URL: https://vvoidddd.github.io/dauntless-unbroken/reference/audit-2026-10-20.html
+================================================================================
+
+# Edge case audit
+
+This review covered the custom account, inventory, purchase, recovery, queue,
+gateway, launcher key-storage and backup paths, supported by the service test
+suites and a read-only check of a completed database snapshot. Generated SDK
+files and third-party libraries were not rewritten. These checks do not prove
+that every possible gameplay or operating-system failure is fixed.
+
+## Confirmed fixes
+
+| Area | Failure | Result |
+| --- | --- | --- |
+| Inventory | Individually valid deltas could overflow the game's signed 32-bit stack quantity when combined. | Validate both deltas and the final balance before changing inventory; a rejected transaction rolls back its item changes and receipts. |
+| Daily tokens | Repeated token entries in one native reward batch each received a complete daily top-up. | Share one top-up across the batch; reject out-of-range daily configuration by retaining the default. |
+| Ramsgate admission | A new city accepted a party larger than its configured player cap. | Check the next city's cap before launching it; existing cities, reservations and party grouping retain their existing behavior. |
+| Launcher keys | Concurrent save and removal could recreate a removed key; concurrent saves shared temporary files. | Serialize key mutations and recheck identity before automatic recovery repair. Certificate binding remains enforced. |
+| Database initialization | A migration failure marked initialization complete, so later calls skipped migrations. | Mark initialization complete only after migration succeeds. |
+
+Each failure has a focused regression test. The Discord bot's existing tests now
+also run in the required CI matrix before an automatic launcher release.
+
+## Database checks
+
+The latest completed snapshot available when the review started contained 25
+accounts and 23 characters. SQLite `integrity_check`, `quick_check` and
+`foreign_key_check` passed. Additional checks found no orphaned character,
+inventory, loadout or key ownership, duplicate account-key hashes, malformed
+character/inventory/loadout JSON, duplicate inventory stacks, or invalid stack
+quantities. No player records were changed by the audit. This describes that
+snapshot, not an assurance about future writes.
+
+## Dependency finding
+
+The production dependency audit reported no advisories for five of the six Node
+packages. The gateway's certificate-generation dependency, `node-forge`, has an
+unpatched RSA signature-verification advisory,
+[GHSA-86w9-cpqp-85rv](https://github.com/advisories/GHSA-86w9-cpqp-85rv).
+The gateway uses it to generate and sign a new local certificate, not to verify
+untrusted signatures; public TLS and certificate parsing use Node's native
+crypto/TLS APIs. The advisory remains open and must be reassessed when usage or
+upstream versions change. No unsupported upgrade or unreviewed patch was applied.
+
+## Applying the changes
+
+The key-storage fix ships in launcher 1.0.9. Backend and allocator changes need
+a controlled service restart after deployment. They require no schema change,
+account reset or progression migration. Preserve running hunts when choosing
+restart timing; copying new files alone does not update an already-running Node
+process.
+
+================================================================================
 URL: https://vvoidddd.github.io/dauntless-unbroken/findings/feature-integrations.html
 ================================================================================
 

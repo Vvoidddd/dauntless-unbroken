@@ -77,3 +77,18 @@ test('without caps the default is unchanged',async()=>{
     await Promise.all(Array.from({length:21},()=>pool.allocate()));
     assert.equal(cities.length,2);
 });
+
+test('a cold city never admits a party larger than its configured cap',async()=>{
+    const {pool,cities}=fixture([2]);
+    await assert.rejects(pool.allocate(3),CapacityUnavailable);
+    assert.equal(cities.length,0);
+    assert.equal((await pool.allocate(2)).id,'1');
+});
+
+test('a later cold city uses its own smaller cap before starting',async()=>{
+    const {pool,cities}=fixture([4,2]);
+    await pool.allocate(4);
+    await assert.rejects(pool.allocate(3),CapacityUnavailable);
+    assert.equal(cities.length,1);
+    assert.equal((await pool.allocate(2)).id,'2');
+});
