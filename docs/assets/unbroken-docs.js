@@ -6,7 +6,7 @@ if (themeToggle) {
     const dark = document.documentElement.dataset.theme !== "light";
     themeToggle.setAttribute("aria-pressed", String(dark));
     themeToggle.textContent = dark ? "Dark mode" : "Light mode";
-    document.querySelector('meta[name="theme-color"]').content = dark ? "#100d17" : "#f7f5fb";
+    document.querySelector('meta[name="theme-color"]').content = dark ? "#070d1d" : "#f7f5fb";
   };
   updateThemeToggle();
   themeToggle.hidden = false;

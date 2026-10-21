@@ -29,6 +29,7 @@ export const BRAND_COPIES = {
   "src/renderer/brand/emblem-32.png": "web/emblem-32.png",
   "src/renderer/brand/emblem-64.png": "web/emblem-64.png",
   "src/renderer/brand/emblem-512.png": "web/emblem-512.png",
+  "src/renderer/brand/behemoth-512.png": "web/emblem-512.png",
 };
 
 const check = process.argv.includes("--check");

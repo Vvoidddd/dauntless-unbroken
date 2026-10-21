@@ -37,7 +37,7 @@ export function discordActivity(s: Snapshot, offline: OfflineStatus, started: nu
   return {
     type: 0, details, state, timestamps: { start: started },
     assets: {
-      large_image: "https://vvoidddd.github.io/dauntless-unbroken/assets/icon-192.png",
+      large_image: "https://vvoidddd.github.io/dauntless-unbroken/assets/behemoth-icon-192.png",
       large_text: "Dauntless Unbroken",
     },
     buttons: [{ label: "Get the launcher", url: "https://github.com/Vvoidddd/dauntless-unbroken/releases/latest" }],

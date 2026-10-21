@@ -1,15 +1,15 @@
 :root {
   color-scheme: dark;
-  --paper: #100d17;
-  --surface: #191420;
-  --ink: #eee9f6;
-  --muted: #b4a9c4;
-  --line: #382e46;
-  --purple: #c5a1ff;
-  --purple-dark: #d7bdff;
-  --lavender: #2a2038;
-  --accent-bg: #7045b4;
-  --accent-hover: #8153c9;
+  --paper: #070d1d;
+  --surface: #0d1730;
+  --ink: #f3f6ff;
+  --muted: #adbbd4;
+  --line: #19294b;
+  --purple: #ba8cff;
+  --purple-dark: #e6c5ff;
+  --lavender: #19294b;
+  --accent-bg: #7653b5;
+  --accent-hover: #8054bf;
   --on-accent: #fff;
   --font: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
 }

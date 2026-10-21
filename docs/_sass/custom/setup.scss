@@ -6,11 +6,11 @@
 // scheme variables) and _sass/custom/custom.scss (everything the variables do not reach) both use these
 // names, and custom.scss also publishes them as CSS custom properties (--dr-ink and so on).
 
-$dr-ink: #0D0914;   // page background
-$dr-navy: #181020;  // surfaces: sidebar, code blocks, tables, search
-$dr-deep: #2B1B3D;  // raised surfaces, borders between surfaces, hover and current-page fills
-$dr-azure: #7954B8; // dark accent: pressed fills, control borders on ink, blockquote bar
-$dr-ice: #B990FF;   // primary accent: links, primary buttons
-$dr-glow: #E6CEFF;  // highlights, hovered links, focus rings, small glows
-$dr-steel: #B7ABC7; // muted text: navigation children, captions, footers
-$dr-frost: #FAF6FF; // body text and headings
+$dr-ink: #070D1D;   // page background
+$dr-navy: #0D1730;  // surfaces: sidebar, code blocks, tables, search
+$dr-deep: #19294B;  // raised surfaces, borders between surfaces, hover and current-page fills
+$dr-azure: #7653B5; // dark accent: pressed fills, control borders on ink, blockquote bar
+$dr-ice: #BA8CFF;   // primary accent: links, primary buttons
+$dr-glow: #E6C5FF;  // highlights, hovered links, focus rings, small glows
+$dr-steel: #ADBBD4; // muted text: navigation children, captions, footers
+$dr-frost: #F3F6FF; // body text and headings

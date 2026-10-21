@@ -47,7 +47,7 @@ test('embed uses fixed branding, the versioned setup EXE, checksums and link but
   assert.equal(payload.username, 'Dauntless Unbroken Launcher');
   assert.deepEqual(payload.allowed_mentions, { parse: [] });
   assert.equal(payload.embeds[0].fields[0].value, '**1.0.13**');
-  assert.ok(payload.embeds[0].thumbnail.url.endsWith('emblem-512.png'));
+  assert.ok(payload.embeds[0].thumbnail.url.endsWith('behemoth-512.png'));
   assert.equal(payload.components[0].components[0].url, release().assets[0].browser_download_url);
   assert.ok(payload.components[0].components.every(button => button.style === 5));
 });

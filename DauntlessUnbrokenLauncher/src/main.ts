@@ -191,7 +191,7 @@ function createWindow(): void {
     frame: false,
     show: false,
     // The page's ink (styles.css), so nothing flashes before it paints.
-    backgroundColor: "#0D0914",
+    backgroundColor: "#070D1D",
     title: "Dauntless Unbroken Launcher",
     icon: existsSync(iconPath) ? iconPath : undefined,
     webPreferences: {

@@ -1,4 +1,4 @@
-/* Unbroken command deck. Keep the original palette and aether artwork. */
+/* Unbroken command deck, with an umbral navy/violet palette and bundled game artwork. */
 @font-face {
   font-family: "Unbroken Sora";
   src: url("./fonts/Sora-Variable.ttf") format("truetype");
@@ -52,7 +52,7 @@
 .nav-item[aria-current="page"] .icon { color: var(--dr-ice); animation: none; }
 .nav-badge { position: absolute; top: 9px; right: 9px; width: 10px; height: 10px; }
 .world { grid-template-columns: minmax(0, 1fr) var(--panel-w); }
-.hero { background-image: url("./brand/hero-unbroken.png"); background-size: cover; background-position: center right; }
+.hero { background-image: url("./brand/hero-umbral-nayzaga.jpg"); background-size: cover; background-position: center right; }
 .hero .scene { display: none; }
 .hero-shade {
   background: linear-gradient(90deg, color-mix(in srgb, var(--dr-ink) 94%, transparent), color-mix(in srgb, var(--dr-ink) 55%, transparent) 48%, transparent 78%),

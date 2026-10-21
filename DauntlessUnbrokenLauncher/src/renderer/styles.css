@@ -7,14 +7,14 @@
    System fonts only: Segoe UI for text, Bahnschrift for display type. */
 
 :root {
-  --dr-ink: #0D0914;
-  --dr-navy: #181020;
-  --dr-deep: #2B1B3D;
-  --dr-azure: #7954B8;
-  --dr-ice: #B990FF;
-  --dr-glow: #E6CEFF;
-  --dr-steel: #B7ABC7;
-  --dr-frost: #FAF6FF;
+  --dr-ink: #070D1D;
+  --dr-navy: #0D1730;
+  --dr-deep: #19294B;
+  --dr-azure: #7653B5;
+  --dr-ice: #BA8CFF;
+  --dr-glow: #E6C5FF;
+  --dr-steel: #ADBBD4;
+  --dr-frost: #F3F6FF;
 
   /* Roles built from the tokens. */
   --line: var(--dr-deep); /* decorative dividers between surfaces, never a control's only edge */

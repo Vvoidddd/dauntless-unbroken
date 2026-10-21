@@ -3,7 +3,7 @@
 
 Inputs (never modified by a normal build):
   logo-full.png   the full logo with the "DAUNTLESS UNBROKEN" wordmark
-  emblem.png      the dragon-head emblem
+  emblem.png      the transparent behemoth cutout
   palette.json    the eight brand colours and the checked contrast pairs
 
 Outputs: web/, icons/, launcher/, social-preview.png, og.png, ../.github/assets/banner.png and
@@ -93,6 +93,7 @@ def check_contrast() -> bool:
 DOCS_COPIES = {
     "icons/favicon.ico": "docs/assets/favicon.ico",
     "icons/icon-192.png": "docs/assets/icon-192.png",
+    "icons/behemoth-icon-192.png": "docs/assets/behemoth-icon-192.png",
     "icons/apple-touch-icon.png": "docs/assets/apple-touch-icon.png",
     "og.png": "docs/assets/og-unbroken.png",  # a new name when the image changes: link previews cache by URL
     "web/emblem-128.png": "docs/assets/brand/emblem-128.png",
@@ -301,7 +302,7 @@ BANNER_TEXT = f"""<text x="{BANNER_TX}" y="78" font-family="{MONO}" font-size="1
   <text x="{BANNER_TX - 3}" y="138" font-family="{SANS}" font-size="58" font-weight="800" fill="{C['frost']}">Dauntless Unbroken</text>
   <text x="{BANNER_TX}" y="182" font-family="{SANS}" font-size="24" fill="{C['frost']}">Play the genuine Dauntless 1.4.4 client on a server</text>
   <text x="{BANNER_TX}" y="212" font-family="{SANS}" font-size="24" fill="{C['frost']}">you host yourself.</text>
-  <text x="{BANNER_TX}" y="251" font-family="{MONO}" font-size="15" fill="{C['steel']}">fork of Undaunted by gwog &amp; contributors · AGPL-3.0</text>
+  <text x="{BANNER_TX}" y="251" font-family="{MONO}" font-size="15" fill="{C['steel']}">Shared progression · Community realm</text>
   <text x="{BANNER_TX}" y="274" font-family="{MONO}" font-size="15" fill="{C['steel']}">unofficial fan project, not affiliated with Phoenix Labs</text>"""
 
 
@@ -394,6 +395,7 @@ def build() -> None:
     app.parent.mkdir(parents=True, exist_ok=True)
     app.write_bytes(ico([emblem_at(s) for s in (16, 24, 32, 48, 64, 128, 256)]))
     out.append(app)
+    put(emblem_at(192), "icons/behemoth-icon-192.png")
     for s in (256, 512, 1024):
         put(emblem_at(s), f"launcher/icon-{s}.png")
     put(logo_at(320), "launcher/logo-inapp.png")

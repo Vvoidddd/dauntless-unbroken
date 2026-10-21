@@ -135,10 +135,11 @@ certificates in a temp folder.
 taken. The server must then point `QOS_TARGET_URL` at the same port.
 
 The look follows the project's brand (`brand/`, see its README): the eight colours of
-`brand/palette.json` as `--dr-*` tokens in `src/renderer/styles.css`, the logo and emblem, and an
-original background drawn by `src/renderer/scene.ts` (mountains, pine forest, mist, a faint aurora and
-snow) that a host's art pack replaces. It moves only whole layers, slowly; it holds still while the
-game runs, and does not move at all when the operating system requests reduced motion.
+`brand/palette.json` as `--dr-*` tokens in `src/renderer/styles.css`, the behemoth icon and wordmark,
+and bundled Umbral Nayzaga artwork in the default layout. The background is local and static;
+text uses a dark overlay for readability. Artwork sources are documented in `brand/README.md`.
+The legacy procedural scene in `src/renderer/scene.ts` remains the fallback for other layouts;
+its layers hold still while the game runs and respect reduced motion.
 `npm run icon` copies the icons and in-app images from `brand/`, where `python3 brand/build.py` makes
 them. `npm test` fails when a copy is out of date, when the stylesheet has a colour that is not a
 token, or when a colour pair it uses fails WCAG AA.

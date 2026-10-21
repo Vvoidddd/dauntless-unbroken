@@ -2,7 +2,7 @@ import { pathToFileURL } from 'node:url';
 
 export const REPOSITORY = 'Vvoidddd/dauntless-unbroken';
 const BRAND = 'Dauntless Unbroken Launcher';
-const ICON = `https://raw.githubusercontent.com/${REPOSITORY}/main/DauntlessUnbrokenLauncher/src/renderer/brand/emblem-512.png`;
+const ICON = `https://raw.githubusercontent.com/${REPOSITORY}/main/DauntlessUnbrokenLauncher/src/renderer/brand/behemoth-512.png`;
 const VERSION = /^launcher-v(\d+\.\d+\.\d+)$/;
 
 export function launcherBuild(release) {
@@ -35,7 +35,7 @@ export function announcement(build) {
   fields.push({ name: 'Downloads & verification', value: `[All downloads and release notes](${build.page}) · [SHA-256 checksums](${build.sums.browser_download_url})`, inline: false });
   return {
     username: BRAND, avatar_url: ICON, allowed_mentions: { parse: [] },
-    embeds: [{ title: 'Dauntless Unbroken · Launcher', url: build.page, color: 0xB990FF,
+    embeds: [{ title: 'Dauntless Unbroken · Launcher', url: build.page, color: 0xBA8CFF,
       description: 'The latest published launcher build. This message updates automatically when a new version is released.',
       thumbnail: { url: ICON }, fields, timestamp: build.release.published_at,
       footer: { text: 'Launcher releases only · Automatically updated' } }],

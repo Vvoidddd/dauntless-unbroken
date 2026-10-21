@@ -68,7 +68,7 @@ test("presence uses only public activity and hides for opt-out or streamer mode"
   assert.match(DISCORD_APPLICATION_ID, /^\d{17,20}$/);
   const s = snapshot();
   assert.equal(activity().details, "In the launcher");
-  assert.ok(activity().assets.large_image.endsWith("/assets/icon-192.png"));
+  assert.ok(activity().assets.large_image.endsWith("/assets/behemoth-icon-192.png"));
   assert.ok(!JSON.stringify(activity()).includes("PRIVATE"));
   s.game.running = true;
   assert.equal(discordActivity(s, { phase: "running" }, 1)?.state, "Offline play");

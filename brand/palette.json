@@ -1,74 +1,74 @@
 {
   "name": "Dauntless Unbroken",
-  "description": "Purple aether palette for Dauntless Unbroken. Shared tokens are checked against WCAG contrast requirements.",
+  "description": "Umbral navy and violet palette matched to the supplied Dauntless artwork; shared contrast-checked tokens.",
   "colors": {
     "ink": {
-      "hex": "#0D0914",
+      "hex": "#070D1D",
       "rgb": [
+        7,
         13,
-        9,
-        20
+        29
       ],
       "role": "Page background"
     },
     "navy": {
-      "hex": "#181020",
+      "hex": "#0D1730",
       "rgb": [
-        24,
-        16,
-        32
+        13,
+        23,
+        48
       ],
       "role": "Surface: sidebar, cards, code blocks, header"
     },
     "deep": {
-      "hex": "#2B1B3D",
+      "hex": "#19294B",
       "rgb": [
-        43,
-        27,
-        61
+        25,
+        41,
+        75
       ],
       "role": "Raised surface and borders between surfaces (decorative, not a control boundary)"
     },
     "azure": {
-      "hex": "#7954B8",
+      "hex": "#7653B5",
       "rgb": [
-        121,
-        84,
-        184
+        118,
+        83,
+        181
       ],
       "role": "Dark accent: hover and pressed fills, control borders on ink"
     },
     "ice": {
-      "hex": "#B990FF",
+      "hex": "#BA8CFF",
       "rgb": [
-        185,
-        144,
+        186,
+        140,
         255
       ],
       "role": "Primary accent: links, primary buttons"
     },
     "glow": {
-      "hex": "#E6CEFF",
+      "hex": "#E6C5FF",
       "rgb": [
         230,
-        206,
+        197,
         255
       ],
       "role": "Highlights, hovered links, focus rings, small glows"
     },
     "steel": {
-      "hex": "#B7ABC7",
+      "hex": "#ADBBD4",
       "rgb": [
-        183,
-        171,
-        199
+        173,
+        187,
+        212
       ],
       "role": "Muted text: captions, metadata, footers"
     },
     "frost": {
-      "hex": "#FAF6FF",
+      "hex": "#F3F6FF",
       "rgb": [
-        250,
+        243,
         246,
         255
       ],
@@ -83,171 +83,171 @@
         "bg": "ink",
         "kind": "text",
         "use": "Body text on the page",
-        "ratio": 18.47
+        "ratio": 17.93
       },
       {
         "fg": "frost",
         "bg": "navy",
         "kind": "text",
         "use": "Body text on surfaces",
-        "ratio": 17.37
+        "ratio": 16.44
       },
       {
         "fg": "frost",
         "bg": "deep",
         "kind": "text",
         "use": "Text on raised surfaces, selected nav item",
-        "ratio": 14.84
+        "ratio": 13.31
       },
       {
         "fg": "steel",
         "bg": "ink",
         "kind": "text",
         "use": "Muted text on the page",
-        "ratio": 9.06
+        "ratio": 9.99
       },
       {
         "fg": "steel",
         "bg": "navy",
         "kind": "text",
         "use": "Muted text on surfaces",
-        "ratio": 8.52
+        "ratio": 9.16
       },
       {
         "fg": "steel",
         "bg": "deep",
         "kind": "text",
         "use": "Muted text on raised surfaces",
-        "ratio": 7.28
+        "ratio": 7.42
       },
       {
         "fg": "ice",
         "bg": "ink",
         "kind": "text",
         "use": "Links on the page",
-        "ratio": 7.97
+        "ratio": 7.64
       },
       {
         "fg": "ice",
         "bg": "navy",
         "kind": "text",
         "use": "Links on surfaces",
-        "ratio": 7.49
+        "ratio": 7.01
       },
       {
         "fg": "ice",
         "bg": "deep",
         "kind": "text",
         "use": "Links on raised surfaces",
-        "ratio": 6.4
+        "ratio": 5.67
       },
       {
         "fg": "glow",
         "bg": "ink",
         "kind": "text",
         "use": "Hovered links and highlights on the page",
-        "ratio": 13.73
+        "ratio": 12.72
       },
       {
         "fg": "glow",
         "bg": "navy",
         "kind": "text",
         "use": "Hovered links and highlights on surfaces",
-        "ratio": 12.91
+        "ratio": 11.67
       },
       {
         "fg": "glow",
         "bg": "deep",
         "kind": "text",
         "use": "Hovered links on raised surfaces",
-        "ratio": 11.03
+        "ratio": 9.45
       },
       {
         "fg": "ink",
         "bg": "ice",
         "kind": "text",
         "use": "Primary button label",
-        "ratio": 7.97
+        "ratio": 7.64
       },
       {
         "fg": "ink",
         "bg": "glow",
         "kind": "text",
         "use": "Primary button label on hover",
-        "ratio": 13.73
+        "ratio": 12.72
       },
       {
         "fg": "frost",
         "bg": "azure",
         "kind": "text",
         "use": "Label on an azure (pressed or secondary) fill",
-        "ratio": 5.22
+        "ratio": 5.29
       },
       {
         "fg": "glow",
         "bg": "ink",
         "kind": "ui",
         "use": "Focus ring on the page",
-        "ratio": 13.73
+        "ratio": 12.72
       },
       {
         "fg": "glow",
         "bg": "navy",
         "kind": "ui",
         "use": "Focus ring on surfaces",
-        "ratio": 12.91
+        "ratio": 11.67
       },
       {
         "fg": "ice",
         "bg": "ink",
         "kind": "ui",
         "use": "Primary button edge against the page",
-        "ratio": 7.97
+        "ratio": 7.64
       },
       {
         "fg": "azure",
         "bg": "ink",
         "kind": "ui",
         "use": "Input and control borders on the page",
-        "ratio": 3.54
+        "ratio": 3.39
       },
       {
         "fg": "steel",
         "bg": "navy",
         "kind": "ui",
         "use": "Input and control borders on surfaces",
-        "ratio": 8.52
+        "ratio": 9.16
       }
     ],
     "avoid": [
       {
         "fg": "#FFFFFF",
         "bg": "ice",
-        "ratio": 2.47,
+        "ratio": 2.54,
         "why": "White text on the primary accent fails AA; use ink on ice"
       },
       {
         "fg": "frost",
         "bg": "ice",
-        "ratio": 2.32,
+        "ratio": 2.35,
         "why": "Same for frost"
       },
       {
         "fg": "azure",
         "bg": "ink",
-        "ratio": 3.54,
+        "ratio": 3.39,
         "why": "Azure is too dark for normal-size text; only large text or UI borders"
       },
       {
         "fg": "azure",
         "bg": "navy",
-        "ratio": 3.33,
+        "ratio": 3.11,
         "why": "Fails 3:1 even for control borders; use steel on navy"
       },
       {
         "fg": "deep",
         "bg": "ink",
-        "ratio": 1.24,
+        "ratio": 1.35,
         "why": "Decorative dividers only, never the only edge of a control"
       },
       {
@@ -259,7 +259,7 @@
       {
         "fg": "steel",
         "bg": "azure",
-        "ratio": 2.56,
+        "ratio": 2.95,
         "why": "Muted text on an azure fill fails; use frost"
       }
     ]
