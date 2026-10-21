@@ -3,6 +3,8 @@ import {EventEmitter} from 'node:events';
 export const KeyRevocations=new EventEmitter();
 import {GetDb} from '../db';
 import {LinkDiscordAccount} from './discordlinks';
+import {RememberAccountKey,RecoverAccountKey} from './accountrecovery';
+import {BanFor} from './moderation';
 const hash=(value:string)=>createHash('sha256').update(value).digest('hex');
 const valid=(id:unknown):id is string=>typeof id==='string' && /^\d{17,20}$/.test(id);
 export function AuthEpoch(userId:string):number {
@@ -26,7 +28,22 @@ export function ProveRecoveryLink(id:unknown,key:unknown,now=Date.now()) {
   const row=db.prepare('SELECT k.userId FROM userapikeys k JOIN users u ON u.userId=k.userId WHERE k.keyHash=? AND u.isAdmin=0').get(hash(key)) as any;
   if(!row || LinkDiscordAccount(id,row.userId).status!=='linked')return false;
   db.prepare('INSERT INTO recoveryproofs VALUES(?,?,?) ON CONFLICT(discordId) DO UPDATE SET userId=excluded.userId,keyHash=excluded.keyHash').run(id,row.userId,hash(key));
+  RememberAccountKey(row.userId,key);
   return true;
+ }).immediate();
+}
+// Copy only an explicitly verified account link; never rotate a key for a second device.
+export function CopyLinkedAccountKey(id:unknown,now=Date.now()) {
+ if(!valid(id))return {status:'unverified'};
+ const db=GetDb().$client;
+ return db.transaction(()=>{
+  if(limited(id,now))return {status:'cooldown'};
+  audit(id,'copy_attempt',now);
+  const row=db.prepare('SELECT p.userId,u.name FROM recoveryproofs p JOIN discordlinks d ON d.discordId=p.discordId AND d.userId=p.userId JOIN userapikeys k ON k.userId=p.userId AND k.keyHash=p.keyHash JOIN users u ON u.userId=p.userId WHERE p.discordId=? AND u.isAdmin=0').get(id) as {userId:string,name:string}|undefined;
+  if(!row)return {status:'unverified'};
+  if(BanFor(row.userId)||db.prepare('SELECT 1 FROM discord_moderation WHERE discordId=? AND active=1').get(id))return {status:'banned'};
+  const key=RecoverAccountKey(row.userId);
+  return key ? {status:'ready',key,username:row.name} : {status:'unavailable'};
  }).immediate();
 }
 export function BeginKeyRecovery(id:unknown,now=Date.now()) {

@@ -237,7 +237,7 @@ async function main() {
         socket.send(JSON.stringify({ id: ++nextId, method: "Runtime.evaluate", params: { expression: "window.close()" } }));
         await waitFor(() => childExited, 15000);
         assert.equal(exitCode, 0);
-        assert.equal(listeners(), "");
+        await waitFor(() => listeners() === "", 15000, "launcher service listeners released");
         console.log("Packaged launcher exited cleanly; no local service listeners remain");
         successful = true;
         if (nativeFailed) {

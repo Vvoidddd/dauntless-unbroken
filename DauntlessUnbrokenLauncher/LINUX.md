@@ -11,6 +11,8 @@ Full distro-by-distro instructions are on the project site:
 
 ## Downloads
 
+Steam Deck players: see the [Steam Deck and account-transfer guide](https://vvoidddd.github.io/dauntless-unbroken/setup/steam-deck.html).
+
 Each `launcher-v*` GitHub release contains:
 
 - `DauntlessUnbrokenLauncher-<version>-linux-x86_64.AppImage` — universal option for most desktop distributions.

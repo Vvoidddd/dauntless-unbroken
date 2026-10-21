@@ -12,6 +12,13 @@ function executable(file: string): string {
   return file;
 }
 
+test('SteamOS never attempts automatic system package installation',()=>{
+  for(const kind of ['runtime','secure-storage'] as const){
+    assert.equal(linuxDependencyInstallPlan(kind,process.env,'NAME=SteamOS\nID=steamos\n'),null);
+    assert.equal(linuxDependencyInstallPlan(kind,process.env,'ID="steamos"\n'),null);
+  }
+});
+
 test("Linux dependencies: apt runtime install is fixed and elevated", { skip: process.platform !== "linux" }, () => {
   const root = mkdtempSync(path.join(tmpdir(), "dr-linux-deps-"));
   try {

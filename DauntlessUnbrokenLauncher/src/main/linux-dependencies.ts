@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { accessSync, constants as fsConstants, existsSync, statSync } from "node:fs";
+import { accessSync, constants as fsConstants, existsSync, statSync,readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -45,7 +45,10 @@ function elevated(command: string, args: string[], env: NodeJS.ProcessEnv): Linu
 export function linuxDependencyInstallPlan(
   kind: LinuxDependencyKind,
   env: NodeJS.ProcessEnv = process.env,
+  osRelease: string = (()=>{try{return readFileSync('/etc/os-release','utf8');}catch{return '';}})(),
 ): LinuxDependencyInstallPlan | null {
+  // SteamOS uses an immutable system image; use Steam-installed Proton on the Deck.
+  if(/^ID=["']?steamos["']?\s*$/mi.test(osRelease))return null;
   const apt = findExecutable("apt-get", env);
   if (apt) {
     return elevated(

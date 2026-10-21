@@ -157,8 +157,8 @@ const en = {
   connect_last_checked: "Last checked {time}",
   connect_use_other: "Use a different invite",
 
-  reg_title: "Choose your name",
-  reg_text: "This is the name your friends see on {name}.",
+  reg_title: "Bring your Slayer along",
+  reg_text: "Import your existing account, or choose a name to create one on {name}.",
   reg_label: "Username",
   reg_hint: "3–16 characters: letters, numbers and _",
   reg_check_empty: "3–16 characters: letters, numbers and _",
@@ -173,8 +173,8 @@ const en = {
   reg_key_label: "Account key",
   reg_key_placeholder: "Paste your key or the whole backup file",
   reg_key_use: "Use this key",
-  reg_key_file: "Load a backup file…",
-  reg_key_note: "Your key is stored encrypted on this PC and is never shown.",
+  reg_key_file: "Import account backup…",
+  reg_key_note: "Already playing on PC or Steam Deck? Import your Desktop account-key backup to keep the same Slayer and progression. An invite registers once; your account key works on your own devices. Keep it private.",
   reg_rejected: "{name} no longer accepts the key saved on this PC. Register again, or use another key.",
 
   backup_title: "Save a backup of your key",
@@ -389,7 +389,7 @@ const en = {
 
   err_dismiss: "Dismiss",
   err_invite_invalid_format: "That invite isn't valid.",
-  err_invite_invalid: "The invite code was refused. It may be used up: ask the host for a new invite.",
+  err_invite_invalid: "The invite was refused or already used. Already registered? Import your account backup or use /key resend in Discord to keep the same save on your other device.",
   err_username_invalid: "That username isn't allowed. Use 3–16 letters, numbers or _.",
   err_username_taken: "That name is taken (upper and lower case count as the same). Try another.",
   err_registration_closed: "Registration is closed on this server. Ask the host.",

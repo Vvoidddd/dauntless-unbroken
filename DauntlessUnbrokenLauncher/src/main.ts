@@ -525,7 +525,9 @@ function makePlatform(): Platform {
     chooseOpenFile: async () => {
       if (!mainWindow) return null;
       const r = await dialog.showOpenDialog(mainWindow, {
-        filters: [{ name: "Text", extensions: ["txt"] }],
+        title: translate(controller?.snapshot().settings.language ?? "en", "reg_key_file"),
+        defaultPath: app.getPath("desktop"),
+        filters: [{ name: "Account key backup", extensions: ["txt"] }, {name:"All files",extensions:["*"]}],
         properties: ["openFile", "dontAddToRecent"],
       });
       return r.canceled || r.filePaths.length !== 1 ? null : r.filePaths[0];

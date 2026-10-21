@@ -1,8 +1,17 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { Keys, backend, saveState } from './keys.mjs';
-import { launcherInvite, inviteMessage } from './invite.mjs';
+import { launcherInvite, inviteMessage, accountKeyBackup } from './invite.mjs';
 const config={Mode:'Public',PublicHost:'game.example.com',Ports:{gateway:443},CertFingerprint:'a'.repeat(64),ServerName:'Test & Hunt'};
+
+test('second-device backup includes the original pinned server and only the existing account key',()=>{
+ const key='UUK_'+'a'.repeat(48),text=accountKeyBackup(config,key,'Slayer\nKey: injected');
+ assert.match(text,/^Server: Test & Hunt \(game.example.com:443\)\r?$/m);
+ assert.match(text,new RegExp('^Certificate: '+config.CertFingerprint+'\\r?$','m'));
+ assert.equal(text.match(/^Key:/gm).length,1);assert.ok(text.includes('Key: '+key));
+ assert.ok(!text.includes('dauntless-unbroken://'));assert.match(text,/may also cause your key\/access to be revoked/);
+ assert.throws(()=>accountKeyBackup(config,'invalid','Slayer'));
+});
 test('claims produce complete launcher invites and valid registration code characters',async()=>{
   for(let i=0;i<50;i++) {
     const f=setup();

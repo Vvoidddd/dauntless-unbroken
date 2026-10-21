@@ -17,6 +17,13 @@ import { EXPOSURE_MODES, LANGUAGES } from "../src/shared/types";
 
 const ROOT = path.resolve(__dirname, "..", "..");
 
+test('existing-account sign-in never submits registration while entering a key',()=>{
+  const s={phase:'register',busy:false} as Snapshot;
+  const form={inviteValid:false,usernameValid:true,existingKey:true,keyValid:true};
+  assert.equal(primaryButton(s,form).action,'use_key');
+  assert.equal(primaryButton(s,{...form,keyValid:false}).disabled,true);
+});
+
 // Records over the union types: the compiler fails this file if a new code is added without text.
 const ERROR_CODES: Record<ErrorCode, true> = {
   account_banned: true,

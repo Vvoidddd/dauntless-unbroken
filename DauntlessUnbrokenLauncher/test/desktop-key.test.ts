@@ -3,11 +3,22 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { saveDesktopKey } from "../src/main/keystore";
+import { saveDesktopKey,backupFileText,backupServer } from "../src/main/keystore";
 import { extractAccountKey } from "../src/shared/username";
 
 const opts = { key: "UUK_" + "a".repeat(48), username: "../Void", serverName: "Realm", host: "example.com", port: 443,
   fingerprint: "ab".repeat(32), date: new Date("2026-10-18T00:00:00Z") };
+
+test('PC backup carries the same server and certificate to Steam Deck without another invite',()=>{
+  const text=backupFileText(opts);
+  assert.deepEqual(backupServer(text),{host:'example.com',port:443,fp:opts.fingerprint,mode:'public',name:'Realm',share:null,code:null});
+  assert.equal(backupServer(text.replace(opts.fingerprint,'wrong')),null);
+  assert.equal(backupServer(text.replace('Certificate: '+opts.fingerprint+'\r\n','')),null);
+  assert.equal(backupServer(text.replace(':443)',':65536)')),null);
+  assert.equal(backupServer(text+'Certificate: '+opts.fingerprint),null);
+  assert.equal(backupServer(text+'Server: Other (other.example.com:443)'),null);
+  assert.equal(backupServer(opts.key),null);
+});
 
 test("Desktop key recovery is readable/importable, idempotent and separate for rotated keys and realms", async () => {
   const desktop = await mkdtemp(path.join(tmpdir(), "unbroken-desktop-"));

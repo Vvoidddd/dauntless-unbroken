@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import {GetDb} from '../src/db';
 import {MakePlayer} from './helpers';
 import {HashUserAPIKey,GetUserIDForAPIKey,SignMetagameJWTForUid,ValidateMetagameJWTAndGetPayload} from '../src/controllers/auth';
-import {BeginKeyRecovery,CompleteKeyRecovery,ProveRecoveryLink} from '../src/controllers/keyrotation';
+import {BeginKeyRecovery,CompleteKeyRecovery,ProveRecoveryLink,CopyLinkedAccountKey} from '../src/controllers/keyrotation';
+import {SetAccountBan} from '../src/controllers/moderation';
 import {LinkDiscordAccount} from '../src/controllers/discordlinks';
 import {StartApp,StopApp,Call} from './appclient';
 after(()=>RemoveTestDb(()=>GetDb().$client.close()));
@@ -17,6 +18,39 @@ async function fixture(){
  GetDb().$client.prepare('INSERT INTO userapikeys VALUES(?,?)').run(p.UserId,HashUserAPIKey(key));
  return {...p,id,key};
 }
+
+test('verified key copies preserve the PC key, JWT and account; unverified or banned links cannot copy',async()=>{
+ const old=process.env.ACCOUNT_KEY_RECOVERY;process.env.ACCOUNT_KEY_RECOVERY='1';
+ try {
+  const p=await fixture(),other=await fixture();const jwt=SignMetagameJWTForUid(p.UserId);
+  LinkDiscordAccount(p.id,p.UserId);
+  assert.equal(CopyLinkedAccountKey(p.id).status,'unverified');
+  assert.equal(ProveRecoveryLink(p.id,p.key),true);
+  for(let i=0;i<2;i++)assert.equal(CopyLinkedAccountKey(p.id).key,p.key);
+  assert.equal(await GetUserIDForAPIKey(p.key),p.UserId);
+  assert.doesNotThrow(()=>ValidateMetagameJWTAndGetPayload(jwt));
+  assert.equal(CopyLinkedAccountKey(other.id).key,undefined);
+  const saved=GetDb().$client.prepare('SELECT ciphertext FROM accountkeyrecovery WHERE userId=?').get(p.UserId) as {ciphertext:string};
+  assert.ok(saved.ciphertext&&!saved.ciphertext.includes(p.key));
+  SetAccountBan(p.UserId,'test restriction',true,null,'test');
+  assert.equal(CopyLinkedAccountKey(p.id).key,undefined);
+ }finally{if(old===undefined)delete process.env.ACCOUNT_KEY_RECOVERY;else process.env.ACCOUNT_KEY_RECOVERY=old;}
+});
+
+test('copy rate limit, unlink and key rotation fail closed',async()=>{
+ const old=process.env.ACCOUNT_KEY_RECOVERY;process.env.ACCOUNT_KEY_RECOVERY='1';
+ try {
+  const p=await fixture();ProveRecoveryLink(p.id,p.key);
+  for(let i=0;i<4;i++)assert.equal(CopyLinkedAccountKey(p.id).key,p.key);
+  assert.equal(CopyLinkedAccountKey(p.id).status,'cooldown');
+  const unlinked=await fixture();ProveRecoveryLink(unlinked.id,unlinked.key);
+  GetDb().$client.prepare('DELETE FROM discordlinks WHERE discordId=?').run(unlinked.id);
+  assert.equal(CopyLinkedAccountKey(unlinked.id).key,undefined);
+  const rotated=await fixture();ProveRecoveryLink(rotated.id,rotated.key);
+  const replacement=CompleteKeyRecovery(rotated.id,BeginKeyRecovery(rotated.id)!);
+  assert.ok(replacement);assert.equal(CopyLinkedAccountKey(rotated.id).key,undefined);
+ }finally{if(old===undefined)delete process.env.ACCOUNT_KEY_RECOVERY;else process.env.ACCOUNT_KEY_RECOVERY=old;}
+});
 test('verified recovery rotates atomically, revokes old key and JWT, and refuses replay',async()=>{
  const p=await fixture();const jwt=SignMetagameJWTForUid(p.UserId);
  assert.equal(ProveRecoveryLink(p.id,p.key),true);
@@ -67,4 +101,20 @@ test('recovery endpoint refuses ordinary players, admin headers and proxied serv
   const result=await Call('POST','/internal/key-recovery/begin',{headers:{'x-key-recovery-service':process.env.KEY_RECOVERY_SERVICE_SECRET},body:{discordId:p.id}});
   assert.equal(result.status,200);assert.match(result.json.challenge,/^[a-f0-9]{64}$/);
  }finally{delete process.env.KEY_RECOVERY_SERVICE_SECRET;await StopApp();}
+});
+
+test('copy endpoint requires dedicated local authentication and never accepts another userId',async()=>{
+ const old=process.env.ACCOUNT_KEY_RECOVERY;process.env.ACCOUNT_KEY_RECOVERY='1';
+ await StartApp();process.env.KEY_RECOVERY_SERVICE_SECRET=crypto.randomUUID()+crypto.randomUUID();
+ try{
+  const p=await fixture(),other=await fixture();ProveRecoveryLink(p.id,p.key);
+  const endpoint='/internal/key-recovery/copy',body={discordId:p.id,userId:other.UserId};
+  for(const options of [{as:p.UserId},{gs:true},{headers:{'x-key-recovery-service':process.env.KEY_RECOVERY_SERVICE_SECRET,'x-forwarded-for':'192.0.2.1'}}]){
+   const refused=await Call('POST',endpoint,{...options,body});
+   assert.equal(refused.status,403);assert.ok(!JSON.stringify(refused.json).includes(p.key));
+  }
+  const copy=await Call('POST',endpoint,{headers:{'x-key-recovery-service':process.env.KEY_RECOVERY_SERVICE_SECRET},body});
+  assert.equal(copy.status,200);assert.equal(copy.json.key,p.key);
+  assert.equal(await GetUserIDForAPIKey(p.key),p.UserId);
+ }finally{delete process.env.KEY_RECOVERY_SERVICE_SECRET;if(old===undefined)delete process.env.ACCOUNT_KEY_RECOVERY;else process.env.ACCOUNT_KEY_RECOVERY=old;await StopApp();}
 });

@@ -13,6 +13,8 @@ ref: setup/linux
 # Linux launcher
 {: .no_toc }
 
+**Steam Deck:** use the [Steam Deck setup and PC account-transfer guide](steam-deck.html).
+
 Dauntless Unbroken Launcher runs natively on **x86_64 Linux**. The actual Dauntless 1.4.4 game is still
 the original Windows x86_64 build, so the launcher starts it through **Proton or Wine**. You use the
 same invite, account and server as a Windows player.

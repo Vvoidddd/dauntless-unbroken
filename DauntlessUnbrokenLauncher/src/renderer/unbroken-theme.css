@@ -167,3 +167,7 @@
 @media (prefers-reduced-motion: reduce) {
   .bar.indeterminate .bar-fill, .nav-item::before { animation: none !important; }
 }
+@media (pointer: coarse) {
+  #view-play .btn, #view-play .link-btn, #view-play input { min-height: 44px; touch-action: manipulation; }
+  #view-play .card-row { gap: 12px; }
+}

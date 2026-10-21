@@ -68,7 +68,7 @@ import { applyGameConfig } from "./engineini";
 import { locateExistingGame } from "./game-folder";
 import { buildLaunchArgs, describeLaunch, GameProcess, gameLocale, type LaunchRuntime, type SpawnFn } from "./launch";
 import { createRelayOwnerCheck } from "./relay-owner";
-import { backupFileText, saveDesktopKey, KeyStore, KeyStoreError, serverId, type Encryptor, type KeySlot } from "./keystore";
+import { backupFileText, backupServer, saveDesktopKey, KeyStore, KeyStoreError, serverId, type Encryptor, type KeySlot } from "./keystore";
 import { SettingsStore, type StoredServer, type StoredSettings } from "./settings";
 import { freeBytes, missingVcRuntime } from "./system";
 import { fixedLinkUrl, isAllowedExternalUrl } from "./links";
@@ -895,19 +895,25 @@ export class Controller {
 
   async importKeyFile(): Promise<ActionResult> {
     if (this.busy || this.task) return err("busy");
-    const file = await this.p.chooseOpenFile();
-    if (!file) return err("cancelled");
-    let text: string;
-    try {
-      const st = await fsp.stat(file);
-      if (st.size > 8192) return this.fail("key_invalid");
-      text = await fsp.readFile(file, "utf8");
-    } catch {
-      return this.fail("key_invalid");
-    }
-    const key = extractAccountKey(text);
-    if (!key) return this.fail("key_invalid");
-    return this.withBusy(() => this.adoptKey(key));
+    if (this.game.running) return this.fail("already_running");
+    return this.withBusy(async () => {
+      const file = await this.p.chooseOpenFile();
+      if (!file) return err("cancelled");
+      let text: string;
+      try {
+        const st = await fsp.stat(file);
+        if (!st.isFile() || st.size > 8192) return this.fail("key_invalid");
+        text = await fsp.readFile(file, "utf8");
+      } catch { return this.fail("key_invalid"); }
+      const key = extractAccountKey(text);
+      const server = backupServer(text);
+      if (!key || (/^(?:Server|Certificate):/m.test(text) && !server)) return this.fail("key_invalid");
+      if (server) {
+        const joined = await this.join(server);
+        if (!joined.ok) return joined;
+      }
+      return this.adoptKey(key);
+    });
   }
 
   private async adoptKey(key: string): Promise<ActionResult> {

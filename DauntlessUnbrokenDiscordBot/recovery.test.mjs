@@ -34,11 +34,29 @@ test('resend reuses the actors invite without claiming or issuing another',async
  let delivered;
  await resendInteraction({ephemeral:true,user:{id:'123456789012345678',send:async message=>{delivered=message.content;}},editReply:async()=>{}},
   {run:async(id,claim)=>{assert.equal(id,'123456789012345678');assert.equal(claim,false);return {status:'ready',code:'existing'};}},code=>'invite:'+code);
- assert.equal(delivered,'invite:existing');
+ assert.ok(delivered.startsWith('invite:existing'));
+ assert.match(delivered,/linked to your Discord account/);
 });
 test('redeemed invites are never resent',async()=>{
  let reply;
  await resendInteraction({ephemeral:true,user:{id:'123456789012345678',send:()=>assert.fail('must not send')},editReply:async text=>{reply=text;}},
   {run:async()=>({status:'redeemed'})},()=>assert.fail('must not format'));
  assert.match(reply,/contact support/);
+});
+
+for(const blocked of [false,true])test(`second-device copy keeps the original key and is private with DMs ${blocked?'blocked':'available'}`,async()=>{
+ const original=globalThis.fetch;process.env.KEY_RECOVERY_SERVICE_SECRET='test-only-'.repeat(5);
+ const key='UUK_'+'a'.repeat(48),replies=[];let dm;
+ globalThis.fetch=async(url,options)=>{
+  assert.ok(String(url).endsWith('/copy'));assert.deepEqual(JSON.parse(options.body),{discordId:'123456789012345678'});
+  return {ok:true,json:async()=>({status:'ready',key,username:'Slayer'})};
+ };
+ try {
+  await resendInteraction({ephemeral:true,user:{id:'123456789012345678',send:async message=>{if(blocked)throw Error('disabled');dm=message;}},editReply:async message=>replies.push(message)},
+   {run:async()=>({status:'linked'})},()=>assert.fail('must not send a used invite'),key=>'Key: '+key);
+  const delivered=blocked?replies.at(-1):dm;
+  assert.ok(delivered.content.includes(key));assert.match(delivered.content,/may also be revoked/);
+  assert.ok(delivered.files[0].attachment.toString().includes(key));
+  if(!blocked)assert.ok(!JSON.stringify(replies).includes(key));
+ }finally{globalThis.fetch=original;delete process.env.KEY_RECOVERY_SERVICE_SECRET;}
 });

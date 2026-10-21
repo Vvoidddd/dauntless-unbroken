@@ -149,6 +149,7 @@ usernameInput.addEventListener("keydown", (e) => {
     void onPrimary();
   }
 });
+keyInput.addEventListener("input", () => renderActionBar());
 keyInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     e.preventDefault();
@@ -166,6 +167,8 @@ function formState() {
   return {
     inviteValid: parseInvite(state.inviteText).ok,
     usernameValid: checkUsername(state.username.trim()) === "ok",
+    existingKey: state.keyFormOpen,
+    keyValid: extractAccountKey(keyInput.value) !== null,
   };
 }
 
@@ -414,14 +417,15 @@ function savedServersCard(snap: Snapshot): HTMLElement | null {
 function playJoin(snap: Snapshot): HTMLElement[] {
   const saved = savedServersCard(snap);
   return [
-    h("div", { class: "eyebrow" }, t("join_eyebrow")),
+    h("div", {class:"eyebrow"}, t("join_eyebrow")),
     ...heading(t("join_title"), t("join_text")),
     ...(saved ? [saved] : []),
-    card(
-      "",
-      h("div", { class: "field" }, h("label", { class: "field-label", for: "invite-input" }, t("join_label")), inviteInput, invitePreview, inviteHint),
-      h("p", { class: "small-print" }, t("join_next")),
-    ),
+    card("card-accent", h("h2", {class:"card-title"}, t("reg_have_key")),
+      button(t("reg_key_file"), () => void api.importKeyFile(), {cls:"btn-primary",icon:"folder",fk:"join-key-file",disabled:snap.busy}),
+      h("p", {class:"small-print"}, t("reg_key_note"))),
+    card("",
+      h("div", {class:"field"}, h("label", {class:"field-label",for:"invite-input"}, t("join_label")), inviteInput, invitePreview, inviteHint),
+      h("p", {class:"small-print"}, t("join_next"))),
   ];
 }
 
@@ -564,43 +568,26 @@ function playRegister(snap: Snapshot): HTMLElement[] {
   if (snap.status?.registration === "NONE") {
     out.push(card("card-warn", h("h3", { class: "card-title" }, icon("warning"), t("reg_closed_title")), h("p", { class: "card-text" }, t("reg_closed"))));
   }
-  const keyForm = state.keyFormOpen
-    ? h(
-        "div",
-        { class: "field" },
-        h("label", { class: "field-label", for: "key-input" }, t("reg_key_label")),
-        keyInput,
-        h("div", { class: "card-row" }, button(t("reg_key_use"), () => void useKey(), { cls: "btn-primary", icon: "key", fk: "key-use", disabled: snap.busy }), button(t("reg_key_file"), () => void api.importKeyFile(), { icon: "folder", fk: "key-file", disabled: snap.busy })),
-        h("p", { class: "small-print" }, t("reg_key_note")),
-      )
-    : null;
+  const keyForm = state.keyFormOpen ? h("div", {class:"field"},
+    h("label", {class:"field-label",for:"key-input"}, t("reg_key_label")), keyInput,
+    button(t("reg_key_use"), () => void useKey(), {cls:"btn-primary",icon:"key",fk:"key-use",disabled:snap.busy})) : null;
   out.push(
-    card(
-      "",
-      h(
-        "div",
-        { class: "field" },
-        h("label", { class: "field-label", for: "username-input" }, t("reg_label")),
-        usernameInput,
-        usernameHint,
-      ),
-      h(
-        "p",
-        { class: `small-print reg-invite${snap.server?.hasPendingInvite ? " included" : ""}` },
-        icon(snap.server?.hasPendingInvite ? "check" : "info"),
-        snap.server?.hasPendingInvite ? t("reg_invite_included") : t("reg_invite_missing"),
-      ),
-    ),
-    card(
-      "",
-      linkButton(state.keyFormOpen ? t("reg_have_key_hide") : t("reg_have_key"), () => {
+    card("card-accent",
+      h("h3", {class:"card-title"}, t("reg_have_key")),
+      button(t("reg_key_file"), () => void api.importKeyFile(), {cls:"btn-primary",icon:"folder",fk:"key-file",disabled:snap.busy}),
+      h("p", {class:"small-print"}, t("reg_key_note")),
+      linkButton(state.keyFormOpen ? t("reg_have_key_hide") : t("reg_key_label"), () => {
         state.keyFormOpen = !state.keyFormOpen;
         renderPlay();
+        renderActionBar();
         if (state.keyFormOpen) keyInput.focus();
-      }, { icon: "key", fk: "key-toggle" }),
-      keyForm,
-    ),
-  );
+      }, {icon:"key",fk:"key-toggle"}),
+      keyForm),
+    card("",
+      h("div", {class:"field"}, h("label", {class:"field-label",for:"username-input"}, t("reg_label")), usernameInput, usernameHint),
+      h("p", {class:`small-print reg-invite${snap.server?.hasPendingInvite ? " included" : ""}`},
+        icon(snap.server?.hasPendingInvite ? "check" : "info"),
+        snap.server?.hasPendingInvite ? t("reg_invite_included") : t("reg_invite_missing"))));
   return out;
 }
 
@@ -844,7 +831,7 @@ function actionHint(snap: Snapshot): string {
     case "connect":
       return snap.connect.checking ? t("hint_connecting") : snap.connect.problem === "cert_mismatch" ? t("hint_cert") : t("hint_connect");
     case "register":
-      return t("hint_register");
+      return t(state.keyFormOpen ? "reg_key_label" : "hint_register");
     case "install":
       if (snap.install.discovering) return t("install_searching");
       if (snap.install.detectedDirs?.length) return t("install_confirm");
@@ -1033,6 +1020,7 @@ async function onPrimary(): Promise<void> {
     case "new_invite":
       showModal({ kind: "leave" });
       return;
+    case "use_key": await useKey(); return;
     case "register":
       result = await api.register(state.username.trim());
       if (result.ok) {

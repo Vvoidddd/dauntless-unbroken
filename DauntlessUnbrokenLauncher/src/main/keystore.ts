@@ -8,7 +8,7 @@
 import { createHash } from "node:crypto";
 import { promises as fsp } from "node:fs";
 import path from "node:path";
-import { isValidFingerprint } from "../shared/invite";
+import { isValidFingerprint, isValidHost, isPrivateModeHost, type Invite } from "../shared/invite";
 import { isPlausibleAccountKey } from "../shared/username";
 import { addSecret, removeSecret, log } from "./log";
 
@@ -186,9 +186,22 @@ export function backupFileText(opts: {
     `Key: ${opts.key}`,
     "",
     "Keep this file private: anyone who has this key can play as you on this server.",
-    "To use it on another PC: Dauntless Unbroken Launcher > Join > Use an existing key > Load a backup file.",
+    "On another PC or Steam Deck: open the launcher and choose Import account backup. Do not register again.",
     "",
   ].join("\r\n");
+}
+
+// The backup carries its original TLS pin; importing never guesses a public server certificate.
+export function backupServer(text: string): (Omit<Invite, "code"> & {code:null}) | null {
+  if (text.length > 8192) return null;
+  const server = /^Server: ([^\r\n]{1,64}) \(([A-Za-z0-9.-]+):(\d{1,5})\)\r?$/m.exec(text);
+  const certificates = [...text.matchAll(/^Certificate: ([^\r\n]*)\r?$/gm)];
+  if (!server || [...text.matchAll(/^Server:/gm)].length !== 1 || certificates.length > 1) return null;
+  const host = server[2].toLowerCase(), port = Number(server[3]);
+  const fp = certificates[0]?.[1].trim().toLowerCase() ?? null;
+  if (!isValidHost(host) || port < 1 || port > 65535 ||
+      (fp !== null ? !isValidFingerprint(fp) : !isPrivateModeHost(host))) return null;
+  return {host,port,fp,mode:fp === null ? "private" : "public",name:server[1],share:null,code:null};
 }
 
 // A Desktop copy is intentionally readable for recovery. Never replace another file or follow a link.

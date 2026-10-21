@@ -5,7 +5,7 @@ import { resolve, dirname, join } from 'node:path';
 import {createCounters, syncCounterCommand} from './counter.mjs';
 import {acquireInstance} from './instance.mjs';
 import { backend, Keys, loadState, saveState } from './keys.mjs';
-import { loadInviteConfig, inviteMessage } from './invite.mjs';
+import { loadInviteConfig, inviteMessage,accountKeyBackup } from './invite.mjs';
 import { syncKeyCommands } from './commands.mjs';
 import {moderationService} from './moderation.mjs';
 import { keyInstructions, linkInput } from './link-input.mjs';
@@ -88,7 +88,7 @@ client.on(Events.InteractionCreate, async interaction => {
       const subcommand = interaction.options.getSubcommand();
       stage=subcommand;
       if(subcommand==='recover'){await recoverInteraction(interaction);return;}
-      if(subcommand==='resend'){await resendInteraction(interaction,keys,code=>inviteMessage(inviteConfig,code));return;}
+      if(subcommand==='resend'){await resendInteraction(interaction,keys,code=>inviteMessage(inviteConfig,code),(key,name)=>accountKeyBackup(inviteConfig,key,name));return;}
       const claim = subcommand === 'claim';
       let result = subcommand === 'link'
         ? await keys.link(id, interaction.options.getString('key', true).trim())
@@ -102,6 +102,9 @@ client.on(Events.InteractionCreate, async interaction => {
       if(subcommand==='link' && result.status==='linked' && process.env.KEY_RECOVERY_SERVICE_SECRET){
         const proof=await recoveryRequest('link',id,{key:linkInput(interaction.options.getString('key',true)).key});
         if(!proof.verified){await interaction.editReply('Account linked, but recovery verification did not complete. Retry /key link with the raw account key later.');return;}
+      }
+      if(claim&&['linked','redeemed','already_sent'].includes(result.status)){
+        await resendInteraction(interaction,keys,code=>inviteMessage(inviteConfig,code),(key,name)=>accountKeyBackup(inviteConfig,key,name));return;
       }
       stage='reply';
       console.log(JSON.stringify({event:'key_result',status:result.status,at:new Date().toISOString()}));

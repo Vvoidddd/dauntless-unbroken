@@ -1,7 +1,8 @@
 import { randomBytes, randomInt, randomUUID } from "node:crypto";
 import { and, eq, gt, ne, or, sql } from "drizzle-orm";
 import { GetDb } from "../db";
-import { characters, invitecodes, userapikeys, users, discordlinks } from "../db/schema";
+import { characters, invitecodes, userapikeys, users, discordlinks, recoveryproofs } from "../db/schema";
+import {RememberAccountKey} from './accountrecovery';
 import { HashUserAPIKey } from "./auth";
 import type { RegistrationMode } from "./unbrokenapi";
 import type { Tx } from "./savehistory";
@@ -122,7 +123,12 @@ export function RegisterAccount(Mode: RegistrationMode, RequestedUsername: unkno
 
         tx.insert(users).values({ userId: UserId, name: Username, notes: 0 }).run();
         tx.insert(userapikeys).values({ userId: UserId, keyHash: HashUserAPIKey(UUK) }).run();
-        if(owner)tx.insert(discordlinks).values({discordId:owner.discordId,userId:UserId,linkedAt:new Date().toISOString()}).run();
+        if(owner){
+            tx.insert(discordlinks).values({discordId:owner.discordId,userId:UserId,linkedAt:new Date().toISOString()}).run();
+            // Only this account's successful, single-use Discord invite proves the new link.
+            tx.insert(recoveryproofs).values({discordId:owner.discordId,userId:UserId,keyHash:HashUserAPIKey(UUK)}).run();
+            RememberAccountKey(UserId,UUK);
+        }
 
         return { ok: true, UserId: UserId, Username: Username, UUK: UUK };
     });

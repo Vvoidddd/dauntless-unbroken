@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { accessSync, constants as fsConstants, existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
+import { accessSync, constants as fsConstants, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { LaunchRuntime } from "./launch";
@@ -65,7 +65,7 @@ function directories(parent: string): string[] {
   }
 }
 
-function protonCandidates(home: string): string[] {
+function protonCandidates(home: string): {command:string;steamRoot:string}[] {
   const steamRoots = [
     path.join(home, ".local", "share", "Steam"),
     path.join(home, ".steam", "root"),
@@ -73,14 +73,30 @@ function protonCandidates(home: string): string[] {
     path.join(home, ".var", "app", "com.valvesoftware.Steam", "data", "Steam"),
     path.join(home, ".var", "app", "com.valvesoftware.Steam", ".local", "share", "Steam"),
   ];
-  const out: string[] = [];
+  const clients = new Map(steamRoots.map(root => [root,root]));
+  const out: {command:string;steamRoot:string}[] = [];
+  // Steam Deck can keep Proton on an SD-card library instead of the internal SSD.
+  for (const root of [...steamRoots]) {
+    try {
+      const file = path.join(root, "steamapps", "libraryfolders.vdf");
+      if (statSync(file).size > 256 * 1024) continue;
+      const text = readFileSync(file, "utf8");
+      for (const match of text.matchAll(/"path"\s*"([^"\r\n]+)"/g)) {
+        const library = match[1].replace(/\\\\/g, "\\");
+        if (path.isAbsolute(library) && !steamRoots.includes(library) && steamRoots.length < 32) {
+          steamRoots.push(library);clients.set(library,root);
+        }
+      }
+    } catch { /* Missing or inaccessible library indexes must not block other runtimes. */ }
+  }
   for (const root of steamRoots) {
-    for (const dir of directories(path.join(root, "compatibilitytools.d"))) out.push(path.join(dir, "proton"));
+    const add = (dir:string) => out.push({command:path.join(dir,"proton"),steamRoot:clients.get(root)!});
+    for (const dir of directories(path.join(root, "compatibilitytools.d"))) add(dir);
     for (const dir of directories(path.join(root, "steamapps", "common"))) {
-      if (/^(?:proton|ge-proton)/i.test(path.basename(dir))) out.push(path.join(dir, "proton"));
+      if (/^(?:proton|ge-proton)/i.test(path.basename(dir))) add(dir);
     }
   }
-  return out.filter(executable).sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: "base" }));
+  return out.filter(p=>executable(p.command)).sort((a, b) => b.command.localeCompare(a.command, undefined, { numeric: true, sensitivity: "base" }));
 }
 
 function lutrisWineCandidates(home: string): string[] {
@@ -145,10 +161,11 @@ export function detectLinuxRuntime(
   const runtimeEnv = withXwaylandAuthority(env);
   const explicitProton = customRuntime(runtimeEnv.DAUNTLESS_UNBROKEN_PROTON, runtimeEnv);
   const explicitWine = customRuntime(runtimeEnv.DAUNTLESS_UNBROKEN_WINE, runtimeEnv);
-  const proton = explicitProton ?? (explicitWine ? null : protonCandidates(home)[0] ?? null);
+  const candidate = explicitProton || explicitWine ? undefined : protonCandidates(home)[0];
+  const proton = explicitProton ?? candidate?.command ?? null;
   if (proton) {
     const compatDataDir = path.join(userDataDir, "compat", "proton");
-    const steamRoot = steamRootFor(proton);
+    const steamRoot = candidate?.steamRoot ?? steamRootFor(proton);
     return {
       kind: "proton",
       name: `Proton (${path.basename(path.dirname(proton))})`,

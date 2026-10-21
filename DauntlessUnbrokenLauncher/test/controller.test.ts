@@ -18,7 +18,7 @@ import { Controller, type Platform } from "../src/main/controller";
 import { validateManifest, type GameManifest } from "../src/main/manifest";
 import { formatInvite } from "../src/shared/invite";
 import { setSink } from "../src/main/log";
-import { KeyStore } from "../src/main/keystore";
+import { KeyStore,backupFileText } from "../src/main/keystore";
 import { PortableOfflineSave, OFFLINE_KEY_SLOT } from "../src/main/offline-save";
 import { offlineLayout } from "../src/main/offline-layout";
 import { type OfflineSaveRuntime } from "../src/main/offline-save";
@@ -168,6 +168,27 @@ function harness(relayPort = RELAY_PORT, userDataDir?: string, chooseFolder: Pla
   const c = new Controller(p);
   return { c, last: () => snap ?? c.snapshot(), spawns, child: () => child, configDir, installDir, userData, offlineStatuses, };
 }
+
+test('a fresh second device imports the PC account backup without a registration invite',async()=>{
+  const key='UUK_'+'c'.repeat(48),username='DeckTransfer';
+  meta.users.set(key,{username,id:'UID-deck-transfer'});
+  const file=path.join(temp('deck-backup-'),'account.txt');
+  writeFileSync(file,backupFileText({key,username,serverName:'Friday Hunts',host:'127.0.0.1',port:GATEWAY_PORT,fingerprint:cert.fingerprint,date:new Date()}));
+  const hx=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{chooseOpenFile:async()=>file});
+  const before=meta.registrations.length;
+  await hx.c.init();
+  assert.equal((await hx.c.importKeyFile()).ok,true);
+  assert.equal(hx.last().account.username,username);
+  assert.equal(hx.last().account.hasKey,true);
+  assert.equal(hx.last().server?.hasPendingInvite,false);
+  assert.equal(meta.registrations.length,before);
+  writeFileSync(file,backupFileText({key,username,serverName:'Friday Hunts',host:'127.0.0.1',port:GATEWAY_PORT,fingerprint:other.fingerprint,date:new Date()}));
+  const refused=await hx.c.importKeyFile();
+  assert.ok(!refused.ok);
+  if(!refused.ok)assert.equal(refused.error?.code,'cert_changed');
+  assert.equal(hx.last().server?.fingerprint,cert.fingerprint);
+  await hx.c.shutdown();
+});
 
 test('full servers hold PLAY without spawning, show position, cancel, and admit when ready',async()=>{
   const hx=harness();

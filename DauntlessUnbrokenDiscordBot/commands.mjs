@@ -2,7 +2,7 @@ import { PermissionFlagsBits, Routes, SlashCommandBuilder } from 'discord.js';
 
 export const keyCommand = new SlashCommandBuilder().setName('key').setDescription('Your Dauntless Unbroken access code')
   .setContexts(0, 1)
-  .addSubcommand(option => option.setName('resend').setDescription('Resend your saved unused invite privately; never creates another'))
+  .addSubcommand(option => option.setName('resend').setDescription('Privately resend your invite or verified account key for another device'))
   .addSubcommand(option => option.setName('recover').setDescription('Privately rotate your verified linked account key').addStringOption(value=>value.setName('confirm').setDescription('Your private five-minute recovery challenge').setMinLength(64).setMaxLength(64)))
   .addSubcommand(option => option.setName('claim').setDescription('Receive your launcher invite by direct message'))
   .addSubcommand(option => option.setName('status').setDescription('Check your account link or code redemption'))

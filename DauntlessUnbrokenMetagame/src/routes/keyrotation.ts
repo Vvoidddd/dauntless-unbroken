@@ -1,7 +1,7 @@
 import {Router,Request,Response,NextFunction} from 'express';
 import {createHash,timingSafeEqual} from 'node:crypto';
 import {IsLoopbackAddress,IsProxiedRequest} from '../middleware/RequestOrigin';
-import {BeginKeyRecovery,CompleteKeyRecovery,ProveRecoveryLink} from '../controllers/keyrotation';
+import {BeginKeyRecovery,CompleteKeyRecovery,ProveRecoveryLink,CopyLinkedAccountKey} from '../controllers/keyrotation';
 import {AdminMutationRateLimit} from '../middleware/RateLimits';
 export const keyRotationRouter=Router();
 export function KeyRecoveryAuth(req:Request,res:Response,next:NextFunction){
@@ -19,6 +19,7 @@ keyRotationRouter.post('/internal/key-recovery/:action',AdminMutationRateLimit,K
   const id=req.body?.discordId;
   switch(req.params.action){
    case 'link': res.json({verified:ProveRecoveryLink(id,req.body?.key)});return;
+   case 'copy': res.json(CopyLinkedAccountKey(id));return;
    case 'begin': res.json({challenge:BeginKeyRecovery(id)});return;
    case 'confirm': res.json({key:CompleteKeyRecovery(id,req.body?.challenge)});return;
    default: res.status(404).json({error:'recovery_unavailable'});

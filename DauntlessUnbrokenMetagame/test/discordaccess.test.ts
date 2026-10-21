@@ -10,10 +10,13 @@ import {LinkDiscordAccount} from '../src/controllers/discordlinks';
 import {BanFor,ModerationLog,RecordPlayingAddress} from '../src/controllers/moderation';
 import {HashUserAPIKey,SignMetagameJWTForUid,ValidateMetagameJWTAndGetPayload} from '../src/controllers/auth';
 import {app} from '../src/app';
+import {CopyLinkedAccountKey} from '../src/controllers/keyrotation';
 const db=GetDb().$client;
 const guild='1561443722900676679',discord='123456789012345678',other='223456789012345678';
 after(()=>RemoveTestDb(()=>db.close()));
 test('owned one-use invites link registration atomically and preserve links on failed registration',()=>{
+ const old=process.env.ACCOUNT_KEY_RECOVERY;process.env.ACCOUNT_KEY_RECOVERY='1';
+ try{
  const {code}=CreateDiscordInvite(discord,undefined);
  assert.equal(CreateDiscordInvite(discord,code).code,code);
  assert.throws(()=>CreateDiscordInvite(other,code),/invite_already_assigned/);
@@ -26,6 +29,8 @@ test('owned one-use invites link registration atomically and preserve links on f
  assert.equal(RegisterAccount('INVITECODE','Duplicate',code).ok,false);
  assert.equal(LinkDiscordAccount(other,registered.UserId).status,'account_already_linked');
  assert.throws(()=>CreateDiscordInvite(discord,code),/already_linked/);
+ assert.equal(CopyLinkedAccountKey(discord).key,registered.UUK);
+ }finally{if(old===undefined)delete process.env.ACCOUNT_KEY_RECOVERY;else process.env.ACCOUNT_KEY_RECOVERY=old;}
 });
 test('Discord bans prevent unused invite redemption and claims, require no game account and track sync revisions',()=>{
  const {code}=CreateDiscordInvite(other,undefined);

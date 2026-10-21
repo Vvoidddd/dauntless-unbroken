@@ -6,7 +6,7 @@ import type { ExposureMode, GraphicsPreset, Language, Phase, Snapshot, TaskProgr
 import type { InstanceKind, PlayerWhere } from "./status";
 import { formatBytes, formatDuration, formatPercent, formatSpeed } from "./format";
 
-export type PrimaryAction = "join" | "retry" | "new_invite" | "register" | "install" | "update" | "play" | "pause" | "resume" | "none";
+export type PrimaryAction = "join" | "retry" | "new_invite" | "register" | "use_key" | "install" | "update" | "play" | "pause" | "resume" | "none";
 
 export interface PrimaryButton {
   labelKey: StringKey;
@@ -17,6 +17,8 @@ export interface PrimaryButton {
 export interface FormState {
   inviteValid: boolean;
   usernameValid: boolean;
+  existingKey?: boolean;
+  keyValid?: boolean;
 }
 
 export function primaryButton(s: Snapshot, form: FormState): PrimaryButton {
@@ -33,6 +35,7 @@ export function primaryButton(s: Snapshot, form: FormState): PrimaryButton {
       if (s.connect.problem === "cert_mismatch") return { labelKey: "btn_new_invite", action: "new_invite", disabled: busy };
       return { labelKey: "btn_retry", action: "retry", disabled: busy };
     case "register":
+      if (form.existingKey) return {labelKey:"reg_key_use",action:"use_key",disabled:busy || !form.keyValid};
       return {
         labelKey: busy ? "btn_wait" : "btn_register",
         action: "register",

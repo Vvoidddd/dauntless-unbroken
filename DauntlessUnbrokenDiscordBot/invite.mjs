@@ -16,5 +16,18 @@ export function launcherInvite(config, code) {
 }
 
 export function inviteMessage(config, code) {
-  return `🔑 **Your Dauntless Unbroken Invite**\n\`\`\`\n${launcherInvite(config, code)}\n\`\`\`\nCopy the entire invite above into the launcher's **Join** box, then choose your username on **Register**. The registration code is already included. The launcher saves your account key after registration.\nAlready registered? Keep your original launcher key; use /key link to link it to Discord.\n**Clear skies, Slayer.**`;
+  return ['🔑 **Your Dauntless Unbroken Invite**', '```', launcherInvite(config,code), '```',
+    "Paste the complete invite into the launcher's Join box, then choose a username on Register. The launcher saves an account-key backup to your Desktop.",
+    'Already registered? Use /key resend for your verified account key, or import your PC Desktop backup on your Steam Deck. Do not register a new save.',
+    'This invite/account is linked to your Discord account. Keep the key private: if another player misuses it, your access/key may also be revoked.',
+    '**Clear skies, Slayer.**'].join('\n');
+}
+
+export function accountKeyBackup(config,key,username) {
+  launcherInvite(config,'VALIDATION');
+  if(!/^UUK_[A-Za-z0-9_-]{16,128}$/.test(key))throw Error('Invalid account key');
+  return ['Dauntless Unbroken account key','',`Server: ${String(config.ServerName||'Dauntless Unbroken').replace(/[\r\n]/g,' ').slice(0,64)} (${config.PublicHost.toLowerCase()}:${config.Ports.gateway})`,
+    `Certificate: ${config.CertFingerprint.toLowerCase()}`,`Username: ${String(username||'-').replace(/[\r\n]/g,' ').slice(0,64)}`,`Key: ${key}`,'',
+    'Keep this file private. This key is linked to your Discord account; misuse by another player may also cause your key/access to be revoked.',
+    'On your Steam Deck or other PC, open the launcher and choose Import account backup. Do not register again.',''].join('\r\n');
 }

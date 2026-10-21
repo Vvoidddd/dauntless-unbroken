@@ -12,24 +12,36 @@ export async function recoveryRequest(action,discordId,extra={},request=fetch){
  if(!response.ok)throw Error('Recovery unavailable');
  return response.json();
 }
-export async function sendPrivately(interaction, content){
+export const KEY_SHARING_WARNING='This key is linked to your Discord account. Keep it private. If another player misuses it, your access/key may also be revoked. Use the same key only on your own devices.';
+export async function sendPrivately(interaction, content, files=[]){
  // Never fall back to a public response if this helper is called elsewhere.
  if(interaction.ephemeral !== true) throw Error('Private acknowledgement required');
  try {
-  await interaction.user.send({content,allowedMentions:{parse:[]}});
+  await interaction.user.send({content,files,allowedMentions:{parse:[]}});
  } catch {
-  await interaction.editReply({content,allowedMentions:{parse:[]}});
+  await interaction.editReply({content,files,allowedMentions:{parse:[]}});
   return 'ephemeral';
  }
  await interaction.editReply('Your copy is in your DMs. Keep it private.');
  return 'dm';
 }
-export async function resendInteraction(interaction,keys,formatInvite){
+export async function resendInteraction(interaction,keys,formatInvite,formatBackup){
  if(interaction.ephemeral !== true) throw Error('Private acknowledgement required');
- // Read-only lookup: never issue another invite or resurrect a redeemed one.
+ // Never issue another account or resurrect a redeemed registration invite.
  const result=await keys.run(interaction.user.id,false);
  if(result.status==='ready'){
-  await sendPrivately(interaction,formatInvite(result.code));
+  await sendPrivately(interaction,formatInvite(result.code)+'\n\n'+KEY_SHARING_WARNING);
+  return;
+ }
+ if(result.status==='banned'){await interaction.editReply('Access is restricted. Contact support.');return;}
+ if(['linked','redeemed'].includes(result.status)&&process.env.KEY_RECOVERY_SERVICE_SECRET){
+  const copy=await recoveryRequest('copy',interaction.user.id);
+  if(copy.status==='ready'&&typeof copy.key==='string'&&/^UUK_[A-Za-z0-9_-]{16,128}$/.test(copy.key)){
+   const files=formatBackup?[{attachment:Buffer.from(formatBackup(copy.key,copy.username),'utf8'),name:'Dauntless-Unbroken-account-key.txt'}]:[];
+   await sendPrivately(interaction,`🔑 **Your Existing Account Key**\n\`\`\`\n${copy.key}\n\`\`\`\nUse **Import account backup** or paste this key in the launcher on your Steam Deck or other PC. Your save and your original PC key stay unchanged.\n\n${KEY_SHARING_WARNING}`,files);
+   return;
+  }
+  await interaction.editReply(copy.status==='cooldown'?'Too many key requests. Wait 15 minutes and try again.':copy.status==='banned'?'Access is restricted. Contact support.':'Verify ownership once with `/key link key:<your existing account key>`, then use `/key resend`. Find it on your PC Desktop or in launcher Settings > Save a backup of your key. No new account was created.');
   return;
  }
  await interaction.editReply(process.env.KEY_RECOVERY_SERVICE_SECRET
