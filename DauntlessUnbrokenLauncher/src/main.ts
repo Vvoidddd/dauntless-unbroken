@@ -6,6 +6,7 @@
 
 import { app, autoUpdater, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, protocol, safeStorage, screen, session, shell, type IpcMainInvokeEvent } from "electron";
 import path from "node:path";
+import {diagnosticBundle} from "./main/diagnostics";
 import { freemem } from "node:os";
 import { DISCORD_APPLICATION_ID, DiscordPresence, discordActivity } from "./main/discord-presence";
 import { PortableOfflineSave } from "./main/offline-save";
@@ -354,6 +355,22 @@ function handle(channel: string, fn: (event: IpcMainInvokeEvent, ...args: unknow
 }
 
 function registerIpc(c: Controller): void {
+  handle(IPC.getPurchaseHistory,()=>c.getPurchaseHistory());
+  let diagnosticsExporting=false;
+  handle(IPC.exportDiagnostics,async()=>{
+    if(!mainWindow||diagnosticsExporting)return {ok:false,error:{code:"busy"}};
+    diagnosticsExporting=true;
+    try{
+      const result=await dialog.showSaveDialog(mainWindow,{
+        title:"Export support diagnostics",defaultPath:path.join(app.getPath("desktop"),"Dauntless-Unbroken-diagnostics-"+new Date().toISOString().slice(0,10)+".json"),
+        filters:[{name:"Support diagnostics",extensions:["json"]}],properties:["dontAddToRecent","showOverwriteConfirmation"],
+      });
+      if(result.canceled||!result.filePath)return {ok:false,error:{code:"cancelled"}};
+      await fsp.writeFile(result.filePath,await diagnosticBundle(app.getPath("userData"),c.snapshot()),"utf8");
+      return {ok:true};
+    }catch{return {ok:false,error:{code:"unknown"}};}
+    finally{diagnosticsExporting=false;}
+  });
   // Offline play's save backups. The file dialogs stay in the main process: the page never names a path.
   handle(IPC.offlineExportSave, async () => {
     if (!mainWindow) return { ok: false, error: { code: "cancelled" } };

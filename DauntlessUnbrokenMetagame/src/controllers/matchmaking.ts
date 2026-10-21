@@ -117,6 +117,7 @@ export function CancelLauncherAdmission(playerId: string) {
     LauncherAdmissions.delete(playerId);
 }
 
+import {EstimateQueueWait} from './queuestats';
 export function LauncherQueueStatus(playerId: string) {
     const entry = MatchmakingResultMap.get(playerId);
     if (!entry || entry.Failed) return {state: entry?.Failed ? 'failed' : 'idle'};
@@ -124,8 +125,11 @@ export function LauncherQueueStatus(playerId: string) {
     if (entry.Ready) return {state:'ready', kind};
     const region = entry.Region ?? PlayerRegion(GetPartyOf(playerId)?.LeaderId ?? playerId);
     const groups = new Map<string, {at:number, players:Set<string>, priority:boolean}>();
+    const admissions=new Map<string,number>();
     let own = '';
     for (const [id, candidate] of MatchmakingResultMap) {
+        if(candidate.Ready&&candidate.AllocatedAt!==undefined&&(candidate.GameMode==='CITY'?'ramsgate':'hunt')===kind&&(candidate.Region??PlayerRegion(GetPartyOf(id)?.LeaderId??id))===region)
+            admissions.set(candidate.SessionId??candidate.CandidateId,candidate.AllocatedAt);
         if (candidate.Ready || candidate.Failed) continue;
         const candidateKind = candidate.GameMode === 'CITY' ? 'ramsgate' : 'hunt';
         if (candidateKind !== kind || (candidate.Region ?? PlayerRegion(GetPartyOf(id)?.LeaderId ?? id)) !== region) continue;
@@ -147,7 +151,11 @@ export function LauncherQueueStatus(playerId: string) {
     }
     if (!own) return {state:'idle'};
     const full = CapacityWaits.has(entry.CandidateId) || PlayerQueueMap.get(playerId)?.CapacityDeadline !== undefined;
-    return {state:'waiting', kind, full, position, total, groupSize:groups.get(own)!.players.size};
+    const groupPosition=ordered.findIndex(([id])=>id===own)+1;
+    return {state:'waiting',kind,full,position,total,groupSize:groups.get(own)!.players.size,
+        groupPosition,groupsTotal:ordered.length,waitSeconds:Math.max(0,Math.floor((PartyNow()-groups.get(own)!.at)/1000)),
+        reason:entry.LaunchDeadline!==undefined?'starting':full?'capacity':'matching',
+        estimatedWaitSeconds:EstimateQueueWait([...admissions.values()],groupPosition-1,PartyNow())};
 }
 // A native session belongs to this allocation, never to a mutable host:port slot.
 // Legacy deploy replies have no safe shared-session identity.

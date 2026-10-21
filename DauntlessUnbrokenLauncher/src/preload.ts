@@ -18,6 +18,8 @@ import type {
 } from "./shared/types";
 
 const api = {
+  getPurchaseHistory: (): Promise<import('./shared/types').PurchaseHistory|null> => ipcRenderer.invoke(IPC.getPurchaseHistory),
+  exportDiagnostics: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.exportDiagnostics),
   getSnapshot: (): Promise<Snapshot> => ipcRenderer.invoke(IPC.getSnapshot),
   checkInvite: (text: string): Promise<InviteCheck> => ipcRenderer.invoke(IPC.checkInvite, String(text)),
   // acceptNewCertificate: the user confirmed a public server's changed certificate.

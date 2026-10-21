@@ -172,8 +172,13 @@ export interface Settings {
   streamerMode?: boolean; // hide addresses, fingerprints, paths and player names on screen
 }
 
+export interface PurchaseHistory {
+  purchases:{id:string;time:string;source:string;costs:{catalogId:string;quantity:number}[];items:{catalogId:string;quantity:number}[];status:'delivered'|'needs_review'|'refunded'}[];
+  limit:number;
+}
+
 export interface Snapshot {
-  queue?: {state:'idle'|'waiting'|'ready'|'failed'; kind?:'ramsgate'|'hunt'; full?:boolean; position?:number; total?:number; groupSize?:number} | null;
+  queue?: {state:'idle'|'waiting'|'ready'|'failed'; kind?:'ramsgate'|'hunt'; full?:boolean; position?:number; total?:number; groupSize?:number;groupPosition?:number;groupsTotal?:number;waitSeconds?:number;estimatedWaitSeconds?:number|null;reason?:'capacity'|'matching'|'starting'} | null;
   phase: Phase;
   busy: boolean;
   server: ServerInfo | null;
@@ -271,6 +276,8 @@ export type RegisterOutcome =
 // Channel names (renderer -> main are invoke channels, main -> renderer are events).
 export const IPC = {
   getSnapshot: "dr:get-snapshot",
+  getPurchaseHistory: "dr:get-purchase-history",
+  exportDiagnostics: "dr:export-diagnostics",
   checkInvite: "dr:check-invite",
   submitInvite: "dr:submit-invite",
   retryConnect: "dr:retry-connect",

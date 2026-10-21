@@ -13,15 +13,54 @@ import { isPrivateModeHost } from "../shared/invite";
 
 const KEY_HEADER = "x-dauntless-unbroken-user-api-key";
 
+export function parsePurchaseHistory(value:unknown):import('../shared/types').PurchaseHistory {
+  if(!isObject(value)||!Array.isArray(value.purchases)||value.purchases.length>50)throw Error('Invalid purchase history');
+  const entries=(raw:unknown)=>{
+    if(!Array.isArray(raw)||raw.length>100)throw Error('Invalid purchase items');
+    return raw.map((r:unknown)=>{
+      if(!isObject(r)||typeof r.catalogId!=='string'||r.catalogId.length>160||!Number.isSafeInteger(r.quantity)||Number(r.quantity)<1)throw Error('Invalid purchase item');
+      return {catalogId:r.catalogId,quantity:Number(r.quantity)};
+    });
+  };
+  return {limit:50,purchases:value.purchases.map((r:unknown)=>{
+    if(!isObject(r)||typeof r.id!=='string'||!/^\d{1,20}$/.test(r.id)||typeof r.time!=='string'||!Number.isFinite(Date.parse(r.time))||typeof r.source!=='string'||r.source.length>160||!['delivered','needs_review','refunded'].includes(String(r.status)))throw Error('Invalid purchase receipt');
+    return {id:r.id,time:r.time,source:r.source,costs:entries(r.costs),items:entries(r.items),status:r.status as 'delivered'|'needs_review'|'refunded'};
+  })};
+}
+
+export async function fetchPurchaseHistory(ep:Endpoint,key:string):Promise<import('../shared/types').PurchaseHistory|null>{
+  const response=await request(ep,'/unbroken/api/PurchaseHistory',{headers:statusHeaders(ep,key),timeoutMs:10000,maxBytes:256*1024});
+  if(response.status===404)return null;
+  if(response.status!==200)throw Error('Purchase history unavailable');
+  return parsePurchaseHistory(parseJsonBody(response));
+}
+
 export async function launcherAdmission(ep:Endpoint,key:string,method:'GET'|'POST'|'DELETE'='GET'):Promise<NonNullable<import('../shared/types').Snapshot['queue']>|null> {
   const res=await request(ep,'/unbroken/api/Admission',{method,headers:statusHeaders(ep,key),timeoutMs:10000,maxBytes:4096});
   // Older private servers have no admission endpoint.
   if(res.status===404 || method==='DELETE' && res.status===204)return null;
   if(res.status!==200)throw new Error(`Admission returned ${res.status}`);
   const b=parseJsonBody(res);
-  if(!isObject(b) || !['idle','waiting','ready','failed'].includes(String(b.state)))throw new Error('Invalid admission response');
-  if(b.state==='waiting' && (!['ramsgate','hunt'].includes(String(b.kind)) || typeof b.full!=='boolean' || !Number.isSafeInteger(b.position) || !Number.isSafeInteger(b.total) || Number(b.position)<1 || Number(b.position)>Number(b.total)))throw new Error('Invalid queue position');
-  return b as NonNullable<import('../shared/types').Snapshot['queue']>;
+  return parseLauncherAdmission(b);
+}
+
+export function parseLauncherAdmission(b:unknown):NonNullable<import('../shared/types').Snapshot['queue']>{
+  if(!isObject(b)||!['idle','waiting','ready','failed'].includes(String(b.state)))throw Error('Invalid admission response');
+  if(b.state!=='waiting')return {state:b.state as 'idle'|'ready'|'failed'};
+  const integer=(n:unknown,min=0)=>Number.isSafeInteger(n)&&Number(n)>=min;
+  if(!['ramsgate','hunt'].includes(String(b.kind))||typeof b.full!=='boolean'||!integer(b.position,1)||!integer(b.total,1)||Number(b.position)>Number(b.total))throw Error('Invalid queue position');
+  const result:NonNullable<import('../shared/types').Snapshot['queue']>={state:'waiting',kind:b.kind as 'ramsgate'|'hunt',full:b.full,position:Number(b.position),total:Number(b.total)};
+  for(const field of ['groupPosition','groupsTotal','waitSeconds','estimatedWaitSeconds'] as const){
+    if(b[field]===undefined||field==='estimatedWaitSeconds'&&b[field]===null)continue;
+    if(!integer(b[field],field==='groupPosition'||field==='groupsTotal'?1:0))throw Error('Invalid queue details');
+    result[field]=Number(b[field]);
+  }
+  if(result.groupPosition!==undefined&&result.groupsTotal!==undefined&&result.groupPosition>result.groupsTotal)throw Error('Invalid group position');
+  if(b.reason!==undefined){
+    if(!['starting','capacity','matching'].includes(String(b.reason)))throw Error('Invalid queue reason');
+    result.reason=b.reason as 'starting'|'capacity'|'matching';
+  }
+  return result;
 }
 
 // Reported identifiers are an optional launcher check, not hardware attestation.

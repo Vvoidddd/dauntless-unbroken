@@ -102,11 +102,12 @@ test('launcher Ramsgate admission keeps FIFO for twenty minutes and the game reu
         assert.equal((await JoinLauncherAdmission('UID-old')).state,'waiting');
         now++;
         assert.equal((await JoinLauncherAdmission('UID-new')).state,'waiting');
-        assert.deepEqual(LauncherQueueStatus('UID-new'),{state:'waiting',kind:'ramsgate',full:true,position:2,total:2,groupSize:1});
+        assert.deepEqual(LauncherQueueStatus('UID-new'),{state:'waiting',kind:'ramsgate',full:true,position:2,total:2,groupSize:1,groupPosition:2,groupsTotal:2,waitSeconds:0,reason:'capacity',estimatedWaitSeconds:null});
         // A repeated click cannot create extra seats or move ahead.
         await JoinLauncherAdmission('UID-new');
         assert.equal(LauncherQueueStatus('UID-new').position,2);
         for(let i=0;i<120;i++) {now+=10000;await PollLauncherAdmission('UID-old');await PollLauncherAdmission('UID-new');}
+        assert.equal(LauncherQueueStatus('UID-new').waitSeconds,1200);
         full=false;now+=10000;
         const before=calls.length;
         await PollLauncherAdmission('UID-new');

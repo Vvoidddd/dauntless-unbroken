@@ -323,6 +323,7 @@ const EXPECTED_ROUTES = [
     "POST /loadout/:userId/:characterId/active/:index [RealProgressionOnly, HasDauntlessUnbrokenMetagameAuth]",
     "GET /loadout/:userId/:characterId/all [HasDauntlessUnbrokenMetagameAuth]",
     "POST /loadout/:userId/:characterId/:index [HasDauntlessUnbrokenMetagameAuth]",
+    "GET /unbroken/api/PurchaseHistory [HasDauntlessUnbrokenUserApiKey]",
     "POST /unbroken/api/Admission [HasDauntlessUnbrokenUserApiKey]",
     "GET /unbroken/api/Admission [HasDauntlessUnbrokenUserApiKey]",
     "DELETE /unbroken/api/Admission [HasDauntlessUnbrokenUserApiKey]",

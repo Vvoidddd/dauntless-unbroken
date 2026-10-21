@@ -5,6 +5,7 @@
 import { $, forceRender, githubMark, h, icon, renderRegion, type IconName } from "./dom";
 
 import newsBadge from "./brand/news-badge.svg";
+import {installControllerNavigation} from "./controller-navigation";
 import { buildScene } from "./scene";
 import { isStringKey, translate, type StringKey } from "../shared/i18n";
 import { localized, SOFTWARE, ANXO_FEATURES } from "../shared/credits";
@@ -45,6 +46,11 @@ const state = {
   offlineView: false, // the Play page shows offline play instead of the online server
   offlineName: "", // the first-run offline username being typed
   playMenu: false, // the PLAY button's dropdown is open
+  purchaseHistory: null as import("../shared/types").PurchaseHistory|null,
+  purchaseHistoryFor: "",
+  purchaseHistoryBusy: false,
+  purchaseHistoryNote: "",
+  diagnosticsNote: "",
   offlineSaveNote: null as string | null, // the last backup or restore that worked, shown under the row
   existingFormOpen: false,
   news: [] as NewsItem[],
@@ -940,10 +946,13 @@ function renderActionBar(): void {
   renderPlayMenu();
   if (snap.queue?.state === 'waiting') {
     const q=snap.queue;
-    const message=`${q.full ? 'Servers are full. ' : ''}Waiting for ${q.kind === 'hunt' ? 'a hunt' : 'Ramsgate'} · You are ${q.position} in line out of ${q.total} players waiting.`;
+    const duration=(seconds:number)=>Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');
+    const reason=q.reason==='starting'?'Your instance is starting.':q.reason==='capacity'?'Waiting for server capacity.':'Finding a matching group.';
+    const estimate=q.estimatedWaitSeconds?` Recent admission pace suggests ~${duration(q.estimatedWaitSeconds)} more; this can change.`:' An accurate estimate is not available yet.';
+    const message=`Waiting for ${q.kind === 'hunt' ? 'a hunt' : 'Ramsgate'} · ${q.position} of ${q.total} players · ${q.groupsTotal?`Group ${q.groupPosition} of ${q.groupsTotal} · `:''}Waited ${duration(q.waitSeconds??0)}. ${reason}${estimate}`;
     primary.disabled=true;primary.textContent='Queued';primary.setAttribute('data-action','none');
     renderRegion(info,JSON.stringify(q),()=>[h('div',{class:'launch-readiness',role:'status'},h('span',{class:'action-hint'},message),...(!snap.game.running?[button('Leave queue',()=>void api.cancelQueue(),{fk:'cancel-queue'})]:[]))]);
-    announce(message);
+    announce(`Waiting for ${q.kind==='hunt'?'a hunt':'Ramsgate'}, position ${q.position} of ${q.total}. ${reason}`);
     return;
   }
   if (state.offlineView) {
@@ -1454,11 +1463,45 @@ function infoRow(title: HTMLElement, text: string, control: HTMLElement): HTMLEl
   return h("div", { class: "settings-row" }, h("div", { class: "settings-row-text" }, h("div", { class: "settings-row-head" }, title, infoTip(text))), control);
 }
 
+function historyOwner(snap:Snapshot|null){return JSON.stringify([snap?.server?.host,snap?.server?.port,snap?.account.username,snap?.account.hasKey]);}
+async function loadPurchaseHistory(){
+  if(state.purchaseHistoryBusy)return;
+  const owner=historyOwner(state.snap);state.purchaseHistoryBusy=true;state.purchaseHistoryNote="";renderSettings();
+  const history=await api.getPurchaseHistory().catch(()=>null);
+  state.purchaseHistoryBusy=false;
+  if(owner!==historyOwner(state.snap)){renderSettings();return;}
+  state.purchaseHistory=history;state.purchaseHistoryFor=owner;
+  state.purchaseHistoryNote=history?"":"Purchase history is unavailable. Check your connection and try again.";
+  renderSettings();
+}
+function purchaseHistoryCard(snap:Snapshot):HTMLElement|null{
+  if(!snap.account.hasKey||!snap.server)return null;
+  const history=state.purchaseHistoryFor===historyOwner(snap)?state.purchaseHistory:null;
+  const label=(id:string)=>({CURRENCY_NOTES:"Rams",CURRENCY_STEEL_MARKS:"Steel Marks",CURRENCY_GILDED_MARKS:"Gilded Marks"}[id]??id.replace(/^CURRENCY_/,"").replace(/_/g," ").toLowerCase().replace(/^./,c=>c.toUpperCase()));
+  const items=(entries:{catalogId:string;quantity:number}[])=>entries.map(item=>item.quantity.toLocaleString()+" × "+label(item.catalogId)).join(", ");
+  return card("settings-section",
+    h("div",{class:"card-row"},h("h2",{class:"card-title"},"Recent purchases"),button(state.purchaseHistoryBusy?"Loading…":history?"Refresh":"Load purchases",()=>void loadPurchaseHistory(),{fk:"purchase-history",disabled:state.purchaseHistoryBusy})),
+    h("p",{class:"small-print"},"Purchases and crafting charges. Delivery status describes the original transaction."),
+    state.purchaseHistoryNote?h("p",{class:"small-print",role:"status"},state.purchaseHistoryNote):null,
+    history&&!history.purchases.length?h("p",{class:"small-print"},"No recorded purchases yet."):null,
+    history?h("ol",{class:"purchase-history","aria-label":"Recent purchases"},...history.purchases.map(row=>h("li",{},
+      h("strong",{},items(row.items)||"Purchase or crafting charge"),
+      h("span",{class:"small-print"},new Date(row.time).toLocaleString(TIME_LOCALES[state.lang])+" · "+items(row.costs)),
+      h("span",{class:row.status},row.status==="delivered"?"Delivery recorded":row.status==="refunded"?"Currency returned":"Needs review: no item delivery recorded"),
+    ))):null);
+}
+async function exportSupportDiagnostics(){
+  state.diagnosticsNote="Preparing diagnostics…";renderSettings();
+  const result=await api.exportDiagnostics().catch(()=>({ok:false as const,error:{code:"unknown" as const}}));
+  state.diagnosticsNote=result.ok?"Diagnostics saved. You can send this file to support.":result.error.code==="cancelled"?"":"Diagnostics could not be exported.";
+  renderSettings();
+}
+
 function renderSettings(): void {
   const container = $("#view-settings");
   const snap = state.snap;
   if (!snap) return;
-  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
+  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, state.purchaseHistory, state.purchaseHistoryFor, state.purchaseHistoryBusy, state.purchaseHistoryNote, state.diagnosticsNote, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
   renderRegion(container, sig, () => {
     const busy = snap.busy || snap.task !== null || snap.game.running;
 
@@ -1571,6 +1614,7 @@ function renderSettings(): void {
     const troubleshooting = card(
       "settings-section",
       h("h2", { class: "card-title" }, t("set_troubleshooting")),
+      settingsRow("Support diagnostics",state.diagnosticsNote||"Export launcher logs and system information. Account keys and tokens are removed; saves and databases are excluded.",button("Export diagnostics",()=>void exportSupportDiagnostics(),{icon:"folder",fk:"export-diagnostics"})),
       infoRow(h("span", { class: "settings-row-title", id: "console-label" }, t("set_show_console")), t("set_show_console_text"), showConsole),
     );
     // Other servers joined before: switch to one, or take it off the list (its key stays on this PC).
@@ -1624,7 +1668,7 @@ function renderSettings(): void {
     const panels: Record<SettingsTab, (HTMLElement | null)[]> = {
       game: [game],
       graphics: [graphics],
-      account: [account, playtimeCard(snap), h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
+      account: [account, purchaseHistoryCard(snap), playtimeCard(snap), h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
       launcher: [language, offlineCard, troubleshooting, streaming, about],
     };
     const tabs = h("div", { class: "settings-tabs", role: "tablist", "aria-label": t("set_title") });
@@ -2441,3 +2485,5 @@ async function main(): Promise<void> {
 }
 
 void main();
+const stopControllerNavigation=installControllerNavigation();
+window.addEventListener("beforeunload",stopControllerNavigation,{once:true});

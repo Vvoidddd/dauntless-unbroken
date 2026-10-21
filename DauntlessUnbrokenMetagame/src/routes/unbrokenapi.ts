@@ -38,6 +38,12 @@ import { eq, sql } from 'drizzle-orm';
 import { GetPlaytimeSeconds } from '../controllers/playtime';
 
 export const unbrokenApiRouter = Router();
+import {PurchaseHistory} from '../controllers/purchasehistory';
+const PurchaseHistoryRateLimit=rateLimit({keyGenerator:req=>'purchases:'+((req as any).DauntlessUnbrokenUserInfo.UserId),windowMs:60000,limit:20,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'rate_limited'}});
+unbrokenApiRouter.get('/PurchaseHistory',HasDauntlessUnbrokenUserApiKey,PurchaseHistoryRateLimit,(req:any,res)=>{
+ res.setHeader('Cache-Control','no-store');
+ res.json(PurchaseHistory(req.DauntlessUnbrokenUserInfo.UserId));
+});
 
 import {JoinLauncherAdmission, PollLauncherAdmission, CancelLauncherAdmission} from '../controllers/matchmaking';
 const AdmissionRateLimit=rateLimit({keyGenerator:req=>'admission:'+((req as any).DauntlessUnbrokenUserInfo.UserId),windowMs:60000,limit:40,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'rate_limited'}});

@@ -47,6 +47,7 @@ import { EXPOSURE_MODES, GAME_LANGUAGES, GRAPHICS_PRESETS, LANGUAGES } from "../
 import type { Endpoint } from "./http";
 import {
   launcherAdmission,
+  fetchPurchaseHistory,
   fetchBrandingImage,
   fetchBrandingIndex,
   fetchContentManifest,
@@ -650,6 +651,16 @@ export class Controller {
       this.lastError = { code: "key_rejected" };
       log.warn("the server does not accept the stored key");
     }
+  }
+
+  async getPurchaseHistory():Promise<import('../shared/types').PurchaseHistory|null> {
+    const ep=this.endpoint(),slot=this.slot(),generation=this.statusGen;
+    if(!ep||!slot)return null;
+    try {
+      const key=await this.keys.load(slot);if(!key)return null;
+      const history=await fetchPurchaseHistory(ep,key);
+      return generation===this.statusGen&&this.endpoint()?.host===ep.host?history:null;
+    }catch{return null;}
   }
 
   // The signed-in account's online playtime from the server, after the key check and each online game.

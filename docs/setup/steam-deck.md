@@ -69,8 +69,27 @@ compatibility tool on the Linux launcher itself; the launcher selects Proton for
 Valve documents the Desktop Mode and Non-Steam application flow in its
 [Steam Deck desktop FAQ](https://help.steampowered.com/en/faqs/view/671a-4453-e8d2-323c).
 
-Use Steam Input's gamepad layout for gameplay and touch/trackpad input for launcher
-forms. The launcher provides larger touch targets on touch displays.
+Use Steam Input's gamepad layout for gameplay. The launcher also accepts a standard
+controller on Windows and Linux: D-pad or left stick moves focus, A selects, B
+goes back, and LB/RB moves through controls. Right stick or triggers scrolls.
+Selecting a text field opens an on-screen keyboard; Done saves and B cancels.
+Mouse and touch input remain available. Native operating-system file pickers may
+need the Deck's trackpad or touchscreen. Physical controller layouts can vary.
+
+## Purchases, queues and support
+
+**Settings → Account → Recent purchases** loads recent recorded purchases for the
+current account. Receipts show costs, delivered items and transactions needing
+review. A missing delivery record is a support lead, not an automatic refund.
+
+While queued, the launcher shows player/group position, elapsed wait and why it
+is waiting. An estimate appears only when recent admissions provide enough data;
+it is not a reserved arrival time. Existing queue order remains in effect.
+
+**Settings → Launcher → Support diagnostics** saves a local JSON support file.
+It includes bounded launcher logs and basic runtime state, with account keys,
+tokens and local user paths removed. It does not collect saves, the database or
+account-key files, and it does not upload anything automatically.
 
 If something fails, report the launcher version, Desktop or Gaming Mode, Proton
 version and exact error. Do not post your account-key file or a screenshot containing it.

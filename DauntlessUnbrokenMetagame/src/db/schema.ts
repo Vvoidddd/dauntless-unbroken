@@ -167,7 +167,9 @@ export const inventorylog = sqliteTable("inventorylog", {
     quantityAfter: integer("quantityAfter"),
     updateVersion: integer("updateVersion")
 }, (table) => [
-    index("inventorylog_character").on(table.characterId, table.id)
+    index("inventorylog_character").on(table.characterId, table.id),
+    index("inventorylog_user_operation_id").on(table.userId, table.operation, table.id),
+    index("inventorylog_user_character_transaction").on(table.userId, table.characterId, table.transactionId)
 ]);
 
 // Saved versions of each character's data blob (what is kept: controllers/savehistory.ts)

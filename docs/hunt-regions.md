@@ -19,7 +19,7 @@ An explicit OCE selection never silently falls back to Main. If AUS is unavailab
 
 ## Hunt cleanup
 
-The watchdog checks every minute. `HUNT_MAX_AGE_MINUTES=120` stops temporary hunts/tutorials after two hours, including occupied instances. `HUNT_EMPTY_MINUTES=10` permits earlier retirement only after continuously fresh native zero-connection readings. Missing/stale readings reset the empty timer. Ramsgate and Training are exempt. Ports are released only after the original child exits.
+The watchdog checks every 15 seconds. `HUNT_MAX_AGE_MINUTES=120` stops temporary hunts/tutorials after two hours, including occupied instances. `HUNT_EMPTY_MINUTES=2` permits earlier retirement after continuously fresh native zero-connection readings; gaps reset that timer. `HUNT_SILENT_MINUTES=15` retires a silent instance only while fresh telemetry from other instances proves host monitoring is working. A host-wide telemetry outage does not prove an instance empty. `HUNT_UNREADY_GRACE_MINUTES=5` gives unready instances time to start before occupancy retirement applies. Ramsgate and Training are exempt. Ports are released only after the original child exits.
 
 ## Operations and verification
 
