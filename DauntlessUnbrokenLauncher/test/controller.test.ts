@@ -4,6 +4,7 @@
 // Ports: 62440 fake gateway (TLS), 62441 relay, 62442 relay for the busy-port case, 62443 a
 // gateway whose certificate changes, 62444 a private-mode (plain HTTP, loopback) metagame.
 
+import { availablePort } from './available-port';
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
@@ -28,12 +29,7 @@ import type { OfflineStatus, Snapshot } from "../src/shared/types";
 import { FakeContentServer, FakeMetagame, makeFiles, manifestFor, sha256, TEST_BUILD } from "./fakes";
 import { makeTestCert, type TestCert } from "./certs";
 
-const GATEWAY_PORT = 62440;
-const RELAY_PORT = 62441;
-const BUSY_RELAY_PORT = 62442;
-const SWAP_PORT = 62443;
-const PRIVATE_PORT = 62444;
-const OFFLINE_PORT = 62445;
+let GATEWAY_PORT: number, RELAY_PORT: number, BUSY_RELAY_PORT: number, SWAP_PORT: number, PRIVATE_PORT: number, OFFLINE_PORT: number;
 const ASSETS = path.resolve(__dirname, "..", "..", "assets");
 const EXE = "Archon/Binaries/Win64/Fake-Game.exe";
 
@@ -62,6 +58,7 @@ function temp(prefix: string): string {
 }
 
 before(async () => {
+  [GATEWAY_PORT,RELAY_PORT,BUSY_RELAY_PORT,SWAP_PORT,PRIVATE_PORT,OFFLINE_PORT] = await Promise.all(Array.from({length:6},()=>availablePort()));
   cert = makeTestCert();
   other = makeTestCert();
   meta = new FakeMetagame({ name: "Friday Hunts", validCodes: new Set(["ABCD-EFGH-JKLM", "SECOND-CODE", "THIRD-CODE", "FOURTH-CODE", "FIFTH-CODE", "SIXTH-CODE", "EXPOSURE-CODE", "GAMELANG-CODE", "CONSOLE-CODE", "EXISTING-CODE", "PICKED-CODE", "SAVED-CODE"]) });

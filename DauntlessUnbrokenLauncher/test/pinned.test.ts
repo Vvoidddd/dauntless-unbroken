@@ -3,6 +3,7 @@
 // Ports: 62420 fake metagame (TLS), 62421 fake content server (TLS), 62422 an older metagame
 // (plain HTTP on loopback).
 
+import { availablePort } from './available-port';
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
@@ -17,11 +18,8 @@ import { validateManifest, type GameManifest } from "../src/main/manifest";
 import { FakeContentServer, FakeMetagame, makeFiles, manifestFor, TEST_BUILD } from "./fakes";
 import { makeTestCert, type TestCert } from "./certs";
 
-const META_PORT = 62420;
-const CONTENT_TLS_PORT = 62421;
-const LEGACY_PORT = 62422;
+let META_PORT: number, CONTENT_TLS_PORT: number, LEGACY_PORT: number;
 const KEY = "UUK_" + "e".repeat(48);
-
 let cert: TestCert;
 let other: TestCert;
 let meta: FakeMetagame;
@@ -40,6 +38,7 @@ before(async () => {
   cert = makeTestCert();
   other = makeTestCert();
   meta = new FakeMetagame({ validCodes: new Set(["GOOD-CODE"]), existingUsers: new Map([["aurora", KEY]]) });
+  [META_PORT,CONTENT_TLS_PORT,LEGACY_PORT] = await Promise.all(Array.from({length:3},()=>availablePort()));
   await meta.start(META_PORT, { cert: cert.certPem, key: cert.keyPem });
   content = new FakeContentServer({ key: KEY, files });
   await content.start(CONTENT_TLS_PORT, { cert: cert.certPem, key: cert.keyPem });

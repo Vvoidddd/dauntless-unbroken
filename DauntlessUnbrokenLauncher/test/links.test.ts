@@ -17,7 +17,7 @@ import { parseServerStatus } from "../src/shared/status";
 import type { ExternalTarget } from "../src/shared/types";
 import { FakeMetagame } from "./fakes";
 
-const HOST_PORT = 62445;
+let HOST_PORT: number;
 const HOST_SOURCE = "https://git.example.org/friday/server";
 const SHARE = "https://login.tailscale.com/admin/invite/links-test";
 
@@ -165,7 +165,7 @@ function controller(): { c: Controller; opened: string[] } {
 // the given Tailscale share link, with the server's status loaded.
 async function joined(sourceUrl: string, share: string | null): Promise<{ c: Controller; opened: string[]; stop: () => Promise<void> }> {
   const meta = new FakeMetagame({ name: "Link Hunts", validCodes: new Set(["LINK-CODE"]), contentPort: null, sourceUrl });
-  await meta.start(HOST_PORT);
+  HOST_PORT = await meta.start(0);
   const { c, opened } = controller();
   const stop = async () => {
     await c.shutdown();
