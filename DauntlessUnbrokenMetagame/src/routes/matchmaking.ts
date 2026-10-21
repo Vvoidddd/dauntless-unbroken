@@ -4,6 +4,7 @@ import { logger } from "../logger";
 import { GameSessionForCandidate } from "../controllers/matchmaking";
 import { CancelMatchmaking, CheckAndUpdateQueueStatus, DecideCandidateStatus, HandlePlayerMatchmaking, JoinPartyCandidateById, LeaveCandidate, MatchmakingResult } from "../controllers/matchmaking";
 import { MatchmakingRoster } from "../controllers/matchmakingroster";
+import { TouchConnectedPartyPlayers } from '../controllers/nativepartyactivity';
 
 export const matchmakingRouter = Router();
 
@@ -76,10 +77,15 @@ matchmakingRouter.post("/candidate/player/alive", MiscRoutesOn, HasDauntlessUnbr
     const SessionId = SessionHeader === undefined ? QuerySessionId : HeaderSessionId;
     const MatchingSession = req.query.sessionId === undefined || QuerySessionId === SessionId;
     const ExpectedPurpose = req.query.purpose === 'expected' || (HeaderSessionId !== undefined && req.query.purpose === undefined);
+    const Connected = req.AuthData.IsGameserver === true && HeaderSessionId && MatchingSession && ExpectedPurpose
+        ? ConnectedPlayerSnapshot(req.headers['x-dauntless-connected-player-ids']) : undefined;
+    // An expected list includes absent/loading players. Only actual native connections
+    // renew party activity; never renew their matchmaking queue lease from this poll.
+    if(Connected !== undefined) TouchConnectedPartyPlayers(Connected);
     const ExpectedPlayerIds = req.AuthData.IsGameserver === true && SessionId && MatchingSession && ExpectedPurpose
         ? MatchmakingRoster.reconcileExpected(PlayerIds, {
             sessionId: SessionId,
-            connectedPlayerIds: HeaderSessionId ? ConnectedPlayerSnapshot(req.headers['x-dauntless-connected-player-ids']) : undefined
+            connectedPlayerIds: Connected
         }) : PlayerIds;
 
     res.status(200);

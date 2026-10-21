@@ -86,11 +86,6 @@ const PartyIdByUser = new Map<string, string>();
 const InvitesByRecipient = new Map<string, Invite[]>();
 // Last time each player was heard from: party polls, invite polls, party actions, heartbeats
 const LastSeen = new Map<string, number>();
-// A reconnecting retail client clears its old party before its first own-party poll.
-// Protect only that bootstrap window; after the poll, Leave is always explicit again.
-const RecoveredBeforePoll = new Map<string, number>();
-let RestoredParties = 0, IgnoredBootstrapLeaves = 0;
-export function PartyRecoverySummary(){ return {restoredParties:RestoredParties,ignoredBootstrapLeaves:IgnoredBootstrapLeaves}; }
 // What was last logged at info level per player, so the 10 s polls only log changes
 const LastPollLogged = new Map<string, string>();
 const LastInviteCountLogged = new Map<string, number>();
@@ -128,8 +123,7 @@ export function RestorePartyMembership(Rows: ReturnType<typeof PartyMembershipSn
         const Party: Party = {PartyId: Row.PartyId, LeaderId: Members.includes(Row.LeaderId) ? Row.LeaderId : Members[0],
             Members, CreatedAt: Row.CreatedAt, Candidate: null, LastCandidate: null};
         PartiesById.set(Party.PartyId, Party);
-        RestoredParties++;
-        for(const Id of Members){ PartyIdByUser.set(Id, Party.PartyId); LastSeen.set(Id, Now); RecoveredBeforePoll.set(Id, Now + 30000); }
+        for(const Id of Members){ PartyIdByUser.set(Id, Party.PartyId); LastSeen.set(Id, Now); }
     }
 }
 
@@ -138,8 +132,6 @@ export function ResetPartiesForTests(){
     PartyIdByUser.clear();
     InvitesByRecipient.clear();
     LastSeen.clear();
-    RecoveredBeforePoll.clear();
-    RestoredParties = IgnoredBootstrapLeaves = 0;
     LastPollLogged.clear();
     LastInviteCountLogged.clear();
     InvitesSentBy.clear();
@@ -228,7 +220,6 @@ function RemoveMember(TheParty: Party, UserId: string, Why: string){
         return;
     }
 
-    RecoveredBeforePoll.delete(UserId);
     TheParty.Members = TheParty.Members.filter((Member) => Member !== UserId);
 
     if(PartyIdByUser.get(UserId) === TheParty.PartyId){
@@ -354,7 +345,6 @@ function GlobalSweep(){
     }
 
     LastGlobalSweep = Now;
-    for(const [Id, Until] of RecoveredBeforePoll) if(Now > Until) RecoveredBeforePoll.delete(Id);
 
     for(const TheParty of [...PartiesById.values()]){
         if(TheParty.Members.length === 1){
@@ -493,7 +483,6 @@ function LogPoll(UserId: string, TheParty: Party){
 export async function PollParty(UserId: string){
     GlobalSweep();
     TouchPlayer(UserId);
-    RecoveredBeforePoll.delete(UserId);
 
     const TheParty = GetPartyOf(UserId) ?? CreateSoloParty(UserId);
 
@@ -742,14 +731,6 @@ export function DeclinePartyInvites(CallerId: string, Body: any): PartyActionRes
 // character select). The next member in join order leads if the leader left.
 export function LeaveParty(CallerId: string): PartyActionResult {
     TouchPlayer(CallerId);
-    const RecoveryUntil = RecoveredBeforePoll.get(CallerId);
-    RecoveredBeforePoll.delete(CallerId);
-    if(RecoveryUntil !== undefined && Clock() <= RecoveryUntil){
-        IgnoredBootstrapLeaves++;
-        logger.info(`party: ignored reconnect bootstrap leave by=${CallerId}`);
-        return { Status: 200, Body: {} };
-    }
-
 
     const TheParty = GetPartyOf(CallerId);
 

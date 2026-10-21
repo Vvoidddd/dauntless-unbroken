@@ -13,6 +13,7 @@ import {
 } from '../src/controllers/matchmakingroster';
 import { GetDb } from '../src/db';
 import { gameserverapikeys } from '../src/db/schema';
+import { ResetPartiesForTests, SeenWithinMs, SetPartyClockForTests } from '../src/controllers/party';
 
 const SERVER_KEY = 'roster-route-test-server-key';
 const SESSION = '5f49491e-8a18-41fb-9e6c-5fbd7d655802';
@@ -41,11 +42,13 @@ beforeEach(() => {
     now = 0;
     MatchmakingRoster.reset();
     MatchmakingRoster.setClock(() => now);
+    ResetPartiesForTests(); SetPartyClockForTests(()=>now);
 });
 
 after(async () => {
     await new Promise<void>(resolve => server.close(() => resolve()));
     MatchmakingRoster.reset();
+    SetPartyClockForTests();
     RemoveTestDb(() => GetDb().$client.close());
 });
 
@@ -86,6 +89,8 @@ test('a complete native snapshot preserves connected players and removes an expi
     now = PLAYER_LOADING_GRACE_MS + 1;
     const result = await post('/candidate/player/alive', {playerIds: [A, B]}, serverContext([A]));
     assert.deepEqual(result.body, {expectedPlayerIds: [A]});
+    assert.equal(SeenWithinMs(A,120000),true,'native connection keeps a quiet hunt member active');
+    assert.equal(SeenWithinMs(B,120000),false,'merely expected/loading players do not get activity');
     now += PLAYER_LOADING_GRACE_MS * 10;
     assert.deepEqual((await post('/candidate/player/alive', {playerIds: [A, B]}, serverContext([A]))).body, {expectedPlayerIds: [A]});
 });
@@ -135,6 +140,7 @@ test('player tokens cannot use native headers to prune players or claim that the
         'x-dauntless-game-session-id': SESSION, 'x-dauntless-connected-player-ids': JSON.stringify([B])
     };
     const result = await post(`/candidate/player/alive?sessionId=${SESSION}&purpose=expected`, {playerIds: [A, B]}, caller);
+    assert.equal(SeenWithinMs(B,120000),false,'a player cannot spoof native activity');
     assert.deepEqual(result.body, {expectedPlayerIds: [A, B]});
     assert.deepEqual((await post('/candidate/player/alive', {playerIds: [A, B]}, serverContext([]))).body, {expectedPlayerIds: [A]});
 });

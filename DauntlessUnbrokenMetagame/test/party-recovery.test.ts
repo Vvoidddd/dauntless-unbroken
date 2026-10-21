@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { GetDb } from '../src/db';
 import { users } from '../src/db/schema';
-import { AcceptPartyInvite, GetPartyOf, InviteToParty, LeaveParty, PollParty, ResetPartiesForTests, SetPartyClockForTests, TouchPlayer } from '../src/controllers/party';
+import { AcceptPartyInvite, GetPartyOf, InviteToParty, PollParty, ResetPartiesForTests, TouchPlayer } from '../src/controllers/party';
 import { RestorePartyFile, SavePartyFile } from '../src/controllers/party-recovery';
 const Dir = fs.mkdtempSync(path.join(os.tmpdir(), 'party-recovery-')), File = path.join(Dir, 'state.json');
 after(() => { fs.rmSync(Dir, {recursive:true, force:true}); RemoveTestDb(() => GetDb().$client.close()); });
@@ -21,14 +21,6 @@ it('recovers membership across restart without replaying travel, rejects expired
     ResetPartiesForTests(); RestorePartyFile(File);
     assert.deepEqual(GetPartyOf(B)?.Members,[A,B]); assert.equal(GetPartyOf(A)?.LeaderId,A);
     assert.equal(GetPartyOf(A)?.Candidate,null);
-    assert.equal(LeaveParty(B).Status,200,'automatic login cleanup is ignored before the first own-party poll');
-    assert.deepEqual(GetPartyOf(B)?.Members,[A,B]);
-    await PollParty(B);
-    LeaveParty(B);assert.equal(GetPartyOf(B),undefined,'normal Leave after the party poll still works');
-    ResetPartiesForTests();
-    let now=Date.now(); SetPartyClockForTests(()=>now);
-    try { RestorePartyFile(File); now+=31000; LeaveParty(B); assert.equal(GetPartyOf(B),undefined,'bootstrap protection expires even without a poll'); }
-    finally { SetPartyClockForTests(); }
     ResetPartiesForTests(); RestorePartyFile(File, Date.now()+121000); assert.equal(GetPartyOf(A),undefined);
     const raw=JSON.parse(fs.readFileSync(File,'utf8')); raw.parties[0].Members.push(A);
     fs.writeFileSync(File,JSON.stringify(raw)); RestorePartyFile(File); assert.equal(GetPartyOf(A),undefined);
