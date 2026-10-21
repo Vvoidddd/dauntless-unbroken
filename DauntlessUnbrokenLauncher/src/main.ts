@@ -38,6 +38,7 @@ import { systemLanguage, translate } from "./shared/i18n";
 import { APP_ID, SQUIRREL_NAME, UPDATE_FEED_URL } from "./main/constants";
 import { LocalStackManager } from "./main/local-stack";
 import { makeLocalStack } from "./main/local-stack-factory";
+import { refreshWindowsShortcutIcons } from "./main/windows-icons";
 
 // Squirrel install / update / uninstall events: create or remove shortcuts, then quit.
 if (started) app.quit();
@@ -178,7 +179,7 @@ function registerProtocolClient(): void {
 // ------------------------------------------------------------------ window
 
 function createWindow(): void {
-  const iconPath = path.join(resourcesDir(), "icon.png");
+  const iconPath = path.join(resourcesDir(), process.platform === "win32" ? "icon.ico" : "icon.png");
   // Never larger than the primary screen's usable area (the part the taskbar does not cover):
   // 1366x768 laptops, or 1920x1080 at 150 % scaling, have less than 760 px of height, and the big
   // button at the bottom must stay on screen.
@@ -212,6 +213,24 @@ function createWindow(): void {
     },
   });
   mainWindow.removeMenu();
+  if (process.platform === "win32" && app.isPackaged && existsSync(iconPath)) {
+    const stub = path.resolve(path.dirname(process.execPath), "..", path.basename(process.execPath));
+    mainWindow.setAppDetails({
+      appId: `com.squirrel.${SQUIRREL_NAME}.${SQUIRREL_NAME}`,
+      appIconPath: iconPath, appIconIndex: 0,
+      relaunchCommand: `"${existsSync(stub) ? stub : process.execPath}"`,
+      relaunchDisplayName: "Dauntless Unbroken Launcher",
+    });
+    if (existsSync(path.join(path.dirname(stub), "Update.exe"))) {
+      const roaming = app.getPath("appData");
+      void refreshWindowsShortcutIcons([
+        app.getPath("desktop"),
+        path.join(roaming, "Microsoft", "Windows", "Start Menu", "Programs", "Dauntless Unbroken"),
+        path.join(roaming, "Microsoft", "Windows", "Start Menu", "Programs"),
+        path.join(roaming, "Microsoft", "Internet Explorer", "Quick Launch", "User Pinned", "TaskBar"),
+      ], process.execPath, iconPath, shell, message => log.warn(message));
+    }
+  }
   mainWindow.once("ready-to-show", () => mainWindow?.show());
   const window = mainWindow;
   const showTimer = setTimeout(() => { if (!window.isDestroyed()) window.show(); }, 10000);

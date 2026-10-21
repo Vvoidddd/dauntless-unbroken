@@ -13,7 +13,7 @@ import path from "node:path";
 // Windows uses Squirrel plus a portable ZIP. Linux builds AppImage, deb, rpm and a portable ZIP.
 // CI builds both platforms on every push and launcher-release.yml publishes them together.
 const skipRpm = process.env.DAUNTLESS_UNBROKEN_SKIP_RPM === "1";
-const launcherResources = ["assets/dxgi.dll", "assets/DauntlessUnbroken.dll", "assets/icon.png", "assets/font-licenses", "THIRD-PARTY-NOTICES.txt", "../client-mods"];
+const launcherResources = ["assets/dxgi.dll", "assets/DauntlessUnbroken.dll", "assets/icon.png", "assets/icon.ico", "assets/font-licenses", "THIRD-PARTY-NOTICES.txt", "../client-mods"];
 
 const config: ForgeConfig = {
   packagerConfig: {
