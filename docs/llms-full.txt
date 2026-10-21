@@ -11150,6 +11150,28 @@ character/inventory/loadout JSON, duplicate inventory stacks, or invalid stack
 quantities. No player records were changed by the audit. This describes that
 snapshot, not an assurance about future writes.
 
+## Launcher and server follow-up
+
+Three additional failures were reproduced before applying their fixes:
+
+| Area | Failure | Result |
+| --- | --- | --- |
+| Launcher HTTP | An already-aborted request created a socket, destroyed it before registering its error handler, and raised an unhandled `ECONNRESET`. | Reject before creating the request. A loopback regression test verifies rejection without a connection or process error. |
+| Ramsgate capacity | Skipping a retiring city also skipped its configured slot, allowing an extra city to start or a later city to inherit a larger cap. | Count retiring processes until they disappear. Tests cover both over-allocation cases and recovery after removal. |
+| Loadout saves | Valid JSON scalars, arrays and `null` could replace an object-shaped loadout or persistent settings. | Reject those shapes before changing saved data or history, in both legacy and real-mode saves. |
+
+The follow-up passed 1,491 tests across the launcher, metagame, allocator, gateway,
+content server and Discord bot, plus 53 dashboard/status/release-tool tests.
+Three existing platform-specific launcher tests were skipped. The Windows
+launcher package passed two isolated offline service start/stop cycles, preserving
+its test account and secrets and leaving no local listeners. This smoke check did
+not start a real game client. The launcher fix ships in version 1.0.14.
+
+A completed database snapshot containing 89 accounts and 82 characters passed
+SQLite integrity, quick and foreign-key checks. Additional read-only checks found
+no invalid loadout shapes, invalid or duplicate inventory stacks, or orphaned
+characters, inventories or loadouts. No player data was changed by these checks.
+
 ## Dependency finding
 
 The production dependency audit reported no advisories for five of the six Node
