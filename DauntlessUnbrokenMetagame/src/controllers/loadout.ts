@@ -132,7 +132,7 @@ export async function GetPersistentLoadoutForUserIdAndCharacterId(UserId: string
     return JSON.parse(EnsureLoadoutRow(UserId, CharacterId).persistent);
 }
 
-// A save that matches no row, or whose data isn't JSON, fails instead of being
+// A save that matches no row, or whose data isn't a JSON object, fails instead of being
 // dropped (or stored and then breaking every later GET of the loadouts).
 export function SetLoadoutDataForUserIdAndCharacterId(UserId: string, CharacterId: string, Index: string, Data: string, Reason: string = "save"){
     logger.info(`Attempting to update loadout data Index ${Index}`);
@@ -147,7 +147,10 @@ export function SetLoadoutDataForUserIdAndCharacterId(UserId: string, CharacterI
             throw new Error(`data is a ${Data === null ? "null" : typeof Data}, not a string`);
         }
 
-        JSON.parse(Data);
+        const Element: unknown = JSON.parse(Data);
+        if(Element === null || typeof Element !== "object" || Array.isArray(Element)){
+            throw new Error("data is not a JSON object");
+        }
     }
     catch(error){
         logger.error(`Refusing loadout index ${Index} for userId ${UserId} and characterId ${CharacterId}: ${(error as Error).message}`);

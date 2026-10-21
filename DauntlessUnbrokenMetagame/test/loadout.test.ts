@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { eq } from "drizzle-orm";
 import { GetDb } from "../src/db";
 import { loadouts } from "../src/db/schema";
-import { GetAllLoadoutsForUserIdAndCharacterId, GetPersistentLoadoutForUserIdAndCharacterId, SetLoadoutDataForUserIdAndCharacterId } from "../src/controllers/loadout";
+import { GetAllLoadoutsForUserIdAndCharacterId, GetPersistentLoadoutForUserIdAndCharacterId, SetLoadoutDataForUserIdAndCharacterId, SetLoadoutSlotData } from "../src/controllers/loadout";
 import { GetSaveHistory, RollbackLoadout } from "../src/controllers/savehistory";
 import { MakePlayer } from "./helpers";
 
@@ -46,6 +46,21 @@ describe("SetLoadoutDataForUserIdAndCharacterId", () => {
         await GetAllLoadoutsForUserIdAndCharacterId(UserId, CharacterId);
 
         assert.equal(SetLoadoutDataForUserIdAndCharacterId(UserId, CharacterId, "1", "{}"), false);
+    });
+
+    it("refuses JSON scalars and arrays without changing saved loadouts or history", async () => {
+        const {UserId, CharacterId} = await MakePlayer();
+        await GetAllLoadoutsForUserIdAndCharacterId(UserId, CharacterId);
+        const Before = ReadLoadoutRow(CharacterId);
+        const History = await GetSaveHistory([CharacterId]);
+        for(const Index of ["persistent", "0"]){
+            for(const Data of ["null", "[]", "42", "true", '"text"']){
+                assert.equal(SetLoadoutDataForUserIdAndCharacterId(UserId, CharacterId, Index, Data), false);
+                assert.equal(SetLoadoutSlotData(UserId, CharacterId, Index, Data), false);
+            }
+        }
+        assert.deepEqual(ReadLoadoutRow(CharacterId), Before);
+        assert.deepEqual(await GetSaveHistory([CharacterId]), History);
     });
 
     it("saves slot 0 and persistent, keeping each version", async () => {

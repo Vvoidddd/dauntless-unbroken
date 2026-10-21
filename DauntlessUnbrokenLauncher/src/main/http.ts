@@ -67,6 +67,7 @@ export function pinnedTarget(ep: Endpoint): PinnedTarget | null {
 
 export function request(ep: Endpoint, pathAndQuery: string, opts: RequestOptions): Promise<HttpResponse> {
   const url = endpointUrl(ep, pathAndQuery);
+  if (opts.signal?.aborted) return Promise.reject(new HttpError("aborted", "request aborted"));
   const target = pinnedTarget(ep);
   return new Promise((resolve, reject) => {
     let settled = false;

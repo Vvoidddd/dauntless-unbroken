@@ -98,6 +98,29 @@ test('a cold city never admits a party larger than its configured cap',async()=>
     assert.equal((await pool.allocate(2)).id,'1');
 });
 
+test('a retiring city still occupies its configured slot until its process is removed',async()=>{
+    const {pool,cities}=fixture([2]);
+    await pool.allocate(2);cities[0].players=2;
+    await assert.rejects(pool.allocate(),CapacityUnavailable);
+    cities[0].players=0;
+    await assert.rejects(pool.allocate(),CapacityUnavailable);
+    await assert.rejects(pool.allocate(),CapacityUnavailable);
+    assert.equal(cities.length,1);
+    cities.splice(0,1);
+    await pool.allocate(2);
+    assert.equal(cities.length,1);
+});
+
+test('a retiring first city cannot expand the next city beyond its own cap',async()=>{
+    const {pool,cities}=fixture([2,1]);
+    await pool.allocate(2);await pool.allocate();
+    cities[0].players=2;cities[1].players=1;
+    await assert.rejects(pool.allocate(),CapacityUnavailable);
+    cities[0].players=0;
+    await assert.rejects(pool.allocate(),CapacityUnavailable);
+    assert.equal(cities.length,2);
+});
+
 test('a later cold city uses its own smaller cap before starting',async()=>{
     const {pool,cities}=fixture([4,2]);
     await pool.allocate(4);

@@ -33,6 +33,8 @@ export class CityPool<T extends {id:string}> {
             for (const id of this.reservations.keys()) if (!cities.some(c => c.id === id)) { this.reservations.delete(id); this.lastPlayers.delete(id); this.retiring.delete(id); }
             let chosen: T | undefined;
             for (const city of cities) {
+                // Retiring processes still consume a city slot until they disappear.
+                const limit = limitAt(slot++);
                 if (this.retiring.has(city.id)) continue;
                 const leases = (this.reservations.get(city.id) ?? []).filter(r => r.until > this.now());
                 if (city.players !== undefined) {
@@ -51,8 +53,6 @@ export class CityPool<T extends {id:string}> {
                 // Missing telemetry is not proof of free seats. For a fresh launch, all
                 // admissions are still reserved; otherwise leave an unknown city alone.
                 const occupied = city.players ?? (this.now() - city.startedAt < 180000 && leases.length > 0 ? 0 : CITY_PLAYER_LIMIT);
-                const limit = limitAt(slot);
-                slot++;
                 if (occupied + leases.reduce((n,r) => n+r.size, 0) + size <= limit) {
                     chosen = this.get(city.id);
                     break;
