@@ -96,12 +96,18 @@
 .launch-status-icon { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border: 1px solid var(--dr-deep); border-radius: 9px; color: var(--dr-ice); background: var(--dr-deep); }
 .launch-status-icon .icon { width: 15px; height: 15px; }
 .action-hint { margin: 0; color: var(--dr-steel); font-size: 12px; line-height: 1.7; }
-.play-split { flex: none; }
-.big-button { min-width: 222px; height: 62px; border-radius: 8px; font-family: var(--font-display); font-size: 18px; font-weight: 650; letter-spacing: -.015em; background: var(--dr-ice); color: var(--dr-ink); box-shadow: none; }
+.play-split { display: flex; align-items: stretch; gap: 8px; min-width: 0; }
+.play-split .big-button { min-width: 180px; padding: 0 28px; flex: 1; }
+.big-button { min-width: 180px; height: 56px; border-radius: 12px; font-family: var(--font-display); font-size: 18px; font-weight: 650; letter-spacing: -.015em; background: var(--dr-ice); color: var(--dr-ink); box-shadow: none; }
 .big-button:hover:not(:disabled) { background: var(--dr-glow); }
 .big-button.is-ready, .big-button.is-ready::before, .big-button.is-ready::after { animation: none; box-shadow: none; }
-.play-more { top: 12px; bottom: 12px; right: 9px; height: auto; border-radius: 0; border-left-color: var(--dr-azure); background: transparent; color: var(--dr-ink); }
-.play-more:hover:not(:disabled) { background: transparent; }
+.play-more { position: static; width: 48px; height: auto; flex: none; border: 1px solid var(--dr-azure); border-radius: 12px; background: var(--dr-deep); color: var(--dr-frost); }
+.backup-paste { min-height: 76px; resize: vertical; -webkit-text-security: disc; }
+@media (max-width: 1050px) {
+  .actionbar { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .play-split { width: 100%; }
+  .launch-readiness { max-width: none; }
+}
 .play-menu { bottom: calc(100% + 14px); border-radius: 10px; background: var(--dr-navy); border-color: var(--dr-steel); }
 .progress { gap: 8px; }
 .progress-title { font-family: var(--font-display); font-size: 12px; font-weight: 500; }

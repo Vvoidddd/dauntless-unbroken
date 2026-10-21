@@ -20,6 +20,7 @@ export interface StatusInstance {
   map: string;
   behemoth: string | null;
   players: number;
+  occupancyKnown?: boolean;
   maxPlayers: number;
   startedAt: string | null; // ISO string, or null when the server sent something unreadable
 }
@@ -118,6 +119,7 @@ export function parseServerStatus(raw: unknown): ServerStatus | null {
         map: cleanText(i.map, 96) ?? "",
         behemoth: cleanText(i.behemoth, 64),
         players: cleanInt(i.players, 0, 1000) ?? 0,
+        ...(typeof i.occupancyKnown === 'boolean' ? {occupancyKnown:i.occupancyKnown} : {}),
         maxPlayers: cleanInt(i.maxPlayers, 0, 1000) ?? 0,
         startedAt: cleanIso(i.startedAt),
       });

@@ -5,10 +5,9 @@ import { IsBlockedEitherWay, SetBlockHook } from "./friends";
 
 // Parties and party invites (roadmap 1.9; C:\dr\data\plans\parties-friends.md phases 1-2).
 //
-// In memory, like matchmaking: a party only lives as long as the game sessions around it,
-// and the client drops its party itself at login and at character select
-// (DELETE /party/member). Every member's client polls POST /party and GET /party/invites
-// about every 10 s, so a restart of the metagame just leaves everyone in a party of one.
+// Membership is checkpointed by party-recovery.ts across brief backend restarts.
+// Allocation candidates remain process-local; a restart must not replay an old travel ticket.
+// The client explicitly leaves its party at login and character select (DELETE /party/member).
 //
 // Reply shapes are the 1.4.4 client's own (read from the exe, see the plan). A party of one
 // answers exactly what the old stub answered (the fake candidate included), so a player
@@ -105,6 +104,27 @@ export function PartyNow(){
 // Tests only: a controllable clock and an empty store
 export function SetPartyClockForTests(NewClock?: () => number){
     Clock = NewClock ?? (() => Date.now());
+}
+
+// Only membership and recent activity survive a restart; never resurrect allocation promises.
+export function PartyMembershipSnapshot(){
+    return [...PartiesById.values()].filter(p => p.Members.length > 1).map(p => ({
+        PartyId: p.PartyId, LeaderId: p.LeaderId, Members: p.Members,
+        CreatedAt: p.CreatedAt, Seen: p.Members.map(id => LastSeen.get(id) ?? 0)
+    }));
+}
+
+export function RestorePartyMembership(Rows: ReturnType<typeof PartyMembershipSnapshot>){
+    const Now = Clock();
+    for(const Row of Rows){
+        if(Row.Members.some(id => PartyIdByUser.has(id))) continue;
+        const Members = Row.Members.filter((id, i) => Now - Row.Seen[i] <= MEMBER_TIMEOUT_MS);
+        if(Members.length < 2) continue;
+        const Party: Party = {PartyId: Row.PartyId, LeaderId: Members.includes(Row.LeaderId) ? Row.LeaderId : Members[0],
+            Members, CreatedAt: Row.CreatedAt, Candidate: null, LastCandidate: null};
+        PartiesById.set(Party.PartyId, Party);
+        for(const Id of Members){ PartyIdByUser.set(Id, Party.PartyId); LastSeen.set(Id, Now); }
+    }
 }
 
 export function ResetPartiesForTests(){

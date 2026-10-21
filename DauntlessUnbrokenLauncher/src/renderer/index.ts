@@ -71,6 +71,14 @@ const state = {
   artLayer: 0,
 };
 
+const backupInput = h('textarea', {class:'input backup-paste',id:'backup-paste',rows:'3',maxlength:'8192',autocomplete:'off',spellcheck:'false','aria-label':'Account key backup'});
+async function usePastedBackup(): Promise<void> {
+  const result = await api.useExistingKey(backupInput.value);
+  if(result.ok) { backupInput.value=''; state.keyFormOpen=false; }
+  else if(result.error?.code !== 'cancelled') state.localError=result.error ?? null;
+  renderAll();
+}
+
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function t(key: StringKey, vars?: Record<string, string | number>): string {
@@ -428,6 +436,9 @@ function playJoin(snap: Snapshot): HTMLElement[] {
     ...(saved ? [saved] : []),
     card("card-accent", h("h2", {class:"card-title"}, t("reg_have_key")),
       button(t("reg_key_file"), () => void api.importKeyFile(), {cls:"btn-primary",icon:"folder",fk:"join-key-file",disabled:snap.busy}),
+      linkButton(t('backup_paste_toggle'), () => { state.keyFormOpen=!state.keyFormOpen; renderPlay(); if(state.keyFormOpen) backupInput.focus(); }, {fk:'join-backup-paste'}),
+      ...(state.keyFormOpen ? [h('div',{class:'field'},h('label',{class:'field-label',for:'backup-paste'},t('backup_paste_help')),backupInput,
+        button(t('reg_key_use'),()=>void usePastedBackup(),{cls:'btn-primary',fk:'join-backup-use',disabled:snap.busy}))] : []),
       h("p", {class:"small-print"}, t("reg_key_note"))),
     card("",
       h("div", {class:"field"}, h("label", {class:"field-label",for:"invite-input"}, t("join_label")), inviteInput, invitePreview, inviteHint),
@@ -1079,7 +1090,7 @@ function instanceTitle(i: StatusInstance): string {
 const KIND_ICON: Record<InstanceKind, IconName> = { city: "city", hunt: "hunt", dojo: "dojo", tutorial: "tutorial" };
 
 function instanceCard(i: StatusInstance): HTMLElement {
-  const pct = i.maxPlayers > 0 ? Math.min(100, (i.players / i.maxPlayers) * 100) : 0;
+  const pct = i.occupancyKnown !== false && i.maxPlayers > 0 ? Math.min(100, (i.players / i.maxPlayers) * 100) : 0;
   const fill = h("span", {});
   fill.style.width = `${pct}%`;
   return h(
@@ -1090,7 +1101,7 @@ function instanceCard(i: StatusInstance): HTMLElement {
     h(
       "div",
       { class: "instance-meta" },
-      h("span", {}, i.maxPlayers > 0 ? t("inst_players", { n: i.players, max: i.maxPlayers }) : t("inst_players_nomax", { n: i.players })),
+      h("span", {}, i.occupancyKnown === false ? t('inst_count_unknown') : i.maxPlayers > 0 ? t("inst_players", { n: i.players, max: i.maxPlayers }) : t("inst_players_nomax", { n: i.players })),
       h("span", {}, t("inst_running", { time: formatRunningTime(i.startedAt, Date.now(), state.lang) })),
     ),
     h("div", { class: "instance-bar", "aria-hidden": "true" }, fill),

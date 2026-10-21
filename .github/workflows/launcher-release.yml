@@ -520,3 +520,24 @@ jobs:
             fi
           done
           echo "the feed offers launcher $VERSION ($pkg)"
+
+  news:
+    name: Publish launcher release news
+    needs: [prepare, feed]
+    if: ${{ !cancelled() && needs.feed.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    concurrency:
+      group: launcher-news
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/ci
+      - run: node tools/ci/publish-launcher-news.mjs --release "$TAG"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare.outputs.tag }}

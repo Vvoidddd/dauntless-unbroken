@@ -872,6 +872,8 @@ export class Controller {
         this.lastError = { code: res.error };
         return err(res.error);
       }
+      // Preserve the one-use registration result even if the OS key store fails.
+      await this.backupToDesktop(slot, res.key, username as string);
       try {
         await this.keys.save(slot, res.key);
       } catch (e) {
@@ -898,10 +900,16 @@ export class Controller {
   }
 
   async useExistingKey(text: unknown): Promise<ActionResult> {
-    if (this.busy || this.task) return err("busy");
-    const key = typeof text === "string" ? extractAccountKey(text) : null;
-    if (!key) return this.fail("key_invalid");
-    return this.withBusy(() => this.adoptKey(key));
+    if (this.busy || this.task || this.game.running) return err("busy");
+    if (typeof text !== 'string' || text.length > 8192) return this.fail('key_invalid');
+    return this.withBusy(() => this.importBackupText(text));
+  }
+
+  private async importBackupText(text: string): Promise<ActionResult> {
+    const key = extractAccountKey(text), server = backupServer(text);
+    if (!key || (/^(?:Server|Certificate):/m.test(text) && !server)) return this.fail('key_invalid');
+    if (server) { const joined = await this.join(server); if (!joined.ok) return joined; }
+    return this.adoptKey(key);
   }
 
   async importKeyFile(): Promise<ActionResult> {
@@ -916,14 +924,7 @@ export class Controller {
         if (!st.isFile() || st.size > 8192) return this.fail("key_invalid");
         text = await fsp.readFile(file, "utf8");
       } catch { return this.fail("key_invalid"); }
-      const key = extractAccountKey(text);
-      const server = backupServer(text);
-      if (!key || (/^(?:Server|Certificate):/m.test(text) && !server)) return this.fail("key_invalid");
-      if (server) {
-        const joined = await this.join(server);
-        if (!joined.ok) return joined;
-      }
-      return this.adoptKey(key);
+      return this.importBackupText(text);
     });
   }
 

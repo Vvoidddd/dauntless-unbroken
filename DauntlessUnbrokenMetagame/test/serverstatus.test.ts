@@ -134,6 +134,8 @@ describe("ServerStatus", () => {
             const status=await BuildServerStatus();
             assert.equal(status.instances.find(s=>s.id===Fake!.Servers[0].id)?.players,7);
             assert.equal(status.instances.find(s=>s.id===Fake!.Servers[1].id)?.players,0);
+            assert.equal(status.instances.find(s=>s.id===Fake!.Servers[1].id)?.occupancyKnown,true);
+            assert.equal(status.instances.find(s=>s.id===Fake!.Servers[2].id)?.occupancyKnown,false);
         } finally {delete Fake!.Servers[0].connectedPlayers;delete Fake!.Servers[1].connectedPlayers;}
     });
 
@@ -155,7 +157,7 @@ describe("ServerStatus", () => {
             { id: "5c0a9e36-8a51-4c1b-9d7e-1f2a3b4c5d01", kind: "city", title: "Ramsgate", map: "ramsgate_01_persistent", behemoth: null, players: 1, maxPlayers: 32, startedAt: "2026-09-21T10:00:00.000Z" },
             { id: "5c0a9e36-8a51-4c1b-9d7e-1f2a3b4c5d02", kind: "hunt", title: "Hunt: Lesser Embermane", map: "cora_jamima", behemoth: "Lesser Embermane", players: 1, maxPlayers: 4, startedAt: "2026-09-21T11:00:00.000Z" },
             { id: "5c0a9e36-8a51-4c1b-9d7e-1f2a3b4c5d03", kind: "tutorial", title: "Tutorial", map: "dia_moss_triforce", behemoth: "Gnasher", players: 1, maxPlayers: 1, startedAt: "2026-09-21T11:30:00.000Z" }
-        ]);
+        ].map(i=>({...i,occupancyKnown:false})));
 
         const Text = JSON.stringify(Status);
         assert.doesNotMatch(Text, /UID-|UUK_|127\.0\.0\.1|eyJ/);

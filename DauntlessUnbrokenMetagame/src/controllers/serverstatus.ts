@@ -57,6 +57,7 @@ export type StatusInstance = {
     map: string,
     behemoth: string | null,
     players: number,
+    occupancyKnown?: boolean,
     maxPlayers: number,
     startedAt: string
 };
@@ -404,6 +405,7 @@ export async function BuildServerStatus(): Promise<ServerStatus> {
             title: InstanceTitle(Server, Behemoth),
             map: MapCodename(Server.map),
             behemoth: Behemoth,
+            occupancyKnown: Number.isSafeInteger(Server.connectedPlayers) && Server.connectedPlayers! >= 0,
             players: Number.isSafeInteger(Server.connectedPlayers) && Server.connectedPlayers! >= 0
                 ? Server.connectedPlayers! : Counts.get(Server.id) ?? 0,
             maxPlayers: Server.maxPlayers ?? DEFAULT_MAX_PLAYERS[Server.kind],

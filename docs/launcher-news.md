@@ -1,6 +1,7 @@
 # Publishing launcher news
 
 Edit `news.json` on the repository's `launcher-news` branch. Publish reviewed, player-facing text only; omit account identifiers, credentials, infrastructure details and internal logs.
+The Launcher news workflow also posts main-branch commit subjects and final launcher release notes automatically. Commit subjects must be safe for players to read. Push entries describe source changes; release entries announce downloadable builds. Drafts, prereleases and news-branch updates are excluded.
 
 ```json
 {"items":[{"date":"2026-10-02T20:10:00Z","title":"Server update","body":"Describe the changes players can use."}]}

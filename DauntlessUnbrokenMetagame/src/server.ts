@@ -12,6 +12,7 @@ import { PruneExpiredStorePurchases } from "./controllers/freestore";
 import { CheckProgressionConfig } from "./controllers/progressionconfig";
 import { FlushPlaytime } from "./controllers/playtime";
 import { SetDailyTokensOnce } from "./controllers/inventory";
+import { StartPartyRecovery } from "./controllers/party-recovery";
 
 const PORT = Number(process.env.PORT);
 // Bind to loopback unless told otherwise. Upstream listened on every
@@ -48,6 +49,7 @@ try {
 }
 
 GetDb(); // This runs migrations TODO make this more explicit
+const StopPartyRecovery = StartPartyRecovery(process.env.DB_FILENAME);
 
 // Daily token stacks set to the daily amounts once (controllers/inventory.ts)
 try {
@@ -141,6 +143,7 @@ export function shutdown(): Promise<void> {
       });
     });
     await Promise.all([Closing, Chat?.close()]);
+    StopPartyRecovery();
     FlushPlaytime();
     GetDb().$client.close();
   })();

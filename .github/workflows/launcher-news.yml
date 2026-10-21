@@ -1,0 +1,26 @@
+name: Launcher news
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: launcher-news
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+          sparse-checkout: tools/ci
+      - run: node --test tools/ci/publish-launcher-news.test.mjs
+      - run: node tools/ci/publish-launcher-news.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}

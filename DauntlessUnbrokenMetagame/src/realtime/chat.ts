@@ -1,3 +1,4 @@
+import { TouchPlayer } from "../controllers/party";
 import {KeyRevocations} from '../controllers/keyrotation';
 import crypto from "node:crypto";
 import { createServer, IncomingMessage, Server as HttpServer } from "node:http";
@@ -625,6 +626,9 @@ export class ChatServer {
             return;
         }
 
+        // A bound, authenticated keepalive counts even when travel pauses HTTP polls.
+        if(Session.Resource !== undefined) TouchPlayer(Session.Uid);
+
         if(Kind === "iq"){
             this.iq(Session, Node);
             return;
@@ -634,7 +638,6 @@ export class ChatServer {
             this.drop(Session, "unknown");
             return;
         }
-
         if(Kind === "presence"){
             this.presence(Session, Node);
         }

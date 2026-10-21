@@ -82,6 +82,12 @@ test("ServerStatus: parses the full contract", () => {
   assert.deepEqual(sortInstances(s.instances).map((i) => i.kind), ["city", "dojo", "hunt"]);
 });
 
+test('unknown native occupancy stays distinct from a confirmed empty hunt',()=>{
+  const status=parseServerStatus({...fullStatus,instances:[{...fullStatus.instances[0],players:0,occupancyKnown:false}]});
+  assert.equal(status?.instances[0].occupancyKnown,false);
+  assert.equal(parseServerStatus(fullStatus)?.instances[0].occupancyKnown,undefined,'older servers retain their contract');
+});
+
 test("ServerStatus: rejects or cleans hostile input", () => {
   assert.equal(parseServerStatus(null), null);
   assert.equal(parseServerStatus([]), null);

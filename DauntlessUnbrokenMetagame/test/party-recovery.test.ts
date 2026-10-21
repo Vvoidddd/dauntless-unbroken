@@ -1,0 +1,27 @@
+import { RemoveTestDb } from './setup';
+import './authenv';
+import assert from 'node:assert/strict';
+import { after, it } from 'node:test';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { GetDb } from '../src/db';
+import { users } from '../src/db/schema';
+import { AcceptPartyInvite, GetPartyOf, InviteToParty, PollParty, ResetPartiesForTests, TouchPlayer } from '../src/controllers/party';
+import { RestorePartyFile, SavePartyFile } from '../src/controllers/party-recovery';
+const Dir = fs.mkdtempSync(path.join(os.tmpdir(), 'party-recovery-')), File = path.join(Dir, 'state.json');
+after(() => { fs.rmSync(Dir, {recursive:true, force:true}); RemoveTestDb(() => GetDb().$client.close()); });
+it('recovers membership across restart without replaying travel, rejects expired or malformed checkpoints', async () => {
+    const A='UID-recovery-a', B='UID-recovery-b';
+    for(const id of [A,B]) GetDb().insert(users).values({userId:id,name:id,notes:0}).run();
+    const p=await PollParty(A);
+    await PollParty(B); assert.equal(InviteToParty(A,B,p.partyId).Status,200);
+    assert.equal((await AcceptPartyInvite(B,p.partyId)).Status,200);
+    TouchPlayer(A); TouchPlayer(B); SavePartyFile(File);
+    ResetPartiesForTests(); RestorePartyFile(File);
+    assert.deepEqual(GetPartyOf(B)?.Members,[A,B]); assert.equal(GetPartyOf(A)?.LeaderId,A);
+    assert.equal(GetPartyOf(A)?.Candidate,null);
+    ResetPartiesForTests(); RestorePartyFile(File, Date.now()+121000); assert.equal(GetPartyOf(A),undefined);
+    const raw=JSON.parse(fs.readFileSync(File,'utf8')); raw.parties[0].Members.push(A);
+    fs.writeFileSync(File,JSON.stringify(raw)); RestorePartyFile(File); assert.equal(GetPartyOf(A),undefined);
+});

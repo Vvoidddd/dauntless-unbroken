@@ -238,7 +238,7 @@ describe("GET /unbroken/api/ServerStatus", () => {
         ]);
 
         for(const Instance of Status.instances){
-            assert.deepEqual(Object.keys(Instance), ["id", "kind", "title", "map", "behemoth", "players", "maxPlayers", "startedAt"]);
+            assert.deepEqual(Object.keys(Instance), ["id", "kind", "title", "map", "behemoth", "occupancyKnown", "players", "maxPlayers", "startedAt"]);
             assert.ok(!Number.isNaN(Date.parse(Instance.startedAt)));
         }
 

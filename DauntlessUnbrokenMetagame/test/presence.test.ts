@@ -1,5 +1,6 @@
 import { RemoveTestDb } from "./setup";
 import "./authenv";
+import { SeenWithinMs, SetPartyClockForTests } from '../src/controllers/party';
 import { IsSelfStanza, SelfStanzas, StanzasChecked } from "./chatinvariant";
 import { after, afterEach, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -511,4 +512,14 @@ describe("friends' online status (CHAT_PRESENCE=1)", () => {
         const Errors = Logs.Lines.filter((Line) => Line.startsWith("error "));
         assert.ok(Errors.length > 0 && Errors.every((Line) => /^error chat: presence: refused to send c=90[12] a stanza from its own account$/.test(Line)), `only the guard test's lines: ${Errors.join("\n")}`);
     });
+});
+
+it('authenticated chat keepalives preserve party activity during long hunts without HTTP polls',async()=>{
+  let time=Date.now(); SetPartyClockForTests(()=>time);
+  try {
+    const Alice=await Online(A); await Alice.Barrier();
+    assert.equal(SeenWithinMs(A,120000),true);
+    time+=121000; assert.equal(SeenWithinMs(A,120000),false);
+    await Alice.Barrier(); assert.equal(SeenWithinMs(A,120000),true);
+  } finally { SetPartyClockForTests(); }
 });

@@ -19,6 +19,7 @@ import { validateManifest, type GameManifest } from "../src/main/manifest";
 import { formatInvite } from "../src/shared/invite";
 import { setSink } from "../src/main/log";
 import { KeyStore,backupFileText } from "../src/main/keystore";
+import { extractAccountKey } from '../src/shared/username';
 import { PortableOfflineSave, OFFLINE_KEY_SLOT } from "../src/main/offline-save";
 import { offlineLayout } from "../src/main/offline-layout";
 import { type OfflineSaveRuntime } from "../src/main/offline-save";
@@ -189,6 +190,34 @@ test('a fresh second device imports the PC account backup without a registration
   assert.equal(hx.last().server?.fingerprint,cert.fingerprint);
   await hx.c.shutdown();
 });
+test('a pasted PC backup signs a fresh Steam Deck into the same realm without a file picker',async()=>{
+  const key='UUK_'+'d'.repeat(48), username='DeckPaste';
+  meta.users.set(key,{username,id:'UID-deck-paste'});
+  const hx=harness(), before=meta.registrations.length;
+  await hx.c.init();
+  const text=backupFileText({key,username,serverName:'Friday Hunts',host:'127.0.0.1',port:GATEWAY_PORT,fingerprint:cert.fingerprint,date:new Date()});
+  assert.equal((await hx.c.useExistingKey(text)).ok,true);
+  assert.equal(hx.last().account.username,username);
+  assert.equal(meta.registrations.length,before);
+  const bad=await hx.c.useExistingKey(text.replace(cert.fingerprint,'invalid'));
+  assert.ok(!bad.ok); assert.equal(hx.last().account.username,username);
+  await hx.c.shutdown();
+});
+
+test('a new registration preserves its Desktop backup if secure storage fails after the invite is consumed',async()=>{
+  const desktop=temp('desktop-register-');
+  const hx=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{desktopDir:desktop,encryptor:{isAvailable:()=>false,encrypt:()=>{throw Error('unavailable');},decrypt:()=>{throw Error('unavailable');}}});
+  await hx.c.init();meta.opts.validCodes?.add('BACKUP-FAIL-CODE');
+  await hx.c.submitInvite(invite(cert.fingerprint,'BACKUP-FAIL-CODE'));
+  const r=await hx.c.register('BackupBeforeSave'); assert.equal(r.ok,false);
+  const files=(await import('node:fs/promises')).readdir;
+  const names=await files(desktop); assert.equal(names.length,1);
+  const text=readFileSync(path.join(desktop,names[0]),'utf8');
+  assert.ok(text.includes('BackupBeforeSave'));
+  assert.ok(extractAccountKey(text));
+  await hx.c.shutdown();
+});
+
 
 test('full servers hold PLAY without spawning, show position, cancel, and admit when ready',async()=>{
   const hx=harness();

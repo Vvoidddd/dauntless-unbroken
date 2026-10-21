@@ -4,6 +4,9 @@
 import { LANGUAGES, type Language } from "./types";
 
 const en = {
+  backup_paste_toggle: "Paste account backup instead",
+  backup_paste_help: "Paste the entire PC key backup here. This signs into the same account; you do not need another invite.",
+  inst_count_unknown: "Player count unavailable",
   app_title: "Dauntless Unbroken Launcher",
   window_minimize: "Minimise",
   window_close: "Close",
@@ -550,6 +553,9 @@ const en = {
 export type StringKey = keyof typeof en;
 
 const fi: Record<StringKey, string> = {
+  backup_paste_toggle: "Liitä tilin varmuuskopio",
+  backup_paste_help: "Liitä koko tietokoneen avainvarmuuskopio. Kirjaudut samalle tilille ilman uutta kutsua.",
+  inst_count_unknown: "Pelaajamäärä ei saatavilla",
   app_title: "Dauntless Unbroken Launcher",
   window_minimize: "Pienennä",
   window_close: "Sulje",
@@ -1093,6 +1099,9 @@ const fi: Record<StringKey, string> = {
 };
 
 const es: Record<StringKey, string> = {
+  backup_paste_toggle: "Pegar copia de la cuenta",
+  backup_paste_help: "Pega toda la copia de la clave del PC. Entrarás en la misma cuenta sin otra invitación.",
+  inst_count_unknown: "Cantidad de jugadores no disponible",
   app_title: "Dauntless Unbroken Launcher",
   window_minimize: "Minimizar",
   window_close: "Cerrar",
