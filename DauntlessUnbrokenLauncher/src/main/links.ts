@@ -17,7 +17,7 @@ import {
 // Tailscale share link in a private invite, and the host's own source link.
 export type FixedTarget = Exclude<ExternalTarget, "tailscale_share" | "server_source">;
 
-const DISCORD_URL = "https://github.com/Vvoidddd/dauntless-unbroken/discussions";
+const DISCORD_URL = "https://discord.gg/bVkP8PffND";
 const PATREON_URL = "https://github.com/Vvoidddd/dauntless-unbroken";
 
 export const FIXED_LINKS: Readonly<Record<FixedTarget, string>> = Object.freeze({
@@ -42,7 +42,7 @@ export function fixedLinkUrl(target: unknown): string | null {
 }
 
 // On github.com only these exact pages: the project's and upstream Undaunted's.
-const GITHUB_PAGES: ReadonlySet<string> = new Set([PROJECT_URL, PROJECT_LICENSE_URL, PROJECT_CONTRIBUTORS_URL, UPSTREAM_URL, UPSTREAM_CONTRIBUTORS_URL, DISCORD_URL, FIXED_LINKS.creator_anxo]);
+const GITHUB_PAGES: ReadonlySet<string> = new Set([PROJECT_URL, PROJECT_LICENSE_URL, PROJECT_CONTRIBUTORS_URL, UPSTREAM_URL, UPSTREAM_CONTRIBUTORS_URL, FIXED_LINKS.creator_anxo]);
 
 // Plain https without user info. An explicit port only where the caller allows one.
 function parse(url: string, allowPort = false): URL | null {

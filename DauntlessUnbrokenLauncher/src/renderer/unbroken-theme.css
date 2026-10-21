@@ -133,7 +133,9 @@
 .community-bar .rail-links { margin: 0; gap: 8px; }
 .community-bar .rail-link { height: 26px; font-size: 10px; }
 .community-bar .icon-btn { width: 26px; height: 26px; }
-#discord-btn, #patreon-btn { display: none; }
+#discord-btn { display: inline-flex; flex: none; width: auto; min-height: 30px; padding: 5px 10px; gap: 8px; border-radius: 7px; font-size: 10px; }
+#discord-btn .social-icon { flex-basis: 18px; width: 18px; height: 18px; }
+#patreon-btn { display: none; }
 .modal-card { border-radius: 14px; background: var(--dr-navy); border-color: var(--dr-steel); }
 .modal-title { font-family: var(--font-display); font-weight: 550; letter-spacing: -.025em; }
 @media (max-width: 1180px) {

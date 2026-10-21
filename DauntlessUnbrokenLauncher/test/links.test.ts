@@ -38,7 +38,7 @@ const EXPECTED: Record<FixedTarget, string> = {
 
 
 
-  discord: "https://github.com/Vvoidddd/dauntless-unbroken/discussions",
+  discord: "https://discord.gg/bVkP8PffND",
   patreon: "https://github.com/Vvoidddd/dauntless-unbroken",
 };
 
@@ -115,6 +115,10 @@ const BAD_URLS = [
   "https://eugamehost.com/",
   "https://discord.gg.evil.example/ZJRprHzsgu",
   "https://discord.gg/dauntlessrevived/extra",
+  "https://discord.gg/bVkP8PffND/extra",
+  "https://discord.gg/bVkP8PffND?redirect=https://evil.example",
+  "https://discord.gg/another-invite",
+  "http://discord.gg/bVkP8PffND",
   "https://discord.com/invite/ZJRprHzsgu",
   "https://evil.example/",
   "",
