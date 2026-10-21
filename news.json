@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "01db02dc7e3aac81c62a830c6905a06f66b94f8b",
+      "date": "2026-10-21T21:52:25.197Z",
+      "title": "Latest project updates",
+      "body": "• Keep hunt parties active from authenticated native player snapshots\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.20",
       "date": "2026-10-21T21:51:10Z",
       "title": "Launcher 1.0.20 is available",
