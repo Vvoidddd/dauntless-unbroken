@@ -9,6 +9,8 @@ test('ban reasons survive authentication failure and support has a fixed Discord
   try {
     const result=await fetchUserInfo({host:'127.0.0.1',port:(server.address() as any).port,pin:null},'UUK_'+'a'.repeat(48));
     assert.deepEqual(result,{ok:false,error:'account_banned',detail:'Repeated harassment'});
-    assert.equal(fixedLinkUrl('discord'),'https://github.com/Vvoidddd/dauntless-unbroken/discussions');
+    assert.equal(fixedLinkUrl('discord'),'https://discord.gg/bVkP8PffND');
+    assert.equal(isAllowedExternalUrl('https://discord.gg/bVkP8PffND',null),true);
+    assert.equal(isAllowedExternalUrl('https://discord.gg/another-invite',null),false);
   }finally{await new Promise<void>((r,j)=>server.close(e=>e?j(e):r()));}
 });
