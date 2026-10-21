@@ -1,0 +1,42 @@
+name: Launcher Discord feed
+
+on:
+  release:
+    types: [published]
+  # GITHUB_TOKEN publishes do not trigger release workflows; completed publishers do.
+  workflow_run:
+    workflows: [CI, Launcher release]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: launcher-discord-feed
+  cancel-in-progress: false
+
+jobs:
+  announce:
+    if: >-
+      github.repository == 'Vvoidddd/dauntless-unbroken' &&
+      (github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event != 'pull_request'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Always use trusted default-branch code, never a workflow_run's PR checkout.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Update only when a new published launcher build exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAUNCHER_DISCORD_WEBHOOK_URL: ${{ secrets.LAUNCHER_DISCORD_WEBHOOK_URL }}
+          LAUNCHER_DISCORD_MESSAGE_ID: ${{ vars.LAUNCHER_DISCORD_MESSAGE_ID }}
+        run: node tools/launcher-discord.mjs
