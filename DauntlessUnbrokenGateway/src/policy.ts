@@ -21,6 +21,8 @@ export type Decision =
 export const PUBLIC_UNBROKEN_API: ReadonlyMap<string, readonly string[]> = new Map([
     ["register", ["POST"]],
     ["getuserinfo", ["GET", "HEAD"]],
+    ["playtime", ["GET", "HEAD"]],
+    ["purchasehistory", ["GET", "HEAD"]],
     ["serverstatus", ["GET", "HEAD"]],
     ["huntregion", ["GET", "HEAD", "POST"]],
     ["admission", ["GET", "POST", "DELETE"]],

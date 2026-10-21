@@ -31,7 +31,9 @@ test('invalid lifetime configuration fails instead of silently disabling cleanup
 test('default cleanup needs two minutes of fresh zero counts after readiness',()=>{
  const policy=HuntLifetimeFromEnv({});
  assert.equal(policy.reason({...hunt,readyAt:undefined},0,0),undefined);
- assert.equal(policy.reason({...hunt,readyAt:undefined},0,120000),undefined);
+ assert.equal(policy.reason({...hunt,readyAt:undefined},0,60000),undefined);
+ assert.equal(policy.reason({...hunt,readyAt:undefined},0,120000),'empty');
+ policy.prune(new Set());
  assert.equal(policy.reason(hunt,0,120000),undefined);
  assert.equal(policy.reason(hunt,0,180000),undefined);
  assert.equal(policy.reason(hunt,0,240000),'empty');
@@ -43,13 +45,13 @@ test('missed observations reset the empty interval instead of treating a gap as 
  assert.equal(policy.reason(hunt,0,180000),undefined);
  assert.equal(policy.reason(hunt,0,240000),'empty');
 });
-test('an instance that never reported ready is judged on occupancy once its grace has passed',()=>{
+test('fresh networking counts reclaim an empty hunt after two minutes even without a ready marker',()=>{
  const policy=HuntLifetimeFromEnv({});
  const stuck={...hunt,readyAt:undefined};
- assert.equal(policy.reason(stuck,0,299999),undefined);
- assert.equal(policy.reason(stuck,0,300000),undefined);
- assert.equal(policy.reason(stuck,0,360000),undefined);
- assert.equal(policy.reason(stuck,0,420000),'empty');
+ assert.equal(policy.reason(stuck,0,0),undefined);
+ assert.equal(policy.reason(stuck,0,60000),undefined);
+ assert.equal(policy.reason(stuck,0,119999),undefined);
+ assert.equal(policy.reason(stuck,0,120000),'empty');
 });
 test('an instance that never reported ready but has players is left alone',()=>{
  const policy=HuntLifetimeFromEnv({});

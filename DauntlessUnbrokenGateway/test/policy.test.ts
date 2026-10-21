@@ -4,6 +4,13 @@ import { CanonicalPath, CheckPath, Classify, HasBearer } from "../src/policy";
 import { IsPublicRoute, DauntlessUnbrokenApiRoutes } from "./helpers";
 
 describe("the /unbroken/api routes", () => {
+    it('passes account playtime and receipts reads without allowing account mutations',()=>{
+        for(const route of ['Playtime','PurchaseHistory']){
+            for(const method of ['GET','HEAD']) assert.equal(Classify(method,'/unbroken/api/'+route,{},false).action,'proxy');
+            for(const method of ['POST','PUT','PATCH','DELETE']) assert.equal(Classify(method,'/unbroken/api/'+route,{},false).action,'reject');
+            assert.equal(Classify('GET','/unbroken/api/'+route+'/someone-else',{},false).action,'reject');
+        }
+    });
     it('passes only launcher admission join, own status and cancellation verbs',()=>{
         for(const method of ['GET','POST','DELETE']) assert.equal(Classify(method,'/unbroken/api/Admission',{},false).action,'proxy');
         for(const method of ['PUT','PATCH','HEAD']) assert.equal(Classify(method,'/unbroken/api/Admission',{},false).action,'reject');
@@ -25,7 +32,7 @@ describe("the /unbroken/api routes", () => {
         }
     });
 
-    it("only Register (POST), GetUserInfo, ServerStatus and RegistrationStatus (GET) pass; every other route is 403", () => {
+    it("only explicitly allowed player routes pass; every admin route is 403", () => {
         let Passed = 0;
         for(const Route of Routes){
             const Choice = Classify(Route.method, Route.path, {}, false);
@@ -39,7 +46,7 @@ describe("the /unbroken/api routes", () => {
                 assert.equal(Choice.action === "reject" && Choice.reason, "admin_route");
             }
         }
-        assert.equal(Passed, 4);
+        assert.equal(Passed, 12);
         // POST RegistrationStatus changes the registration mode: admin only, blocked.
         assert.equal(Classify("POST", "/unbroken/api/RegistrationStatus", {}, false).action, "reject");
         assert.equal(Classify("HEAD", "/unbroken/api/Register", {}, false).action, "reject");

@@ -874,7 +874,7 @@ function offlineSeconds(snap: Snapshot): number {
 // and this session's time while the game runs.
 function playtimeText(snap: Snapshot, offline = false): string {
   const played = offline ? offlineSeconds(snap) : onlineSeconds(snap);
-  const total = t("playtime_total", { time: formatPlaytime(played, state.lang) });
+  const total = t("playtime_total", { time: offline || snap.playtime.onlineSeconds !== null ? formatPlaytime(played, state.lang) : "—" });
   if (snap.playtime.sessionStartedAt !== null) return `${t("playtime_session", { time: formatPlaytime(sessionSeconds(snap), state.lang) })} · ${total}`;
   return played >= 60 ? total : "";
 }

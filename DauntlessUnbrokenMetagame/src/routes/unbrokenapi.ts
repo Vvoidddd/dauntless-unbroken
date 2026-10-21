@@ -402,6 +402,8 @@ unbrokenApiRouter.get("/GetUserInfo", HasDauntlessUnbrokenUserApiKey, async (req
 // The caller's own time in the game, counted from its heartbeats (controllers/playtime.ts), for the
 // launcher. Only the account the key belongs to: there is no way to ask for someone else's.
 unbrokenApiRouter.get("/Playtime", HasDauntlessUnbrokenUserApiKey, async (req: any, res) => {
+    res.setHeader("Cache-Control", "no-store");
+
     res.status(200);
     res.json({ PlaytimeSeconds: GetPlaytimeSeconds(req.DauntlessUnbrokenUserInfo.UserId) });
 });

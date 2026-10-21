@@ -483,7 +483,7 @@ const en = {
   hint_install: "About {size} to download.",
   hint_update: "Press UPDATE and the launcher fixes the install.",
   hint_ready: "All set. Press PLAY.",
-  playtime_total: "Played: {time}",
+  playtime_total: "Total played: {time}",
   playtime_session: "This session: {time}",
   playtime_title: "Playtime",
   playtime_summary: "Sessions: {n} · Last session: {time}",

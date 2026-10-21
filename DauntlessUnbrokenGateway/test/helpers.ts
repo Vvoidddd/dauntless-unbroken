@@ -258,8 +258,8 @@ export function PortOpen(Port: number): Promise<boolean> {
 export function DauntlessUnbrokenApiRoutes(): { method: string; path: string }[] {
     const Source = fs.readFileSync(path.join(ROOT, "..", "DauntlessUnbrokenMetagame", "src", "routes", "unbrokenapi.ts"), "utf8");
     const Routes: { method: string; path: string }[] = [];
-    for(const Match of Source.matchAll(/unbrokenApiRouter\.(get|post|put|delete|patch)\(\s*"([^"]+)"/g)){
-        Routes.push({ method: Match[1].toUpperCase(), path: "/unbroken/api" + Match[2].replace(/:[A-Za-z]+/g, "ABCD-EFGH-JKMN") });
+    for(const Match of Source.matchAll(/unbrokenApiRouter\.(get|post|put|delete|patch)\(\s*(["'])([^"']+)\2/g)){
+        Routes.push({ method: Match[1].toUpperCase(), path: "/unbroken/api" + Match[3].replace(/:[A-Za-z]+/g, "ABCD-EFGH-JKMN") });
     }
     return Routes;
 }

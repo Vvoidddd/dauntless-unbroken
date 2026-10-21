@@ -276,14 +276,15 @@ describe("gateway over TLS", () => {
         assert.equal(Content.seen.length, ContentBefore);
     });
 
-    it("blocks every /unbroken/api route of the metagame except Register, GetUserInfo, ServerStatus and RegistrationStatus", async () => {
+    it("proxies the explicit player route allowlist and blocks every admin route", async () => {
         const Routes = DauntlessUnbrokenApiRoutes();
         let Blocked = 0;
         for(const Route of Routes){
             const Before = Meta.seen.length;
-            const Reply = await HttpsRequest(P.gateway, Route.path, { method: Route.method, headers: { "x-dauntless-unbroken-user-api-key": FAKE_KEY, "content-type": "application/json" }, body: Route.method === "GET" ? undefined : "{}" });
+            const Reply = await HttpsRequest(P.gateway, Route.path, { method: Route.method, headers: { "x-dauntless-unbroken-user-api-key": FAKE_KEY, "content-type": "application/json" }, body: Route.method === "GET" || Route.method === "DELETE" ? undefined : "{}" });
             if(IsPublicRoute(Route.method, Route.path)){
-                assert.equal(Reply.status, 200, `${Route.method} ${Route.path}`);
+                // This fixture deliberately emulates an older backend without device checks.
+                assert.equal(Reply.status, Route.path === '/unbroken/api/DeviceSignals' ? 404 : 200, `${Route.method} ${Route.path}`);
                 assert.equal(Meta.seen.length, Before + 1);
                 assert.equal(Meta.seen[Meta.seen.length - 1].url, Route.path);
             }
@@ -294,7 +295,7 @@ describe("gateway over TLS", () => {
                 Blocked++;
             }
         }
-        assert.equal(Blocked, Routes.length - 4);
+        assert.equal(Blocked, Routes.length - 12);
         assert.ok(Blocked >= 18, `blocked ${Blocked}`);
 
         for(const Path of ["/UNBROKEN/API/CREATEINVITE", "/unbroken/api/createinvite/", "/unbroken//api/CreateInvite", "/unbroken/api/%43reateInvite", "/unbroken/api/GrantEntitlement?UserId=x"]){

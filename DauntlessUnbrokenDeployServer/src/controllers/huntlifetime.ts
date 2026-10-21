@@ -43,7 +43,10 @@ export class HuntLifetime {
         // A process that never wrote its ready file never got its net driver listening, and the
         // DLL's own idle shutdown is gated on listening. Judge it on occupancy like any other
         // instance once it has had its grace, instead of exempting it forever.
-        const settled = (server.readyAt ?? server.startTime.getTime()+this.unreadyGraceMs)+this.startupGraceMs;
+        // A fresh net-driver count already proves startup reached networking,
+        // even if the ready marker is missing. Do not add five minutes to an
+        // observed empty hunt's two-minute timer just because its marker is absent.
+        const settled = (server.readyAt ?? server.startTime.getTime() + (connections === undefined ? this.unreadyGraceMs : 0))+this.startupGraceMs;
         if(now<settled){this.forget(server.id);return;}
 
         if(connections===undefined){
