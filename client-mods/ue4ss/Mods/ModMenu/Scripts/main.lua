@@ -2,12 +2,10 @@ print("[MM] ModMenu loading...")
 local FrameTick = require("FrameTick")
 local ModSettings = require("ModSettings")
 
--- In-game menu with two sections:
---   MODS     - turns UE4SS mods on/off by rewriting Mods\mods.txt (applies after restarting the game)
---   SETTINGS - on/off settings of the mods, saved by ModSettings (shared\ModSettings) and picked
---              up by the mods within a second - no Ctrl+R needed
+-- The library selects a mod; its preferences appear in the detail panel.
+-- Mod switches update mods.txt for the next launch. Preferences save and apply live.
 --
--- Keys:  Home = open/close   Up/Down (or PgUp/PgDn) = select   End = switch the selected row
+-- Home opens/closes. Up/Down selects, Left/Right changes panel, End changes a value.
 --
 -- How it draws (chosen because some HUD text widgets only repaint when their size changes):
 --   * the menu is built fresh every time it opens and removed when it closes;
@@ -16,10 +14,10 @@ local ModSettings = require("ModSettings")
 --   * a switch that changes is removed and drawn again.
 --
 -- Widgets (verified in UE4SS_ObjectDump.txt):
---   rectangles: /Game/UI/EndOfHunt/StackableProgressBar.StackableProgressBar_C - a ProgressBar at
---               100% with a solid fill colour (no texture), BoostIconBarImage hidden
+--   surfaces  : StackableProgressBar_C's BoostIconBarImage, using the engine's white texture;
+--               the progress bar is hidden, avoiding its minimum-height strip artifacts
 --   text      : /Game/UI/Chat/w_chat_log_label_bpw.w_chat_log_label_bpw_C (ChatLogLabelTextBlock),
---               font copied from HealthStamina_bpw.HealthValueText (the player's HP numbers)
+--               Roboto, with the player's HP font as a fallback
 -- Every widget is tagged with RenderOpacity 0.997 so a reload removes only the menu's widgets.
 -- Gotcha: SetPositionInViewport resets viewport anchors - set anchors AFTER it.
 
@@ -44,39 +42,31 @@ local SETTINGS = {
     {key = "trk_always", label = "Tracker: show at any distance", default = false},
     -- choice setting: End cycles through the choices; stored as their number (1, 2, 3)
     {key = "cst_color", label = "Uncrafted weapons: name colour", default = 2, choices = {
-        {name = "Red",    color = {R = 1.00, G = 0.25, B = 0.25, A = 1}},
-        {name = "Gold",   color = {R = 1.00, G = 0.78, B = 0.20, A = 1}},
+        {name = "Red", color = {R = 1.00, G = 0.25, B = 0.25, A = 1}},
+        {name = "Gold", color = {R = 1.00, G = 0.78, B = 0.20, A = 1}},
         {name = "Purple", color = {R = 0.72, G = 0.42, B = 1.00, A = 1}},
     }},
-    -- action setting: End runs it (the stored number counts the presses; the mod watches it)
-    -- shows: the setting holding the current key's code, written by the mod
     {key = "lock_rebind", label = "Lock-on: change key", default = 0, action = "Press End", showsFile = "LockOn/key_label.txt"},
 }
 
-local MENU_X, MENU_Y = 40, 300          -- top-left of the panel (UI units)
-local PANEL_W = 520
-local PAD_X, PAD_Y = 20, 12
-local TITLE_SIZE = 22
-local SECTION_SIZE = 15
+local MENU_X, MENU_Y = 48, 100
+local PANEL_W = 820
+local PAD_X = 24
+local TITLE_SIZE = 28
 local TEXT_SIZE = 17
 local HINT_SIZE = 13
-local ROW_H = math.floor(TEXT_SIZE * 1.8 + 0.5)
-local SWITCH_W, SWITCH_H = 44, 20       -- the on/off switch at the right of every row
-local KNOB = 14
-local LINE_THICK = 2
-local SLIDE_SECS = 0.65
+local ROW_H = 44
+local SLIDE_SECS = 0.24
 
-local FILL_COLOR = {R = 0.0, G = 0.0, B = 0.0, A = 0.82}
-local LINE_COLOR = {R = 0.35, G = 0.75, B = 1.00, A = 1.0}         -- blue edges, dividers, headers
-local HILITE_COLOR = {R = 0.35, G = 0.75, B = 1.00, A = 0.30}       -- selected row
-local WHITE = {R = 1, G = 1, B = 1, A = 1}
-local GREY = {R = 0.70, G = 0.70, B = 0.70, A = 1}
-local SWITCH_ON = {R = 0.25, G = 0.75, B = 0.35, A = 1}
-local SWITCH_OFF = {R = 0.30, G = 0.30, B = 0.30, A = 1}
-local SWITCH_PENDING = {R = 0.90, G = 0.70, B = 0.20, A = 1}       -- mod switched, not applied yet
-local KNOB_COLOR = {R = 0.95, G = 0.95, B = 0.95, A = 1}
-local PENDING_COLOR = {R = 1.00, G = 0.85, B = 0.35, A = 1}
+local FILL_COLOR = {R = 0.009, G = 0.006, B = 0.018, A = 1}
+local CARD_COLOR = {R = 0.018, G = 0.012, B = 0.030, A = 1}
+local HILITE_COLOR = {R = 0.22, G = 0.12, B = 0.35, A = 1}
+local WHITE = {R = 0.98, G = 0.96, B = 1, A = 1}
+local GREY = {R = 0.66, G = 0.61, B = 0.74, A = 1}
+local ACCENT = {R = 0.72, G = 0.56, B = 1, A = 1}
+local PENDING_COLOR = {R = 1, G = 0.80, B = 0.44, A = 1}
 local TAG_OPACITY = 0.997
+
 
 local TEXT_PATH = "/Game/UI/Chat/w_chat_log_label_bpw.w_chat_log_label_bpw_C"
 local TEXT_ASSET = "/Game/UI/Chat/w_chat_log_label_bpw"
@@ -89,9 +79,10 @@ local VIS_SHOWN, VIS_HIDDEN = 3, 1
 
 -- ---------------------------------------------------------------- state
 
-local ui = nil          -- the open menu: {ctx, widgets, labels, switches, hilite, rowY, hintY}
+local ui = nil          -- persistent shell and tracked detail-page widgets while the menu is open
 local isOpen = false
 local cursor = 1
+local activeMod = nil
 local entries = {}      -- shown mods: {name, on, loadedOn, lineIndex}
 local items = {}        -- every selectable row: {kind = "mod", entry} or {kind = "setting", setting}
 local lines = {}        -- raw lines of mods.txt
@@ -169,10 +160,18 @@ local function WriteModsTxt()
     return true
 end
 
+local SETTING_OWNER = {bhb_shield = "BehemothHealthBars", bhb_text = "BehemothHealthBars",
+    bhb_dual = "BehemothHealthBars", trk_always = "BehemothTracker", cst_color = "CraftStar", lock_rebind = "LockOn"}
+
 local function BuildItems()
     items = {}
+    local found = false
+    for _, e in ipairs(entries) do if e.name == activeMod then found = true break end end
+    if not found then activeMod = entries[1] and entries[1].name or nil end
     for _, e in ipairs(entries) do items[#items + 1] = {kind = "mod", entry = e} end
-    for _, s in ipairs(SETTINGS) do items[#items + 1] = {kind = "setting", setting = s} end
+    for _, s in ipairs(SETTINGS) do
+        if SETTING_OWNER[s.key] == activeMod then items[#items + 1] = {kind = "setting", setting = s} end
+    end
 end
 
 -- ---------------------------------------------------------------- widget helpers
@@ -209,6 +208,10 @@ end
 
 local function Track(w)
     ui.widgets[#ui.widgets + 1] = w
+    if ui.buildPage then
+        local page = ui.pages[ui.buildPage]
+        page[#page + 1] = w
+    end
     pcall(function() w:SetRenderOpacity(TAG_OPACITY) end)
     pcall(function() w:SetVisibility(VIS_SHOWN) end)
 end
@@ -219,6 +222,9 @@ local function Untrack(w)
     for i, x in ipairs(ui.widgets) do
         if x == w then table.remove(ui.widgets, i) break end
     end
+    for _, page in pairs(ui.pages) do
+        for i, x in ipairs(page) do if x == w then table.remove(page, i) break end end
+    end
 end
 
 -- A solid rectangle: StackableProgressBar at 100% with a flat fill colour.
@@ -226,35 +232,25 @@ local function MakeSolid(color, z)
     local c = ui.ctx
     local w = c.Lib:Create(c.PC, c.panelCls, c.PC)
     if not valid(w) then return nil end
-    local okB, bar = pcall(function() return w.ProgressBarComponent end)
-    if not (okB and valid(bar)) then return nil end
-    local o = {w = w, bar = bar}
-    local okP, box = pcall(function() return bar:GetParent() end)
-    if okP and valid(box) then
-        o.sizeBox = box
-        local okS, s = pcall(function() return box.Slot end)
-        if okS and valid(s) then o.boxSlot = s end
-    end
+    local ok, image = pcall(function() return w.BoostIconBarImage end)
+    if not (ok and valid(image)) then return nil end
+    local o = {w = w, image = image}
     w:AddToViewport(z)
-    pcall(function() bar:SetPercent(1) end)
-    pcall(function() bar:SetFillColorAndOpacity(color) end)
-    pcall(function() w.BoostIconBarImage:SetVisibility(VIS_HIDDEN) end)
+    pcall(function() w.ProgressBarComponent:GetParent():SetVisibility(VIS_HIDDEN) end)
+    pcall(function() image:SetBrushResourceObject(c.whiteTexture) end)
+    pcall(function() image:SetColorAndOpacity(color) end)
+    pcall(function() image:SetVisibility(VIS_SHOWN) end)
+    pcall(function() o.slot = image.Slot end)
     Track(w)
     return o
 end
 
 local function LayoutSolid(o, x, y, w, h)
     if not (o and valid(o.w)) then return end
-    w, h = math.max(1, w), math.max(1, h)
     PlaceWidget(o.w, x, y, w, h)
-    if valid(o.sizeBox) then
-        pcall(function()
-            o.sizeBox:SetWidthOverride(w)
-            o.sizeBox:SetHeightOverride(h)
-        end)
-    end
-    if valid(o.boxSlot) then
-        local s = o.boxSlot
+    pcall(function() o.image:SetBrushSize({X = w, Y = h}) end)
+    if valid(o.slot) then
+        local s = o.slot
         pcall(function() s:SetAnchors({Minimum = {X = 0, Y = 0}, Maximum = {X = 0, Y = 0}}) end)
         pcall(function() s:SetAlignment({X = 0, Y = 0}) end)
         pcall(function() s:SetAutoSize(false) end)
@@ -263,7 +259,9 @@ local function LayoutSolid(o, x, y, w, h)
     end
 end
 
--- A text label. Its text is set once, in the same frame it is created, and never changed.
+-- Labels are immutable after construction; navigation shows prebuilt pages instead of rebuilding them.
+
+
 local function MakeLabel(text, size, color, x, y, w, z)
     local c = ui.ctx
     local l = c.Lib:Create(c.PC, c.textCls, c.PC)
@@ -275,9 +273,13 @@ local function MakeLabel(text, size, color, x, y, w, z)
         pcall(function() tb.Font.FontObject = src.Font.FontObject end)
         pcall(function() tb.Font.TypefaceFontName = src.Font.TypefaceFontName end)
     end
+    if valid(c.fontObject) then
+        pcall(function() tb.Font.FontObject = c.fontObject end)
+        pcall(function() tb.Font.TypefaceFontName = FName("Regular") end)
+    end
     pcall(function() tb.Font.Size = size end)
     pcall(function()
-        tb.Font.OutlineSettings.OutlineSize = 2
+        tb.Font.OutlineSettings.OutlineSize = 0
         tb.Font.OutlineSettings.OutlineColor = {R = 0, G = 0, B = 0, A = 1}
     end)
     l:AddToViewport(z)
@@ -340,76 +342,69 @@ local function ItemState(it)
 end
 
 -- The switch at the right end of row i: a track (green on / grey off / amber = mod change not
--- applied yet) with a knob on the right (on) or left (off). Drawn again whenever it changes.
--- A choice setting shows its current choice (in its own colour) where the switch would be.
-local function DrawChoice(i, s)
-    local n = ModSettings.GetNum(s.key, s.default)
-    if not s.choices[n] then n = s.default end
-    local ch = s.choices[n]
-    local cur = ui.switches[i]
-    if cur and cur.look == ch.name then return end
-    if cur and cur.label then Untrack(cur.label) end
-    local label = MakeLabelRight(ch.name, TEXT_SIZE, ch.color, MENU_X + PANEL_W - PAD_X, ui.rowY[i], 1003)
-    ui.switches[i] = {label = label, look = ch.name}
+local function ItemKey(it)
+    return it.kind == "mod" and ("mod:" .. it.entry.name) or it.setting.key
 end
 
--- An action setting shows its current value where the switch would be (e.g. the chosen key,
--- read from a file its mod keeps in its own folder), else what to press.
 local function ShownValue(s)
     if not (s.showsFile and modsDir) then return nil end
     local f = io.open(modsDir .. s.showsFile, "r")
     if not f then return nil end
     local v = f:read("*l")
     f:close()
-    if v and v:match("%S") then return v:match("^%s*(.-)%s*$") end
-    return nil
+    return v and v:match("^%s*(.-)%s*$")
 end
 
-local function DrawAction(i, s)
-    local shown = ShownValue(s)
-    local text, color = shown or s.action, shown and WHITE or GREY
-    local cur = ui.switches[i]
-    if cur and cur.look == text then return end
-    if cur and cur.label then Untrack(cur.label) end
-    local label = MakeLabelRight(text, TEXT_SIZE, color, MENU_X + PANEL_W - PAD_X, ui.rowY[i], 1003)
-    ui.switches[i] = {label = label, look = text}
-end
-
-local function DrawSwitch(i)
-    local it = items[i]
-    if not (ui and it and ui.rowY[i]) then return end
-    if it.kind == "setting" and it.setting.choices then DrawChoice(i, it.setting) return end
-    if it.kind == "setting" and it.setting.action then DrawAction(i, it.setting) return end
-    local on, pending = ItemState(it)
-    local look = (on and "1" or "0") .. (pending and "p" or "")
-    local cur = ui.switches[i]
-    if cur and cur.look == look then return end
-    if cur then
-        if cur.track then Untrack(cur.track.w) end
-        if cur.knob then Untrack(cur.knob.w) end
+local function DrawSwitch(it)
+    local key = ItemKey(it)
+    local row = ui and ui.rows[key]
+    if not row then return end
+    local text, color
+    if it.kind == "setting" and it.setting.choices then
+        local s = it.setting
+        local n = ModSettings.GetNum(s.key, s.default)
+        local choice = s.choices[n] or s.choices[s.default]
+        text, color = choice.name, choice.color
+    elseif it.kind == "setting" and it.setting.action then
+        text, color = ShownValue(it.setting) or "Set key", ACCENT
+    else
+        local on, pending = ItemState(it)
+        text, color = on and "On" or "Off", on and ACCENT or GREY
+        if pending then text, color = text .. " *", PENDING_COLOR end
     end
-    local x = MENU_X + PANEL_W - PAD_X - SWITCH_W
-    local y = ui.rowY[i] + math.floor((ROW_H - SWITCH_H) / 2) - 3
-    local trackColor = pending and SWITCH_PENDING or (on and SWITCH_ON or SWITCH_OFF)
-    local track = MakeSolid(trackColor, 1002)
-    LayoutSolid(track, x, y, SWITCH_W, SWITCH_H)
-    local gap = math.floor((SWITCH_H - KNOB) / 2)
-    local knob = MakeSolid(KNOB_COLOR, 1003)
-    LayoutSolid(knob, on and (x + SWITCH_W - gap - KNOB) or (x + gap), y + gap, KNOB, KNOB)
-    ui.switches[i] = {track = track, knob = knob, look = look}
+    local look = text .. (color == PENDING_COLOR and "*" or "")
+    local current = ui.switches[key]
+    if current and current.look == look then return end
+    if current then Untrack(current.label) end
+    ui.buildPage = row.page
+    local label = MakeLabelRight(text, 14, color, row.x + row.w - 12, row.y + 2, 1003)
+    ui.buildPage = nil
+    ui.switches[key] = {label = label, look = look}
 end
 
 local function RefreshHint()
     if not ui then return end
-    local text, color = "Up/Down  select     End  switch     Home  close", GREY
-    if AnyPending() then text, color = "*  restart the game to apply mod switches; settings apply live", PENDING_COLOR end
+    local text, color = "Settings save automatically. Mod switches apply after restarting the game.", GREY
+    if AnyPending() then text, color = "Restart required  /  Your mod switches are saved for the next launch.", PENDING_COLOR end
     SetLabel("hint", text, HINT_SIZE, color, MENU_X + PAD_X, ui.hintY, PANEL_W - 2 * PAD_X, 1003)
 end
 
+local function ShowPage(name)
+    if not ui or ui.currentPage == name then return end
+    for page, widgets in pairs(ui.pages) do
+        local visibility = page == name and VIS_SHOWN or VIS_HIDDEN
+        for _, widget in ipairs(widgets) do
+            if valid(widget) then pcall(function() widget:SetVisibility(visibility) end) end
+        end
+    end
+    ui.currentPage = name
+end
+
 local function MoveHilite()
-    if not (ui and ui.hilite and ui.rowY[cursor]) then return end
-    local inset = LINE_THICK + 4
-    LayoutSolid(ui.hilite, MENU_X + inset, ui.rowY[cursor] - 3, PANEL_W - 2 * inset, ROW_H - 2)
+    local it = items[cursor]
+    local row = ui and it and ui.rows[ItemKey(it)]
+    if not (row and ui.hilite) then return end
+    LayoutSolid(ui.hilite, row.x, row.y - 6, row.w, row.h)
 end
 
 local function BuildUI()
@@ -417,56 +412,85 @@ local function BuildUI()
     local PC = GetPC()
     if not PC then log("no player controller yet") return false end
     local Lib = StaticFindObject("/Script/UMG.Default__WidgetBlueprintLibrary")
-    if not valid(Lib) then log("widget library not found") return false end
+    if not valid(Lib) then return false end
     local panelCls = FindOrLoad(PANEL_PATH, PANEL_ASSET)
     local textCls = FindOrLoad(TEXT_PATH, TEXT_ASSET)
-    if not (panelCls and textCls) then return false end
+    local whiteTexture = FindOrLoad("/Engine/EngineResources/WhiteSquareTexture.WhiteSquareTexture",
+        "/Engine/EngineResources/WhiteSquareTexture")
+    if not (panelCls and textCls and whiteTexture) then return false end
     ui = {
-        ctx = {PC = PC, Lib = Lib, panelCls = panelCls, textCls = textCls, fontSrc = StaticFindObject(FONT_SRC)},
-        widgets = {}, labels = {}, switches = {}, rowY = {},
+        ctx = {PC = PC, Lib = Lib, panelCls = panelCls, textCls = textCls, whiteTexture = whiteTexture,
+            fontSrc = StaticFindObject(FONT_SRC),
+            fontObject = FindOrLoad("/Engine/EngineFonts/Roboto.Roboto", "/Engine/EngineFonts/Roboto")},
+        widgets = {}, labels = {}, switches = {}, rows = {}, pages = {},
     }
-
-    -- vertical layout: title, divider, mod rows, SETTINGS header, divider, setting rows, hint
     local x, y = MENU_X, MENU_Y
-    local titleH = math.floor(TITLE_SIZE * 1.6 + 0.5)
-    local sectionH = math.floor(SECTION_SIZE * 1.6 + 0.5)
-    local div1 = y + PAD_Y + titleH + 2
-    local cy = div1 + 10
-    local idx = 0
-    for _ = 1, #entries do idx = idx + 1 ui.rowY[idx] = cy cy = cy + ROW_H end
-    local noMods = (#entries == 0)
-    if noMods then cy = cy + ROW_H end
-    local sectionY = cy + 8
-    local div2 = sectionY + sectionH
-    cy = div2 + 10
-    for _ = 1, #SETTINGS do idx = idx + 1 ui.rowY[idx] = cy cy = cy + ROW_H end
-    ui.hintY = cy + 4
-    local h = ui.hintY + math.floor(HINT_SIZE * 1.6 + 0.5) + PAD_Y - y
-    local t = LINE_THICK
+    local leftX, leftW = x + 16, 252
+    local rightX, rightW = leftX + leftW + 28, PANEL_W - leftW - 68
+    local bodyY = y + 164
+    local bodyH = math.max(#entries * ROW_H, 196)
+    ui.hintY = bodyY + bodyH + 16
+    LayoutSolid(MakeSolid(FILL_COLOR, 1000), x, y, PANEL_W, ui.hintY - y + 66)
+    LayoutSolid(MakeSolid(CARD_COLOR, 1000), leftX, y + 96, leftW, bodyH + 68)
+    MakeLabel("DAUNTLESS UNBROKEN", 11, ACCENT, x + PAD_X, y + 20, 400, 1003)
+    MakeLabel("Client mods", TITLE_SIZE, WHITE, x + PAD_X, y + 39, 450, 1003)
+    MakeLabelRight("HOME  Close", 12, GREY, x + PANEL_W - PAD_X, y + 49, 1003)
+    MakeLabel("YOUR MODS", 12, GREY, leftX + 18, y + 112, leftW - 36, 1003)
 
-    -- panel: fill, highlight, four edges, two dividers
-    LayoutSolid(MakeSolid(FILL_COLOR, 1000), x, y, PANEL_W, h)
-    ui.hilite = MakeSolid(HILITE_COLOR, 1001)
-    for _, r in ipairs({{x, y, PANEL_W, t}, {x, y + h - t, PANEL_W, t}, {x, y, t, h}, {x + PANEL_W - t, y, t, h},
-                        {x + PAD_X, div1, PANEL_W - 2 * PAD_X, 1}, {x + PAD_X, div2, PANEL_W - 2 * PAD_X, 1}}) do
-        LayoutSolid(MakeSolid(LINE_COLOR, 1002), r[1], r[2], r[3], r[4])
-    end
+    local info = {
+        BehemothHealthBars = {"Health bars", "Keep health, shields and Escalation targets in view."},
+        BehemothTracker = {"Behemoth tracker", "Find your target without cluttering the view."},
+        CraftStar = {"Uncrafted weapons", "Spot weapon recipes you have not crafted yet."},
+        LockOn = {"Lock-on", "Click the mouse wheel or R3 to lock onto a Behemoth."},
+    }
+    local names = {bhb_shield = "Shield bar", bhb_text = "Health numbers", bhb_dual = "Two behemoth bars",
+        trk_always = "Always show tracker", cst_color = "Weapon name colour", lock_rebind = "Change lock-on key"}
+    local descriptions = {bhb_shield = "Show shields beside the main health bar.",
+        bhb_text = "Add numeric health values to the display.", bhb_dual = "Show both targets during Escalations.",
+        trk_always = "Track nearby targets as well as distant ones.", cst_color = "Highlight recipes you have not made.",
+        lock_rebind = "Press End, then press your preferred button."}
 
-    -- texts
-    local textW = PANEL_W - 2 * PAD_X - SWITCH_W - 10
-    MakeLabel("CLIENT MODS", TITLE_SIZE, WHITE, x + PAD_X, y + PAD_Y, PANEL_W - 2 * PAD_X, 1003)
-    if noMods then MakeLabel("No mods to show", TEXT_SIZE, GREY, x + PAD_X, div1 + 10, textW, 1003) end
-    MakeLabel("SETTINGS", SECTION_SIZE, LINE_COLOR, x + PAD_X, sectionY, textW, 1003)
-    for i, it in ipairs(items) do
-        local name = it.kind == "mod" and (DISPLAY[it.entry.name] or it.entry.name) or it.setting.label
-        MakeLabel(name, TEXT_SIZE, WHITE, x + PAD_X, ui.rowY[i], textW, 1003)
-        DrawSwitch(i)
+    -- Build every page once. Navigation only switches visibility and moves the selection.
+    for i, entry in ipairs(entries) do
+        local it = {kind = "mod", entry = entry}
+        local row = {x = leftX + 6, y = bodyY + (i - 1) * ROW_H, w = leftW - 12, h = ROW_H - 5}
+        ui.rows[ItemKey(it)] = row
+        local detail = info[entry.name] or {DISPLAY[entry.name] or entry.name, "Preferences for this mod."}
+        MakeLabel(detail[1], 16, WHITE, leftX + 16, row.y, leftW - 74, 1003)
+        DrawSwitch(it)
+        ui.buildPage = entry.name
+        ui.pages[entry.name] = {}
+        MakeLabel(detail[1], 23, WHITE, rightX, y + 105, rightW, 1003)
+        MakeLabel(detail[2], 12, GREY, rightX, y + 138, rightW, 1003)
+        local count = 0
+        for _, setting in ipairs(SETTINGS) do
+            if SETTING_OWNER[setting.key] == entry.name then
+                count = count + 1
+                local s = {kind = "setting", setting = setting}
+                local sr = {x = rightX - 8, y = bodyY + (count - 1) * 58, w = rightW + 16, h = 52, page = entry.name}
+                ui.rows[ItemKey(s)] = sr
+                ui.buildPage = entry.name
+                local valueW = (setting.choices or setting.action) and 118 or 40
+                MakeLabel(names[setting.key] or setting.label, 17, WHITE, rightX + 6, sr.y, rightW - valueW - 38, 1003)
+                MakeLabel(descriptions[setting.key] or "", 11, GREY, rightX + 6, sr.y + 26, rightW - 12, 1003)
+                DrawSwitch(s)
+            end
+        end
+        ui.buildPage = entry.name
+        if count == 0 then MakeLabel("This mod has no extra preferences.", 13, GREY, rightX, bodyY, rightW, 1003) end
+        ui.buildPage = nil
     end
+    if #entries == 0 then MakeLabel("No optional mods installed", 12, GREY, leftX + 16, bodyY, leftW - 32, 1003) end
+    if #items > 0 then ui.hilite = MakeSolid(HILITE_COLOR, 1001) end
+    MakeLabel("Up / Down  Select     Left / Right  Panel     End  Change", 12, GREY,
+        x + PAD_X, ui.hintY + 27, PANEL_W - 2 * PAD_X, 1003)
+    ShowPage(activeMod)
     RefreshHint()
     MoveHilite()
-    log("menu built (" .. #entries .. " mods, " .. #SETTINGS .. " settings, " .. #ui.widgets .. " widgets)")
+    log("menu built once (" .. #entries .. " pages, " .. #ui.widgets .. " widgets)")
     return true
 end
+
 
 -- ---------------------------------------------------------------- slide-in
 
@@ -535,6 +559,11 @@ end
 local function Move(d)
     if not (isOpen and ui) or #items == 0 then return end
     cursor = ((cursor - 1 + d) % #items) + 1
+    if items[cursor].kind == "mod" and items[cursor].entry.name ~= activeMod then
+        activeMod = items[cursor].entry.name
+        BuildItems()
+        ShowPage(activeMod)
+    end
     MoveHilite()
 end
 
@@ -590,7 +619,7 @@ local function Switch()
     -- an action hands the keyboard to its mod (e.g. "press a key"): close the menu
     if it.kind == "setting" and it.setting.action then Close() return end
     if not ui then return end                 -- rebuilt or closed meanwhile
-    DrawSwitch(cursor)
+    DrawSwitch(items[cursor])
     RefreshHint()
 end
 
@@ -686,6 +715,13 @@ Bind("UP_ARROW", Up)
 Bind("DOWN_ARROW", Down)
 Bind("PAGE_UP", Up)
 Bind("PAGE_DOWN", Down)
+Bind("RIGHT_ARROW", function()
+    if isOpen and ui and #items > #entries then cursor = #entries + 1 MoveHilite() end
+end)
+Bind("LEFT_ARROW", function()
+    if not (isOpen and ui) then return end
+    for i, e in ipairs(entries) do if e.name == activeMod then cursor = i MoveHilite() return end end
+end)
 Bind("END", Switch)
 Bind("R", Open, {ModifierKey.CONTROL})
 
