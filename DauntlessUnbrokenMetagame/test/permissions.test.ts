@@ -330,6 +330,9 @@ const EXPECTED_ROUTES = [
     "POST /unbroken/api/DeviceSignals [HasDauntlessUnbrokenUserApiKey]",
     "GET /unbroken/api/HuntRegion [HasDauntlessUnbrokenUserApiKey]",
     "POST /unbroken/api/HuntRegion [HasDauntlessUnbrokenUserApiKey]",
+    "GET /unbroken/api/RewardCatalog [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/RewardAccount [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/RewardGrant [HasDauntlessUnbrokenAdminApiKey]",
     "GET /unbroken/api/DiscordKeyStats [HasDauntlessUnbrokenAdminApiKey]",
 
     "POST /unbroken/api/DiscordLink [HasDauntlessUnbrokenAdminApiKey]",
@@ -526,6 +529,9 @@ const ADMIN_ROUTES = (): [string, string, unknown][] => [
     ["GET", "/unbroken/api/InviteCodes", undefined],
     ["POST", "/unbroken/api/GenerateJWTForUserId", { UserId: C }],
     ["GET", "/unbroken/api/GetAllUsers", undefined],
+    ["GET", "/unbroken/api/RewardCatalog?q=Rams", undefined],
+    ["GET", "/unbroken/api/RewardAccount?accountId=" + A, undefined],
+    ["POST", "/unbroken/api/RewardGrant", {}],
     ["GET", "/unbroken/api/DiscordKeyStats", undefined],
 
     ["POST", "/unbroken/api/DiscordLink", {DiscordId:'12345678901234567',UserId:A}],

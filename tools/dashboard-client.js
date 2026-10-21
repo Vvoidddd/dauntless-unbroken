@@ -1,5 +1,6 @@
 (() => {
   let key = '', busy = false, lastSample = null, lastWorker = null, lastAus = null, lastGermany = null, lastEu2 = null, accountPage = [], accountOffset = 0, nextOffset = null, accountsBusy = false;
+  window.setupDashboardRewards?.(()=>key,get);
   const el = id => document.getElementById(id);
   const number = (n, suffix = '') => Number.isFinite(n) ? `${n.toFixed(1)}${suffix}` : '—';
   const duration = seconds => Number.isFinite(seconds) && seconds >= 0 ? `${Math.floor(seconds / 86400)}d ${Math.floor(seconds / 3600) % 24}h ${Math.floor(seconds / 60) % 60}m` : '—';
@@ -11,7 +12,7 @@
   body{min-height:100vh;background-repeat:no-repeat;background-attachment:fixed;background:radial-gradient(ellipse at 65% -30%,#252630 0,transparent 55%),#08090b;background-repeat:no-repeat;background-attachment:fixed;color:#f1f1f4;font:14px/1.6 'Segoe UI',system-ui,sans-serif;letter-spacing:.1px}
   header{height:88px;padding:22px 36px;background:#0b0c0ee8;border-bottom:1px solid #ffffff0d;backdrop-filter:blur(20px)}
   header h1{font-size:20px;letter-spacing:-.7px;font-weight:650}.eyebrow{color:#8f929d;font-size:10px;letter-spacing:2px}.badge{color:#b6cfc2;background:#92d9ac08;border-color:#92d9ac22}
-  main{max-width:none;padding:32px 40px}.login{max-width:480px;margin:10vh auto;padding:36px!important}.login h2{font-size:28px;letter-spacing:-1px}
+  main{width:auto;max-width:none;padding:32px 40px}.login{max-width:480px;margin:10vh auto;padding:36px!important}.login h2{font-size:28px;letter-spacing:-1px}
   body:has(#data:not([hidden])) main{margin-left:240px;max-width:1760px}
   .ops-sidebar{position:fixed;left:0;top:88px;bottom:0;width:240px;padding:28px 16px;background:#0c0d10;border-right:1px solid #ffffff0d;display:flex;flex-direction:column;align-items:stretch;gap:20px;overflow-y:auto}
   .ops-sidebar:before{content:'WORKSPACE';padding:0 16px;color:#626570;font-size:10px;letter-spacing:2px}
@@ -30,6 +31,7 @@
   button,input,select{background:#191a20;border-color:#ffffff16;border-radius:9px;padding:10px 14px}button{transition:background .16s,border-color .16s,color .16s}button:hover{background:#24252c;border-color:#ffffff30;box-shadow:none}
   .primary{background:#eeeeef;color:#141419;border-color:#eee}.primary:hover{background:#fff;color:#000}input:focus-visible,button:focus-visible,select:focus-visible,canvas:focus-visible{outline:2px solid #a6a9c4;outline-offset:3px}
   .table-wrap{border:1px solid #ffffff0b;border-radius:12px}table{font-size:12px}th{font-size:10px;text-transform:uppercase;letter-spacing:.7px;background:#ffffff02;color:#787c88}td,th{padding:15px 16px;border-bottom:1px solid #ffffff08}tbody tr:last-child td{border:0}tbody tr:hover{background:#ffffff03}
+  #rewardControls .grid>div{min-width:0}#rewardControls select{max-width:100%;text-overflow:ellipsis}#rewardPreview{overflow-wrap:anywhere}
   canvas{cursor:crosshair;border-radius:8px}pre{background:#090a0d;border:1px solid #ffffff0c}#freshness{color:#7c808d}.footnote{color:#686d79;font-size:11px}.view{animation:ops-enter .18s ease-out}
   @keyframes ops-enter{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:none}}
   @media(min-width:1500px){main{padding:38px 52px}.ops-hero h2{font-size:36px}}
@@ -230,6 +232,7 @@
       const select=document.createElement('button');select.textContent='Manage account';
       select.onclick=()=>{el('accessAccount').value=account.id;el('accessDiscord').value=account.discordId??'';el('moderationAccount').value=account.id;};
       row.children[1].append(document.createTextNode(' '),select);
+      const reward=document.createElement('button');reward.textContent='Give rewards';reward.onclick=()=>window.selectRewardAccount?.(account);row.children[1].append(document.createTextNode(' '),reward);
       if(account.discordId)row.children[2].append(document.createTextNode(' · Discord '+account.discordId));
       const reveal=document.createElement('button');reveal.textContent='Show login key';
       reveal.onclick=async()=>{

@@ -115,14 +115,41 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
     const createInvite = req.method === 'POST' && req.url === '/api/invites';
     const moderate = req.method === 'POST' && req.url === '/api/moderation';
     const accessAction=req.method==='POST' && ['/api/account-access','/api/discord-moderation'].includes(req.url);
-    if (req.method !== 'GET' && !createInvite && !moderate && !accessAction) { res.writeHead(405).end(); return; }
+    const rewardGrant=req.method==='POST'&&req.url==='/api/reward-grant';
+    if (req.method !== 'GET' && !createInvite && !moderate && !accessAction && !rewardGrant) { res.writeHead(405).end(); return; }
     if (Date.now() - windowStart > 60000) { requests = 0; windowStart = Date.now(); }
     if (++requests > 300) { res.writeHead(429).end(); return; }
     if (req.url === '/') { res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.end(page); return; }
     if (req.url === '/dashboard.js') { res.setHeader('Content-Type', 'text/javascript; charset=utf-8'); res.end(await readFile(new URL('./dashboard-client.js', import.meta.url))); return; }
+    if(req.url==='/dashboard-rewards.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(await readFile(new URL('./dashboard-rewards.js',import.meta.url)));return;}
     const supplied = req.headers['x-dashboard-key'];
     if (typeof supplied !== 'string' || !timingSafeEqual(digest(supplied), digest(key))) { res.writeHead(401).end(); return; }
     res.setHeader('Content-Type', 'application/json');
+    if(rewardGrant||req.url?.startsWith('/api/reward-catalog?')||req.url?.startsWith('/api/reward-account?')){
+      try{
+        let body,endpoint;
+        if(rewardGrant){
+          if(req.headers.origin!==`http://${req.headers.host}`){res.writeHead(403).end();return;}
+          if(req.headers['content-type']!=='application/json'){res.writeHead(415).end();return;}
+          let text='';for await(const chunk of req){text+=chunk.toString('utf8');if(Buffer.byteLength(text)>4096){res.writeHead(413).end();return;}}
+          try{body=JSON.parse(text);}catch{res.writeHead(400).end();return;}
+          endpoint=new URL('/unbroken/api/RewardGrant',target);
+        }else{
+          const params=new URL(req.url,'http://localhost').searchParams;
+          if(req.url.startsWith('/api/reward-account?')){
+            const id=params.get('accountId');if(!/^UID-[A-Za-z0-9-]{1,100}$/.test(id??'')){res.writeHead(400).end();return;}
+            endpoint=new URL('/unbroken/api/RewardAccount',target);endpoint.searchParams.set('accountId',id);
+          }else{
+            const q=params.get('q')??'',category=params.get('category')??'';
+            if(q.length>100||category.length>30){res.writeHead(400).end();return;}
+            endpoint=new URL('/unbroken/api/RewardCatalog',target);endpoint.searchParams.set('q',q);endpoint.searchParams.set('category',category);
+          }
+        }
+        const response=await fetcher(endpoint,{method:rewardGrant?'POST':'GET',headers:{'x-dauntless-unbroken-user-api-key':key,'content-type':'application/json'},body:rewardGrant?JSON.stringify(body):undefined,signal:AbortSignal.timeout(30000),redirect:'error'});
+        res.writeHead(response.status).end(JSON.stringify(await response.json()));
+      }catch{res.writeHead(503).end(JSON.stringify({error:'Rewards unavailable. Retry the same request.'}));}
+      return;
+    }
     if(accessAction || req.url?.startsWith('/api/discord-access?') || req.url==='/api/access-log') {
       try {
         let body;

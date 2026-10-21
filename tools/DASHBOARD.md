@@ -56,6 +56,19 @@ counts use its deploy API (every five seconds). Ramsgate and Training are exclud
 
 ## Accounts and layout
 
+**Account rewards** searches accounts and the verified 1.4.4 item catalogue. Select
+the receiving character, reward, quantity and audit reason, then confirm the grant.
+The account directory also has a **Give rewards** button. Supported rewards include
+Rams, Aetherdust, Steel/Gilded Marks, both bounty-token types, cells, transmogs,
+dyes and other cosmetics. Combat equipment and developer/test items are excluded.
+
+Rewards use the inventory transaction core, enforce the game's signed 32-bit limit,
+and skip already-owned cosmetic unlocks. A permanent request receipt prevents
+retries from granting twice, including after temporary inventory receipts expire.
+The account's last 25 grants show the administrator, reason and before/after counts.
+These actions require a direct administrator key and are blocked by the public
+gateway. Players may need to relog to refresh their inventory display.
+
 Overview, Backend health, Players & accounts, Invites and Logs are separate lightweight views
 (plain JavaScript, CSS and canvas; no chart framework or background log streaming).
 The owner-only account directory loads on demand, 100 accounts per page. It shows launcher names,
