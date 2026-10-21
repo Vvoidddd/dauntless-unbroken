@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "e7b15d5941268a7a5660ba41b37ae767d3e688ed",
+      "date": "2026-10-21T21:32:07.951Z",
+      "title": "Latest project updates",
+      "body": "• Avoid reserved Windows ports in launcher network tests\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "3f7a956ab3fe2ebb3960c236bc0c369511b54d43",
       "date": "2026-10-21T21:25:24.257Z",
       "title": "Latest project updates",
