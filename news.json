@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+      "id": "3f7a956ab3fe2ebb3960c236bc0c369511b54d43",
+      "date": "2026-10-21T21:25:24.257Z",
+      "title": "Latest project updates",
+      "body": "• Preserve parties across backend restarts and improve launcher access and news\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    }
+  ]
+}
