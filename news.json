@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "fb7ab26fcb4152d3e2a5f79d626bae7daac0f758",
+      "date": "2026-10-21T22:05:05.275Z",
+      "title": "Latest project updates",
+      "body": "• Keep quiet hunt parties intact and restore chat presence on reconnect\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "01db02dc7e3aac81c62a830c6905a06f66b94f8b",
       "date": "2026-10-21T21:52:25.197Z",
       "title": "Latest project updates",
