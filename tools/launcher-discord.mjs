@@ -75,22 +75,9 @@ export async function syncLauncher({ webhookUrl, messageId, githubToken, create 
   const oldVersion = oldUrl?.match(/\/launcher-v(\d+\.\d+\.\d+)$/)?.[1];
   if (oldVersion && compare(build.version, oldVersion) < 0) return { action: 'skipped', reason: 'older than announced build' };
   if (oldUrl === build.page) return { action: 'unchanged', messageId, version: build.version };
-  const download = await send(webhook.href + '?wait=true&with_components=true', 'POST', {
-    username: BRAND, avatar_url: ICON, allowed_mentions: { parse: [] },
-    content: `🚀 **Launcher ${build.version} is published**\n[Download Setup.exe](${build.installer.browser_download_url}) · [Release notes](${build.page})\nUpdate the launcher, then fully restart the game.`,
-    components: payload.components,
-  });
-  try {
-    const { username, avatar_url, ...edit } = payload;
-    await send(messageUrl + '?with_components=true', 'PATCH', edit);
-  } catch (error) {
-    // Keep a retry from announcing the same installer again after a definite edit failure.
-    const state = await json(messageUrl).catch(() => null);
-    if (state?.embeds?.[0]?.url === build.page) return { action: 'updated', messageId, downloadMessageId: download.id, version: build.version };
-    await json(`${webhook.href}/messages/${download.id}`, { method: 'DELETE' }).catch(() => {});
-    throw error;
-  }
-  return { action: 'updated', messageId, downloadMessageId: download.id, version: build.version };
+  const { username, avatar_url, ...edit } = payload;
+  await send(messageUrl + '?with_components=true', 'PATCH', edit);
+  return { action: 'updated', messageId, version: build.version };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

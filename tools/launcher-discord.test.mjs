@@ -60,11 +60,11 @@ test('bootstrap creates exactly one current-version embed with components enable
   assert.ok(state.calls.at(-1).url.includes('wait=true&with_components=true'));
 });
 
-test('a new published launcher posts one installer link, edits the same embed, and reruns do not duplicate', async () => {
+test('a new published launcher only edits the existing message, and reruns do not duplicate', async () => {
   const state = mock();
   const result = await syncLauncher({ webhookUrl, messageId, request: state.request });
   assert.equal(result.action, 'updated');
-  assert.equal(state.calls.filter(c => c.method === 'POST').length, 1);
+  assert.equal(state.calls.filter(c => c.method === 'POST').length, 0);
   assert.equal(state.calls.filter(c => c.method === 'PATCH').length, 1);
   assert.ok(state.calls.find(c => c.method === 'PATCH').url.includes('/messages/' + messageId));
   const calls = state.calls.length;
@@ -80,10 +80,11 @@ test('same-version CI completions and older releases cannot send announcements',
   }
 });
 
-test('a definite summary-edit failure removes the newly posted installer announcement', async () => {
+test('an edit failure never posts a replacement or deletes the existing message', async () => {
   const state = mock({ failEdit: true });
   await assert.rejects(syncLauncher({ webhookUrl, messageId, request: state.request }), /HTTP 500/);
-  assert.equal(state.calls.filter(c => c.method === 'DELETE').length, 1);
+  assert.equal(state.calls.filter(c => c.method === 'POST').length, 0);
+  assert.equal(state.calls.filter(c => c.method === 'DELETE').length, 0);
 });
 
 test('bad configuration fails before network requests, and transport errors do not expose the webhook', async () => {
