@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { IsAccountIdShape } from './login';
-import { MEMBER_TIMEOUT_MS, PartyMembershipSnapshot, RestorePartyMembership } from './party';
+import { MEMBER_TIMEOUT_MS, PartyMembershipSnapshot, PartyRecoverySummary, RestorePartyMembership } from './party';
 import { logger } from '../logger';
 
 const Uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -24,7 +24,7 @@ export function RestorePartyFile(File: string, Now = Date.now()): void {
 }
 
 export function SavePartyFile(File: string): void {
-    const Raw = JSON.stringify({at: Date.now(), parties: PartyMembershipSnapshot()});
+    const Raw = JSON.stringify({at: Date.now(), recovery: PartyRecoverySummary(), parties: PartyMembershipSnapshot()});
     if(Buffer.byteLength(Raw) > 4 * 1024 * 1024) throw Error('party checkpoint exceeds limit');
     fs.writeFileSync(File + '.tmp', Raw, {mode: 0o600});
     fs.renameSync(File + '.tmp', File);
