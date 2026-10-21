@@ -41,7 +41,9 @@ test('UDP readiness detects a bound port and waits for a listener when no marker
     const reserve = createSocket('udp4');
     await new Promise<void>((resolve, reject) => {
         reserve.once('error', reject);
-        reserve.bind(0, '127.0.0.1', () => resolve());
+        // Reserve the same wildcard address IsUdpPortBound probes. A port free only
+        // on loopback can still conflict with a listener on another local address.
+        reserve.bind(0, '0.0.0.0', () => resolve());
     });
     const port = (reserve.address() as { port: number }).port;
     await new Promise<void>(resolve => reserve.close(() => resolve()));
