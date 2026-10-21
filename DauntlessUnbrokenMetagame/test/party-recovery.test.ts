@@ -21,6 +21,9 @@ it('recovers membership across restart without replaying travel, rejects expired
     ResetPartiesForTests(); RestorePartyFile(File);
     assert.deepEqual(GetPartyOf(B)?.Members,[A,B]); assert.equal(GetPartyOf(A)?.LeaderId,A);
     assert.equal(GetPartyOf(A)?.Candidate,null);
+    const quiet=JSON.parse(fs.readFileSync(File,'utf8'));quiet.parties[0].Seen[1]-=600000;
+    fs.writeFileSync(File,JSON.stringify(quiet));ResetPartiesForTests();RestorePartyFile(File);
+    assert.deepEqual(GetPartyOf(B)?.Members,[A,B],'fresh checkpoint preserves quiet hunt members while native reporting resumes');
     ResetPartiesForTests(); RestorePartyFile(File, Date.now()+121000); assert.equal(GetPartyOf(A),undefined);
     const raw=JSON.parse(fs.readFileSync(File,'utf8')); raw.parties[0].Members.push(A);
     fs.writeFileSync(File,JSON.stringify(raw)); RestorePartyFile(File); assert.equal(GetPartyOf(A),undefined);

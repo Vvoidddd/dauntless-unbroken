@@ -18,8 +18,8 @@ import { IsBlockedEitherWay, SetBlockHook } from "./friends";
 // invite a player again for DECLINE_COOLDOWN_MS after that player declined them. A block drops
 // the invites between the two, and invites between blocked players are never listed.
 //
-// Members that stop polling and stop sending heartbeats for MEMBER_TIMEOUT_MS are dropped,
-// and the next member (join order) becomes leader if the leader drops.
+// Quiet hunt clients retain membership. Explicit leave/kick and wholly idle group cleanup
+// control membership; leader recovery transfers control without dropping the former leader.
 
 export const MAX_PARTY_SIZE = 4;
 export const INVITE_TTL_MS = 5 * 60 * 1000;
@@ -34,6 +34,7 @@ export const CANDIDATE_MAX_AGE_MS = 5 * 60 * 1000;
 export const LAST_CANDIDATE_REJOIN_MS = 15 * 60 * 1000;
 // A party of one nobody has heard from in this long is forgotten (memory only)
 export const IDLE_PARTY_MS = 30 * 60 * 1000;
+export const IDLE_GROUP_MS = 2 * 60 * 60 * 1000;
 export const MAX_INVITES_PER_PARTY = 8;
 export const MAX_INVITES_PER_RECIPIENT = 10;
 export const MAX_STATUS_PLAYER_IDS = 16;
@@ -118,8 +119,9 @@ export function RestorePartyMembership(Rows: ReturnType<typeof PartyMembershipSn
     const Now = Clock();
     for(const Row of Rows){
         if(Row.Members.some(id => PartyIdByUser.has(id))) continue;
-        const Members = Row.Members.filter((id, i) => Now - Row.Seen[i] <= MEMBER_TIMEOUT_MS);
-        if(Members.length < 2) continue;
+        // A fresh checkpoint already proves membership; quiet hunt clients may
+        // not have polled recently. Let their native connection feed resume first.
+        const Members = Row.Members;
         const Party: Party = {PartyId: Row.PartyId, LeaderId: Members.includes(Row.LeaderId) ? Row.LeaderId : Members[0],
             Members, CreatedAt: Row.CreatedAt, Candidate: null, LastCandidate: null};
         PartiesById.set(Party.PartyId, Party);
@@ -281,34 +283,14 @@ function ExpireCandidate(TheParty: Party){
     }
 }
 
-// Drops members of a party of 2+ that nobody has heard from (never the caller, and never
-// the last one: a party of one is only forgotten after IDLE_PARTY_MS), then expires the
-// candidate
+// Do not transfer leadership while a player is still travelling into the hunt.
 function IsLoadingHunt(TheParty: Party, Member: string){
     const Candidate = TheParty.Candidate ?? TheParty.LastCandidate;
     return Candidate?.Served.has(Member) && Candidate.LastServedAt !== undefined && Clock() - Candidate.LastServedAt < 5 * 60 * 1000;
 }
-
+// Quiet HTTP/chat during a hunt is not proof that a member disconnected.
+// Retain membership until explicit leave/kick; expire wholly abandoned groups below.
 function Refresh(TheParty: Party, Caller?: string){
-    if(TheParty.Members.length >= 2){
-        for(const Member of [...TheParty.Members]){
-            if(TheParty.Members.length < 2){
-                break;
-            }
-
-            if(Member === Caller){
-                continue;
-            }
-
-            const Ago = SeenAgo(Member);
-
-            if(Ago > MEMBER_TIMEOUT_MS && !IsLoadingHunt(TheParty, Member)){
-                logger.info(`party: swept ${Member} from P=${TheParty.PartyId}: not seen for ${Seconds(Ago)} (by=${Caller ?? "sweep"})`);
-                RemoveMember(TheParty, Member, "the leader was not seen");
-            }
-        }
-    }
-
     ExpireCandidate(TheParty);
 }
 
@@ -352,6 +334,10 @@ function GlobalSweep(){
                 PartiesById.delete(TheParty.PartyId);
                 PartyIdByUser.delete(TheParty.Members[0]);
             }
+        }
+        else if(TheParty.Members.every(Member => SeenAgo(Member) > IDLE_GROUP_MS)){
+            PartiesById.delete(TheParty.PartyId);
+            for(const Member of TheParty.Members) PartyIdByUser.delete(Member);
         }
         else{
             Refresh(TheParty);
@@ -800,9 +786,8 @@ export function PromotePartyMember(CallerId: string, MemberId: string): PartyAct
     return { Status: 200, Body: {} };
 }
 
-// DELETE /party/leader/:leaderId: only the client's auto-eviction of an offline leader sends
-// this. Presence never reports anyone offline here, so it is honoured only when the metagame
-// has not heard from the leader for MEMBER_TIMEOUT_MS either. Always 200 {}.
+// The client's offline-leader recovery request. Once the loading grace has passed,
+// an active member can take leadership without evicting the former leader. Always 200 {}.
 export function EvictPartyLeader(CallerId: string, LeaderId: string): PartyActionResult {
     TouchPlayer(CallerId);
 
@@ -816,8 +801,9 @@ export function EvictPartyLeader(CallerId: string, LeaderId: string): PartyActio
     const Ago = SeenAgo(LeaderId);
 
     if(Ago > MEMBER_TIMEOUT_MS && !IsLoadingHunt(TheParty, LeaderId)){
-        RemoveMember(TheParty, LeaderId, "the leader was not seen");
-        logger.info(`party: leader ${LeaderId} removed by=${CallerId}: not seen for ${Seconds(Ago)}; ${Describe(TheParty)}`);
+        // Give the active caller leadership without discarding a quiet hunt member.
+        TheParty.LeaderId = CallerId;
+        logger.info(`party: leadership passed to ${CallerId}; retained ${LeaderId} in P=${TheParty.PartyId}`);
     }
     else{
         logger.info(`party: leader eviction of ${LeaderId} by=${CallerId} ignored: seen ${Seconds(Ago)} ago`);

@@ -523,3 +523,16 @@ it('authenticated chat keepalives preserve party activity during long hunts with
     await Alice.Barrier(); assert.equal(SeenWithinMs(A,120000),true);
   } finally { SetPartyClockForTests(); }
 });
+
+it('bound reconnects become visible without a new broadcast, while explicit unavailable stays unavailable',async()=>{
+  Befriend(A,B);
+  const Alice=await Online(A),Bob=await Online(B);
+  await Frames(Alice);await Frames(Bob);
+  Now+=5001;Server.Tick();
+  const a=await Frames(Alice),b=await Frames(Bob);
+  assert.ok(a.some(p=>p.From===Jid(Bob)&&p.Type!=='unavailable'));
+  assert.ok(b.some(p=>p.From===Jid(Alice)&&p.Type!=='unavailable'));
+  Alice.Send('<presence type="unavailable"/>');await Frames(Alice);await Frames(Bob);
+  Now+=5001;Server.Tick();
+  assert.deepEqual(await Frames(Bob),[],'an explicit offline state is never overridden');
+});

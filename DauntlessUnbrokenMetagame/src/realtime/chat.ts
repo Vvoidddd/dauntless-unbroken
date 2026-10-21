@@ -135,6 +135,8 @@ export type ChatSession = {
     // CHAT_PRESENCE=1: the last broadcast presence, what friends were last told of it, and held-back changes
     // (realtime/presence.ts)
     LastPresence?: ClientPresence,
+    BoundAt?: number,
+    PresenceSeen?: boolean,
     Shown?: ClientPresence,
     CatchUpDue?: boolean,
     PresenceTokens: Bucket,
@@ -842,6 +844,7 @@ export class ChatServer {
         }
 
         Session.Resource = Resource;
+        Session.BoundAt = this.clock();
         this.byUid.set(Uid, [...(this.byUid.get(Uid) ?? []), Session]);
         logger.info(`chat: bound c=${Session.Id} uid=${Uid} resource=${Resource} domain=${Session.Domain} sessions=${this.byUid.get(Uid)!.length}`);
         this.send(Session, `<iq xmlns="${NS.CLIENT}" type="result" id="${EscapeXml(Id)}"><bind xmlns="${NS.BIND}"><jid>${EscapeXml(FullJidOf(Session))}</jid></bind></iq>`);

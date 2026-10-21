@@ -53,6 +53,8 @@ export type PresenceSession = {
     // The client's latest broadcast (undefined: none yet, or it said unavailable). A session with one hears
     // its friends' changes.
     LastPresence?: ClientPresence,
+    BoundAt?: number,
+    PresenceSeen?: boolean,
     // What its friends were last told (undefined: offline to them). Differs from LastPresence while a
     // change is held back.
     Shown?: ClientPresence,
@@ -277,6 +279,7 @@ export class FriendPresence {
             return;
         }
 
+        Session.PresenceSeen = true;
         const Show = TextOf(ChildNamed(Node, "show")).trim();
         let Status = TextOf(ChildNamed(Node, "status"));
 
@@ -304,6 +307,7 @@ export class FriendPresence {
     // like any other change when it comes too often), or the end of the session (sent at once; by then it
     // is no longer among the account's sessions)
     Unavailable(Session: PresenceSession, Why: string): void {
+        Session.PresenceSeen = true;
         if(Session.Uid === undefined || Session.Resource === undefined || (Session.LastPresence === undefined && Session.Shown === undefined)){
             return;
         }
@@ -328,6 +332,11 @@ export class FriendPresence {
         const Now = this.host.Clock();
 
         for(const Session of this.host.Sessions()){
+            // Some reconnecting clients do not rebroadcast their unchanged presence.
+            // A bound, authenticated socket is online; wait briefly for the richer client state.
+            if(IsOnline(Session) && Session.BoundAt !== undefined && !Session.PresenceSeen && Now - Session.BoundAt >= 5000){
+                this.Broadcast(Session, new Element('presence'));
+            }
             if(Session.PresencePending && IsOnline(Session) && TakeToken(Session.PresenceTokens, PRESENCE_BURST, PRESENCE_REFILL_MS, Now)){
                 this.flush(Session);
             }

@@ -343,19 +343,16 @@ describe("T4: members who stay, and members who vanish", () => {
         assert.deepEqual(GetPartyOf(A)?.Members, [A, B]);
     });
 
-    it("a member nobody has heard from for 120 s is dropped; a vanished leader is replaced", async () => {
+    it("retains quiet hunt members and transfers an unresponsive leader without evicting anyone", async () => {
         await FormParty(A, B, C);
-
-        Advance(100);
-        await PollParty(A);
-        await PollParty(B);
-        Advance(30);
-        assert.deepEqual((await PollParty(A) as any).playerIds, [A, B], "C dropped after 130 s");
-
+        Advance(100); await PollParty(A); await PollParty(B); Advance(30);
+        assert.deepEqual((await PollParty(A) as any).playerIds, [A, B, C]);
         Advance(121);
         assert.equal(EvictPartyLeader(B, A).Status, 200);
-        assert.deepEqual(GetPartyOf(B)?.Members, [B], "A, not heard from for 121 s, evicted on B's request");
-        assert.equal(GetPartyOf(A), undefined);
+        assert.deepEqual(GetPartyOf(B)?.Members, [A,B,C]);
+        assert.equal(GetPartyOf(B)?.LeaderId,B);
+        assert.equal(KickPartyMember(B,A).Status,200);
+        assert.deepEqual(GetPartyOf(B)?.Members,[B,C],'the active leader can explicitly remove an offline member');
     });
 });
 
@@ -672,19 +669,18 @@ describe("one queued join per player", () => {
     });
 });
 
-it('a travelling party member survives the heartbeat gap, but the grace is bounded', async () => {
+it('a travelling party survives long quiet hunts and cleanup remains bounded for abandoned groups', async () => {
     await FormParty(A,B);
     await HandlePlayerMatchmaking('ISLAND','',HUNT,A);
-    await WaitForCandidateKind(A,'travel');
-    await WaitForCandidateKind(B,'travel');
-    Advance(121);
-    await PollParty(B);
-    assert.equal(GetPartyOf(B)?.LeaderId,A);
-    EvictPartyLeader(B,A);
-    assert.equal(GetPartyOf(B)?.LeaderId,A);
-    Advance(181);
-    await PollParty(B);
-    assert.equal(GetPartyOf(B)?.LeaderId,B);
+    await WaitForCandidateKind(A,'travel'); await WaitForCandidateKind(B,'travel');
+    Advance(121); await PollParty(B); EvictPartyLeader(B,A);
+    assert.equal(GetPartyOf(B)?.LeaderId,A,'loading protection still applies');
+    Advance(181); await PollParty(B);
+    assert.deepEqual(GetPartyOf(B)?.Members,[A,B]);
+    EvictPartyLeader(B,A); assert.equal(GetPartyOf(B)?.LeaderId,B);
+    assert.deepEqual(GetPartyOf(B)?.Members,[A,B]);
+    Advance(7201); await PollParty(D);
+    assert.equal(GetPartyOf(A),undefined); assert.equal(GetPartyOf(B),undefined,'an entirely inactive group is eventually forgotten');
 });
 
 it('duplicate tutorial joins share one allocation and the immediate retry keeps that allocation', async () => {
