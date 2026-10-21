@@ -2,6 +2,20 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {payload, Publisher, sampleBackend, webhookUrl} from './discord-status.mjs';
 import {sampleFleet, sampleLocalCapacity, applyLocalCapacity} from './discord-status.mjs';
+import {publicWatchdog} from './discord-status.mjs';
+
+test('watchdog publishes only fresh aggregate health and approved service labels',()=>{
+ const now=Date.now(), raw={at:new Date(now).toISOString(),retired:3,errors:0,tasks:[{name:'Dauntless Unbroken key bot',state:'Running'},{name:'Dauntless Unbroken private tunnel',state:'Ready'},{name:'SECRET',state:'Running'}],hunts:[{port:8770}],token:'SECRET'};
+ const projected=publicWatchdog(raw,now);
+ assert.deepEqual(projected,{at:now,retired:3,errors:0,services:{'Key bot':true,'Private link':false}});
+ assert.equal(publicWatchdog(raw,now+45001),null);
+ assert.equal(publicWatchdog({...raw,retired:-1},now),null);
+ assert.equal(publicWatchdog({...raw,at:new Date(now+6000).toISOString()},now),null);
+ const body=payload({players:1,uptime:10,ms:1},now,{online:1,servers:1,knownHunts:0,hunts:0,rows:[{id:2,online:true,watchdog:projected,backup:raw.at}]});
+ assert.equal(body.embeds[0].color,0xe1a349);
+ assert.ok(!JSON.stringify(body).includes('SECRET'));
+ assert.match(JSON.stringify(body),/Last verified DB copy/);
+});
 
 test('four-server fleet remains visible when one monitor is stale', async () => {
  const row={at:new Date().toISOString(),online:true,cpu:50,ramUsedMB:1024,ramTotalMB:4096,hunts:2};

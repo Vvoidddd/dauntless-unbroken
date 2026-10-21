@@ -2,6 +2,19 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {processSample,startWorkerHealth} from './worker-health.mjs';
 import {startDashboard} from './dashboard.mjs';
+import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+
+test('storage monitor reads the watchdog report with Windows UTF-8 BOM',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'unbroken-watchdog-'));
+ await mkdir(join(root,'watchdog'));
+ const report={at:new Date().toISOString(),retired:2,errors:0,tasks:[{name:'Dauntless Unbroken key bot',state:'Running'}]};
+ await writeFile(join(root,'watchdog/health.json'),'\uFEFF'+JSON.stringify(report));
+ const server=await startWorkerHealth({root,port:0,storageOnly:true,collect:async()=>({at:report.at,processes:[],receivedBytes:0,sentBytes:0}),fetcher:async()=>Response.json({})});
+ try {const result=await(await fetch(`http://127.0.0.1:${server.address().port}/health`)).json();assert.deepEqual(result.watchdog,report);assert.equal(result.role,'key-bot-storage');}
+ finally {await new Promise(resolve=>server.close(resolve));await rm(root,{recursive:true,force:true});}
+});
 
 test('worker process CPU uses whole-host percentage and excludes reused PIDs',()=>{
   const old={at:'2026-01-01T00:00:00Z',receivedBytes:1000,sentBytes:1000,processes:[{pid:7,startedAt:'old',cpuSeconds:10}]};

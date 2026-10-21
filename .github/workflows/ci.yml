@@ -408,6 +408,10 @@ jobs:
         working-directory: DauntlessUnbrokenGateway
         run: npm ci --no-audit --no-fund
 
+      - name: Fleet watchdog safety regressions
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy/windows-server/Test-FleetWatchdog.ps1
+
+
       - name: Unit checks (Test-KitUnit.ps1)
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-KitUnit.ps1 -WorkDir "$env:RUNNER_TEMP\dr-kit-unit"
 
@@ -449,7 +453,7 @@ jobs:
 
       # sync-roadmap first: build-llms reads the roadmap page it writes.
       - name: Performance and launcher announcement tests
-        run: node --test tools/summarize-performance.test.mjs tools/dashboard.test.mjs tools/discord-status.test.mjs tools/launcher-discord.test.mjs
+        run: node --test tools/summarize-performance.test.mjs tools/dashboard.test.mjs tools/discord-status.test.mjs tools/launcher-discord.test.mjs tools/worker-health.test.mjs
 
       - name: Generated files are current (docs/roadmap.md, docs/llms.txt, docs/llms-full.txt)
         run: |
