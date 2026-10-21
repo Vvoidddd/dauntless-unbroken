@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "4869c79b0f0177600839bc8ded0bc4131ebd1ef8",
+      "date": "2026-10-21T21:41:30.184Z",
+      "title": "Latest project updates",
+      "body": "• Protect recovered parties from automatic reconnect cleanup\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "e7b15d5941268a7a5660ba41b37ae767d3e688ed",
       "date": "2026-10-21T21:32:07.951Z",
       "title": "Latest project updates",
