@@ -51,6 +51,8 @@ interface StoredKey {
 export class KeyStore {
   // One launcher process owns this store; serialize its infrequent key mutations.
   private pending: Promise<void> = Promise.resolve();
+  private recoveryPending: Promise<void> = Promise.resolve();
+  private recoveryQueued = new Map<string,string>();
   constructor(private readonly dir: string, private readonly crypto: Encryptor, private readonly recoveryDir?: string) {}
 
   private update<T>(work: () => Promise<T>): Promise<T> {
@@ -71,7 +73,15 @@ export class KeyStore {
     } catch {
       if (!this.recoveryDir) return null;
       try {
-        data = await fsp.readFile(path.join(this.recoveryDir, `${serverId(slot.host, slot.port, slot.mode)}.txt`));
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          const found = await Promise.race([
+            this.recoveryPending.then(() => fsp.readFile(path.join(this.recoveryDir!, `${serverId(slot.host, slot.port, slot.mode)}.txt`))),
+            new Promise<null>(resolve => { timer=setTimeout(()=>resolve(null),1500); }),
+          ]);
+          if (!found) return null;
+          data=found;
+        } finally { clearTimeout(timer); }
         recovery = true;
       } catch { return null; }
     }
@@ -110,12 +120,25 @@ export class KeyStore {
     const fp = slot.mode === "public" ? (slot.fp as string) : "-";
     await fsp.writeFile(tmp, this.crypto.encrypt(`${FORMAT}\n${fp}\n${key}`));
     await fsp.rename(tmp, target);
-    if (this.recoveryDir) try {
-      await fsp.mkdir(this.recoveryDir, { recursive: true });
-      const backup = path.join(this.recoveryDir, `${serverId(slot.host, slot.port, slot.mode)}.txt`);
-      await fsp.writeFile(`${backup}.tmp`, `${FORMAT}\n${fp}\n${key}`, { mode: 0o600 });
-      await fsp.rename(`${backup}.tmp`, backup);
-    } catch { log.warn("Automatic Documents account backup could not be written"); }
+    this.queueRecovery(slot,key,slot.mode==='public'?slot.fp:null);
+  }
+
+  // A redirected/cloud Documents folder must not hold the local key mutation queue.
+  private queueRecovery(slot:KeySlot,key:string,fp:string|null):void {
+    if (!this.recoveryDir) return;
+    const id=serverId(slot.host,slot.port,slot.mode),text=`${FORMAT}\n${fp??'-'}\n${key}`;
+    const identity=createHash('sha256').update(text).digest('hex');
+    if(this.recoveryQueued.get(id)===identity)return;
+    this.recoveryQueued.set(id,identity);
+    this.recoveryPending=this.recoveryPending.then(async()=>{
+      await fsp.mkdir(this.recoveryDir!,{recursive:true});
+      const backup=path.join(this.recoveryDir!,`${id}.txt`);
+      await fsp.writeFile(`${backup}.tmp`,text,{mode:0o600});
+      await fsp.rename(`${backup}.tmp`,backup);
+    }).catch(()=>{
+      if(this.recoveryQueued.get(id)===identity)this.recoveryQueued.delete(id);
+      log.warn('Automatic Documents account backup could not be written');
+    });
   }
 
   // The key for this slot, or null. A public server's key is returned only for the exact
@@ -126,15 +149,12 @@ export class KeyStore {
     if (!stored) return null;
     if (slot.mode === "public" && (slot.fp === null || stored.fp !== slot.fp)) return null;
     addSecret(stored.key);
-    if (this.recoveryDir) {
-      const backup = path.join(this.recoveryDir, `${serverId(slot.host, slot.port, slot.mode)}.txt`);
-      await this.update(async () => {
-        // A replacement, rebind or removal may have happened since the initial read.
-        const current = await this.read(slot);
-        if (!current || current.key !== stored.key || current.fp !== stored.fp) return;
-        await fsp.access(backup).catch(() => this.write(slot, stored.key));
-      }).catch(() => log.warn("Automatic Documents account backup unavailable"));
-    }
+    // Queue under the primary mutation lock so a concurrent removal/rebind cannot
+    // enqueue an old identity after its replacement or cleanup.
+    if (this.recoveryDir) void this.update(async()=>{
+      const current=await this.read(slot);
+      if(current?.key===stored.key&&current.fp===stored.fp)this.queueRecovery(slot,stored.key,stored.fp);
+    }).catch(()=>log.warn('Automatic Documents account backup unavailable'));
     return stored.key;
   }
 
@@ -161,8 +181,10 @@ export class KeyStore {
     return this.update(async () => {
       const stored = await this.read(slot).catch(() => null);
       if (stored) removeSecret(stored.key);
+      await this.recoveryPending;
       await fsp.unlink(this.file(slot)).catch(() => undefined);
       if (this.recoveryDir) await fsp.unlink(path.join(this.recoveryDir, `${serverId(slot.host, slot.port, slot.mode)}.txt`)).catch(() => undefined);
+      this.recoveryQueued.delete(serverId(slot.host,slot.port,slot.mode));
     });
   }
 }

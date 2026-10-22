@@ -2,7 +2,7 @@
 
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, promises as fs } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { KeyStore, KeyStoreError, serverId, type Encryptor, type KeySlot } from "../src/main/keystore";
@@ -30,6 +30,12 @@ const KEY = "UUK_" + "ab".repeat(24);
 const FP_A = "a1".repeat(32);
 const FP_B = "b2".repeat(32);
 const pub = (fp: string | null): KeySlot => ({ host: "203.0.113.10", port: 443, mode: "public", fp });
+
+async function waitRecovery(dir:string,key:string):Promise<void>{
+  const file=path.join(dir,`${serverId('203.0.113.10',443,'public')}.txt`),until=Date.now()+3000;
+  for(;;){try{if(readFileSync(file,'utf8').endsWith('\n'+key))return;}catch{}
+    assert.ok(Date.now()<until,'recovery copy did not finish');await new Promise(r=>setTimeout(r,10));}
+}
 
 test("a public key loads only for the certificate it was saved with", async () => {
   const { ks } = store();
@@ -84,6 +90,7 @@ test("Documents recovery survives lost local key storage and keeps certificate b
   const primary = path.join(dir, "local");
   const ks = new KeyStore(primary, enc, recovery);
   await ks.save(pub(FP_A), KEY);
+  await waitRecovery(recovery,KEY);
   rmSync(primary, {recursive:true, force:true});
   const restored = new KeyStore(primary, enc, recovery);
   assert.equal(await restored.load(pub(FP_B)), null);
@@ -98,6 +105,7 @@ test("concurrent key saves finish in order and keep recovery consistent", async 
   const replacement = 'UUK_' + 'cd'.repeat(24);
   await Promise.all([ks.save(pub(FP_A), KEY), ks.save(pub(FP_A), replacement)]);
   assert.equal(await ks.load(pub(FP_A)), replacement);
+  await waitRecovery(path.join(dir,'Documents'),replacement);
   rmSync(path.join(dir, 'local'), {recursive:true, force:true});
   assert.equal(await ks.load(pub(FP_A)), replacement);
 });
@@ -106,6 +114,19 @@ test("removing a key during a pending save cannot resurrect it", async () => {
   const {ks} = store();
   await Promise.all([ks.save(pub(FP_A), KEY), ks.remove(pub(FP_A))]);
   assert.equal(await ks.load(pub(FP_A)), null);
+});
+
+test('a stalled Documents backup does not block the saved local key and removal waits for the copy',async t=>{
+  const {dir}=store(),recovery=path.join(dir,'Documents'),ks=new KeyStore(path.join(dir,'local'),enc,recovery);
+  const mkdir=fs.mkdir;let release!:()=>void;const gate=new Promise<void>(r=>{release=r;});
+  t.mock.method(fs,'mkdir',async(...args:Parameters<typeof fs.mkdir>)=>{if(String(args[0])===recovery)await gate;return mkdir(...args);});
+  const save=ks.save(pub(FP_A),KEY);
+  try{
+    assert.equal(await Promise.race([save.then(()=>true),new Promise<boolean>(r=>setTimeout(()=>r(false),300))]),true,'local save must not wait for Documents');
+    assert.equal(await ks.load(pub(FP_A)),KEY);
+    const remove=ks.remove(pub(FP_A));release();await remove;
+    assert.equal(await ks.load(pub(FP_A)),null,'a late backup must not resurrect the removed key');
+  }finally{release();await save;}
 });
 
 test("a rejected save does not block later valid key changes", async () => {

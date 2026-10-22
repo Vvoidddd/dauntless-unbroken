@@ -199,6 +199,8 @@ export class Controller {
   private discovering = false;
   private detectedDirs: string[] = [];
   private desktopBackups = new Map<string, string>();
+  private desktopBackupTasks = new Map<string,{key:string;task:Promise<void>}>();
+
   private install: InstallInfo = { present: 0, missing: [], partFiles: 0, dllsOk: false };
   private freeSpace: number | null = null;
   private task: TaskProgress | null = null;
@@ -644,7 +646,7 @@ export class Controller {
     const info = await fetchUserInfo(ep, key);
     if (info.ok) {
       this.keyRejected = false;
-      await this.backupToDesktop(slot, key, info.info.username);
+      void this.backupToDesktop(slot, key, info.info.username);
       void this.refreshServerPlaytime();
       if (this.s.usernames[sid] !== info.info.username) {
         await this.settings.update((s) => {
@@ -881,10 +883,15 @@ export class Controller {
         return err(res.error);
       }
       // Preserve the one-use registration result even if the OS key store fails.
-      await this.backupToDesktop(slot, res.key, username as string);
+      const desktopBackup = this.backupToDesktop(slot, res.key, username as string);
       try {
         await this.keys.save(slot, res.key);
       } catch (e) {
+        // Give a fast fallback copy time to finish, without hanging on cloud storage.
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try { await Promise.race([desktopBackup,new Promise<void>(resolve=>{timer=setTimeout(resolve,1500);})]); }
+        finally { clearTimeout(timer); }
+
         log.error(`could not store the key: ${describeError(e)}`);
         this.lastError = { code: "key_storage_unavailable" };
         return err("key_storage_unavailable");
@@ -894,7 +901,7 @@ export class Controller {
         s.usernames[sid] = username as string;
         delete s.backupOffered[sid];
       });
-      await this.backupToDesktop(slot, res.key, username as string);
+      void this.backupToDesktop(slot, res.key, username as string);
       this.hasKey = true;
       this.keyRejected = false;
       this.statusGen++;
@@ -960,7 +967,7 @@ export class Controller {
     this.hasKey = true;
     this.keyRejected = false;
     this.statusGen++;
-    await this.backupToDesktop(slot, key, info.info.username);
+    void this.backupToDesktop(slot, key, info.info.username);
     log.info(`using an existing key for ${info.info.username}`);
     void this.refreshServerPlaytime();
     await this.inspectInstall();
@@ -968,23 +975,35 @@ export class Controller {
     return OK;
   }
 
-  private async backupToDesktop(slot: KeySlot, key: string, username: string): Promise<void> {
+  private backupToDesktop(slot: KeySlot, key: string, username: string): Promise<void> {
     const sv = this.s.server;
-    if (!this.p.desktopDir || !sv) return;
+    if (!this.p.desktopDir || !sv) return Promise.resolve();
     const sid = serverId(slot.host, slot.port, slot.mode);
-    if (this.sid() !== sid || sv.fp !== slot.fp) return;
-    try {
-      const file = await saveDesktopKey(this.p.desktopDir, { key, username, serverName: sv.name,
-        host: slot.host, port: slot.port, fingerprint: slot.fp, date: new Date() });
-      this.desktopBackups.set(sid, file);
-      if (!this.s.backupOffered[sid]) await this.settings.update(s => { s.backupOffered[sid] = true; });
-    } catch {
-      this.desktopBackups.delete(sid);
-      log.warn("Automatic Desktop account key save unavailable; use Save key backup");
-      await this.settings.update(s => { delete s.backupOffered[sid]; });
-    }
+    if (this.sid() !== sid || sv.fp !== slot.fp) return Promise.resolve();
+    const pending=this.desktopBackupTasks.get(sid);
+    if(pending?.key===key)return pending.task;
+    const job={key,task:Promise.resolve()};
+    const current=()=>this.desktopBackupTasks.get(sid)===job&&this.sid()===sid&&this.s.server?.fp===slot.fp;
+    job.task=(async()=>{
+      try {
+        const file = await saveDesktopKey(this.p.desktopDir!, { key, username, serverName: sv.name,
+          host: slot.host, port: slot.port, fingerprint: slot.fp, date: new Date() });
+        if(!current())return;
+        this.desktopBackups.set(sid, file);
+        if (!this.s.backupOffered[sid]) await this.settings.update(s => { s.backupOffered[sid] = true; });
+      } catch {
+        if(!current())return;
+        this.desktopBackups.delete(sid);
+        log.warn('Automatic Desktop account key save unavailable; use Save key backup');
+        await this.settings.update(s => { delete s.backupOffered[sid]; });
+      }
+    })().catch(()=>log.warn('Automatic Desktop account backup unavailable')).finally(()=>{
+      if(this.desktopBackupTasks.get(sid)===job)this.desktopBackupTasks.delete(sid);
+      this.publish();
+    });
+    this.desktopBackupTasks.set(sid,job);
+    return job.task;
   }
-
   async saveKeyBackup(): Promise<ActionResult> {
     const sv = this.s.server;
     const slot = this.slot();

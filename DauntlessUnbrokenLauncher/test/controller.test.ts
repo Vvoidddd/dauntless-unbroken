@@ -11,7 +11,7 @@ import http from "node:http";
 import https from "node:https";
 import net from "node:net";
 import { EventEmitter } from "node:events";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, promises as fs } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { OFFLINE_REQUIRED_AVAILABLE_BYTES } from "../src/main/offline-memory";
@@ -208,6 +208,25 @@ test('a pasted PC backup signs a fresh Steam Deck into the same realm without a 
   const bad=await hx.c.useExistingKey(text.replace(cert.fingerprint,'invalid'));
   assert.ok(!bad.ok); assert.equal(hx.last().account.username,username);
   await hx.c.shutdown();
+});
+
+test('a stalled Desktop folder cannot hold registration or account-key import on PLEASE WAIT',async t=>{
+  const desktop=temp('stalled-desktop-'),open=fs.open;
+  let release!:()=>void;const gate=new Promise<void>(r=>{release=r;});
+  t.mock.method(fs,'open',async(...args:Parameters<typeof fs.open>)=>{if(String(args[0]).startsWith(desktop))await gate;return open(...args);});
+  const hx=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{desktopDir:desktop});
+  let registration:ReturnType<Controller['register']>|undefined;
+  try{
+    await hx.c.init();meta.opts.validCodes!.add('STALLED-DESKTOP');await hx.c.submitInvite(invite(cert.fingerprint,'STALLED-DESKTOP'));
+    registration=hx.c.register('DesktopWait');
+    const result=await Promise.race([registration,new Promise<null>(r=>setTimeout(()=>r(null),1500))]);
+    assert.ok(result?.ok,'registration must finish with the local key saved while Desktop is stalled');
+    assert.equal(hx.last().busy,false);assert.equal(hx.last().account.hasKey,true);
+    const stored=new KeyStore(path.join(hx.userData,'keys'),{isAvailable:()=>true,encrypt:p=>Buffer.from('enc:'+Buffer.from(p).toString('base64')),decrypt:d=>Buffer.from(d.toString().slice(4),'base64').toString()});
+    const key=await stored.load({host:'127.0.0.1',port:GATEWAY_PORT,mode:'public',fp:cert.fingerprint});assert.ok(key);
+    await hx.c.logout();assert.equal((await hx.c.useExistingKey(key)).ok,true);assert.equal(hx.last().busy,false);
+    release();await waitUntil(()=>!!hx.last().account.desktopBackupPath);
+  }finally{release();await registration;await hx.c.shutdown();}
 });
 
 test('a new registration preserves its Desktop backup if secure storage fails after the invite is consumed',async()=>{

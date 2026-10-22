@@ -141,6 +141,7 @@ export function sanitizeSettings(raw: unknown, language: Language, platform: Nod
 export class SettingsStore {
   private data: StoredSettings;
   private readonly file: string;
+  private pending: Promise<void> = Promise.resolve();
 
   constructor(dir: string, language: Language, private readonly platform: NodeJS.Platform = process.platform) {
     this.file = path.join(dir, "settings.json");
@@ -157,7 +158,13 @@ export class SettingsStore {
     return this.data;
   }
 
-  async update(fn: (s: StoredSettings) => void): Promise<StoredSettings> {
+  update(fn: (s: StoredSettings) => void): Promise<StoredSettings> {
+    const result=this.pending.then(()=>this.write(fn));
+    this.pending=result.then(()=>undefined,()=>undefined);
+    return result;
+  }
+
+  private async write(fn: (s: StoredSettings) => void): Promise<StoredSettings> {
     const copy: StoredSettings = JSON.parse(JSON.stringify(this.data));
     fn(copy);
     this.data = sanitizeSettings(copy, copy.language, this.platform);

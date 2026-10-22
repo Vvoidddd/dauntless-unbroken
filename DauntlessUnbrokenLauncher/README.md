@@ -41,8 +41,9 @@ token is required or bundled. Updates are coalesced to at most once every 15 sec
    roadmap item 4.16.
 2. Open the invite link your host sent you, or paste it on the Play page and press **JOIN**.
 3. Pick a username and press **REGISTER**. The launcher saves your key automatically to your Desktop,
-   including when you import an existing key. Keep that file private. If the Desktop is unavailable,
-   the launcher keeps its encrypted local key and offers **Save key backup**.
+   including when you import an existing key. These automatic Desktop/Documents copies run in the
+   background so cloud or redirected folders cannot hold registration or sign-in on **PLEASE WAIT**.
+   Keep those files private. Sign-in waits for the encrypted local key; **Save key backup** stays available.
 4. The launcher first checks common game locations. If it finds Dauntless 1.4.4, it shows the folder
    and asks you to confirm before verifying or changing it. Choose a different folder to download
    a separate copy. If nothing is found, press **INSTALL** (about 11 GB); downloads resume later.
@@ -94,9 +95,9 @@ that come from a web page.
 - Navigation and new windows are blocked. Links open in the browser only from a fixed allow-list:
   the page names a link (such as `project_source`), never a URL, and the main process opens that
   link's fixed URL (`src/main/links.ts`).
-- The account key is stored through Electron `safeStorage` using the operating system's secure
-  storage. It is never shown, never written to a plain file except the backup you choose to save,
-  and is masked in the log.
+- The local account key is encrypted through Electron `safeStorage` using the operating system's
+  secure storage and is masked in the log. Automatic Desktop/Documents copies and manual exports
+  are readable recovery files; keep them private.
 - The key goes only to the invite's host (in public mode only over the pinned connection): with the
   account check, the downloads and the server status. The server shows who is online to registered
   players only, so before you register the server panel says to sign in instead of listing anyone.
