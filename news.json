@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "6e2786dbeef7dc29ecd4bc4311d9bf4a01dcae23",
+      "date": "2026-10-22T23:20:21.051Z",
+      "title": "Latest project updates",
+      "body": "• Clarify launcher shared European fleet labels\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.22",
       "date": "2026-10-22T23:13:42Z",
       "title": "Launcher 1.0.22 is available",
