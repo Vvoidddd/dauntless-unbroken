@@ -5,8 +5,8 @@ The launcher background is the supplied [Umbral Nayzaga game artwork](https://ma
 `emblem.png` is the transparent behemoth cutout made from the supplied screenshot
 with the built-in OpenAI image tool. The editable wordmark is `wordmark.svg`;
 `logo-full.png` is its rendered master. Game artwork remains the property of its
-respective owners. Upstream code and
-contributors remain credited in [UPSTREAM.md](../UPSTREAM.md).
+respective owners. Applicable source notices are retained in
+[NOTICE.md](../NOTICE.md).
 
 `palette.json` defines eight shared umbral navy/violet tokens and measured WCAG
 contrast ratios. `build.py --check` verifies those ratios, documentation tokens
