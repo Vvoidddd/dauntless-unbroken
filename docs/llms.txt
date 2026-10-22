@@ -59,7 +59,7 @@
 
 - [Roadmap](https://vvoidddd.github.io/dauntless-unbroken/roadmap.html): The Dauntless Unbroken roadmap: implemented launcher and server features, operating principles and ongoing in-game verification.
 - [Tools](https://vvoidddd.github.io/dauntless-unbroken/tools.html): Three small Python scripts behind our Dauntless analysis: xref.py for PE string cross-references, utocdir.py for IoStore, pak9.py for pak v9, plus libooz.
-- [Credits and license](https://vvoidddd.github.io/dauntless-unbroken/legal.html): Software licenses, source notices and distribution requirements for Dauntless Unbroken.
+- [License](https://vvoidddd.github.io/dauntless-unbroken/legal.html): Dauntless Unbroken licensing and software notices.
 - [Community features](https://vvoidddd.github.io/dauntless-unbroken/launcher/community-features.html): Lock-on controls, DualSense reconnection, and playtime milestones.
 - [Discord access and moderation](https://vvoidddd.github.io/dauntless-unbroken/operations/discord-access.html): Account-bound invites, game and Discord bans, and manual access administration.
 - [Edge case audit · 20 October 2026](https://vvoidddd.github.io/dauntless-unbroken/reference/audit-2026-10-20.html): Confirmed transaction, admission, key-storage and migration fixes, database validation, and remaining dependency limitations.
@@ -97,7 +97,7 @@
 - [Kehityssuunnitelma](https://vvoidddd.github.io/dauntless-unbroken/fi/roadmap.html): Unbrokenin toteutetut ominaisuudet ja jatkuvan testauksen kohteet.
 - [Usein kysyttyä](https://vvoidddd.github.io/dauntless-unbroken/fi/faq.html): Voiko Dauntlessia vielä pelata? Onko sille yksityistä palvelinta? Lyhyet vastaukset Dauntless Unbrokenistä: versio, Epic-tili, liittyminen ja oma palvelin.
 - [Työkalut](https://vvoidddd.github.io/dauntless-unbroken/fi/tools.html): Kolme pientä Python-työkalua Dauntlessin tutkimiseen: xref.py ohjelmatiedoston merkkijonoille, utocdir.py IoStore-säiliöille ja pak9.py pak-tiedostoille.
-- [Kiitokset ja lisenssi](https://vvoidddd.github.io/dauntless-unbroken/fi/legal.html): Dauntless Unbrokenin ohjelmistolisenssit, lähdetiedot ja jakelun ehdot.
+- [Lisenssi](https://vvoidddd.github.io/dauntless-unbroken/fi/legal.html): Dauntless Unbrokenin lisenssi ja ohjelmistotiedot.
 - [Dauntless Unbroken](https://vvoidddd.github.io/dauntless-unbroken/fi/): Dauntless Unbrokenin pelaajan ja palvelimen ylläpitäjän opas.
 - [Ominaisuuksien integraatiot](https://vvoidddd.github.io/dauntless-unbroken/fi/findings/feature-integrations.html): Unbrokenin etenemisen, kaupan, sosiaalisten palvelujen ja pelimaailmojen kokonaisuus.
 - [Asennus](https://vvoidddd.github.io/dauntless-unbroken/fi/setup/): Dauntless Unbroken Windowsissa, Linuxissa tai OpenBSD:ssa: palvelimen pystytys, kavereiden liittyminen, ryhmäkäyttö ja vianetsintä.

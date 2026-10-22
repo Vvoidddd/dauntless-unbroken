@@ -5,11 +5,9 @@ description: Lock-on controls, DualSense reconnection, and playtime milestones.
 
 # Community features
 
-These features were created by [anxo0](https://github.com/anxo0) and adapted for
-Dauntless Unbroken from source PRs
-[#70](https://github.com/mixutin/dauntless-revived/pull/70),
-[#71](https://github.com/mixutin/dauntless-revived/pull/71), and
-[#72](https://github.com/mixutin/dauntless-revived/pull/72).
+Dauntless Unbroken includes lock-on controls, DualSense reconnection and playtime
+milestones. Applicable software notices are linked from the
+[license page]({{ '/legal.html' | relative_url }}).
 
 ## Lock-on
 
