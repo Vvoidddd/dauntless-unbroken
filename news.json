@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "347261cfecebb99c65bd1dbc79a6d8015b1402aa",
+      "date": "2026-10-22T03:20:36.373Z",
+      "title": "Latest project updates",
+      "body": "• Add timed Escalation boost giveaways and max armour rewards\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "197dbafd5e68a83ee8a64e08de861c1dfddc7ef5",
       "date": "2026-10-22T03:03:52.609Z",
       "title": "Latest project updates",
