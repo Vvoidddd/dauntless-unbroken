@@ -32,5 +32,8 @@ class CatalogParserTests(unittest.TestCase):
   self.assertFalse(reserved['grantable']);self.assertIn('Restricted',reserved['unavailableReason'])
   token=builder.normalize({**row,'id':'TOKEN_BOUNTY_DRAFT','source':'Catalogs/Token_Catalogs/tokens_general_catalog.uasset','name':'Bounty Token','kind':'stacked','maxRank':None},{'name':'Bounty Tokens'})
   self.assertTrue(token['grantable']);self.assertEqual(token['aliases'],['Bounty Tokens'])
+  for id,category in [('TITLE_DARKHARVESTER','Titles'),('QI_FLARE_PROMO_001','Flares'),('BNC_SIGIL_001','Banner sigils'),('BNC_FABRIC_001','Banner fabrics'),('BNC_STANDARD_001','Banner standards'),('BNC_ANIMATION_001','Banner plants')]:
+   cosmetic=builder.normalize({**row,'id':id,'source':'Catalogs/flare_catalog.uasset' if id.startswith('QI_FLARE_') else 'Catalogs/cosmetics.uasset','name':None,'kind':'stacked'},{})
+   self.assertEqual(cosmetic['category'],category);self.assertTrue(cosmetic['grantable']);self.assertTrue(cosmetic['unique'])
 
 if __name__=='__main__':unittest.main()

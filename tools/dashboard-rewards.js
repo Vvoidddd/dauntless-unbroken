@@ -5,11 +5,14 @@ window.setupDashboardRewards = (readKey,get) => {
   function preview(){
     const item=items.find(i=>i.id===el('rewardItem').value),character=account?.characters.find(c=>c.id===el('rewardCharacter').value);
     const weapon=Number.isInteger(item?.maxRank);
+    const boost=item?.kind==='entitlement';
     el('rewardQuantity').disabled=grantBusy||weapon;
+    el('rewardQuantityLabel').textContent=boost?'Boost duration to add (hours)':'Amount to add';
     const equipment=item?.category==='Armour'?'armour':item?.category==='Lanterns'?'lantern':'weapon';
-    el('sendReward').textContent=weapon?`Grant / upgrade ${equipment}`:'Grant reward';
+    el('sendReward').textContent=boost?'Grant boost time':weapon?`Grant / upgrade ${equipment}`:'Grant reward';
     el('rewardPreview').textContent=item?.grantable===false?`${item.name}: ${item.unavailableReason}`:account&&item&&character?(weapon?`Grant ${item.name} at +${el('rewardRank').value} to ${account.name} / ${character.name}, or raise the existing ${equipment} to that rank. Higher ranks, cells and customizations are preserved.`:`Add ${el('rewardQuantity').value} × ${item.name} to ${account.name} / ${character.name}. Existing cosmetic unlocks are skipped.`):'Select an account, character and reward.';
     el('sendReward').disabled=grantBusy||!account||!item||!character||item.grantable===false;
+    if(boost&&account&&character)el('rewardPreview').textContent=`Add ${el('rewardQuantity').value} hours of Escalation XP boost to ${account.name}. Starts immediately or extends the active boost. Applies to this account; relog before hunting.`;
     el('rewardPrevious').disabled=grantBusy||itemOffset===0;
     el('rewardNext').disabled=grantBusy||itemOffset+items.length>=itemTotal;
     for(const button of el('rewardBundles').querySelectorAll('button')){
@@ -27,7 +30,7 @@ window.setupDashboardRewards = (readKey,get) => {
     el('rewardCharacter').replaceChildren(...result.characters.map(c=>option(c.id,`${c.name} · ${c.id}`)));
     const rows=result.history.map(h=>{
       const row=document.createElement('tr');
-      for(const text of [new Date(h.at).toLocaleString(),h.characterName,h.itemName,h.bundle?`${h.added} added · ${h.upgradedCount} upgraded · ${h.skipped} already owned`:h.rankAfter!==undefined?`Rank ${h.rankBefore===null?'new':'+'+h.rankBefore} → +${h.rankAfter}`:`+${h.added} (${h.before} → ${h.after})`,h.reason,h.actor]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}
+      for(const text of [new Date(h.at).toLocaleString(),h.characterName,h.itemName,h.unit==='hours'?h.permanent?'Already permanent':`+${h.added} h · expires ${new Date(h.expiresAt).toLocaleString()}`:h.bundle?`${h.added} added · ${h.upgradedCount} upgraded · ${h.skipped} already owned`:h.rankAfter!==undefined?`Rank ${h.rankBefore===null?'new':'+'+h.rankBefore} → +${h.rankAfter}`:`+${h.added} (${h.before} → ${h.after})`,h.reason,h.actor]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}
       return row;
     });
     el('rewardHistory').replaceChildren(...rows);
@@ -58,7 +61,8 @@ window.setupDashboardRewards = (readKey,get) => {
   }
   function itemChanged(){
     const item=items.find(i=>i.id===el('rewardItem').value);
-    el('rewardQuantity').max=item?.unique?'1':item?.category==='Currency'?'10000000':'10000';
+    el('rewardQuantity').max=item?.kind==='entitlement'?'720':item?.unique?'1':item?.category==='Currency'?'10000000':'10000';
+    if(item?.kind==='entitlement')el('rewardQuantity').value='24';
     if(item?.unique)el('rewardQuantity').value='1';
     el('rewardRankControl').hidden=!Number.isInteger(item?.maxRank);
     if(Number.isInteger(item?.maxRank)){
@@ -97,7 +101,7 @@ window.setupDashboardRewards = (readKey,get) => {
     const body={accountId:account.id,characterId:character.id,...(bundle?{bundle:bundle.id}:{catalogId:item.id,quantity,...(weapon?{rank}:{})}),reason};
     const serialized=JSON.stringify(body);
     if(!pending||pending.serialized!==serialized)pending={serialized,requestId:crypto.randomUUID()};
-    const confirmation=bundle?`${bundle.name}: ${bundle.total} catalogue items for ${account.name} / ${character.name}.\nExisting unlocks are skipped. Weapons use their own rank caps and keep cells and customizations.`:el('rewardPreview').textContent;
+    const confirmation=bundle?`${bundle.name}: ${bundle.total} catalogue items for ${account.name} / ${character.name}.\nExisting unlocks are skipped. Equipment uses its own rank caps and keeps cells and customizations.`:el('rewardPreview').textContent;
     if(!window.confirm(confirmation+'\nReason: '+reason))return;
     grantBusy=true;preview();
     const controls=Array.from(el('rewardControls').querySelectorAll('input,select,button'));
@@ -109,6 +113,10 @@ window.setupDashboardRewards = (readKey,get) => {
       pending=null;
       let refreshNote='';
       try{await loadAccount(body.accountId);}catch{refreshNote=' Reward saved; refresh account history when the connection recovers.';}
+      if(result.unit==='hours'){
+        el('rewardStatus').textContent=(result.permanent?'Already permanently active.':`Saved +${result.added} hours of ${result.itemName} for ${result.accountName}. Expires ${new Date(result.expiresAt).toLocaleString()}.${result.replayed?' Previous request; no time added twice.':''}`)+refreshNote;
+        return;
+      }
       el('rewardStatus').textContent=(result.bundle?`Saved ${result.itemName} for ${result.accountName} / ${result.characterName}: ${result.added} added, ${result.upgradedCount} upgraded, ${result.skipped} already owned.${result.replayed?' Previous request; nothing applied twice.':''}`:result.rankAfter!==undefined?`${result.added||result.upgraded?'Saved':'Already owned'} ${result.itemName} at +${result.rankAfter} for ${result.accountName} / ${result.characterName}.${result.replayed?' Previous request; nothing applied twice.':''}`:result.added?`Saved +${result.added} ${result.itemName} for ${result.accountName} / ${result.characterName}. New total: ${result.after}${result.replayed?' (previous request; nothing granted twice)':''}.`:'Already owned: no duplicate cosmetic was added.')+refreshNote;
     }catch(error){el('rewardStatus').textContent=`${error.message} If the connection failed, retry unchanged; the same request cannot grant twice.`;}
     finally{grantBusy=false;for(const control of controls)control.disabled=false;preview();}

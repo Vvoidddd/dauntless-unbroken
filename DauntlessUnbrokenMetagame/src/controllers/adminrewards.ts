@@ -1,25 +1,29 @@
 import {createHash} from 'node:crypto';
 import {and,desc,eq,like} from 'drizzle-orm';
 import {GetDb} from '../db';
-import {characters,inventory,onetimejobs,progressionevents,users} from '../db/schema';
+import {characters,entitlements,inventory,onetimejobs,progressionevents,users} from '../db/schema';
 import catalog from '../vendor/admin_grant_catalog.json';
 import {ApplyInventoryTransactionInTx,MAX_STACK_QUANTITY} from './inventory';
 import {RecordProgressionEvent} from './progressionevents';
+import {GrantEntitlementInTx} from './entitlements';
 
 export class RewardError extends Error {constructor(public status:number,message:string){super(message);}}
-const Items=new Map(catalog.items.map(item=>[item.id,item]));
+const RewardItems:((typeof catalog.items)[number]&{unit?:string})[]=[...catalog.items,{id:'escalation_xp_boost_entitlement',name:'Escalation XP boost',category:'Boosts',kind:'entitlement',unique:false,grantable:true,unit:'hours',aliases:['esca boost','escalation boost']}];
+const Items=new Map(RewardItems.map(item=>[item.id,item]));
 const uid=(value:unknown):value is string=>typeof value==='string'&&/^UID-[A-Za-z0-9-]{1,100}$/.test(value);
 const prefix='admin AccountGrant:';
-const Cosmetics=catalog.items.filter(item=>item.grantable&&['Transmogs','Dyes','Other cosmetics'].includes(item.category)&&item.unique);
+const CosmeticCategories=['Transmogs','Dyes','Other cosmetics','Titles','Flares','Banner sigils','Banner fabrics','Banner standards','Banner plants'];
+const Cosmetics=catalog.items.filter(item=>item.grantable&&CosmeticCategories.includes(item.category)&&item.unique);
 const Bundles=[
     {id:'cosmetics',name:'All cosmetics',items:Cosmetics},
     {id:'transmogs',name:'All skins / transmogs',items:Cosmetics.filter(item=>item.category==='Transmogs')},
     {id:'dyes',name:'All dyes',items:Cosmetics.filter(item=>item.category==='Dyes')},
     {id:'flares',name:'All flares',items:Cosmetics.filter(item=>item.id.startsWith('QI_FLARE_')||item.id==='QI_BASIC_FLARE_DURABLE')},
-    {id:'weapons',name:'All weapons at max rank',items:catalog.items.filter(item=>item.grantable&&['Weapons','Weapon parts'].includes(item.category)&&typeof item.maxRank==='number')}
+    {id:'weapons',name:'All weapons at max rank',items:catalog.items.filter(item=>item.grantable&&['Weapons','Weapon parts'].includes(item.category)&&typeof item.maxRank==='number')},
+    {id:'armour',name:'All armour at max rank',items:catalog.items.filter(item=>item.grantable&&item.category==='Armour'&&typeof item.maxRank==='number')}
 ];
 const SearchText=(value:string)=>value.normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
-const SearchItems=catalog.items.map(item=>({item,name:SearchText(item.name),id:SearchText(item.id),text:SearchText(`${item.name} ${item.id} ${item.category} ${(item.aliases??[]).join(' ')}`)}));
+const SearchItems=RewardItems.map(item=>({item,name:SearchText(item.name),id:SearchText(item.id),text:SearchText(`${item.name} ${item.id} ${item.category} ${(item.aliases??[]).join(' ')}`)}));
 
 export function RewardCatalog(query:unknown='',category:unknown='',offset:unknown=0){
     if(typeof query!=='string'||query.length>100||typeof category!=='string'||category.length>30)throw new RewardError(400,'Invalid catalogue search');
@@ -28,8 +32,8 @@ export function RewardCatalog(query:unknown='',category:unknown='',offset:unknow
     const q=SearchText(query),words=q.split(' ').filter(Boolean);
     const found=SearchItems.filter(({item,text})=>(!category||item.category===category)&&(words.every(word=>text.includes(word))||text.replaceAll(' ','').includes(q.replaceAll(' ',''))));
     const score=(entry:typeof SearchItems[number])=>!q?0:entry.name===q||entry.id===q?0:entry.name.startsWith(q)?1:words.every(word=>entry.name.includes(word))?2:3;
-    found.sort((a,b)=>score(a)-score(b));
-    return {items:found.slice(start,start+100).map(({item})=>item),total:found.length,offset:start,hasMore:start+100<found.length,categories:[...new Set(catalog.items.map(item=>item.category))],bundles:Bundles.map(({id,name,items})=>({id,name,total:items.length}))};
+    found.sort((a,b)=>score(a)-score(b)||Number(b.item.grantable)-Number(a.item.grantable));
+    return {items:found.slice(start,start+100).map(({item})=>item),total:found.length,offset:start,hasMore:start+100<found.length,categories:[...new Set(RewardItems.map(item=>item.category))],bundles:Bundles.map(({id,name,items})=>({id,name,total:items.length}))};
 }
 
 export function RewardAccount(accountId:unknown){
@@ -60,7 +64,7 @@ export function GrantReward(actorId:string,input:unknown){
         if(!item.grantable)throw new RewardError(400,item.unavailableReason??'Item cannot be granted through inventory');
         if(weapon&&(typeof b.rank!=='number'||!Number.isInteger(b.rank)||b.rank<0||b.rank>item.maxRank!))throw new RewardError(400,`Equipment rank must be a whole number from 0 to ${item.maxRank}`);
         if(!weapon&&b.rank!==undefined)throw new RewardError(400,'Rank applies only to equipment with a verified upgrade limit');
-        const max=item.unique?1:item.category==='Currency'?10000000:10000;
+        const max=item.kind==='entitlement'?720:item.unique?1:item.category==='Currency'?10000000:10000;
         if(typeof b.quantity!=='number'||!Number.isSafeInteger(b.quantity)||b.quantity<1||b.quantity>max)throw new RewardError(400,`Quantity must be a whole number from 1 to ${max}`);
     }
     // Keep the single-item receipt serialization unchanged for existing retries.
@@ -77,6 +81,22 @@ export function GrantReward(actorId:string,input:unknown){
         const owner=tx.select().from(users).where(eq(users.userId,request.accountId)).get();
         const character=tx.select().from(characters).where(and(eq(characters.userId,request.accountId),eq(characters.characterId,request.characterId))).get();
         if(!owner||!character)throw new RewardError(404,'Character does not belong to this account');
+        const finish=(result:Record<string,unknown>)=>{
+            tx.insert(onetimejobs).values({jobId:receipt,doneDate:new Date().toISOString()}).run();
+            RecordProgressionEvent(tx,{AccountId:request.accountId,Caller:'admin',Route:route,Body:request,Status:200,Reply:result});
+            return result;
+        };
+        if(item?.kind==='entitlement'){
+            const existing=tx.select().from(entitlements).where(and(eq(entitlements.accountId,request.accountId),eq(entitlements.name,item.id))).get(),now=Date.now();
+            if(existing&&(!Number.isSafeInteger(existing.duration)||existing.duration<0||!Number.isFinite(Date.parse(existing.activatedDate))))throw new RewardError(409,'Boost entitlement needs repair before granting time');
+            const active=existing&&!existing.revokedDate&&(existing.duration===0||Date.parse(existing.activatedDate)+existing.duration*3600000>now);
+            const permanent=!!active&&existing!.duration===0;
+            const before=active&&!permanent?(Date.parse(existing!.activatedDate)+existing!.duration*3600000-now)/3600000:0;
+            if(!permanent&&before+(b.quantity as number)>8760)throw new RewardError(409,'Boost would exceed one year of remaining time');
+            if(!permanent)GrantEntitlementInTx(tx,request.accountId,item.id,b.quantity as number,`dashboard-reward:${actorId}`);
+            const saved=tx.select().from(entitlements).where(and(eq(entitlements.accountId,request.accountId),eq(entitlements.name,item.id))).get()!;
+            return finish({requestId:request.requestId,accountId:request.accountId,accountName:owner.name,characterId:request.characterId,characterName:character.name,catalogId:item.id,itemName:item.name,unit:'hours',added:permanent?0:b.quantity,before,after:permanent?0:before+(b.quantity as number),expiresAt:permanent?null:new Date(Date.parse(saved.activatedDate)+saved.duration*3600000).toISOString(),permanent,replayed:false});
+        }
         const row=tx.select().from(inventory).where(eq(inventory.characterId,request.characterId)).get();
         const stacked:any[]=row?JSON.parse(row.stackedItems):[],instanced:any[]=row?JSON.parse(row.instancedItems):[];
         if(!Array.isArray(stacked)||!Array.isArray(instanced))throw new RewardError(409,'Inventory needs repair before granting rewards');
@@ -120,8 +140,6 @@ export function GrantReward(actorId:string,input:unknown){
             },{Caller:'admin',Source:`dashboard-reward:${actorId}`});
         }
         const result={requestId:request.requestId,accountId:request.accountId,accountName:owner.name,characterId:request.characterId,characterName:character.name,catalogId:item?.id??null,itemName:bundle?.name??item!.name,added,before,after:before+added,replayed:false,...(weapon?{rankBefore,rankAfter,upgraded}:{}),...(bundle?{bundle:bundle.id,total:entries.length,upgradedCount,skipped:entries.length-added-upgradedCount}:{})};
-        tx.insert(onetimejobs).values({jobId:receipt,doneDate:new Date().toISOString()}).run();
-        RecordProgressionEvent(tx,{AccountId:request.accountId,Caller:'admin',Route:route,Body:request,Status:200,Reply:result});
-        return result;
+        return finish(result);
     },{behavior:'immediate'});
 }

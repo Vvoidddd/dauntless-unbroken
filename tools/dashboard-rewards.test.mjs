@@ -50,8 +50,8 @@ test('reward catalogue UI pages through all matches and explains unavailable ite
  await el('rewardPrevious').onclick();assert.deepEqual(offsets,[0,100,0]);assert.equal(el('sendReward').disabled,true);
 });
 
-for(const mode of ['currency','weapon','bulk'])test(`reward UI ${mode} retries uncertain grants with the same ID and treats failed history refresh as saved`,async()=>{
- const weapon=mode==='weapon',bulk=mode==='bulk';
+for(const mode of ['currency','weapon','bulk','boost'])test(`reward UI ${mode} retries uncertain grants with the same ID and treats failed history refresh as saved`,async()=>{
+ const weapon=mode==='weapon',bulk=mode==='bulk',boost=mode==='boost';
  const elements=new Map();
  class Element{
   value='';textContent='';children=[];disabled=false;max='10000';options=[];
@@ -61,11 +61,11 @@ for(const mode of ['currency','weapon','bulk'])test(`reward UI ${mode} retries u
  }
  const document={getElementById(id){if(!elements.has(id))elements.set(id,new Element());return elements.get(id);},createElement:()=>new Element(),querySelector:()=>new Element()};
  const el=id=>document.getElementById(id),window={confirm:()=>true};
- const bulkButtons=['cosmetics','transmogs','dyes','flares','weapons'].map(id=>Object.assign(new Element(),{dataset:{rewardBundle:id}}));
+ const bulkButtons=['cosmetics','transmogs','dyes','flares','weapons','armour'].map(id=>Object.assign(new Element(),{dataset:{rewardBundle:id}}));
  el('rewardBundles').querySelectorAll=()=>bulkButtons;
  el('rewardControls').querySelectorAll=()=>[...elements.values(),...bulkButtons];
  const account={id:'UID-target',name:'Slayer',characters:[{id:'character-1',name:'Slayer'}],history:[]};
- const item=weapon?{id:'WP_EB_LERAWR',name:'Drask Sword',kind:'instanced',category:'Weapons',unique:true,maxRank:15}:{id:'CURRENCY_NOTES',name:'Rams',kind:'stacked',category:'Currency',unique:false};
+ const item=boost?{id:'escalation_xp_boost_entitlement',name:'Escalation XP boost',kind:'entitlement',category:'Boosts',unique:false}:weapon?{id:'WP_EB_LERAWR',name:'Drask Sword',kind:'instanced',category:'Weapons',unique:true,maxRank:15}:{id:'CURRENCY_NOTES',name:'Rams',kind:'stacked',category:'Currency',unique:false};
  let requests=[],refreshFails=false;
  const get=async path=>{
   if(path.includes('reward-account')){if(refreshFails)throw Error('History offline');return account;}
@@ -75,13 +75,14 @@ for(const mode of ['currency','weapon','bulk'])test(`reward UI ${mode} retries u
  vm.runInNewContext(await readFile(new URL('./dashboard-rewards.js',import.meta.url),'utf8'),{window,document,crypto,AbortSignal,fetch:async(url,options)=>{
   requests.push(JSON.parse(options.body));assert.ok(bulkButtons.every(b=>b.disabled));await bulkButtons[0].onclick();
   if(requests.length===1)throw Error('Connection timed out');refreshFails=true;
-  return Response.json(bulk?{bundle:'cosmetics',added:2000,upgradedCount:0,skipped:159,itemName:'All cosmetics',accountName:'Slayer',characterName:'Slayer',replayed:true}:weapon?{added:0,upgraded:true,rankBefore:3,rankAfter:15,itemName:'Drask Sword',accountName:'Slayer',characterName:'Slayer',replayed:true}:{added:10000,itemName:'Rams',accountName:'Slayer',characterName:'Slayer',after:10000,replayed:true});
+  return Response.json(boost?{unit:'hours',added:24,expiresAt:'2026-10-24T00:00:00Z',itemName:'Escalation XP boost',accountName:'Slayer',replayed:true}:bulk?{bundle:'cosmetics',added:2000,upgradedCount:0,skipped:159,itemName:'All cosmetics',accountName:'Slayer',characterName:'Slayer',replayed:true}:weapon?{added:0,upgraded:true,rankBefore:3,rankAfter:15,itemName:'Drask Sword',accountName:'Slayer',characterName:'Slayer',replayed:true}:{added:10000,itemName:'Rams',accountName:'Slayer',characterName:'Slayer',after:10000,replayed:true});
  }});
  window.setupDashboardRewards(()=> 'owner-fixture',get);
  await window.selectRewardAccount(account);
  assert.match(el('rewardPreview').textContent,/Slayer/);
  if(weapon){assert.equal(el('rewardRankControl').hidden,false);assert.equal(el('rewardRank').options.length,16);assert.equal(el('rewardRank').value,'15');assert.equal(el('rewardQuantity').value,'1');assert.equal(el('rewardQuantity').disabled,true);assert.match(el('rewardPreview').textContent,/raise the existing weapon/);}
  else assert.equal(el('rewardRankControl').hidden,true);
+ if(boost){assert.equal(el('rewardQuantity').max,'720');assert.equal(el('rewardQuantity').value,'24');assert.match(el('rewardQuantityLabel').textContent,/hours/);assert.match(el('rewardPreview').textContent,/Starts immediately/);}
  const send=bulk?()=>bulkButtons[0].onclick():()=>el('sendReward').onclick();
  assert.equal(bulkButtons[0].disabled,false);
  await send();assert.match(el('rewardStatus').textContent,/retry unchanged/i);
@@ -89,5 +90,5 @@ for(const mode of ['currency','weapon','bulk'])test(`reward UI ${mode} retries u
  assert.equal(requests.length,2);assert.equal(requests[0].requestId,requests[1].requestId);
  assert.equal(requests[0].rank,weapon?15:undefined);
  if(bulk){assert.equal(requests[0].bundle,'cosmetics');assert.equal(requests[0].catalogId,undefined);assert.equal(requests[0].quantity,undefined);}
- assert.match(el('rewardStatus').textContent,bulk?/2000 added, 0 upgraded, 159 already owned/:weapon?/Saved Drask Sword at \+15/:/Saved \+10000/);assert.match(el('rewardStatus').textContent,/Reward saved; refresh/);
+ assert.match(el('rewardStatus').textContent,boost?/Saved \+24 hours/:bulk?/2000 added, 0 upgraded, 159 already owned/:weapon?/Saved Drask Sword at \+15/:/Saved \+10000/);assert.match(el('rewardStatus').textContent,/Reward saved; refresh/);
 });

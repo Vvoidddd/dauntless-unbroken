@@ -7,7 +7,7 @@ import {randomUUID} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {eq} from 'drizzle-orm';
 import {GetDb} from '../src/db';
-import {inventory,inventorytransactions,userapikeys,users} from '../src/db/schema';
+import {entitlements,inventory,inventorytransactions,onetimejobs,userapikeys,users} from '../src/db/schema';
 import {HashUserAPIKey} from '../src/controllers/auth';
 import {GrantReward,RewardAccount,RewardCatalog} from '../src/controllers/adminrewards';
 import {MakePlayer,StackQuantity} from './helpers';
@@ -16,6 +16,44 @@ import catalog from '../src/vendor/admin_grant_catalog.json';
 before(StartApp);
 after(async()=>{await StopApp();RemoveTestDb(()=>GetDb().$client.close());});
 const request=(a:{UserId:string,CharacterId:string},id='CURRENCY_NOTES',quantity=10000)=>({accountId:a.UserId,characterId:a.CharacterId,catalogId:id,quantity,reason:'Verified event reward',requestId:randomUUID()});
+
+test('boost giveaways extend timed account entitlements atomically and replay without adding time twice',async()=>{
+ const a=await MakePlayer(),db=GetDb(),id='escalation_xp_boost_entitlement',body=request(a,id,24);
+ const read=()=>db.select().from(entitlements).where(eq(entitlements.accountId,a.UserId)).all().find(e=>e.name===id)!;
+ const inventoryBefore=db.select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get();
+ const first=GrantReward('UID-owner',body);assert.equal(first.unit,'hours');assert.equal(first.added,24);assert.equal(read().duration,24);assert.ok(Date.parse(first.expiresAt)>Date.now()+23*3600000);
+ assert.equal(GrantReward('UID-owner',body).replayed,true);assert.equal(read().duration,24);
+ const activated=read().activatedDate;GrantReward('UID-owner',request(a,id,48));assert.equal(read().duration,72);assert.equal(read().activatedDate,activated);
+ assert.deepEqual(db.select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get(),inventoryBefore);
+ const rollback=request(a,id,12);db.$client.exec("CREATE TEMP TRIGGER reject_boost_audit BEFORE INSERT ON progression_events BEGIN SELECT RAISE(ABORT,'test audit rejection'); END");
+ try{assert.throws(()=>GrantReward('UID-owner',rollback),/test audit rejection/);}finally{db.$client.exec('DROP TRIGGER reject_boost_audit');}
+ assert.equal(read().duration,72);assert.equal(db.select().from(onetimejobs).where(eq(onetimejobs.jobId,'dashboard-grant:'+rollback.requestId)).get(),undefined);
+ for(const quantity of [0,-1,1.5,721,NaN])assert.throws(()=>GrantReward('UID-owner',request(a,id,quantity)),/Quantity/);
+ assert.throws(()=>GrantReward('UID-owner',{...request(a,id,24),rank:15}),/Rank/);
+ assert.equal(RewardCatalog('esca boost','Boosts').items[0].id,id);
+ const patch=(values:any)=>db.update(entitlements).set(values).where(eq(entitlements.accountId,a.UserId)).run();
+ patch({duration:24,activatedDate:new Date(Date.now()-48*3600000).toISOString()});GrantReward('UID-owner',request(a,id,2));assert.equal(read().duration,2);
+ patch({duration:0,revokedDate:new Date().toISOString()});GrantReward('UID-owner',request(a,id,4));assert.equal(read().duration,4);assert.equal(read().revokedDate,null);
+ patch({duration:0});assert.equal(GrantReward('UID-owner',request(a,id,24)).permanent,true);assert.equal(read().duration,0);
+ patch({duration:8760,activatedDate:new Date().toISOString()});assert.throws(()=>GrantReward('UID-owner',request(a,id,24)),/one year/);
+ patch({duration:-1});assert.throws(()=>GrantReward('UID-owner',request(a,id,24)),/repair/);
+});
+
+test('max armour covers every normal piece and preserves owned cells, identity and weapons',async()=>{
+ const a=await MakePlayer(),db=GetDb(),id='AR_ROCK_CHEST';
+ GrantReward('UID-owner',{...request(a,id,1),rank:5});GrantReward('UID-owner',{...request(a,'WP_EB_LERAWR',1),rank:3});
+ const read=()=>JSON.parse(db.select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get()!.instancedItems);
+ const original=read(),owned=original.find((i:any)=>i.catalogId===id),data={...JSON.parse(owned.itemData),EquippedCells:[{CellID:'CELL_CRIT_CHANCE_E'}],TransmogCatalogID:'SAVED_SKIN'};
+ owned.itemData=JSON.stringify(data);db.update(inventory).set({instancedItems:JSON.stringify(original)}).where(eq(inventory.characterId,a.CharacterId)).run();
+ const body={accountId:a.UserId,characterId:a.CharacterId,bundle:'armour',reason:'Armour QA',requestId:randomUUID()},result=GrantReward('UID-owner',body),after=read();
+ const expected=catalog.items.filter(i=>i.category==='Armour'&&i.grantable);assert.equal(result.total,expected.length);assert.equal(result.upgradedCount,1);
+ for(const item of expected){const copies=after.filter((i:any)=>i.catalogId===item.id);assert.equal(copies.length,1);assert.equal(JSON.parse(copies[0].itemData).CurrentLevel,item.maxRank);}
+ const upgraded=after.find((i:any)=>i.catalogId===id);assert.equal(upgraded.instanceId,owned.instanceId);assert.deepEqual(JSON.parse(upgraded.itemData).EquippedCells,data.EquippedCells);assert.equal(JSON.parse(upgraded.itemData).TransmogCatalogID,'SAVED_SKIN');
+ assert.deepEqual(after.find((i:any)=>i.catalogId==='WP_EB_LERAWR'),original.find((i:any)=>i.catalogId==='WP_EB_LERAWR'));
+ assert.equal(GrantReward('UID-owner',body).replayed,true);const repeat=GrantReward('UID-owner',{...body,requestId:randomUUID()});assert.equal(repeat.added,0);assert.equal(repeat.upgradedCount,0);assert.equal(repeat.skipped,expected.length);
+ for(const category of ['Titles','Flares','Banner sigils','Banner fabrics','Banner standards','Banner plants'])assert.ok(RewardCatalog('',category).items.some(i=>i.grantable));
+ assert.equal(RewardCatalog('Heart of Stone','Armour').items[0].id,id);
+});
 
 test('currency, bounty tokens and cells use inventory authority and append an actor/reason audit',async()=>{
  const a=await MakePlayer();
@@ -111,7 +149,7 @@ test('invalid grants and overflow cannot mutate inventory or consume a receipt',
 const bulkRequest=(a:{UserId:string,CharacterId:string},bundle:string)=>({accountId:a.UserId,characterId:a.CharacterId,bundle,reason:'Bulk event reward',requestId:randomUUID()});
 
 test('cosmetics bulk grants the full catalogue once, preserves balances, and records one atomic audit',async()=>{
- const a=await MakePlayer(),db=GetDb(),expected=catalog.items.filter(i=>i.grantable&&['Transmogs','Dyes','Other cosmetics'].includes(i.category));
+ const a=await MakePlayer(),db=GetDb(),expected=catalog.items.filter(i=>i.grantable&&['Transmogs','Dyes','Other cosmetics','Titles','Flares','Banner sigils','Banner fabrics','Banner standards','Banner plants'].includes(i.category));
  GrantReward('UID-owner',request(a,expected[0].id,1));GrantReward('UID-owner',request(a,'CURRENCY_NOTES',123));
  const countTransactions=()=>db.select().from(inventorytransactions).where(eq(inventorytransactions.characterId,a.CharacterId)).all().length;
  const previousTransactions=countTransactions(),body=bulkRequest(a,'cosmetics'),result=GrantReward('UID-owner',body);
@@ -189,8 +227,8 @@ test('complete catalogue resolves in-game names, ranks exact matches first and e
  const mask=RewardCatalog('Shady Shrowd Mask').items[0];assert.equal(mask.id,'AR_DHMASK_CROWBEAR_HELM');assert.equal(mask.category,'Transmogs');
  assert.ok(RewardCatalog('Blitz Tonic','Consumables').items.some(i=>i.grantable));
  assert.ok(RewardCatalog('Dark Tailfeather','Materials').items.some(i=>i.grantable));
- const ids=new Set<string>();for(let offset=0;offset<catalog.items.length;offset+=100){const page=RewardCatalog('','',offset);assert.equal(page.offset,offset);assert.equal(page.hasMore,offset+100<catalog.items.length);for(const item of page.items){assert.ok(!ids.has(item.id));ids.add(item.id);}}
- assert.equal(ids.size,catalog.items.length);assert.ok(ids.size>5000);
+ const total=catalog.items.length+1,ids=new Set<string>();for(let offset=0;offset<total;offset+=100){const page=RewardCatalog('','',offset);assert.equal(page.offset,offset);assert.equal(page.hasMore,offset+100<total);for(const item of page.items){assert.ok(!ids.has(item.id));ids.add(item.id);}}
+ assert.equal(ids.size,total);assert.ok(ids.size>5000);
  for(const offset of [-1,1.5,NaN,'-1','1e3','',100001])assert.throws(()=>RewardCatalog('','',offset),/offset/);
 });
 
