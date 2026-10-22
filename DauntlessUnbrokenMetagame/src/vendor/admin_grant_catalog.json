@@ -1,5 +1,5 @@
 {
-  "_comment": "Verified 1.4.4 catalogue IDs, display labels and stackability from the existing account-grant interoperability data. Developer/test items and combat equipment excluded. No game assets.",
+  "_comment": "Verified 1.4.4 catalogue IDs, labels, stackability and weapon rank limits from interoperability data. Developer/test items and armour excluded. No game assets.",
   "items": [
     {
       "id": "CELL_CONVERT_PART_TO_EXPOSE_UC",
@@ -16485,6 +16485,1486 @@
       "category": "Transmogs",
       "kind": "instanced",
       "unique": true
+    },
+    {
+      "id": "WP_AC_ARMSTRONG",
+      "name": "Tectonic Faults",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_BEAVER",
+      "name": "Raging Fists",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_BEGINNER",
+      "name": "Recruit's Strikers",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 0
+    },
+    {
+      "id": "WP_AC_BUGBEAR",
+      "name": "Hands of Dawn",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_BULLSEYE",
+      "name": "Quillshot's Shredders",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_CROWBEAR",
+      "name": "Hands of Night",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_ELECTROQUILL",
+      "name": "Nayzaga's Shockers",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_FULGAR",
+      "name": "Thundering Bolts",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_HOST",
+      "name": "Brawlers of Boreus",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_LAVAROLLER",
+      "name": "Inferno's Flames",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_LERAWR",
+      "name": "Ember Fists",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_MCROLLIN",
+      "name": "Pangar's Punishers",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_MOONFACE",
+      "name": "Fists of the Shrike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_PAPER",
+      "name": "Sovereign's Sceptres",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_RANDALL",
+      "name": "Fractured Realities",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_FUNGUY",
+      "name": "Agents of Decay",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_ROCK",
+      "name": "Skarn's Smashers",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_SALLY",
+      "name": "Charred Hands",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_SALT",
+      "name": "Valomyr's Visions",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_SCISSORS",
+      "name": "Kharabak's Pincers",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_SHADOWCAT",
+      "name": "Stalker's Scorn",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_SHOCKMANE",
+      "name": "Storm Breakers",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_SNOWFLAKE",
+      "name": "Winter Wolves",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_AC_THUNDERBIRD",
+      "name": "Mistral Currents",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_ARMSTRONG",
+      "name": "Scorching Agonies",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_BEAVER",
+      "name": "Raging Teeth",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_BEGINNER",
+      "name": "Recruit's Chain Blades",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 0
+    },
+    {
+      "id": "WP_CB_BUGBEAR",
+      "name": "Fangs of Dawn",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_BULLSEYE",
+      "name": "Quillshot's Bonehooks",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_CROWBEAR",
+      "name": "Eyes of Night",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_ELECTROQUILL",
+      "name": "Nayzaga's Reach",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_FULGAR",
+      "name": "Thundering Cutters",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_HOST",
+      "name": "Destiny of Boreus",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_LAVAROLLER",
+      "name": "Inferno's Fangs",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_LERAWR",
+      "name": "Ember Blades",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_MCROLLIN",
+      "name": "Pangar's Claws",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_MOONFACE",
+      "name": "Flight of the Shrike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_PAPER",
+      "name": "Sovereign's Lash",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_PAX",
+      "name": "PAX Chain Blades",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 1
+    },
+    {
+      "id": "WP_CB_ROCK",
+      "name": "Skarn's Malice",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_SALLY",
+      "name": "Charred Blades",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_SALT",
+      "name": "Valomyr's Revenge",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_SCISSORS",
+      "name": "Kharabak's Wings",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_SHADOWCAT",
+      "name": "Stalker's Trap",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_SHOCKMANE",
+      "name": "Storm Blades",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_SNOWFLAKE",
+      "name": "Winter Winds",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_THUNDERBIRD",
+      "name": "Electric Cruelties",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_RANDALL",
+      "name": "Night Terrors",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_CB_FUNGUY",
+      "name": "Death Blossoms",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_DP_EXOTIC_BOMBS",
+      "name": "Twin Suns",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_DP_OSTIAN",
+      "name": "Ostian Repeaters",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 0
+    },
+    {
+      "id": "WP_EB_ARMSTRONG",
+      "name": "The Cauterizer",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_BEAVER",
+      "name": "Raging Blade",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_BEGINNER",
+      "name": "Recruit's Sword",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 0
+    },
+    {
+      "id": "WP_EB_BUGBEAR",
+      "name": "Call of Dawn",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_BULLSEYE",
+      "name": "Quillshot's Tusk",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_CROWBEAR",
+      "name": "Verge of Night",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_CROWBEAR_EXOTIC",
+      "name": "The Hunger",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_ELECTROQUILL",
+      "name": "Nayzaga's Razor",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_FULGAR",
+      "name": "Thundering Blade",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_HOST",
+      "name": "Onus of Boreus",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_LAVAROLLER",
+      "name": "Inferno's Razor",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_LERAWR",
+      "name": "Ember Cutlass",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_MCROLLIN",
+      "name": "Pangar's Call",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_MOONFACE",
+      "name": "Cry of the Shrike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_PAPER",
+      "name": "Sovereign's Torment",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_PAX",
+      "name": "PAX Sword",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 1
+    },
+    {
+      "id": "WP_EB_ROCK",
+      "name": "Skarn's Rancor",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_SALLY",
+      "name": "Charred Saber",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_SALT",
+      "name": "Valomyr's Regard",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_SCISSORS",
+      "name": "Kharabak's Spur",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_SHADOWCAT",
+      "name": "Stalker's Strike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_SHOCKMANE",
+      "name": "Storm Sword",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_SNOWFLAKE",
+      "name": "Winter Ice",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_THUNDERBIRD",
+      "name": "Cyclonic Fury",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_RANDALL",
+      "name": "Voidbane",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_EB_FUNGUY",
+      "name": "Poisonous Thorn",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_ARMSTRONG",
+      "name": "Incinerator's Song",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_BEAVER",
+      "name": "Raging Bite",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_BEGINNER",
+      "name": "Recruit's Axe",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 0
+    },
+    {
+      "id": "WP_GA_BUGBEAR",
+      "name": "Edge of Dawn",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_BULLSEYE",
+      "name": "Quillshot's Fury",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_CROWBEAR",
+      "name": "Reaper of Night",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_ELECTROQUILL",
+      "name": "Nayzaga's Scythe",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_FULGAR",
+      "name": "Thundering Scythe",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_HOST",
+      "name": "Turmoil of Boreus",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_LAVAROLLER",
+      "name": "Inferno's Decree",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_LERAWR",
+      "name": "Ember Scythe",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_MCROLLIN",
+      "name": "Pangar's Grace",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_MOONFACE",
+      "name": "Song of the Shrike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_PAPER",
+      "name": "Sovereign's Wrath",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_PAX",
+      "name": "PAXe",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 1
+    },
+    {
+      "id": "WP_GA_ROCK",
+      "name": "Skarn's Judgment",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_SALLY",
+      "name": "Charred Cleaver",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_SALT",
+      "name": "Valomyr's Decree",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_SCISSORS",
+      "name": "Kharabak's Claw",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_SHADOWCAT",
+      "name": "Stalker's Mercy",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_SHOCKMANE",
+      "name": "Storm Cutter",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_SNOWFLAKE",
+      "name": "Winter Gale",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_THUNDERBIRD",
+      "name": "Terminal Voltage",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_RANDALL",
+      "name": "Mindsplitter",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_GA_FUNGUY",
+      "name": "Malignant Scourge",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_ARMSTRONG",
+      "name": "Magma Quake",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_BEAVER",
+      "name": "Raging Crash",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_BEGINNER",
+      "name": "Recruit's Hammer",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 0
+    },
+    {
+      "id": "WP_IH_BUGBEAR",
+      "name": "Break of Dawn",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_BULLSEYE",
+      "name": "Quillshot's Roar",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_CROWBEAR",
+      "name": "Fall of Night",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_ELECTROQUILL",
+      "name": "Nayzaga's Charge",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_FULGAR",
+      "name": "Thundering Maul",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_HOST",
+      "name": "Brutality of Boreus",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_LAVAROLLER",
+      "name": "Inferno's Burden",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_LERAWR",
+      "name": "Ember Maul",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_MCROLLIN",
+      "name": "Pangar's Rampage",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_MOONFACE",
+      "name": "Fall of the Shrike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_PAPER",
+      "name": "Sovereign's Grudge",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_PAX",
+      "name": "PAX Hammer",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 1
+    },
+    {
+      "id": "WP_IH_ROCK",
+      "name": "Skarn's Vengeance",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_SALLY",
+      "name": "Charred Crusher",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_SALLY_EXOTIC",
+      "name": "Molten Edict",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_SALT",
+      "name": "Valomyr's Burden",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_SCISSORS",
+      "name": "Kharabak's Jaw",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_SHADOWCAT",
+      "name": "Stalker's Price",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_SHOCKMANE",
+      "name": "Storm Hammer",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_SNOWFLAKE",
+      "name": "Winter Squall",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_THUNDERBIRD",
+      "name": "Galvanic Impact",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_RANDALL",
+      "name": "Sanity Check",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_IH_FUNGUY",
+      "name": "Unsteady Ground",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_ARMSTRONG",
+      "name": "Pyroclastic Envoy",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_BEAVER",
+      "name": "Raging Cruelty",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_BEGINNER",
+      "name": "Recruit's War Pike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 0
+    },
+    {
+      "id": "WP_MS_BUGBEAR",
+      "name": "Spire of Dawn",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_BUGBEAR_EXOTIC",
+      "name": "The Godhand",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_BULLSEYE",
+      "name": "Quillshot's Javelin",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_CROWBEAR",
+      "name": "Gyre of Night",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_ELECTROQUILL",
+      "name": "Nayzaga's Fang",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_FULGAR",
+      "name": "Thundering Spear",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_HOST",
+      "name": "Revolution of Boreus",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_LAVAROLLER",
+      "name": "Inferno's Arrow",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_LERAWR",
+      "name": "Ember Pike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_MCROLLIN",
+      "name": "Pangar's Tooth",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_MOONFACE",
+      "name": "Scream of the Shrike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_PAPER",
+      "name": "Sovereign's Sorrow",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_PAX",
+      "name": "PAX War Pike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 1
+    },
+    {
+      "id": "WP_MS_ROCK",
+      "name": "Skarn's Spite",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_SALLY",
+      "name": "Charred Spear",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_SALT",
+      "name": "Valomyr's Hope",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_SCISSORS",
+      "name": "Kharabak's Sting",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_SHADOWCAT",
+      "name": "Stalker's Spike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_SHOCKMANE",
+      "name": "Storm Pike",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_SNOWFLAKE",
+      "name": "Winter Vortex",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_THUNDERBIRD",
+      "name": "The Conductor",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_RANDALL",
+      "name": "The Apocalypse Needle",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "WP_MS_FUNGUY",
+      "name": "Parasitic Curse",
+      "category": "Weapons",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_BLAZE",
+      "name": "Inferno Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_DEFAULT",
+      "name": "Standard Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_DEFAULT_PAX",
+      "name": "PAX Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 1
+    },
+    {
+      "id": "PART_DP_BARREL_FROST",
+      "name": "Blizzard Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_LEGENDARY_SHOCK",
+      "name": "Dynamic Carbine",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_LEGENDARY_BLAZE",
+      "name": "Volcanic Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_LEGENDARY_UMBRAL",
+      "name": "Eldritch Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_LEGENDARY_TERRA",
+      "name": "Animus Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_RADIANT",
+      "name": "Dawnstar Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_SHOCK",
+      "name": "Storm Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_TERRA",
+      "name": "Sylvan Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_BARREL_UMBRAL",
+      "name": "Twilight Barrel",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_GRIP_DEFAULT",
+      "name": "Captain's Grip",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_GRIP_DEFAULT_PAX",
+      "name": "PAX Grip",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 1
+    },
+    {
+      "id": "PART_DP_GRIP_MINE",
+      "name": "Saboteur's Grip",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_GRIP_SHOT_BUFFER",
+      "name": "DON'T USE - Shot Buffer",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_GRIP_TURRET",
+      "name": "TESTING - Turret",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_PASSIVE_HOST",
+      "name": "Snowdrift Prism",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_PASSIVE_SALLY",
+      "name": "Firestorm Prism",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_PASSIVE_MCROLLIN",
+      "name": "Frostbite Prism",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_PASSIVE_SCISSOR",
+      "name": "Primal Prism",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_PASSIVE_BEAVER",
+      "name": "Ferocious Prism",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_PASSIVE_LAVAROLLER",
+      "name": "Searing Prism",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_PASSIVE_ROCK_ALPHA",
+      "name": "Stoneheart Prism",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_PASSIVE_SALT",
+      "name": "Brilliant Prism",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_PASSIVE_SHADOWCAT",
+      "name": "Eclipse Prism",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_PASSIVE_SNOWFLAKE",
+      "name": "Glacial Prism",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_RECEIVER_DEFAULT",
+      "name": "Salvo Chamber",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_RECEIVER_DEFAULT_PAX",
+      "name": "PAX Chamber",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 1
+    },
+    {
+      "id": "PART_DP_RECEIVER_PART_MARKER",
+      "name": "Marksman Chamber",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
+    },
+    {
+      "id": "PART_DP_RECEIVER_PIERCING",
+      "name": "Full-Bore Chamber",
+      "category": "Weapon parts",
+      "kind": "instanced",
+      "unique": true,
+      "maxRank": 15
     }
   ]
 }

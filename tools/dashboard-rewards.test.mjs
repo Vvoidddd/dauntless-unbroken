@@ -28,7 +28,7 @@ test('reward proxy authenticates reads/writes, enforces origin and caps bodies',
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
 
-test('reward UI retries uncertain grants with the same ID and treats failed history refresh as saved',async()=>{
+for(const weapon of [false,true])test(`reward UI ${weapon?'weapon':'currency'} retries uncertain grants with the same ID and treats failed history refresh as saved`,async()=>{
  const elements=new Map();
  class Element{
   value='';textContent='';children=[];disabled=false;max='10000';options=[];
@@ -39,7 +39,7 @@ test('reward UI retries uncertain grants with the same ID and treats failed hist
  const document={getElementById(id){if(!elements.has(id))elements.set(id,new Element());return elements.get(id);},createElement:()=>new Element(),querySelector:()=>new Element()};
  const el=id=>document.getElementById(id),window={confirm:()=>true};
  const account={id:'UID-target',name:'Slayer',characters:[{id:'character-1',name:'Slayer'}],history:[]};
- const item={id:'CURRENCY_NOTES',name:'Rams',kind:'stacked',category:'Currency',unique:false};
+ const item=weapon?{id:'WP_EB_LERAWR',name:'Drask Sword',kind:'instanced',category:'Weapons',unique:true,maxRank:15}:{id:'CURRENCY_NOTES',name:'Rams',kind:'stacked',category:'Currency',unique:false};
  let requests=[],refreshFails=false;
  const get=async path=>{
   if(path.includes('reward-account')){if(refreshFails)throw Error('History offline');return account;}
@@ -48,13 +48,16 @@ test('reward UI retries uncertain grants with the same ID and treats failed hist
  el('rewardQuantity').value='10000';el('rewardReason').value='Event';
  vm.runInNewContext(await readFile(new URL('./dashboard-rewards.js',import.meta.url),'utf8'),{window,document,crypto,AbortSignal,fetch:async(url,options)=>{
   requests.push(JSON.parse(options.body));if(requests.length===1)throw Error('Connection timed out');refreshFails=true;
-  return Response.json({added:10000,itemName:'Rams',accountName:'Slayer',characterName:'Slayer',after:10000,replayed:true});
+  return Response.json(weapon?{added:0,upgraded:true,rankBefore:3,rankAfter:15,itemName:'Drask Sword',accountName:'Slayer',characterName:'Slayer',replayed:true}:{added:10000,itemName:'Rams',accountName:'Slayer',characterName:'Slayer',after:10000,replayed:true});
  }});
  window.setupDashboardRewards(()=> 'owner-fixture',get);
  await window.selectRewardAccount(account);
  assert.match(el('rewardPreview').textContent,/Slayer/);
+ if(weapon){assert.equal(el('rewardRankControl').hidden,false);assert.equal(el('rewardRank').options.length,16);assert.equal(el('rewardRank').value,'15');assert.equal(el('rewardQuantity').value,'1');assert.equal(el('rewardQuantity').disabled,true);assert.match(el('rewardPreview').textContent,/raise the existing weapon/);}
+ else assert.equal(el('rewardRankControl').hidden,true);
  await el('sendReward').onclick();assert.match(el('rewardStatus').textContent,/retry unchanged/i);
  await el('sendReward').onclick();
  assert.equal(requests.length,2);assert.equal(requests[0].requestId,requests[1].requestId);
- assert.match(el('rewardStatus').textContent,/Saved \+10000/);assert.match(el('rewardStatus').textContent,/Reward saved; refresh/);
+ assert.equal(requests[0].rank,weapon?15:undefined);
+ assert.match(el('rewardStatus').textContent,weapon?/Saved Drask Sword at \+15/:/Saved \+10000/);assert.match(el('rewardStatus').textContent,/Reward saved; refresh/);
 });

@@ -32,15 +32,18 @@ export function RewardAccount(accountId:unknown){
 export function GrantReward(actorId:string,input:unknown){
     if(!input||typeof input!=='object'||Array.isArray(input))throw new RewardError(400,'Invalid reward request');
     const b=input as Record<string,unknown>;
-    if(Object.keys(b).some(k=>!['accountId','characterId','catalogId','quantity','reason','requestId'].includes(k)))throw new RewardError(400,'Unexpected reward field');
+    if(Object.keys(b).some(k=>!['accountId','characterId','catalogId','quantity','reason','requestId','rank'].includes(k)))throw new RewardError(400,'Unexpected reward field');
     if(!uid(b.accountId)||typeof b.characterId!=='string'||!/^[A-Za-z0-9_-]{1,100}$/.test(b.characterId)||typeof b.catalogId!=='string')throw new RewardError(400,'Select an account, character and catalogue item');
     if(typeof b.requestId!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(b.requestId))throw new RewardError(400,'Invalid reward request ID');
     if(typeof b.reason!=='string'||!b.reason.trim()||b.reason.length>500||/[\x00-\x1f\x7f]/.test(b.reason))throw new RewardError(400,'An audit reason of 1–500 characters is required');
     const item=Items.get(b.catalogId);
     if(!item)throw new RewardError(400,'Item is not in the verified rewards catalogue');
+    const weapon=typeof item.maxRank==='number';
+    if(weapon&&(typeof b.rank!=='number'||!Number.isInteger(b.rank)||b.rank<0||b.rank>item.maxRank!))throw new RewardError(400,`Weapon rank must be a whole number from 0 to ${item.maxRank}`);
+    if(!weapon&&b.rank!==undefined)throw new RewardError(400,'Rank applies only to weapons and upgradeable weapon parts');
     const max=item.unique?1:item.category==='Currency'?10000000:10000;
     if(typeof b.quantity!=='number'||!Number.isSafeInteger(b.quantity)||b.quantity<1||b.quantity>max)throw new RewardError(400,`Quantity must be a whole number from 1 to ${max}`);
-    const request={actorId,accountId:b.accountId,characterId:b.characterId,catalogId:item.id,quantity:b.quantity,reason:b.reason.trim(),requestId:b.requestId};
+    const request={actorId,accountId:b.accountId,characterId:b.characterId,catalogId:item.id,quantity:b.quantity,reason:b.reason.trim(),requestId:b.requestId,...(weapon?{rank:b.rank as number}:{})};
     const body=JSON.stringify(request),receipt=`dashboard-grant:${b.requestId}`,route=prefix+b.requestId;
     return GetDb().transaction(tx=>{
         // Inventory receipts expire after 30 days. A permanent marker makes old retries harmless too.
@@ -60,12 +63,35 @@ export function GrantReward(actorId:string,input:unknown){
         const before=stacks.reduce((n,i)=>n+i.quantity,0)+instanced.filter(i=>i.catalogId===item.id).length;
         const added=item.unique&&before>0?0:request.quantity;
         if(!Number.isSafeInteger(before)||before>MAX_STACK_QUANTITY-added)throw new RewardError(409,'Reward would exceed the game inventory limit');
-        if(added){
+        let rankBefore:number|null=null,rankAfter:number|undefined,upgraded=false;
+        if(weapon){
+            const owned=instanced.filter(i=>i.catalogId===item.id);
+            if(stacks.length||owned.length>1)throw new RewardError(409,'Weapon inventory needs repair before granting ranks');
+            const existing=owned[0];
+            let data:any={TransmogCatalogID:'None',UnlockedAsTransmog:false,CurrentLevel:0,DataVersion:1,EquippedCells:[],EquippedWeaponParts:[],CurrentXP:0};
+            if(existing?.itemData!=null){
+                try{const saved=JSON.parse(existing.itemData);if(!saved||typeof saved!=='object'||Array.isArray(saved))throw Error();data={...data,...saved};}
+                catch{throw new RewardError(409,'Weapon data needs repair before granting ranks');}
+            }
+            if(!Number.isInteger(data.CurrentLevel)||data.CurrentLevel<0||data.CurrentLevel>item.maxRank!)throw new RewardError(409,'Invalid existing weapon rank');
+            rankBefore=existing?data.CurrentLevel:null;
+            rankAfter=Math.max(data.CurrentLevel,request.rank!);
+            if(!existing||rankAfter>data.CurrentLevel||existing.itemData==null){
+                const version=existing?.updateVersion??0;
+                if(!Number.isSafeInteger(version)||version<0||version>=MAX_STACK_QUANTITY)throw new RewardError(409,'Invalid existing weapon version');
+                const granted={...(existing??{catalogId:item.id,instanceId:item.id}),updateVersion:existing?version+1:0,itemData:JSON.stringify({...data,CurrentLevel:rankAfter})};
+                if(!existing&&instanced.some(i=>i.instanceId===granted.instanceId))throw new RewardError(409,'Weapon instance identity is already in use');
+                ApplyInventoryTransactionInTx(tx,{UserId:request.accountId,CharacterId:request.characterId,TransactionId:receipt,
+                    ...(existing?{InstancedItemsToSave:[granted]}:{InstancedItemsToAdd:[granted]})
+                },{Caller:'admin',Source:`dashboard-reward:${actorId}`});
+                upgraded=!!existing;
+            }
+        }else if(added){
             ApplyInventoryTransactionInTx(tx,{UserId:request.accountId,CharacterId:request.characterId,TransactionId:receipt,
                 ...(item.kind==='stacked'?{StackedItemsToAdd:[{catalogId:item.id,quantity:added}]}:{InstancedItemsToAdd:[{catalogId:item.id,instanceId:createHash('sha256').update(receipt).digest('hex').slice(0,32),updateVersion:0}]})
             },{Caller:'admin',Source:`dashboard-reward:${actorId}`});
         }
-        const result={requestId:request.requestId,accountId:request.accountId,accountName:owner.name,characterId:request.characterId,characterName:character.name,catalogId:item.id,itemName:item.name,added,before,after:before+added,replayed:false};
+        const result={requestId:request.requestId,accountId:request.accountId,accountName:owner.name,characterId:request.characterId,characterName:character.name,catalogId:item.id,itemName:item.name,added,before,after:before+added,replayed:false,...(weapon?{rankBefore,rankAfter,upgraded}:{})};
         tx.insert(onetimejobs).values({jobId:receipt,doneDate:new Date().toISOString()}).run();
         RecordProgressionEvent(tx,{AccountId:request.accountId,Caller:'admin',Route:route,Body:request,Status:200,Reply:result});
         return result;

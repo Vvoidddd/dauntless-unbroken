@@ -4,7 +4,10 @@ window.setupDashboardRewards = (readKey,get) => {
   const option=(value,text)=>{const node=document.createElement('option');node.value=value;node.textContent=text;return node;};
   function preview(){
     const item=items.find(i=>i.id===el('rewardItem').value),character=account?.characters.find(c=>c.id===el('rewardCharacter').value);
-    el('rewardPreview').textContent=account&&item&&character?`Add ${el('rewardQuantity').value} × ${item.name} to ${account.name} / ${character.name}. Existing cosmetic unlocks are skipped.`:'Select an account, character and reward.';
+    const weapon=Number.isInteger(item?.maxRank);
+    el('rewardQuantity').disabled=grantBusy||weapon;
+    el('sendReward').textContent=weapon?'Grant / upgrade weapon':'Grant reward';
+    el('rewardPreview').textContent=account&&item&&character?(weapon?`Grant ${item.name} at +${el('rewardRank').value} to ${account.name} / ${character.name}, or raise the existing weapon to that rank. Higher ranks, cells and customizations are preserved.`:`Add ${el('rewardQuantity').value} × ${item.name} to ${account.name} / ${character.name}. Existing cosmetic unlocks are skipped.`):'Select an account, character and reward.';
     el('sendReward').disabled=grantBusy||!account||!item||!character;
   }
   async function loadAccount(id){
@@ -16,7 +19,7 @@ window.setupDashboardRewards = (readKey,get) => {
     el('rewardCharacter').replaceChildren(...result.characters.map(c=>option(c.id,`${c.name} · ${c.id}`)));
     const rows=result.history.map(h=>{
       const row=document.createElement('tr');
-      for(const text of [new Date(h.at).toLocaleString(),h.characterName,h.itemName,`+${h.added} (${h.before} → ${h.after})`,h.reason,h.actor]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}
+      for(const text of [new Date(h.at).toLocaleString(),h.characterName,h.itemName,h.rankAfter!==undefined?`Rank ${h.rankBefore===null?'new':'+'+h.rankBefore} → +${h.rankAfter}`:`+${h.added} (${h.before} → ${h.after})`,h.reason,h.actor]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}
       return row;
     });
     el('rewardHistory').replaceChildren(...rows);
@@ -47,6 +50,11 @@ window.setupDashboardRewards = (readKey,get) => {
     const item=items.find(i=>i.id===el('rewardItem').value);
     el('rewardQuantity').max=item?.unique?'1':item?.category==='Currency'?'10000000':'10000';
     if(item?.unique)el('rewardQuantity').value='1';
+    el('rewardRankControl').hidden=!Number.isInteger(item?.maxRank);
+    if(Number.isInteger(item?.maxRank)){
+      el('rewardRank').replaceChildren(...Array.from({length:item.maxRank+1},(_,rank)=>option(String(rank),`+${rank}`)));
+      el('rewardRank').value=String(item.maxRank);
+    }
     preview();
   }
   el('rewardFindAccount').onclick=searchAccounts;
@@ -58,6 +66,7 @@ window.setupDashboardRewards = (readKey,get) => {
   el('rewardCategory').onchange=searchItems;
   el('rewardItem').onchange=itemChanged;
   el('rewardCharacter').onchange=preview;el('rewardQuantity').oninput=preview;
+  el('rewardRank').onchange=preview;
   window.selectRewardAccount=async selected=>{
     el('rewardAccount').replaceChildren(option(selected.id,`${selected.name} · ${selected.id}`));
     document.querySelector('[data-view="rewards"]').click();
@@ -68,7 +77,9 @@ window.setupDashboardRewards = (readKey,get) => {
     if(grantBusy||!account)return;
     const quantity=Number(el('rewardQuantity').value),reason=el('rewardReason').value.trim();
     if(!Number.isSafeInteger(quantity)||quantity<1||quantity>Number(el('rewardQuantity').max)||!reason){el('rewardStatus').textContent='Enter a valid quantity and an audit reason.';return;}
-    const body={accountId:account.id,characterId:el('rewardCharacter').value,catalogId:el('rewardItem').value,quantity,reason};
+    const item=items.find(i=>i.id===el('rewardItem').value),weapon=Number.isInteger(item?.maxRank),rank=Number(el('rewardRank').value);
+    if(weapon&&(!Number.isInteger(rank)||rank<0||rank>item.maxRank)){el('rewardStatus').textContent='Select a valid weapon rank.';return;}
+    const body={accountId:account.id,characterId:el('rewardCharacter').value,catalogId:el('rewardItem').value,quantity,reason,...(weapon?{rank}:{})};
     const serialized=JSON.stringify(body);
     if(!pending||pending.serialized!==serialized)pending={serialized,requestId:crypto.randomUUID()};
     if(!window.confirm(el('rewardPreview').textContent+'\nReason: '+reason))return;
@@ -82,7 +93,7 @@ window.setupDashboardRewards = (readKey,get) => {
       pending=null;
       let refreshNote='';
       try{await loadAccount(body.accountId);}catch{refreshNote=' Reward saved; refresh account history when the connection recovers.';}
-      el('rewardStatus').textContent=(result.added?`Saved +${result.added} ${result.itemName} for ${result.accountName} / ${result.characterName}. New total: ${result.after}${result.replayed?' (previous request; nothing granted twice)':''}.`:'Already owned: no duplicate cosmetic was added.')+refreshNote;
+      el('rewardStatus').textContent=(result.rankAfter!==undefined?`${result.added||result.upgraded?'Saved':'Already owned'} ${result.itemName} at +${result.rankAfter} for ${result.accountName} / ${result.characterName}.${result.replayed?' Previous request; nothing applied twice.':''}`:result.added?`Saved +${result.added} ${result.itemName} for ${result.accountName} / ${result.characterName}. New total: ${result.after}${result.replayed?' (previous request; nothing granted twice)':''}.`:'Already owned: no duplicate cosmetic was added.')+refreshNote;
     }catch(error){el('rewardStatus').textContent=`${error.message} If the connection failed, retry unchanged; the same request cannot grant twice.`;}
     finally{grantBusy=false;for(const control of controls)control.disabled=false;preview();}
   };

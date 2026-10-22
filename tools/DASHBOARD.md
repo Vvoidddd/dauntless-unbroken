@@ -60,7 +60,13 @@ counts use its deploy API (every five seconds). Ramsgate and Training are exclud
 the receiving character, reward, quantity and audit reason, then confirm the grant.
 The account directory also has a **Give rewards** button. Supported rewards include
 Rams, Aetherdust, Steel/Gilded Marks, both bounty-token types, cells, transmogs,
-dyes and other cosmetics. Combat equipment and developer/test items are excluded.
+dyes and other cosmetics, plus **Weapons** and upgradeable **Weapon parts**.
+Select the weapon, choose **Weapon upgrade rank** (up to +15, within that item's
+actual limit), enter a reason and select **Grant / upgrade weapon**. A missing weapon
+is created; an owned weapon is raised in place without duplicate copies or downgrades.
+Cells, weapon parts, transmogs and other existing item data are preserved. Fully exit
+the game before changing equipment, then relaunch to load the saved weapon rank.
+Armour and developer/test items are excluded.
 
 Rewards use the inventory transaction core, enforce the game's signed 32-bit limit,
 and skip already-owned cosmetic unlocks. A permanent request receipt prevents
