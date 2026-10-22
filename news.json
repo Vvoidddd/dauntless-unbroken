@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "197dbafd5e68a83ee8a64e08de861c1dfddc7ef5",
+      "date": "2026-10-22T03:03:52.609Z",
+      "title": "Latest project updates",
+      "body": "• Remove optional author lists from remaining Markdown guides\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "9380db1c6dbb35a61c8e91e729cc41b4c890685e",
       "date": "2026-10-22T02:59:28.512Z",
       "title": "Latest project updates",
