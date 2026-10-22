@@ -101,6 +101,7 @@ beforeEach(() => {
     Logged.length = 0;
     delete process.env.PERSISTENT_WORLD_LIVENESS;
     delete process.env.ENABLE_DOJO;
+    delete process.env.GAMESERVER_EXCLUDED_PORTS;
 });
 
 after(() => {
@@ -108,6 +109,30 @@ after(() => {
     ResetGameserversForTests();
     Object.assign(logger, LoggerBackup);
     RemoveDeployTestDir();
+});
+
+describe("excluded hunt ports", () => {
+    it("skips excluded ports across allocations and recycling without changing persistent ports", async () => {
+        process.env.GAMESERVER_EXCLUDED_PORTS = "8775, 8773,8775";
+        await Startup();
+        assert.deepEqual(GameserverStateForTests().FreePorts, [8770, 8771, 8772, 8774]);
+        assert.equal((await GetRamsgateConnectionDetails()).port, 8777);
+        assert.equal((await GetTrainingDojoConnectionDetails()).port, 8776);
+        const Hunts = [];
+        for (let i = 0; i < 4; i++) Hunts.push(await StartupGameserverWithArgs(TUTORIAL_ARGS));
+        assert.deepEqual(Hunts.map(Hunt => Hunt.port).sort(), [8770, 8771, 8772, 8774]);
+        for (const Hunt of Hunts) await CleanupServer(Gameservers.find(Server => Server.port === Hunt.port)!);
+        assert.deepEqual([...GameserverStateForTests().FreePorts].sort(), [8770, 8771, 8772, 8774]);
+    });
+
+    it("rejects malformed, out-of-range and persistent port exclusions before spawning", async () => {
+        for (const Value of ["8775oops", "8774.5", "8769", "8776", "8777"]) {
+            process.env.GAMESERVER_EXCLUDED_PORTS = Value;
+            await assert.rejects(Startup(), /GAMESERVER_EXCLUDED_PORTS/);
+            assert.equal(Spawned.length, 0);
+            assert.deepEqual(GameserverStateForTests().FreePorts, []);
+        }
+    });
 });
 
 describe("Ramsgate", () => {

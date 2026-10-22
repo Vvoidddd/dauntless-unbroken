@@ -108,6 +108,8 @@ argument.
 | 8776 (`PORT_RANGE_END` - 1) | Training Dojo | On first use, or at startup with `ENABLE_DOJO=1`. Restarted on the same port the same way. |
 | 8770-8775 (`PORT_RANGE_BEGIN` to `PORT_RANGE_END` - 2) | Hunts and the tutorial | One process per group of up to 4 players, from a pool of free ports, highest first (8775, then 8774, ...). |
 
+- **Excluded hunt ports.** Set `GAMESERVER_EXCLUDED_PORTS=8765` (or a comma-separated list) in the deploy service environment to keep unreachable hunt ports out of allocation. Entries must be inside the configured hunt range; Ramsgate and Training Grounds cannot be excluded. Restart the allocator after draining occupied hunts, and keep its hunt capacity within the remaining port count. This does not change the firewall allowlist.
+
 - **Listening address.** The server DLL opens the port with no host, so the game server listens on
   every interface (`0.0.0.0`). The firewall decides who reaches it. The address players are sent to is
   the deploy server's `MY_IP`: `127.0.0.1` on a dev PC, the host's Tailscale IPv4 in private mode, the

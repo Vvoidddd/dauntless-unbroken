@@ -716,8 +716,16 @@ export function DescribeGameservers(Servers: Gameserver[] = Gameservers, IsAlive
 // Both persistent worlds start through the shared launch, so a player's request that arrives while
 // they are still starting waits for them instead of starting a second process
 export async function Startup(){
+    const ExcludedPorts = new Set<number>();
+    for (const Entry of (process.env.GAMESERVER_EXCLUDED_PORTS ?? "").split(",").map(Value => Value.trim()).filter(Boolean)) {
+        const Port = Number(Entry);
+        if (!/^\d+$/.test(Entry) || !Number.isInteger(Port) || Port < PORT_RANGE_BEGIN || Port > PORT_RANGE_END - 2) {
+            throw new Error("GAMESERVER_EXCLUDED_PORTS must contain comma-separated hunt ports within the configured range");
+        }
+        ExcludedPorts.add(Port);
+    }
     for(let i = PORT_RANGE_BEGIN; i <= PORT_RANGE_END - 2; i++){
-        FreePorts.push(i);
+        if (!ExcludedPorts.has(i)) FreePorts.push(i);
     }
 
     if (process.env.HUNT_WORKER === '1' && process.env.WORKER_RAMSGATE !== '1') return;
