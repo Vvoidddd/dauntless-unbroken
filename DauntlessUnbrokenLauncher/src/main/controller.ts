@@ -982,6 +982,7 @@ export class Controller {
     if (this.sid() !== sid || sv.fp !== slot.fp) return Promise.resolve();
     const pending=this.desktopBackupTasks.get(sid);
     if(pending?.key===key)return pending.task;
+    this.desktopBackups.delete(sid);
     const job={key,task:Promise.resolve()};
     const current=()=>this.desktopBackupTasks.get(sid)===job&&this.sid()===sid&&this.s.server?.fp===slot.fp;
     job.task=(async()=>{

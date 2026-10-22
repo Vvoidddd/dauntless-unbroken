@@ -229,6 +229,21 @@ test('a stalled Desktop folder cannot hold registration or account-key import on
   }finally{release();await registration;await hx.c.shutdown();}
 });
 
+test('switching accounts while Desktop is stalled never offers the previous account backup',async t=>{
+  const desktop=temp('switch-desktop-'),hx=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{desktopDir:desktop});
+  let release!:()=>void;const gate=new Promise<void>(r=>{release=r;});
+  try{
+    await hx.c.init();meta.opts.validCodes!.add('SWITCH-DESKTOP');await hx.c.submitInvite(invite(cert.fingerprint,'SWITCH-DESKTOP'));
+    assert.equal((await hx.c.register('FirstDesktop')).ok,true);await waitUntil(()=>!!hx.last().account.desktopBackupPath);
+    const old=hx.last().account.desktopBackupPath,open=fs.open;
+    t.mock.method(fs,'open',async(...args:Parameters<typeof fs.open>)=>{if(String(args[0]).startsWith(desktop))await gate;return open(...args);});
+    const key='UUK_'+'e'.repeat(48);meta.users.set(key,{username:'SecondDesktop',id:'UID-second-desktop'});
+    assert.equal((await hx.c.useExistingKey(key)).ok,true);assert.equal(hx.last().account.username,'SecondDesktop');
+    assert.equal(hx.last().account.desktopBackupPath,undefined);
+    release();await waitUntil(()=>!!hx.last().account.desktopBackupPath&&hx.last().account.desktopBackupPath!==old);
+  }finally{release();await hx.c.shutdown();}
+});
+
 test('a new registration preserves its Desktop backup if secure storage fails after the invite is consumed',async()=>{
   const desktop=temp('desktop-register-');
   const hx=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{desktopDir:desktop,encryptor:{isAvailable:()=>false,encrypt:()=>{throw Error('unavailable');},decrypt:()=>{throw Error('unavailable');}}});
