@@ -12,6 +12,7 @@ import {HashUserAPIKey} from '../src/controllers/auth';
 import {GrantReward,RewardAccount,RewardCatalog} from '../src/controllers/adminrewards';
 import {MakePlayer,StackQuantity} from './helpers';
 import {StartApp,StopApp,Call} from './appclient';
+import catalog from '../src/vendor/admin_grant_catalog.json';
 before(StartApp);
 after(async()=>{await StopApp();RemoveTestDb(()=>GetDb().$client.close());});
 const request=(a:{UserId:string,CharacterId:string},id='CURRENCY_NOTES',quantity=10000)=>({accountId:a.UserId,characterId:a.CharacterId,catalogId:id,quantity,reason:'Verified event reward',requestId:randomUUID()});
@@ -107,6 +108,55 @@ test('invalid grants and overflow cannot mutate inventory or consume a receipt',
  assert.equal(GrantReward('UID-owner',base).added,10000);
 });
 
+const bulkRequest=(a:{UserId:string,CharacterId:string},bundle:string)=>({accountId:a.UserId,characterId:a.CharacterId,bundle,reason:'Bulk event reward',requestId:randomUUID()});
+
+test('cosmetics bulk grants the full catalogue once, preserves balances, and records one atomic audit',async()=>{
+ const a=await MakePlayer(),db=GetDb(),expected=catalog.items.filter(i=>['Transmogs','Dyes','Other cosmetics'].includes(i.category));
+ GrantReward('UID-owner',request(a,expected[0].id,1));GrantReward('UID-owner',request(a,'CURRENCY_NOTES',123));
+ const countTransactions=()=>db.select().from(inventorytransactions).where(eq(inventorytransactions.characterId,a.CharacterId)).all().length;
+ const previousTransactions=countTransactions(),body=bulkRequest(a,'cosmetics'),result=GrantReward('UID-owner',body);
+ assert.ok(expected.length>100);assert.equal(result.total,expected.length);assert.equal(result.added,expected.length-1);assert.equal(result.skipped,1);
+ assert.equal(countTransactions(),previousTransactions+1);assert.equal(RewardAccount(a.UserId).history.length,3);
+ const row=db.select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get()!;
+ const all=[...JSON.parse(row.stackedItems),...JSON.parse(row.instancedItems)];
+ for(const item of expected){const owned=all.filter(i=>i.catalogId===item.id);assert.equal(owned.length,1,item.id);if(item.kind==='stacked')assert.equal(owned[0].quantity,1);}
+ assert.equal(StackQuantity(a.CharacterId,'CURRENCY_NOTES'),123);
+ const weapons=new Set(catalog.items.filter(i=>typeof i.maxRank==='number').map(i=>i.id));assert.ok(!all.some(i=>weapons.has(i.catalogId)));
+ db.delete(inventorytransactions).where(eq(inventorytransactions.userId,a.UserId)).run();
+ assert.deepEqual(GrantReward('UID-owner',body),{...result,replayed:true});
+ const repeat=GrantReward('UID-owner',bulkRequest(a,'cosmetics'));assert.equal(repeat.added,0);assert.equal(repeat.skipped,expected.length);
+ assert.deepEqual(db.select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get(),row);
+ for(const modified of [{...body,bundle:'weapons'},{...body,reason:'different'}])assert.throws(()=>GrantReward('UID-owner',modified),/already used/);
+ const bundles=RewardCatalog('does not match anything').bundles;
+ assert.equal(bundles.find(b=>b.id==='cosmetics')!.total,expected.length);
+ assert.equal(bundles.find(b=>b.id==='flares')!.total,expected.filter(i=>i.id.startsWith('QI_FLARE_')).length);
+});
+
+test('max weapons bulk respects every rank cap and preserves owned weapon identity, cells and customizations',async()=>{
+ const a=await MakePlayer(),db=GetDb(),id='WP_EB_LERAWR',expected=catalog.items.filter(i=>typeof i.maxRank==='number');
+ GrantReward('UID-owner',{...request(a,id,1),rank:3});
+ const read=()=>db.select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get()!;
+ const original=JSON.parse(read().instancedItems)[0],data={...JSON.parse(original.itemData),EquippedCells:[{CellID:'CELL_CRIT_CHANCE_E'}],TransmogCatalogID:'CUSTOM_SKIN',CurrentXP:123};
+ db.update(inventory).set({instancedItems:JSON.stringify([{...original,updateVersion:7,itemData:JSON.stringify(data)}])}).where(eq(inventory.characterId,a.CharacterId)).run();
+ const result=GrantReward('UID-owner',bulkRequest(a,'weapons')),saved=read(),owned=JSON.parse(saved.instancedItems);
+ assert.equal(result.total,expected.length);assert.equal(result.added,expected.length-1);assert.equal(result.upgradedCount,1);assert.equal(result.skipped,0);
+ assert.equal(owned.length,expected.length);
+ for(const item of expected)assert.equal(JSON.parse(owned.find((i:any)=>i.catalogId===item.id).itemData).CurrentLevel,item.maxRank,item.id);
+ const sword=owned.find((i:any)=>i.catalogId===id);assert.equal(sword.instanceId,original.instanceId);assert.equal(sword.updateVersion,8);assert.deepEqual(JSON.parse(sword.itemData),{...data,CurrentLevel:15});
+ const repeat=GrantReward('UID-owner',bulkRequest(a,'weapons'));assert.equal(repeat.added,0);assert.equal(repeat.upgradedCount,0);assert.equal(repeat.skipped,expected.length);assert.deepEqual(read(),saved);
+});
+
+test('bulk grants reject forged fields and roll back inventory and permanent receipts when the final audit write fails',async()=>{
+ const a=await MakePlayer(),b=await MakePlayer(),db=GetDb(),body=bulkRequest(a,'flares');
+ for(const extra of [{bundle:'dev-items'},{bundle:null},{catalogId:'CURRENCY_NOTES'},{quantity:1},{rank:15},{items:['DEV']},{characterId:b.CharacterId}])assert.throws(()=>GrantReward('UID-owner',{...body,...extra}));
+ GrantReward('UID-owner',request(a,'CURRENCY_NOTES',5));
+ const read=()=>db.select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get(),original=read();
+ db.$client.exec(`CREATE TEMP TRIGGER fail_bulk_audit BEFORE INSERT ON progression_events WHEN NEW.route = 'admin AccountGrant:${body.requestId}' BEGIN SELECT RAISE(ABORT, 'simulated audit failure'); END`);
+ try{assert.throws(()=>GrantReward('UID-owner',body),/simulated audit failure/);assert.deepEqual(read(),original);assert.equal(RewardAccount(a.UserId).history.length,1);}
+ finally{db.$client.exec('DROP TRIGGER fail_bulk_audit');}
+ assert.ok(GrantReward('UID-owner',body).added>0);assert.equal(RewardAccount(a.UserId).history.length,2);
+});
+
 test('reward APIs require a direct admin key; actors come from authentication',async()=>{
  const a=await MakePlayer(),admin=await MakePlayer(),key='UUK_'+randomUUID(),playerKey='UUK_'+randomUUID();
  GetDb().update(users).set({isAdmin:true}).where(eq(users.userId,admin.UserId)).run();
@@ -122,6 +172,11 @@ test('reward APIs require a direct admin key; actors come from authentication',a
  assert.equal((await Call('POST','/unbroken/api/RewardGrant',{as:a.UserId,body})).status,401);
  assert.equal((await Call('POST','/unbroken/api/RewardGrant',{headers:{'x-dauntless-unbroken-user-api-key':playerKey},body})).status,403);
  assert.equal((await Call('POST','/unbroken/api/RewardGrant',{headers,body})).status,200);
+ const bundle=bulkRequest(a,'flares');
+ assert.equal((await Call('POST','/unbroken/api/RewardGrant',{as:a.UserId,body:bundle})).status,401);
+ assert.equal((await Call('POST','/unbroken/api/RewardGrant',{headers:{'x-dauntless-unbroken-user-api-key':playerKey},body:bundle})).status,403);
+ assert.equal((await Call('POST','/unbroken/api/RewardGrant',{headers:{...headers,'x-dauntless-gateway':'1'},body:bundle})).status,403);
+ assert.equal((await Call('POST','/unbroken/api/RewardGrant',{headers,body:bundle})).status,200);
  assert.equal(RewardAccount(a.UserId).history[0].actor,admin.UserId);
  assert.equal(RewardCatalog('Rams').items[0].id,'CURRENCY_NOTES');
  assert.ok(RewardCatalog('','Cells').items.every(i=>i.kind==='stacked'));

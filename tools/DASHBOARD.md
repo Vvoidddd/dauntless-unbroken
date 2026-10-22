@@ -75,6 +75,16 @@ The account's last 25 grants show the administrator, reason and before/after cou
 These actions require a direct administrator key and are blocked by the public
 gateway. Players may need to relog to refresh their inventory display.
 
+**Quick bulk grants** adds buttons for all cosmetics, skins/transmogs, dyes, flares,
+and all weapons at their individual maximum ranks (including upgradeable repeater
+parts). Select an account and character, enter the audit reason, then confirm a
+button. These use the full verified catalogue, independent of search filters and
+the 100-result search limit. Developer/test items remain excluded. Every bulk
+grant is one atomic inventory transaction and one audit entry: existing unlocks
+are skipped, owned weapon data is preserved, and a failure rolls back the entire
+grant. Repeating the same request is safe; repeating with a new receipt also
+skips owned cosmetics and max-rank weapons.
+
 Overview, Backend health, Players & accounts, Invites and Logs are separate lightweight views
 (plain JavaScript, CSS and canvas; no chart framework or background log streaming).
 The owner-only account directory loads on demand, 100 accounts per page. It shows launcher names,
