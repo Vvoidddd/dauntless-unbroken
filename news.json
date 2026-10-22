@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "276d83170a0db49fb9de8bd8ca225c3c054f9503",
+      "date": "2026-10-22T02:44:39.421Z",
+      "title": "Latest project updates",
+      "body": "• Index complete game item catalogue and resolve in-game names for dashboard search\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "5c795e27039865fb8915dc6df35d8c1cf4e81cf1",
       "date": "2026-10-22T02:11:12.522Z",
       "title": "Latest project updates",
