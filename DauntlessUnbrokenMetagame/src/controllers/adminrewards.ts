@@ -61,7 +61,6 @@ export function GrantReward(actorId:string,input:unknown){
         if(['catalogId','quantity','rank'].some(key=>key in b))throw new RewardError(400,'Bulk grants cannot include an item, quantity or rank');
     }else{
         if(!item)throw new RewardError(400,'Item is not in the verified rewards catalogue');
-        if(!item.grantable)throw new RewardError(400,item.unavailableReason??'Item cannot be granted through inventory');
         if(weapon&&(typeof b.rank!=='number'||!Number.isInteger(b.rank)||b.rank<0||b.rank>item.maxRank!))throw new RewardError(400,`Equipment rank must be a whole number from 0 to ${item.maxRank}`);
         if(!weapon&&b.rank!==undefined)throw new RewardError(400,'Rank applies only to equipment with a verified upgrade limit');
         const max=item.kind==='entitlement'?720:item.unique?1:item.category==='Currency'?10000000:10000;

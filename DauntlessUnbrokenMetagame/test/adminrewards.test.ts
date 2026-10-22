@@ -118,7 +118,7 @@ test('weapon catalogue exposes real rank caps and rejects invalid ranks, non-wea
  assert.equal(RewardCatalog(id,'Weapons').items.find(i=>i.id===id)!.maxRank,15);
  assert.equal(RewardCatalog('WP_EB_BEGINNER','Weapons').items[0].maxRank,0);
  const all=[...RewardCatalog('','Weapons').items,...RewardCatalog('','Weapon parts').items].filter(i=>i.grantable);
- assert.ok(all.length>100);assert.ok(all.every(i=>i.unique&&i.kind==='instanced'&&!/TEST|DEBUG|TRAINING|DUMMY/.test(i.id)));
+ assert.ok(all.length>100);assert.ok(all.every(i=>i.unique&&i.kind==='instanced'));
  for(const rank of [undefined,null,'15',NaN,-1,1.5,16,999])assert.throws(()=>GrantReward('UID-owner',{...base,rank}),/rank/);
  assert.throws(()=>GrantReward('UID-owner',{...request(a,'WP_EB_BEGINNER',1),rank:15}),/rank/);
  assert.throws(()=>GrantReward('UID-owner',{...request(a),rank:15}),/Rank applies/);
@@ -218,7 +218,7 @@ test('reward APIs require a direct admin key; actors come from authentication',a
  assert.equal(RewardAccount(a.UserId).history[0].actor,admin.UserId);
  assert.equal(RewardCatalog('Rams').items[0].id,'CURRENCY_NOTES');
  assert.ok(RewardCatalog('','Cells').items.every(i=>i.kind==='stacked'));
- assert.ok(RewardCatalog('PLACEHOLDER').items.every(i=>!i.grantable));
+ assert.ok(RewardCatalog('PLACEHOLDER').items.every(i=>i.grantable));
 });
 
 test('complete catalogue resolves in-game names, ranks exact matches first and exposes every item through paging',()=>{
@@ -232,14 +232,21 @@ test('complete catalogue resolves in-game names, ranks exact matches first and e
  for(const offset of [-1,1.5,NaN,'-1','1e3','',100001])assert.throws(()=>RewardCatalog('','',offset),/offset/);
 });
 
-test('armour grants use real equipment caps and unavailable catalogue entries cannot be granted or included in bulk',async()=>{
+test('all catalogue entries are available, including developer titles and equipment, with rank limits and receipts intact',async()=>{
  const a=await MakePlayer(),db=GetDb(),id='AR_CROWBEAR_HELM';
  assert.equal(GrantReward('UID-owner',{...request(a,id,1),rank:5}).rankAfter,5);
  const saved=()=>JSON.parse(db.select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get()!.instancedItems);
  const original=saved()[0];assert.equal(GrantReward('UID-owner',{...request(a,id,1),rank:15}).upgraded,true);assert.equal(saved()[0].instanceId,original.instanceId);assert.equal(saved().length,1);
- const excluded=RewardCatalog('AR_DEBUG_HELM_MANYCELLS').items.find(i=>i.id==='AR_DEBUG_HELM_MANYCELLS')!;assert.equal(excluded.grantable,false);assert.ok(excluded.unavailableReason);
- assert.throws(()=>GrantReward('UID-owner',{...request(a,excluded.id,1),rank:0}),/Restricted|Developer/);
+ assert.ok(catalog.items.every(i=>i.grantable));
+ const special=RewardCatalog('AR_DEBUG_HELM_MANYCELLS').items.find(i=>i.id==='AR_DEBUG_HELM_MANYCELLS')!;assert.equal(special.grantable,true);
+ assert.equal(GrantReward('UID-owner',{...request(a,special.id,1),rank:special.maxRank}).added,1);
+ assert.equal(JSON.parse(saved().find((i:any)=>i.catalogId===special.id).itemData).CurrentLevel,special.maxRank);
+ for(const id of ['TITLE_DEV_ALL','TITLE_TEST_01','QI_FLARE_TEST']){
+  const body=request(a,id,1);assert.equal(GrantReward('UID-owner',body).added,1);
+  const item=catalog.items.find(i=>i.id===id)!;assert.equal(item.kind==='stacked'?StackQuantity(a.CharacterId,id):saved().filter((i:any)=>i.catalogId===id).length,1);
+  assert.equal(GrantReward('UID-owner',body).replayed,true);assert.equal(GrantReward('UID-owner',request(a,id,1)).added,0);
+ }
  assert.throws(()=>GrantReward('UID-owner',{...request(a,id,1),rank:16}),/rank/);
  const bulk=GrantReward('UID-owner',bulkRequest(a,'weapons'));assert.equal(bulk.total,catalog.items.filter(i=>i.grantable&&['Weapons','Weapon parts'].includes(i.category)&&typeof i.maxRank==='number').length);
- assert.equal(saved().filter((i:any)=>i.catalogId.startsWith('AR_')).length,1);
+ assert.equal(saved().filter((i:any)=>i.catalogId.startsWith('AR_')).length,2);
 });

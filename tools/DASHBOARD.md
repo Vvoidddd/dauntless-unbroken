@@ -60,11 +60,12 @@ counts use its deploy API (every five seconds). Ramsgate and Training are exclud
 using the game's English localization (including string-table names). It includes
 armour, weapons/parts, lanterns, consumables, materials, currencies, cells and
 cosmetics. Titles, flares, banner sigils, fabrics, standards and plants have their
-own category filters. All normal items in these categories are included regardless
+own category filters. All catalogue items in these categories are included regardless
 of their in-game rarity. Exact name/ID matches appear first; punctuation and word order are
-normalized. **Previous 100 / Next 100** reaches every match. Internal, restricted,
-obsolete and unsupported entries remain searchable with an explanation, but cannot
-be granted or included in bulk operations.
+normalized. **Previous 100 / Next 100** reaches every match. Authorized administrators
+can grant every catalogue entry, including developer, founder, test and legacy items.
+Grants add the selected inventory entry; quest markers and reward bundles do not
+automatically run their separate quest or bundle handlers.
 
 Select the receiving account and character, item, quantity, equipment rank where
 applicable, and audit reason, then confirm. Existing equipment upgrades in place
@@ -82,7 +83,7 @@ gateway. Players may need to relog to refresh their inventory display.
 all armour at max rank, and all weapons at their individual maximum ranks
 (including upgradeable repeater parts). Select an account and character, enter the audit reason, then confirm a
 button. These use the full verified catalogue, independent of search filters and
-the 100-result search limit. Developer/test items remain excluded. Every bulk
+the 100-result search limit. These include developer/founder/test entries. Every bulk
 grant is one atomic inventory transaction and one audit entry: existing unlocks
 are skipped, owned weapon data is preserved, and a failure rolls back the entire
 grant. Repeating the same request is safe; repeating with a new receipt also

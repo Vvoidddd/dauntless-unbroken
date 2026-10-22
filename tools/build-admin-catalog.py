@@ -69,8 +69,6 @@ def localization(b):
  if sum(map(len,out.values()))!=count:raise ValueError('Localization entry count mismatch')
  return out
 
-RESTRICTED=set(['AC_HEAD_FROSTWARDEN_00', 'AC_HEAD_HALO', 'AC_HEAD_SHOCK_00', 'AR_DEBUG_HELM_MANYCELLS', 'AR_KAT_ARMS', 'AR_KAT_CHEST', 'AR_KAT_HELM', 'AR_KAT_LEGS', 'AR_UNEQUIPPED_ARMS', 'AR_UNEQUIPPED_CHEST', 'AR_UNEQUIPPED_HELM', 'AR_UNEQUIPPED_LEGS', 'BNC_ANIMATION_HP09B_COMMANDO_00', 'BNC_ANIMATION_TRANSLATOR_00', 'BNC_SIGIL_020', 'BNC_SIGIL_TRANSLATOR_000', 'CELLV2_TEST_PASSIVE', 'CELLv2_TEST_STATE_BASED', 'CELLv2_TEST_TRIGGER', 'CELLv2_TEST_TRIGGER_KEYWORD', 'DYE_OSTIAN_LEATHER_DURABLE', 'DYE_OSTIAN_ORE_DURABLE', 'DYE_OSTIAN_WOOL_DURABLE', 'DYE_RESTRICTED_ORANGE04_GLOWING_DURABLE', 'EM_INTRO_1P_TINYSHIP_XBOX', 'EM_INTRO_3POINT_PARTNER_SUB_YOUTUBE_00', 'EM_INTRO_3POINT_TRANSLATOR_00', 'EM_INTRO_HP12A_WARDENS_00', 'EM_INTRO_HP12A_WARDENS_01', 'EM_PLAYER_1P_FIREBREATH_XBOX', 'EM_PLAYER_HP10A_CELESTIAL_03', 'EM_PLAYER_HP10A_CELESTIAL_TEST', 'EM_PLAYER_HP12A_WARDENS_00', 'EM_PLAYER_HP12A_WARDENS_01', 'EM_PLAYER_HP12A_WARDENS_02', 'EM_PLAYER_HP12A_WARDENS_03', 'EM_PLAYER_TEST_FIREWORKS_00', 'EM_PLAYER_TRANSLATOR_FIVE_00', 'LT_1P_ESCALATION_FROST', 'PART_AC_LEGENDARY_BLAZE', 'PART_AC_LEGENDARY_SHOCK', 'PART_AC_LEGENDARY_TERRA', 'PART_AC_LEGENDARY_UMBRAL', 'PART_CB_LEGENDARY_BLAZE', 'PART_CB_LEGENDARY_SHOCK', 'PART_CB_LEGENDARY_TERRA', 'PART_CB_LEGENDARY_UMBRAL', 'PART_EB_LEGENDARY_BLAZE', 'PART_EB_LEGENDARY_SHOCK', 'PART_EB_LEGENDARY_TERRA', 'PART_EB_LEGENDARY_UMBRAL', 'PART_GA_LEGENDARY_BLAZE', 'PART_GA_LEGENDARY_SHOCK', 'PART_GA_LEGENDARY_TERRA', 'PART_GA_LEGENDARY_UMBRAL', 'PART_IH_LEGENDARY_BLAZE', 'PART_IH_LEGENDARY_SHOCK', 'PART_IH_LEGENDARY_TERRA', 'PART_IH_LEGENDARY_UMBRAL', 'PART_MS_LEGENDARY_BLAZE', 'PART_MS_LEGENDARY_SHOCK', 'PART_MS_LEGENDARY_TERRA', 'PART_MS_LEGENDARY_UMBRAL', 'QI_FLARE_HP12A_00', 'QI_FLARE_PROMO_086', 'QI_FLARE_PROMO_177', 'QI_FLARE_PROMO_195', 'QI_FLARE_TEST', 'QI_FLARE_TRANSLATOR', 'TITLE_DEV_ALL', 'TITLE_PHX_LOBSTER', 'TITLE_TEST_01', 'TITLE_TEST_02', 'TITLE_TRANSLATOR_01', 'TITLE_TRANSLATOR_02', 'TITLE_TRANSLATOR_03', 'TITLE_TRANSLATOR_04', 'TY_FIREWORK_FF2020', 'TY_GIFT_FROSTFALL', 'WP_AC_UMBRAL_PAPER_00', 'WP_CB_UNEQUIPPED', 'WP_EB_BLAZE_BUGBEAR_00', 'WP_EB_QUILL_00', 'WP_EB_UNEQUIPPED', 'WP_GA_TERRA_SALLY', 'WP_GA_UNEQUIPPED', 'WP_IH_UNEQUIPPED', 'WP_MS_UNEQUIPPED'])
-
 COSMETIC_CATEGORIES=('Transmogs','Dyes','Other cosmetics','Titles','Flares','Banner sigils','Banner fabrics','Banner standards','Banner plants')
 
 def category(row):
@@ -98,25 +96,16 @@ def category(row):
  return 'Other items'
 
 def normalize(row,previous):
- id=row['id'];source=row['source'];name=row['name'];cat=category(row);reason=None
- if id in RESTRICTED:reason='Restricted item; excluded from administrator inventory grants'
- elif re.search(r'(?i)(^|_)(DEBUG|TEST|DUMMY|PLACEHOLDER|UNEQUIPPED)(_|$)',id) or any(x in source.lower() for x in ('debug_','testhunt','/democatalogs/','weapon_bow_')):reason='Developer, test or unreleased item'
- elif 'obsolete_' in source:reason='Obsolete item; use the current item with the same name'
- elif '~DNT~' in (name or '') or (not name and cat not in COSMETIC_CATEGORIES+('Armour','Weapons','Weapon parts','Lanterns')):reason='Internal or unreleased item without a normal in-game label'
- elif row['bundle']:reason='Reward bundle; requires its reward handler rather than an inventory grant'
- elif id not in ('TOKEN_BOUNTY_DRAFT','TOKEN_BOUNTY_DRAFT_PREMIUM') and ('/Token_Catalogs/' in source or '/Quest_Catalogs/' in source or 'grant_progress_item' in source):reason='Progression marker; use its progression handler rather than an inventory grant'
- elif '/Activities/' in source:reason='Unreleased activity item'
- out={'id':id,'name':name or id,'category':cat,'kind':row['kind'],'unique':row['kind']=='instanced' or cat in COSMETIC_CATEGORIES,'grantable':not reason}
+ id=row['id'];name=row['name'];cat=category(row)
+ out={'id':id,'name':name or id,'category':cat,'kind':row['kind'],'unique':row['kind']=='instanced' or cat in COSMETIC_CATEGORIES,'grantable':True}
  if cat in ('Armour','Weapons','Weapon parts','Lanterns'):
   match=re.fullmatch(r'EUpgradeableItemLevel::Level_(\d+)',row['maxRank'] or '')
   if match and 0<=int(match[1])<=15:out['maxRank']=int(match[1])
-  elif not reason:reason='Equipment rank limit could not be verified';out['grantable']=False
  aliases=set(previous.get('aliases',[]))
  aliases.update(row.get('aliases',[]))
  old=previous.get('name')
  if old and old!=out['name'] and old!=id and '|Display Name' not in old and '~DNT~' not in old:aliases.add(old)
  if aliases:out['aliases']=sorted(aliases)
- if reason:out['unavailableReason']=reason
  return out
 
 def main():
@@ -147,7 +136,7 @@ def main():
  previous={item['id']:item for item in json.loads(args.output.read_text(encoding='utf-8-sig'))['items']} if args.output.exists() else {}
  items=sorted((normalize(row,previous.get(id,{})) for id,row in rows.items()),key=lambda i:(i['category'],i['name'],i['id']))
  if not items:raise ValueError('No item catalogue found')
- result={'_comment':'1.4.4 item IDs, English localized labels, storage kinds and equipment rank caps from game catalogue tables. Unavailable entries remain searchable but cannot be granted. No game assets.','items':items}
+ result={'_comment':'1.4.4 item IDs, English localized labels, storage kinds and equipment rank caps from game catalogue tables. All entries are available to authorized administrators. No game assets.','items':items}
  output=json.dumps(result,ensure_ascii=True,indent=2)+'\n'
  if args.check:
   if json.loads(args.output.read_text(encoding='utf-8-sig'))!=result:raise ValueError('Dashboard catalogue is out of date')

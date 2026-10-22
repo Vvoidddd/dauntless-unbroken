@@ -29,7 +29,10 @@ class CatalogParserTests(unittest.TestCase):
   item=builder.normalize(row,{})
   self.assertTrue(item['grantable']);self.assertEqual(item['maxRank'],15);self.assertEqual(item['category'],'Armour')
   reserved=builder.normalize({**row,'id':'AR_DEBUG_HELM_MANYCELLS'},{})
-  self.assertFalse(reserved['grantable']);self.assertIn('Restricted',reserved['unavailableReason'])
+  self.assertTrue(reserved['grantable']);self.assertEqual(reserved['maxRank'],15)
+  for id in ['TITLE_DEV_ALL','TITLE_TEST_01','QI_FLARE_TEST','PLACEHOLDER']:
+   special=builder.normalize({**row,'id':id,'name':None,'maxRank':None},{})
+   self.assertTrue(special['grantable']);self.assertNotIn('unavailableReason',special)
   token=builder.normalize({**row,'id':'TOKEN_BOUNTY_DRAFT','source':'Catalogs/Token_Catalogs/tokens_general_catalog.uasset','name':'Bounty Token','kind':'stacked','maxRank':None},{'name':'Bounty Tokens'})
   self.assertTrue(token['grantable']);self.assertEqual(token['aliases'],['Bounty Tokens'])
   for id,category in [('TITLE_DARKHARVESTER','Titles'),('QI_FLARE_PROMO_001','Flares'),('BNC_SIGIL_001','Banner sigils'),('BNC_FABRIC_001','Banner fabrics'),('BNC_STANDARD_001','Banner standards'),('BNC_ANIMATION_001','Banner plants')]:
