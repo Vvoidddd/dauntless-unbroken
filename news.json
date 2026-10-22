@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "da0e84c269b505a0447159eeb02b05b8ecb2c50f",
+      "date": "2026-10-22T22:56:37.022Z",
+      "title": "Latest project updates",
+      "body": "• Clear stale account backup paths during background recovery\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "df0957b4307b49b87e17f18761dd8e1757ad7451",
       "date": "2026-10-22T22:49:21.286Z",
       "title": "Latest project updates",
