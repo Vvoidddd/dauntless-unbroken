@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "cda2d56216c4e6a56fb8ddfbf376e11869d43a39",
+      "date": "2026-10-22T05:06:47.027Z",
+      "title": "Latest project updates",
+      "body": "• Ship warm-city DLL with matching installation checksums\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "fcbfa80e9f401a73f034c0048dc8f043a910f007",
       "date": "2026-10-22T05:01:17.992Z",
       "title": "Latest project updates",
