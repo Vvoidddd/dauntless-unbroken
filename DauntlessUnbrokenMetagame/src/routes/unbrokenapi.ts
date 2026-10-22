@@ -93,7 +93,7 @@ function RewardReply(res:any,run:()=>unknown){
     res.setHeader('Cache-Control','no-store');
     try{res.json(run());}catch(e){res.status(e instanceof RewardError?e.status:503).json({error:e instanceof RewardError?e.message:'Rewards unavailable. Retry the same request.'});}
 }
-unbrokenApiRouter.get('/RewardCatalog',HasDauntlessUnbrokenAdminApiKey,HealthReadRateLimit,(req,res)=>RewardReply(res,()=>RewardCatalog(req.query.q??'',req.query.category??'')));
+unbrokenApiRouter.get('/RewardCatalog',HasDauntlessUnbrokenAdminApiKey,HealthReadRateLimit,(req,res)=>RewardReply(res,()=>RewardCatalog(req.query.q??'',req.query.category??'',req.query.offset??0)));
 unbrokenApiRouter.get('/RewardAccount',HasDauntlessUnbrokenAdminApiKey,HealthReadRateLimit,(req,res)=>RewardReply(res,()=>RewardAccount(req.query.accountId)));
 unbrokenApiRouter.post('/RewardGrant',HasDauntlessUnbrokenAdminApiKey,AdminMutationRateLimit,(req,res)=>RewardReply(res,()=>GrantReward((req as any).DauntlessUnbrokenUserInfo.UserId,req.body)));
 

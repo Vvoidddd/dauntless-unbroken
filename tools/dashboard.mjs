@@ -140,9 +140,9 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
             const id=params.get('accountId');if(!/^UID-[A-Za-z0-9-]{1,100}$/.test(id??'')){res.writeHead(400).end();return;}
             endpoint=new URL('/unbroken/api/RewardAccount',target);endpoint.searchParams.set('accountId',id);
           }else{
-            const q=params.get('q')??'',category=params.get('category')??'';
-            if(q.length>100||category.length>30){res.writeHead(400).end();return;}
-            endpoint=new URL('/unbroken/api/RewardCatalog',target);endpoint.searchParams.set('q',q);endpoint.searchParams.set('category',category);
+            const q=params.get('q')??'',category=params.get('category')??'',offset=params.get('offset')??'0';
+            if(q.length>100||category.length>30||!/^\d+$/.test(offset)||Number(offset)>100000){res.writeHead(400).end();return;}
+            endpoint=new URL('/unbroken/api/RewardCatalog',target);endpoint.searchParams.set('q',q);endpoint.searchParams.set('category',category);endpoint.searchParams.set('offset',offset);
           }
         }
         const response=await fetcher(endpoint,{method:rewardGrant?'POST':'GET',headers:{'x-dauntless-unbroken-user-api-key':key,'content-type':'application/json'},body:rewardGrant?JSON.stringify(body):undefined,signal:AbortSignal.timeout(30000),redirect:'error'});

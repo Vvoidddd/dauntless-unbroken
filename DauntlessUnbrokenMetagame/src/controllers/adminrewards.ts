@@ -10,20 +10,26 @@ export class RewardError extends Error {constructor(public status:number,message
 const Items=new Map(catalog.items.map(item=>[item.id,item]));
 const uid=(value:unknown):value is string=>typeof value==='string'&&/^UID-[A-Za-z0-9-]{1,100}$/.test(value);
 const prefix='admin AccountGrant:';
-const Cosmetics=catalog.items.filter(item=>['Transmogs','Dyes','Other cosmetics'].includes(item.category)&&item.unique);
+const Cosmetics=catalog.items.filter(item=>item.grantable&&['Transmogs','Dyes','Other cosmetics'].includes(item.category)&&item.unique);
 const Bundles=[
     {id:'cosmetics',name:'All cosmetics',items:Cosmetics},
     {id:'transmogs',name:'All skins / transmogs',items:Cosmetics.filter(item=>item.category==='Transmogs')},
     {id:'dyes',name:'All dyes',items:Cosmetics.filter(item=>item.category==='Dyes')},
-    {id:'flares',name:'All flares',items:Cosmetics.filter(item=>item.id.startsWith('QI_FLARE_'))},
-    {id:'weapons',name:'All weapons at max rank',items:catalog.items.filter(item=>typeof item.maxRank==='number')}
+    {id:'flares',name:'All flares',items:Cosmetics.filter(item=>item.id.startsWith('QI_FLARE_')||item.id==='QI_BASIC_FLARE_DURABLE')},
+    {id:'weapons',name:'All weapons at max rank',items:catalog.items.filter(item=>item.grantable&&['Weapons','Weapon parts'].includes(item.category)&&typeof item.maxRank==='number')}
 ];
+const SearchText=(value:string)=>value.normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+const SearchItems=catalog.items.map(item=>({item,name:SearchText(item.name),id:SearchText(item.id),text:SearchText(`${item.name} ${item.id} ${item.category} ${(item.aliases??[]).join(' ')}`)}));
 
-export function RewardCatalog(query:unknown='',category:unknown=''){
+export function RewardCatalog(query:unknown='',category:unknown='',offset:unknown=0){
     if(typeof query!=='string'||query.length>100||typeof category!=='string'||category.length>30)throw new RewardError(400,'Invalid catalogue search');
-    const q=query.trim().toLowerCase();
-    const found=catalog.items.filter(item=>(!category||item.category===category)&&`${item.name} ${item.id}`.toLowerCase().includes(q));
-    return {items:found.slice(0,100),total:found.length,categories:[...new Set(catalog.items.map(item=>item.category))],bundles:Bundles.map(({id,name,items})=>({id,name,total:items.length}))};
+    const start=typeof offset==='string'&&/^\d+$/.test(offset)?Number(offset):offset;
+    if(typeof start!=='number'||!Number.isSafeInteger(start)||start<0||start>100000)throw new RewardError(400,'Invalid catalogue offset');
+    const q=SearchText(query),words=q.split(' ').filter(Boolean);
+    const found=SearchItems.filter(({item,text})=>(!category||item.category===category)&&(words.every(word=>text.includes(word))||text.replaceAll(' ','').includes(q.replaceAll(' ',''))));
+    const score=(entry:typeof SearchItems[number])=>!q?0:entry.name===q||entry.id===q?0:entry.name.startsWith(q)?1:words.every(word=>entry.name.includes(word))?2:3;
+    found.sort((a,b)=>score(a)-score(b));
+    return {items:found.slice(start,start+100).map(({item})=>item),total:found.length,offset:start,hasMore:start+100<found.length,categories:[...new Set(catalog.items.map(item=>item.category))],bundles:Bundles.map(({id,name,items})=>({id,name,total:items.length}))};
 }
 
 export function RewardAccount(accountId:unknown){
@@ -51,8 +57,9 @@ export function GrantReward(actorId:string,input:unknown){
         if(['catalogId','quantity','rank'].some(key=>key in b))throw new RewardError(400,'Bulk grants cannot include an item, quantity or rank');
     }else{
         if(!item)throw new RewardError(400,'Item is not in the verified rewards catalogue');
-        if(weapon&&(typeof b.rank!=='number'||!Number.isInteger(b.rank)||b.rank<0||b.rank>item.maxRank!))throw new RewardError(400,`Weapon rank must be a whole number from 0 to ${item.maxRank}`);
-        if(!weapon&&b.rank!==undefined)throw new RewardError(400,'Rank applies only to weapons and upgradeable weapon parts');
+        if(!item.grantable)throw new RewardError(400,item.unavailableReason??'Item cannot be granted through inventory');
+        if(weapon&&(typeof b.rank!=='number'||!Number.isInteger(b.rank)||b.rank<0||b.rank>item.maxRank!))throw new RewardError(400,`Equipment rank must be a whole number from 0 to ${item.maxRank}`);
+        if(!weapon&&b.rank!==undefined)throw new RewardError(400,'Rank applies only to equipment with a verified upgrade limit');
         const max=item.unique?1:item.category==='Currency'?10000000:10000;
         if(typeof b.quantity!=='number'||!Number.isSafeInteger(b.quantity)||b.quantity<1||b.quantity>max)throw new RewardError(400,`Quantity must be a whole number from 1 to ${max}`);
     }

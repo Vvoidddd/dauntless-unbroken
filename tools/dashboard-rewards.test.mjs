@@ -19,13 +19,35 @@ test('reward proxy authenticates reads/writes, enforces origin and caps bodies',
   assert.equal((await fetch(base+'/api/reward-grant',{method:'POST',headers,body:'x'.repeat(4097)})).status,413);
   assert.equal(writes.length,0);
   assert.equal((await fetch(base+'/api/reward-account?accountId=//evil.test',{headers})).status,400);
+  for(const offset of ['-1','1.5','1e3','100001'])assert.equal((await fetch(base+'/api/reward-catalog?q=&offset='+offset,{headers})).status,400);
   const body={requestId:'same-receipt',accountId:'UID-target',quantity:10};
   for(let i=0;i<2;i++)assert.equal((await fetch(base+'/api/reward-grant',{method:'POST',headers,body:JSON.stringify(body)})).status,200);
   assert.equal(writes[0].body,writes[1].body);
-  assert.equal((await fetch(base+'/api/reward-catalog?q=Rams&category=Currency',{headers})).status,200);
+  assert.equal((await fetch(base+'/api/reward-catalog?q=Rams&category=Currency&offset=100',{headers})).status,200);
   assert.equal(new URL(writes[2].url).host,'127.0.0.1:61000');assert.equal(new URL(writes[2].url).pathname,'/unbroken/api/RewardCatalog');
+  assert.equal(new URL(writes[2].url).searchParams.get('offset'),'100');
   const js=await fetch(base+'/dashboard-rewards.js');assert.equal(js.status,200);assert.match(await js.text(),/setupDashboardRewards/);
  }finally{await new Promise(resolve=>server.close(resolve));}
+});
+
+test('reward catalogue UI pages through all matches and explains unavailable items without allowing a grant',async()=>{
+ const elements=new Map();
+ class Element{
+  value='';textContent='';children=[];disabled=false;max='10000';options=[];
+  append(...nodes){this.children.push(...nodes);this.options=this.children;}
+  replaceChildren(...nodes){this.children=nodes;this.options=nodes;this.value=nodes[0]?.value??'';}
+  addEventListener(){} click(){} querySelectorAll(){return [];}
+ }
+ const document={getElementById(id){if(!elements.has(id))elements.set(id,new Element());return elements.get(id);},createElement:()=>new Element(),querySelector:()=>new Element()};
+ const el=id=>document.getElementById(id),window={confirm:()=>true},offsets=[];
+ const account={id:'UID-target',name:'Slayer',characters:[{id:'character-1',name:'Slayer'}],history:[]};
+ const all=Array.from({length:101},(_,i)=>({id:'ITEM_'+i,name:'Item '+i,category:'Materials',kind:'stacked',unique:false,grantable:i>0,...(i===0?{unavailableReason:'Obsolete item; choose the current version'}:{})}));
+ vm.runInNewContext(await readFile(new URL('./dashboard-rewards.js',import.meta.url),'utf8'),{window,document,crypto,AbortSignal,fetch:()=>{throw Error('No grant should run during browsing');}});
+ window.setupDashboardRewards(()=>'',async path=>{if(path.includes('reward-account'))return account;const offset=Number(new URL(path,'http://localhost').searchParams.get('offset'));offsets.push(offset);return {items:all.slice(offset,offset+100),total:101,offset,categories:['Materials'],bundles:[]};});
+ await window.selectRewardAccount(account);
+ assert.equal(el('sendReward').disabled,true);assert.match(el('rewardPreview').textContent,/Obsolete item/);assert.equal(el('rewardNext').disabled,false);assert.equal(el('rewardPrevious').disabled,true);
+ await el('rewardNext').onclick();assert.equal(el('rewardItem').value,'ITEM_100');assert.equal(el('sendReward').disabled,false);assert.equal(el('rewardNext').disabled,true);assert.equal(el('rewardPrevious').disabled,false);assert.match(el('rewardMatches').textContent,/101–101/);
+ await el('rewardPrevious').onclick();assert.deepEqual(offsets,[0,100,0]);assert.equal(el('sendReward').disabled,true);
 });
 
 for(const mode of ['currency','weapon','bulk'])test(`reward UI ${mode} retries uncertain grants with the same ID and treats failed history refresh as saved`,async()=>{

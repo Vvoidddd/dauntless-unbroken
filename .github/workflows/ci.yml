@@ -455,6 +455,10 @@ jobs:
       - name: Performance and launcher announcement tests
         run: node --test tools/summarize-performance.test.mjs tools/dashboard.test.mjs tools/discord-status.test.mjs tools/launcher-discord.test.mjs tools/worker-health.test.mjs tools/dashboard-rewards.test.mjs
 
+      - name: Item catalogue parser checks
+        run: python3 tools/test-build-admin-catalog.py
+
+
       - name: Generated files are current (docs/roadmap.md, docs/llms.txt, docs/llms-full.txt)
         run: |
           node tools/sync-roadmap.js

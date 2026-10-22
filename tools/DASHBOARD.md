@@ -56,17 +56,18 @@ counts use its deploy API (every five seconds). Ramsgate and Training are exclud
 
 ## Accounts and layout
 
-**Account rewards** searches accounts and the verified 1.4.4 item catalogue. Select
-the receiving character, reward, quantity and audit reason, then confirm the grant.
-The account directory also has a **Give rewards** button. Supported rewards include
-Rams, Aetherdust, Steel/Gilded Marks, both bounty-token types, cells, transmogs,
-dyes and other cosmetics, plus **Weapons** and upgradeable **Weapon parts**.
-Select the weapon, choose **Weapon upgrade rank** (up to +15, within that item's
-actual limit), enter a reason and select **Grant / upgrade weapon**. A missing weapon
-is created; an owned weapon is raised in place without duplicate copies or downgrades.
-Cells, weapon parts, transmogs and other existing item data are preserved. Fully exit
-the game before changing equipment, then relaunch to load the saved weapon rank.
-Armour and developer/test items are excluded.
+**Account rewards** searches all 5,471 item IDs from the 1.4.4 catalogue tables,
+using the game's English localization (including string-table names). It includes
+armour, weapons/parts, lanterns, consumables, materials, currencies, cells and
+cosmetics. Exact name/ID matches appear first; punctuation and word order are
+normalized. **Previous 100 / Next 100** reaches every match. Internal, restricted,
+obsolete and unsupported entries remain searchable with an explanation, but cannot
+be granted or included in bulk operations.
+
+Select the receiving account and character, item, quantity, equipment rank where
+applicable, and audit reason, then confirm. Existing equipment upgrades in place
+within its real rank cap, preserving cells and customizations. Fully close the
+game before changing equipment, then relaunch to load the saved rank.
 
 Rewards use the inventory transaction core, enforce the game's signed 32-bit limit,
 and skip already-owned cosmetic unlocks. A permanent request receipt prevents
@@ -84,6 +85,14 @@ grant is one atomic inventory transaction and one audit entry: existing unlocks
 are skipped, owned weapon data is preserved, and a failure rolls back the entire
 grant. Repeating the same request is safe; repeating with a new receipt also
 skips owned cosmetics and max-rank weapons.
+
+To regenerate item metadata from an owned 1.4.4 install, run
+`python tools/build-admin-catalog.py --paks PATH_TO_CONTENT_PAKS --repak PATH_TO_REPAK`.
+Add `--check` to verify the checked-in metadata without writing it. The generator
+reads all catalogue tables and the English localization resource, resolves base,
+invariant and string-table text, and writes only interoperability metadata.
+Run `python tools/test-build-admin-catalog.py` for
+the parser checks; these do not require game files.
 
 Overview, Backend health, Players & accounts, Invites and Logs are separate lightweight views
 (plain JavaScript, CSS and canvas; no chart framework or background log streaming).

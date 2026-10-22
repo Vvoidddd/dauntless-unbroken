@@ -1,14 +1,17 @@
 window.setupDashboardRewards = (readKey,get) => {
   const el=id=>document.getElementById(id);
-  let account=null,items=[],bundles=[],pending=null,grantBusy=false,searchVersion=0;
+  let account=null,items=[],bundles=[],pending=null,grantBusy=false,searchVersion=0,itemOffset=0,itemTotal=0;
   const option=(value,text)=>{const node=document.createElement('option');node.value=value;node.textContent=text;return node;};
   function preview(){
     const item=items.find(i=>i.id===el('rewardItem').value),character=account?.characters.find(c=>c.id===el('rewardCharacter').value);
     const weapon=Number.isInteger(item?.maxRank);
     el('rewardQuantity').disabled=grantBusy||weapon;
-    el('sendReward').textContent=weapon?'Grant / upgrade weapon':'Grant reward';
-    el('rewardPreview').textContent=account&&item&&character?(weapon?`Grant ${item.name} at +${el('rewardRank').value} to ${account.name} / ${character.name}, or raise the existing weapon to that rank. Higher ranks, cells and customizations are preserved.`:`Add ${el('rewardQuantity').value} × ${item.name} to ${account.name} / ${character.name}. Existing cosmetic unlocks are skipped.`):'Select an account, character and reward.';
-    el('sendReward').disabled=grantBusy||!account||!item||!character;
+    const equipment=item?.category==='Armour'?'armour':item?.category==='Lanterns'?'lantern':'weapon';
+    el('sendReward').textContent=weapon?`Grant / upgrade ${equipment}`:'Grant reward';
+    el('rewardPreview').textContent=item?.grantable===false?`${item.name}: ${item.unavailableReason}`:account&&item&&character?(weapon?`Grant ${item.name} at +${el('rewardRank').value} to ${account.name} / ${character.name}, or raise the existing ${equipment} to that rank. Higher ranks, cells and customizations are preserved.`:`Add ${el('rewardQuantity').value} × ${item.name} to ${account.name} / ${character.name}. Existing cosmetic unlocks are skipped.`):'Select an account, character and reward.';
+    el('sendReward').disabled=grantBusy||!account||!item||!character||item.grantable===false;
+    el('rewardPrevious').disabled=grantBusy||itemOffset===0;
+    el('rewardNext').disabled=grantBusy||itemOffset+items.length>=itemTotal;
     for(const button of el('rewardBundles').querySelectorAll('button')){
       const bundle=bundles.find(b=>b.id===button.dataset.rewardBundle);
       button.disabled=grantBusy||!account||!character||!bundle?.total;
@@ -39,16 +42,17 @@ window.setupDashboardRewards = (readKey,get) => {
       el('rewardStatus').textContent=result.accounts.length?'Select the account to manage.':'No matching accounts.';
     }catch(error){el('rewardStatus').textContent=error.message;}
   }
-  async function searchItems(){
+  async function searchItems(offset=0){
     const version=++searchVersion;
     try{
-      const result=await get('/api/reward-catalog?q='+encodeURIComponent(el('rewardSearch').value.trim())+'&category='+encodeURIComponent(el('rewardCategory').value));
+      const result=await get('/api/reward-catalog?q='+encodeURIComponent(el('rewardSearch').value.trim())+'&category='+encodeURIComponent(el('rewardCategory').value)+'&offset='+offset);
       if(version!==searchVersion)return;
       if(el('rewardCategory').options.length===1)for(const name of result.categories)el('rewardCategory').append(option(name,name));
       items=result.items;
+      itemOffset=result.offset??0;itemTotal=result.total;
       bundles=result.bundles??[];
-      el('rewardItem').replaceChildren(...items.map(i=>option(i.id,`${i.name} · ${i.id}`)));
-      el('rewardMatches').textContent=`${result.total} matches · showing ${items.length}. Narrow the search for more.`;
+      el('rewardItem').replaceChildren(...items.map(i=>option(i.id,`${i.name} · ${i.category} · ${i.id}${i.grantable===false?' · unavailable':''}`)));
+      el('rewardMatches').textContent=`${result.total} matches · showing ${items.length?itemOffset+1:0}–${itemOffset+items.length}.`;
       itemChanged();
     }catch(error){el('rewardStatus').textContent=error.message;}
   }
@@ -67,9 +71,11 @@ window.setupDashboardRewards = (readKey,get) => {
   el('rewardAccountSearch').onkeydown=e=>{if(e.key==='Enter')void searchAccounts();};
   el('rewardAccount').onchange=()=>loadAccount(el('rewardAccount').value).catch(e=>{el('rewardStatus').textContent=e.message;});
   el('refreshRewardAccount').onclick=()=>{if(el('rewardAccount').value)void loadAccount(el('rewardAccount').value).catch(e=>{el('rewardStatus').textContent=e.message;});};
-  el('rewardFindItems').onclick=searchItems;
+  el('rewardFindItems').onclick=()=>searchItems();
   el('rewardSearch').onkeydown=e=>{if(e.key==='Enter')void searchItems();};
-  el('rewardCategory').onchange=searchItems;
+  el('rewardCategory').onchange=()=>searchItems();
+  el('rewardPrevious').onclick=()=>searchItems(Math.max(0,itemOffset-100));
+  el('rewardNext').onclick=()=>searchItems(itemOffset+100);
   el('rewardItem').onchange=itemChanged;
   el('rewardCharacter').onchange=preview;el('rewardQuantity').oninput=preview;
   el('rewardRank').onchange=preview;
@@ -85,7 +91,7 @@ window.setupDashboardRewards = (readKey,get) => {
     if(!reason){el('rewardStatus').textContent='Enter an audit reason.';return;}
     const item=items.find(i=>i.id===el('rewardItem').value),weapon=Number.isInteger(item?.maxRank),rank=Number(el('rewardRank').value);
     const bundle=bundles.find(b=>b.id===bundleId),character=account.characters.find(c=>c.id===el('rewardCharacter').value);
-    if(!character||(bundleId?!bundle:!item))return;
+    if(!character||(bundleId?!bundle:!item||item.grantable===false))return;
     if(!bundle&&(!Number.isSafeInteger(quantity)||quantity<1||quantity>Number(el('rewardQuantity').max))){el('rewardStatus').textContent='Enter a valid quantity.';return;}
     if(!bundle&&weapon&&(!Number.isInteger(rank)||rank<0||rank>item.maxRank)){el('rewardStatus').textContent='Select a valid weapon rank.';return;}
     const body={accountId:account.id,characterId:character.id,...(bundle?{bundle:bundle.id}:{catalogId:item.id,quantity,...(weapon?{rank}:{})}),reason};
