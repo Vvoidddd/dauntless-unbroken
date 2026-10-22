@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "6f88f164b53b3e986ba4af0dafdcb9996f5f08f8",
+      "date": "2026-10-22T06:21:57.278Z",
+      "title": "Latest project updates",
+      "body": "• Allow unreachable hunt ports to be excluded from allocation\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "cda2d56216c4e6a56fb8ddfbf376e11869d43a39",
       "date": "2026-10-22T05:06:47.027Z",
       "title": "Latest project updates",
