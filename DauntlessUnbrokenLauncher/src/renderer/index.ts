@@ -1540,8 +1540,12 @@ function renderSettings(): void {
     const huntRegion = dropdown<HuntRegion>({
       id: 'hunt-region',
       fk: 'hunt-region',
-      value: snap.settings.huntRegion ?? 'auto',
-      options: [{ value: 'auto', label: t('region_auto') }, { value: 'main', label: t('region_main') }, { value: 'ger', label: t('region_ger') }, { value: 'us', label: t('region_us') }],
+      value: snap.settings.huntRegion === 'ger' || snap.settings.huntRegion === 'us'
+        ? snap.availableHuntRegions?.includes(snap.settings.huntRegion) ? snap.settings.huntRegion : 'auto'
+        : snap.settings.huntRegion ?? 'auto',
+      options: [{ value: 'auto', label: t('region_auto') }, { value: 'main', label: t('region_main') },
+        ...(snap.availableHuntRegions?.includes('ger') ? [{ value:'ger' as const, label:t('region_ger') }] : []),
+        ...(snap.availableHuntRegions?.includes('us') ? [{ value:'us' as const, label:t('region_us') }] : [])],
       onChange: (huntRegion) => void api.setSettings({ huntRegion }),
       disabled: busy,
     });

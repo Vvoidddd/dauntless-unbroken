@@ -39,6 +39,8 @@ let gateway: https.Server;
 let meta: FakeMetagame;
 let content: FakeContentServer;
 let gatewayRequests: string[] = [];
+let regionMode = false;
+const regionPosts: string[] = [];
 let deviceBlocked = false;
 let admissionResponse: {state:string;kind?:string;full?:boolean;position?:number;total?:number} | null = null;
 let admissionCancels = 0;
@@ -65,6 +67,13 @@ before(async () => {
   content = new FakeContentServer({ key: "unused", files });
   gateway = https.createServer({ cert: cert.certPem, key: cert.keyPem }, (req, res) => {
     gatewayRequests.push(`${req.method} ${req.url}`);
+    if (regionMode && req.url === '/unbroken/api/HuntRegion') {
+      if (req.method === 'GET') { req.resume(); res.writeHead(200,{'content-type':'application/json'}).end(JSON.stringify({region:'main',enabled:false,probes:[]})); return; }
+      let data=''; req.on('data',chunk=>data+=chunk); req.on('end',()=>{
+        const {region}=JSON.parse(data); regionPosts.push(region);
+        res.writeHead(region==='main'?200:503,{'content-type':'application/json'}).end(JSON.stringify(region==='main'?{region}:{error:'region_unavailable'}));
+      }); return;
+    }
     if (req.url === '/unbroken/api/Admission' && admissionResponse) {
       req.resume();
       if(req.method==='DELETE'){admissionCancels++;res.writeHead(204).end();return;}
@@ -348,6 +357,25 @@ test("public mode end to end: join, register, install, play through the relay, g
   assert.equal(hx.spawns.length, 2, 'rejected key never starts a game process');
   meta.users.set(key, storedUser);
   await hx.c.shutdown();
+});
+
+test('saved disabled region still launches and resets preference to Automatic', async () => {
+  const hx=harness(); regionMode=true; regionPosts.length=0;
+  meta.opts.validCodes!.add('REGION-CODE');
+  try {
+    await hx.c.init();
+    await hx.c.submitInvite(invite(cert.fingerprint,'REGION-CODE'));
+    await hx.c.register('RegionFallback');
+    await hx.c.startInstall();
+    await hx.c.setSettings({huntRegion:'us'});
+    assert.deepEqual(hx.last().availableHuntRegions,['main']);
+    assert.deepEqual(await hx.c.play(),{ok:true});
+    assert.deepEqual(regionPosts,['us','main']);
+    assert.equal(hx.last().settings.huntRegion,'auto');
+    assert.equal(hx.spawns.length,1);
+    hx.child()!.emit('exit',0);
+    await new Promise(resolve=>setTimeout(resolve,100));
+  } finally { regionMode=false; await hx.c.shutdown(); }
 });
 
 test("game language: automatic by default, stored when chosen, an unknown value changes nothing, sent as -epiclocale at PLAY", async () => {

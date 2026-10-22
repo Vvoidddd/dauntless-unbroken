@@ -21,7 +21,7 @@ import { OFFLINE_KEY_SLOT, type OfflineSaveRuntime } from "./offline-save";
 import { parseInvite, isLoopbackHost, type Invite } from "../shared/invite";
 import { checkUsername, extractAccountKey } from "../shared/username";
 import { limitedView, type ServerStatus } from "../shared/status";
-import { saveHuntRegion, endPlaying } from './hostapi';
+import { saveHuntRegion, fetchHuntRegions, endPlaying } from './hostapi';
 import type {
   ActionResult,
   Branding,
@@ -194,6 +194,7 @@ export class Controller {
   // Bumped when a ServerStatus answer already on its way may no longer be shown: logout, a new key,
   // a forgotten or different server. See fetchStatus().
   private statusGen = 0;
+  private huntRegions: { gen:number; checkedAt:number; regions:Array<'main' | 'ger' | 'us'> } | null = null;
   private busy = false;
   private discovering = false;
   private detectedDirs: string[] = [];
@@ -380,6 +381,7 @@ export class Controller {
       settings: { graphics: this.s.graphics, exposure: this.s.exposure, windowed: this.s.windowed, language: this.s.language, gameLanguage: this.s.gameLanguage, streamerMode: this.s.streamerMode, discordPresence: this.s.discordPresence, showConsole: this.s.showConsole, ...(this.s.huntRegion ? {huntRegion:this.s.huntRegion} : {}) },
       app: { version: this.p.appVersion, packaged: this.p.packaged, updateReady: this.updateReady },
       status: this.status,
+      availableHuntRegions: this.huntRegions?.gen === this.statusGen ? this.huntRegions.regions : ['main'],
       statusUnsupported: this.statusUnsupported,
       lastError: this.lastError,
       notice: this.notice,
@@ -615,7 +617,13 @@ export class Controller {
   // for under the old state, so a full list in it must not be shown any more.
   private async fetchStatus(ep: Endpoint): Promise<{ res: StatusResult; stale: boolean }> {
     const gen = this.statusGen;
-    const res = await fetchServerStatus(ep, { key: await this.statusKey() });
+    const key = await this.statusKey();
+    const refresh = key && (this.huntRegions?.gen !== gen || Date.now() - this.huntRegions.checkedAt >= 60000);
+    const [res, regions] = await Promise.all([
+      fetchServerStatus(ep, { key }),
+      refresh ? fetchHuntRegions(ep, key) : Promise.resolve(null),
+    ]);
+    if (refresh && gen === this.statusGen) this.huntRegions = { gen, checkedAt:Date.now(), regions:regions ?? (this.huntRegions?.gen === gen ? this.huntRegions.regions : ['main']) };
     return { res, stale: gen !== this.statusGen };
   }
 
@@ -1585,7 +1593,9 @@ export class Controller {
         ? await chooseClosestRegion(ep, key) : this.s.huntRegion;
       if (chosenRegion) {
         try {
-          if (!await saveHuntRegion(ep,key,chosenRegion)) return this.fail('server_error','The selected hunt region is unavailable. Choose Main in Settings or try again later.');
+          const savedRegion = await saveHuntRegion(ep,key,chosenRegion);
+          if (!savedRegion) return this.fail('server_error','The hunt region could not be saved. Try Automatic or EU in Settings.');
+          if (savedRegion !== chosenRegion) await this.settings.update(s => { s.huntRegion = 'auto'; });
         } catch { return this.fail('server_unreachable'); }
       }
       const installReady = await this.prepareGameInstall();

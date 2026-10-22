@@ -75,12 +75,25 @@ export async function checkDeviceSignals(ep: Endpoint,key:string,signals:import(
   } catch {return {ok:false,error:'server_error'};}
 }
 
-export async function saveHuntRegion(ep: Endpoint, key: string, region: 'main' | 'ger' | 'us'): Promise<boolean> {
+export async function saveHuntRegion(ep: Endpoint, key: string, region: 'main' | 'ger' | 'us'): Promise<'main' | 'ger' | 'us' | null> {
   const res = await request(ep, '/unbroken/api/HuntRegion', {
     method:'POST', headers:statusHeaders(ep,key), body:JSON.stringify({region}), timeoutMs:10000,maxBytes:4096
   });
   const body = parseJsonBody(res);
-  return res.status === 200 && isObject(body) && body.region === region;
+  if (region !== 'main' && res.status === 503 && isObject(body) && body.error === 'region_unavailable') {
+    return saveHuntRegion(ep, key, 'main');
+  }
+  return res.status === 200 && isObject(body) && body.region === region ? region : null;
+}
+
+export async function fetchHuntRegions(ep: Endpoint, key: string): Promise<Array<'main' | 'ger' | 'us'> | null> {
+  try {
+    const res = await request(ep, '/unbroken/api/HuntRegion', { headers:statusHeaders(ep,key), timeoutMs:5000,maxBytes:8192 });
+    const body = parseJsonBody(res);
+    if (res.status !== 200 || !isObject(body)) return null;
+    // Older servers expose one global regional-mode flag, not per-region capabilities.
+    return body.enabled === true ? ['main','ger','us'] : ['main'];
+  } catch { return null; }
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {

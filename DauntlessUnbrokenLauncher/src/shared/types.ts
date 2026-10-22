@@ -218,6 +218,7 @@ export interface Snapshot {
   settings: Settings;
   app: { version: string; packaged: boolean; updateReady: boolean };
   status: ServerStatus | null;
+  availableHuntRegions?: Array<'main' | 'ger' | 'us'>;
   statusUnsupported: boolean; // the host answers but has no ServerStatus endpoint yet
   lastError: LauncherError | null;
   notice: NoticeCode | null;

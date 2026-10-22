@@ -1,44 +1,30 @@
 # World regions
 
-Launcher Settings offers Main and Australia (OCE). The preference is saved to the authenticated account when Play is pressed; relaunch after changing it. Older launchers/accounts default to Main.
+The current fleet has two game hosts in one shared EU realm. The UK host runs the key bot, monitoring and database backup storage. There is no separate US game destination configured.
 
-Australia routes Ramsgate, Training Grounds and hunts to the AUS worker. Main retains its two-host Ramsgate/hunt pool. Training Grounds follows the selected region too. Cross-region invitations use the central party/account backend; an invited player's own preference does not override the party leader's hunt region. Private party rosters remain isolated, and public queues group the same hunt within the same region.
+Choose **Automatic** or **EU** in launcher Settings. Launcher 1.0.21 hides Germany and US selections when the authenticated server reports regional mode disabled. Region availability refreshes in the background at most once per minute and is isolated when switching servers or accounts.
 
-An explicit OCE selection never silently falls back to Main. If AUS is unavailable or full, the existing bounded capacity wait applies. Main retains its overflow behavior, including AUS when the Main pool is full. Ambiguous launch failures never duplicate a hunt.
+If an older saved selection receives `503 region_unavailable`, the launcher saves the shared EU preference and resets its local setting to Automatic before launching. Authentication failures, bans, maintenance responses and network errors do not trigger that retry. A full or temporarily unreachable enabled region is not treated as disabled.
 
-## Configuration
+## Optional regional workers
 
-- Main metagame: `AUS_REGION=1` enables the account preference API.
-- Main deploy: `AUS_DEPLOYSERVER_URL=http://127.0.0.1:61021`; retain the Main worker's `OVERFLOW_DEPLOYSERVER_URL`.
-- AUS deploy: `HUNT_WORKER=1`, `WORKER_RAMSGATE=1`, no regional or overflow URL. The central metagame is reached through the private tunnel.
-- AUS Ramsgate uses `PORT_RANGE_END`; hunt ports end two ports below it. Include Ramsgate's UDP port in `ALLOWLIST_PORTS` and publish the updated configuration through the main gateway's additional allowlist tunnel.
-- The main dashboard uses `DASHBOARD_WORKER_URL` and `DASHBOARD_AUS_URL` for its private worker monitors. Overview combines all hosts; Server #1, #2 and #3 retain their own resource/process/world views.
-- The Discord status worker reads the owner-protected dashboard over `STATUS_DASHBOARD` (default loopback port 61110). Only numeric aggregate metrics and fixed public labels enter the embed; no addresses, account details or raw errors are forwarded.
+- `GET/POST /unbroken/api/HuntRegion` requires the player's account key. Valid preferences are `main`, `ger` and `us`; retired `aus` requests return `410 region_retired`.
+- `GERMANY_REGION=1` or `US_REGION=1` enables that preference on the metagame. Keep these off unless the worker is configured and reachable.
+- The main allocator uses `GERMANY_DEPLOYSERVER_URL` or `US_DEPLOYSERVER_URL`, each an HTTP loopback SSH tunnel. Configure the matching public-host validation and region probe settings as well.
+- Keep `OVERFLOW_DEPLOYSERVER_URL` for the second shared EU host. A regional label does not create or geographically relocate a server.
+- Include every enabled worker's private allowlist endpoint in the gateway feed. Backend routing alone does not admit players through the game UDP firewall.
+- Cross-region parties follow their leader. Account data remains on the central backend. Public queues keep regions separate; ambiguous allocation failures must not create duplicate hunts.
 
-`GET/POST /unbroken/api/HuntRegion` requires the player's account key. POST accepts only `{ "region": "main" }` or `{ "region": "aus" }`. Migration 0020 stores preferences in the shared database.
+## Hunt cleanup and admission
 
-## Hunt cleanup
+The watchdog checks every 15 seconds. `HUNT_MAX_AGE_MINUTES=120` bounds temporary hunt/tutorial lifetime. `HUNT_EMPTY_MINUTES=2` permits retirement after continuously fresh native zero-connection readings; telemetry gaps reset that timer. `HUNT_SILENT_MINUTES=15` retires a silent instance only when fresh telemetry from other instances proves host monitoring still works. `HUNT_UNREADY_GRACE_MINUTES=5` allows startup before occupancy retirement. Ramsgate and Training Grounds are exempt. Ports are released after the original child exits.
 
-The watchdog checks every 15 seconds. `HUNT_MAX_AGE_MINUTES=120` stops temporary hunts/tutorials after two hours, including occupied instances. `HUNT_EMPTY_MINUTES=2` permits earlier retirement after continuously fresh native zero-connection readings; gaps reset that timer. `HUNT_SILENT_MINUTES=15` retires a silent instance only while fresh telemetry from other instances proves host monitoring is working. A host-wide telemetry outage does not prove an instance empty. `HUNT_UNREADY_GRACE_MINUTES=5` gives unready instances time to start before occupancy retirement applies. Ramsgate and Training are exempt. Ports are released only after the original child exits.
+`GAMESERVER_CPU_GUARD=1` blocks new temporary processes above the configured CPU threshold, without evicting existing worlds. CPU, memory, hunt and port exhaustion use bounded capacity waits. `GAMESERVER_EXCLUDED_PORTS` removes known unreachable hunt ports from allocation for all players.
 
-## Operations and verification
+## Verification
 
-Fleet CPU is an equal-host arithmetic mean; memory and hunts are summed. Stale hosts make combined totals unavailable. Monitoring and matchmaking assignments do not prove native player entry or hunt completion.
+A healthy allocator, a matchmaking assignment and a bound UDP socket do not prove player entry. Verify native connection counts and a real join on the affected route. Fleet totals are unavailable when a required host observation is stale.
 
-Rollback regional routing by setting `AUS_REGION=0` and removing the main deploy AUS URL; existing preference rows are retained. Move affected players to Main in launcher Settings. Preserve the shared account database and drain active worlds before stopping a worker.
+When moving a game installation, verify the program filter on `DauntlessUnbroken-GamePorts-Allowlist` matches `GAMESERVER_BINARY_PATH`, as well as its UDP range and authenticated remote addresses. The allowlist helper preserves program filters. Never remove address restrictions to diagnose a region-selection error.
 
-## Launcher and firewall migration checks
-
-Launcher 0.1.23 forwards `huntRegion` through the preload IPC bridge; earlier region-enabled versions could discard the selection and redraw Main. The preload regression executes the actual bridge and checks both region values survive a settings reload.
-
-When moving a worker's game directory, inspect the application filter as well as UDP ports and remote addresses on `DauntlessUnbroken-GamePorts-Allowlist`. An existing program-specific rule can still point to the old executable even while the allowlist helper reports healthy. Set its program to the deployed `GAMESERVER_BINARY_PATH` (or preserve an intentionally unrestricted application filter); do not clear the authenticated remote-address restrictions. The helper updates ports/addresses but preserves existing application filters.
-
-Verify actual native `connections` after the change. A successful CITY assignment, a bound UDP socket, and healthy backend/allowlist processes alone do not prove that players can reach a world.
-
-## CPU admission and strict AU capacity
-
-Enable `GAMESERVER_CPU_GUARD=1` on each deploy host. New temporary game processes are refused while smoothed host CPU exceeds `GAMESERVER_CPU_LIMIT_PERCENT` (80), resuming below `GAMESERVER_CPU_RESUME_PERCENT` (65). Samples run every two seconds. Existing worlds are not evicted by the guard. CPU admission failures use the same bounded capacity wait as RAM/hunt limits.
-
-Main can automatically overflow new hunts to AUS after EU capacity rejection. `AUS_RESERVED_HUNTS=8` on both the Main router and AUS worker preserves eight of AUS's configured hunt slots for direct AU requests; EU overflow requests are marked and checked again at the worker against running plus pending launches. Set `AUS_PUBLIC_HOST` on Main to the expected AUS advertised host to reject a misrouted worker reply. This check applies to explicit AU requests only.
-
-AU never falls back to EU. Cross-region parties follow the leader. Set `WORKER_DOJO=1` on AUS so training also stays local. Solo candidate reuse includes the saved region so a previous EU assignment cannot survive a switch to AU. Players must use launcher 0.1.23 or later and press Play after selecting Australia to save the account preference; the stock game's region UI is not the launcher preference API.
+Disable a retired region's metagame flag and allocator URL together. Saved account preferences remain in the database and resolve to the shared EU pool while disabled. Drain occupied worlds before stopping a worker.
