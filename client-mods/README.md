@@ -12,7 +12,7 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
 - **Uncrafted Weapons** (`CraftStar`): in the weapon crafting list, weapons you have never crafted get
   `>> ` in front of their name, in red, gold or purple (picked in the Mod Menu).
 
-- **Lock-on** (`LockOn`, by anxo0): Elden Ring style lock-on. Middle mouse click (R3 on a gamepad)
+- **Lock-on** (`LockOn`): target lock-on. Middle mouse click (R3 on a gamepad)
   locks the camera onto the behemoth nearest the centre of the view and marks it with a white dot;
   press again to release. While locked the Slayer faces it. The Mod Menu's "Lock-on: change key"
   row picks other keys (kept in `ue4ss/Mods/LockOn/key.txt` on each PC). Unlike the others it
@@ -20,8 +20,7 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
 
 - **PS5Icons**: PlayStation 5 button prompts and a DualSense picture for the Controls screen. They
   are not a UE4SS mod: the client DLL (`DauntlessUnbroken.dll`) shows them while a DualSense
-  is connected. Based on "PS5 Button Icons and Controls" by Zacksly (CC BY 3.0, modified; see
-  `PS5Icons/LICENSE.txt`).
+  is connected. Artwork licence and attribution: [PS5Icons/LICENSE.txt](PS5Icons/LICENSE.txt).
 
 They only change what you see on your own screen. The game works without them.
 
@@ -44,4 +43,4 @@ Edit the files here, then rebuild the manifest and commit both:
 
 `.gitattributes` keeps every file byte-for-byte, so the hashes stay valid on every checkout.
 
-Updates preserve existing mod switches, add newly shipped mods to `mods.txt`, and remove/disable the retired ZFX Status indicator. CraftStar is added before Keybinds on existing installations; an explicit CraftStar off setting is preserved.
+Updates preserve existing mod switches, add newly shipped mods to `mods.txt`, and disable the retired status indicator. CraftStar is added before Keybinds on existing installations; an explicit CraftStar off setting is preserved.

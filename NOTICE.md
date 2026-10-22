@@ -2,7 +2,8 @@
 
 Dauntless Unbroken is maintained by [Vvoidddd](https://github.com/Vvoidddd) and
 licensed under [GNU AGPL-3.0-only](LICENSE.txt). Modifications are recorded in
-the Git history. This file contains source and software notices, separate from
+the Git history, with project modifications beginning on 21 September 2026.
+This file contains source and software notices, separate from
 the project's branding and interface.
 
 - Server and launcher components include modified
