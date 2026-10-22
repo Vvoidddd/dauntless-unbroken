@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "df0957b4307b49b87e17f18761dd8e1757ad7451",
+      "date": "2026-10-22T22:49:21.286Z",
+      "title": "Latest project updates",
+      "body": "• Fix launcher registration waiting on automatic key backups\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "bba448b34b376d7f5174de2558e4cc507e2f8e66",
       "date": "2026-10-22T18:40:07.007Z",
       "title": "Latest project updates",
