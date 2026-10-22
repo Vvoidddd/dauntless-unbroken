@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "5c795e27039865fb8915dc6df35d8c1cf4e81cf1",
+      "date": "2026-10-22T02:11:12.522Z",
+      "title": "Latest project updates",
+      "body": "• Add atomic bulk cosmetic and max weapon grants to owner dashboard\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "a3e3e6d7c835e50034ab54ef4936b23f85245723",
       "date": "2026-10-22T00:37:40.066Z",
       "title": "Latest project updates",
