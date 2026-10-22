@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "ba67a7ea4a08b617e1225553582ebf6b9935fbf7",
+      "date": "2026-10-22T17:47:11.817Z",
+      "title": "Latest project updates",
+      "body": "• Fix launcher startup with disabled hunt regions\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "6f88f164b53b3e986ba4af0dafdcb9996f5f08f8",
       "date": "2026-10-22T06:21:57.278Z",
       "title": "Latest project updates",
