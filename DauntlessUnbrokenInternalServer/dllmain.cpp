@@ -1,4 +1,3 @@
-#include "CityIdlePolicy.h"
 #include "ServerRpcGuard.h"
 #include <filesystem>
 #include <fstream>
@@ -457,7 +456,6 @@ void EncounterableSetupHook() {
 }
 
 HuntIdlePolicy HuntIdle;
-CityIdlePolicy CityIdle;
 bool IsPooledCity = false;
 
 bool EnableWatchdog = true;
@@ -550,8 +548,9 @@ void GameEngineTickHook(UGameEngine* GameEngine, float DeltaTime, char CanRender
                 }
             }
         }
-        const bool IdleExpired = IsPooledCity ? CityIdle.Advance(Elapsed, HasConnection)
-            : EnableWatchdog && HuntIdle.Advance(Elapsed, HasConnection);
+        // A zero-connection snapshot does not mean nobody is travelling here.
+        // Keep shared city destinations alive; only temporary hunts may expire.
+        const bool IdleExpired = !IsPooledCity && EnableWatchdog && HuntIdle.Advance(Elapsed, HasConnection);
         if (IdleExpired) {
             std::cout << "Hunt idle timeout on port " << Globals::Port << std::endl;
             DR_WriteDiagnostic("idle_timeout\n", 13);

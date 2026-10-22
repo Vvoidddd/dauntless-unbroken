@@ -46,10 +46,11 @@ test('missing telemetry after loading grace never means an existing city has fre
     assert.equal((await pool.allocate()).id,'2');
     assert.equal(cities.length,2);
 });
-test('empty previously occupied cities are not reused during retirement',async()=>{
+test('an emptied city stays available to returning travellers and their reserved seats',async()=>{
     const {pool,cities}=fixture();await pool.allocate();cities[0].players=1;
     await pool.allocate();cities[0].players=0;
-    assert.equal((await pool.allocate()).id,'2');
+    assert.equal((await pool.allocate()).id,'1');
+    assert.equal(cities.length,1);
 });
 test('failed cold starts release the allocator and oversized parties are refused',async()=>{
     let calls=0;
@@ -98,12 +99,13 @@ test('a cold city never admits a party larger than its configured cap',async()=>
     assert.equal((await pool.allocate(2)).id,'1');
 });
 
-test('a retiring city still occupies its configured slot until its process is removed',async()=>{
+test('an emptied capped city can be reused without starting another process',async()=>{
     const {pool,cities}=fixture([2]);
     await pool.allocate(2);cities[0].players=2;
     await assert.rejects(pool.allocate(),CapacityUnavailable);
     cities[0].players=0;
-    await assert.rejects(pool.allocate(),CapacityUnavailable);
+    assert.equal((await pool.allocate()).id,'1');
+    assert.equal((await pool.allocate()).id,'1');
     await assert.rejects(pool.allocate(),CapacityUnavailable);
     assert.equal(cities.length,1);
     cities.splice(0,1);
@@ -111,12 +113,13 @@ test('a retiring city still occupies its configured slot until its process is re
     assert.equal(cities.length,1);
 });
 
-test('a retiring first city cannot expand the next city beyond its own cap',async()=>{
+test('reusing an emptied first city preserves both cities configured caps',async()=>{
     const {pool,cities}=fixture([2,1]);
     await pool.allocate(2);await pool.allocate();
     cities[0].players=2;cities[1].players=1;
     await assert.rejects(pool.allocate(),CapacityUnavailable);
     cities[0].players=0;
+    assert.equal((await pool.allocate(2)).id,'1');
     await assert.rejects(pool.allocate(),CapacityUnavailable);
     assert.equal(cities.length,2);
 });

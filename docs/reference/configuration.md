@@ -719,10 +719,12 @@ advertises and sets a native GameSession limit of 20. Reservations protect concu
 travellers while they load. Fresh native occupancy snapshots consume arriving
 reservations; missing or stale snapshots never prove free seats.
 
-An occupied city exits on its first tick without pending or open connections. A newly
-requested city has 180 seconds to receive its first connection, so it cannot exit
-before its requesting client loads. Exited cities release their ports and stay stopped
-until requested again. `RAMSGATE_POOL=0` restores the old permanent-city behavior for
+City instances stay running when empty so a reserved destination cannot disappear
+while a player is returning from a hunt or loading the map. Fresh occupancy and
+travel reservations still enforce seat caps. Empty temporary hunts retain their
+idle cleanup. This requires the rebuilt server DLL and updated city allocator together.
+Exited cities release their ports and stay stopped until requested again.
+`RAMSGATE_POOL=0` restores the old single-city behavior for
 rollback/older DLLs. In pool mode the old two-city `CITY_OVERFLOW` balancer is bypassed;
 regional routing still chooses the worker, which owns its own pool.
 

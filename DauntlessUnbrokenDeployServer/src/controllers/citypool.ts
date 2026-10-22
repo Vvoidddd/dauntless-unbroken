@@ -13,7 +13,6 @@ export function CityCaps(): number[] | undefined {
 export type City = {id: string, players: number | undefined, startedAt: number};
 // Serialize allocation through readiness so concurrent requests share a cold start.
 export class CityPool<T extends {id:string}> {
-    private retiring = new Set<string>();
     private lastPlayers = new Map<string, number>();
     private queue: Promise<unknown> = Promise.resolve();
     private reservations = new Map<string, {size:number, until:number}[]>();
@@ -30,12 +29,10 @@ export class CityPool<T extends {id:string}> {
                 return !priority && index === 0 ? Math.max(0, cap - Math.min(PriorityReservedCitySeats(), Math.max(0, cap - 1))) : cap;
             };
             let slot = 0;
-            for (const id of this.reservations.keys()) if (!cities.some(c => c.id === id)) { this.reservations.delete(id); this.lastPlayers.delete(id); this.retiring.delete(id); }
+            for (const id of this.reservations.keys()) if (!cities.some(c => c.id === id)) { this.reservations.delete(id); this.lastPlayers.delete(id); }
             let chosen: T | undefined;
             for (const city of cities) {
-                // Retiring processes still consume a city slot until they disappear.
                 const limit = limitAt(slot++);
-                if (this.retiring.has(city.id)) continue;
                 const leases = (this.reservations.get(city.id) ?? []).filter(r => r.until > this.now());
                 if (city.players !== undefined) {
                     let arrivals = Math.max(0, city.players - (this.lastPlayers.get(city.id) ?? 0));
@@ -44,11 +41,8 @@ export class CityPool<T extends {id:string}> {
                         lease.size -= consumed;
                         arrivals -= consumed;
                     }
-                    // A city that just emptied is being retired by its native watchdog.
-                    const retiring = city.players === 0 && (this.lastPlayers.get(city.id) ?? 0) > 0;
                     this.lastPlayers.set(city.id, city.players);
                     this.reservations.set(city.id, leases.filter(r => r.size > 0));
-                    if (retiring) { this.retiring.add(city.id); continue; }
                 } else this.reservations.set(city.id, leases);
                 // Missing telemetry is not proof of free seats. For a fresh launch, all
                 // admissions are still reserved; otherwise leave an unknown city alone.
@@ -69,5 +63,5 @@ export class CityPool<T extends {id:string}> {
         this.queue = work;
         return work;
     }
-    reset() { this.queue = Promise.resolve(); this.reservations.clear(); this.lastPlayers.clear(); this.retiring.clear(); }
+    reset() { this.queue = Promise.resolve(); this.reservations.clear(); this.lastPlayers.clear(); }
 }
