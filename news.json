@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "ac303f3e5c36ce256d4d53c3af98171278436b54",
+      "date": "2026-10-22T02:53:33.476Z",
+      "title": "Latest project updates",
+      "body": "• Simplify project overview and link required notices\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "276d83170a0db49fb9de8bd8ca225c3c054f9503",
       "date": "2026-10-22T02:44:39.421Z",
       "title": "Latest project updates",
