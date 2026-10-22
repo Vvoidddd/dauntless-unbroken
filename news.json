@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "129eb56e9dabd573d1493c461d381a6f5c27d9f0",
+      "date": "2026-10-22T23:03:45.605Z",
+      "title": "Latest project updates",
+      "body": "• Wait for background key backups in launcher tests\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "da0e84c269b505a0447159eeb02b05b8ecb2c50f",
       "date": "2026-10-22T22:56:37.022Z",
       "title": "Latest project updates",
