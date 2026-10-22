@@ -1485,6 +1485,8 @@ test("Desktop key save happens on registration and import, while failure keeps l
     await hx.c.submitInvite(invite(cert.fingerprint, "DESKTOP-CODE"));
     const result = await hx.c.register("DesktopSlayer");
     assert.equal(result.ok, true);
+    await waitUntil(()=>!!hx.last().account.desktopBackupPath&&!hx.last().account.offerBackup);
+
     backup = readFileSync(hx.last().account.desktopBackupPath!, "utf8");
     assert.match(backup, /Username: DesktopSlayer/);
     assert.equal(hx.last().account.offerBackup, false);
@@ -1497,6 +1499,8 @@ test("Desktop key save happens on registration and import, while failure keeps l
     await hy.c.init();
     await hy.c.submitInvite(invite(cert.fingerprint));
     assert.deepEqual(await hy.c.useExistingKey(backup), { ok: true });
+    await waitUntil(()=>hy.last().account.offerBackup);
+
     assert.equal(hy.last().account.hasKey, true);
     assert.equal(hy.last().account.desktopBackupPath, undefined);
     assert.equal(hy.last().account.offerBackup, true);
