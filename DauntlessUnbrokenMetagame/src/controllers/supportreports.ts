@@ -52,3 +52,4 @@ export function SupportReport(id:string){
  return {...row,report:JSON.parse(row.report),account:account??null};
 }
 export function ReviewSupportReport(id:string){return GetDb().$client.prepare('UPDATE support_reports SET reviewed_at=? WHERE id=?').run(Date.now(),id).changes>0;}
+export function DeleteSupportReport(id:string){return GetDb().$client.prepare('DELETE FROM support_reports WHERE id=?').run(id).changes>0;}

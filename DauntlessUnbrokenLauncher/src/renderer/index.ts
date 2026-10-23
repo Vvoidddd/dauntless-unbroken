@@ -1505,7 +1505,7 @@ function purchaseHistoryCard(snap:Snapshot):HTMLElement|null{
 async function exportSupportDiagnostics(){
   state.diagnosticsNote="Preparing diagnostics…";renderSettings();
   const result=await api.exportDiagnostics().catch(()=>({ok:false as const,error:{code:"unknown" as const}}));
-  state.diagnosticsNote=result.ok?"Diagnostics saved. You can send this file to support.":result.error.code==="cancelled"?"":"Diagnostics could not be exported.";
+  state.diagnosticsNote=result.ok?"Local diagnostics copy saved. Use Export to admins to send a report.":result.error.code==="cancelled"?"":"The local copy could not be saved.";
   renderSettings();
 }
 
@@ -1514,14 +1514,14 @@ async function uploadSupportDiagnostics(){
   state.diagnosticsUploading=true;state.diagnosticsNote='Uploading logs to server support…';renderSettings();
   try{
     const result=await api.uploadDiagnostics(state.username.trim());
-    state.diagnosticsNote=result.ok?`Logs uploaded. Support report: ${result.id}`:result.error.code==='rate_limited'?'Upload limit reached. Try again in 10 minutes, or export diagnostics.':'Upload failed. Your logs remain on this PC; retry or export diagnostics.';
-  }catch{state.diagnosticsNote='Upload failed. Retry or export diagnostics.';}
+    state.diagnosticsNote=result.ok?`Logs uploaded. Support report: ${result.id}`:result.error.code==='rate_limited'?'Upload limit reached. Try again in 10 minutes, or save a local copy.':'Upload failed. Your logs remain on this PC; retry or save a local copy.';
+  }catch{state.diagnosticsNote='Upload failed. Retry or save a local copy.';}
   finally{state.diagnosticsUploading=false;renderSettings();}
 }
 
 async function openSupportLogFolder(){
   try{if((await api.openLogFolder()).ok)return;}catch{/* show the local fallback below */}
-  state.diagnosticsNote='The log folder could not be opened. Use Export diagnostics instead.';renderSettings();
+  state.diagnosticsNote='The log folder could not be opened. Use Save local copy instead.';renderSettings();
 }
 
 function renderSettings(): void {
@@ -1647,8 +1647,8 @@ function renderSettings(): void {
       h("h2", { class: "card-title" }, t("set_troubleshooting")),
       settingsRow("Support diagnostics",state.diagnosticsNote||"Upload logs, errors, launcher/system details and your account identity to the server support dashboard. Keys, tokens, saves and databases are excluded.",
         button('Open log folder',()=>void openSupportLogFolder(),{icon:'folder',fk:'open-log-folder'}),
-        button('Upload logs',()=>void uploadSupportDiagnostics(),{fk:'upload-diagnostics',disabled:state.diagnosticsUploading}),
-        button("Export diagnostics",()=>void exportSupportDiagnostics(),{fk:"export-diagnostics"})),
+        button('Export to admins',()=>void uploadSupportDiagnostics(),{fk:'upload-diagnostics',disabled:state.diagnosticsUploading}),
+        button("Save local copy",()=>void exportSupportDiagnostics(),{fk:"export-diagnostics"})),
       infoRow(h("span", { class: "settings-row-title", id: "console-label" }, t("set_show_console")), t("set_show_console_text"), showConsole),
     );
     // Other servers joined before: switch to one, or take it off the list (its key stays on this PC).

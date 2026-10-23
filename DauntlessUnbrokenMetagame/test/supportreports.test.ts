@@ -43,6 +43,16 @@ test('uploads work before signup, authenticated identity is server-derived, and 
  const detail=await Call('GET','/unbroken/api/SupportReports/'+id,{headers});assert.equal(detail.status,200);assert.equal(detail.json.account.id,player.UserId);assert.ok(!detail.text.includes(key));
  assert.equal((await Call('POST','/unbroken/api/SupportReports/'+id+'/review',{headers})).status,200);
  assert.ok(SupportReport(id)!.reviewedAt);
+ const deletion='/unbroken/api/SupportReports/'+id+'/delete';
+ assert.equal((await Call('POST',deletion)).status,401);
+ assert.equal((await Call('POST',deletion,{headers:{'x-dauntless-unbroken-user-api-key':key}})).status,403);
+ assert.equal((await Call('POST',deletion,{headers:{...headers,'x-forwarded-for':'203.0.113.1'}})).status,403);
+ assert.equal((await Call('POST',deletion,{headers})).status,200);
+ assert.equal(SupportReport(id),null);
+ assert.equal(SupportReports(id).reports.length,0);
+ assert.ok(SupportReport(anonId));
+ assert.ok(GetDb().select().from(users).all().some(u=>u.userId===player.UserId));
+ assert.equal((await Call('POST',deletion,{headers})).status,404);
  const proxied=await Call('GET','/unbroken/api/SupportReports',{headers:{...headers,'x-forwarded-for':'203.0.113.1'}});assert.equal(proxied.status,403);
  const third=await Call('POST','/unbroken/api/SupportReport',{raw:'{"bad":'});assert.equal(third.status,400);
  assert.equal((await Call('POST','/unbroken/api/SupportReport',{body:{}})).status,429);

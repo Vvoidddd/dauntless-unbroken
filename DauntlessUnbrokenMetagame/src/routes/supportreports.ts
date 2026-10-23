@@ -4,7 +4,7 @@ import {ClientRateLimitKey,HealthReadRateLimit,AdminMutationRateLimit} from '../
 import {HasDauntlessUnbrokenAdminApiKey} from '../middleware/HasDauntlessUnbrokenAdminApiKey';
 import {GetUserInfoForApiKey} from '../controllers/unbrokenapi';
 import {RefuseAdminKeyThroughProxy} from '../middleware/RequestOrigin';
-import {SaveSupportReport,SupportReports,SupportReport,ReviewSupportReport} from '../controllers/supportreports';
+import {SaveSupportReport,SupportReports,SupportReport,ReviewSupportReport,DeleteSupportReport} from '../controllers/supportreports';
 export const supportReportsRouter=Router();
 const uploadLimit=rateLimit({keyGenerator:ClientRateLimitKey,windowMs:10*60000,limit:3,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'rate_limited'}});
 const globalLimit=rateLimit({keyGenerator:()=>'support-global',windowMs:3600000,limit:120,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'rate_limited'}});
@@ -24,5 +24,8 @@ supportReportsRouter.get('/SupportReports/:id',HasDauntlessUnbrokenAdminApiKey,H
 });
 supportReportsRouter.post('/SupportReports/:id/review',HasDauntlessUnbrokenAdminApiKey,AdminMutationRateLimit,(req,res)=>{
  res.setHeader('Cache-Control','no-store');res.status(ReviewSupportReport(String(req.params.id))?200:404).json({ok:true});
+});
+supportReportsRouter.post('/SupportReports/:id/delete',HasDauntlessUnbrokenAdminApiKey,AdminMutationRateLimit,(req,res)=>{
+ res.setHeader('Cache-Control','no-store');const removed=DeleteSupportReport(String(req.params.id));res.status(removed?200:404).json({ok:removed});
 });
 supportReportsRouter.use((error:any,_req:any,res:any,next:any)=>{if(error?.type==='entity.too.large'||error?.type==='entity.parse.failed'){res.status(error.type==='entity.too.large'?413:400).json({error:'invalid_report'});return;}next(error);});

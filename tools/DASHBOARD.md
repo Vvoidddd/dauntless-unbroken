@@ -226,6 +226,22 @@ accounts and saves. Service/resource reads refresh every five seconds; process
 and network counters refresh once per minute. Missing samples are labelled stale.
 The worker monitor does not receive the main dashboard's owner key, and the
 dashboard keeps worker metrics behind the same owner authentication as its other tabs.
+## Player support reports
+
+Players use **Settings → Support diagnostics → Export to admins** in the launcher
+to upload a report. **Save local copy** remains available for offline troubleshooting.
+Open **Player reports** on the private dashboard to search by username, account UID
+or report ID. Report details have Account, Errors, Launcher & system, and Logs tabs.
+Verified account details are separate from the unverified name entered in the launcher.
+Warnings can include older sessions; use their timestamps when diagnosing a problem.
+
+Administrators can mark reports reviewed or permanently delete a selected report
+and its uploaded logs after confirmation. Deleting a report leaves the player account
+and local logs unchanged. SQLite reuses the freed database pages for future writes;
+the database file need not shrink immediately. Reports also expire after 14 days,
+with at most 200 retained. Read, review and delete routes require direct administrator
+access; the public gateway only accepts uploads.
+
 # Discord bot counts
 
 The owner dashboard shows current linked accounts and bot-issued, unused, redeemed,

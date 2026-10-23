@@ -183,6 +183,7 @@ const EXPECTED_ROUTES = [
     "GET /unbroken/api/SupportReports [HasDauntlessUnbrokenAdminApiKey]",
     "GET /unbroken/api/SupportReports/:id [HasDauntlessUnbrokenAdminApiKey]",
     "POST /unbroken/api/SupportReports/:id/review [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/SupportReports/:id/delete [HasDauntlessUnbrokenAdminApiKey]",
     "GET /features/platform/win []",
     "GET /account/link/epic/:AccId []",
     "POST /login [HasDauntlessUnbrokenMetagameAuth]",
