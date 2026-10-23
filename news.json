@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "19ee0ce5dd323fed193bfdc2e52fff11b26f273d",
+      "date": "2026-10-23T05:00:05.486Z",
+      "title": "Latest project updates",
+      "body": "• Complete Slayer Link activation, shared progress and reward collection\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.27",
       "date": "2026-10-23T04:16:34Z",
       "title": "Launcher 1.0.27 is available",
@@ -173,12 +179,6 @@
       "date": "2026-10-22T02:11:12.522Z",
       "title": "Latest project updates",
       "body": "• Add atomic bulk cosmetic and max weapon grants to owner dashboard\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "a3e3e6d7c835e50034ab54ef4936b23f85245723",
-      "date": "2026-10-22T00:37:40.066Z",
-      "title": "Latest project updates",
-      "body": "• Add dashboard weapon grants and safe rank upgrades\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
