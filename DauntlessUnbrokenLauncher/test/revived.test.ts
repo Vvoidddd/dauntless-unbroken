@@ -79,7 +79,11 @@ for(const alias of [false,true])test(`native stop accepts quoted paths and canon
  try{
   await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Test child did not start')),5000);child.once('error',reject);child.stdout!.once('data',()=>{clearTimeout(timer);resolve();});});
   await revivedNative('stop',selected);
-  if(child.exitCode===null)await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Native cleanup did not stop its owned component')),5000);child.once('exit',()=>{clearTimeout(timer);resolve();});});
+  if(child.exitCode===null){
+   const script=`$p=Get-CimInstance Win32_Process -Filter "ProcessId=${child.pid}";[pscustomobject]@{ExecutablePath=$p.ExecutablePath;Name=$p.Name}|ConvertTo-Json -Compress`;
+   const diagnostic=await new Promise<string>((resolve,reject)=>execFile(path.join(process.env.SystemRoot!,'System32','WindowsPowerShell','v1.0','powershell.exe'),['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{windowsHide:true,timeout:5000},(e,out)=>e?reject(e):resolve(out)));
+   if(child.exitCode===null)await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Native cleanup did not stop its owned component: '+JSON.stringify({root,selected,diagnostic}))),5000);child.once('exit',()=>{clearTimeout(timer);resolve();});});
+  }
   assert.notEqual(child.exitCode,null);assert.equal(await fs.readFile(path.join(h.keep,'keep.txt'),'utf8'),'Unbroken');
  }finally{if(child.exitCode===null){const stopped=new Promise(resolve=>child.once('exit',resolve));child.kill();await stopped;}}
 });
