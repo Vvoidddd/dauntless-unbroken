@@ -1587,6 +1587,39 @@ test("Desktop key save happens on registration and import, while failure keeps l
   } finally { await hy.c.shutdown(); }
 });
 
+test('switching servers during a connection check ignores the old response and checks the new server', async () => {
+  const priv = new FakeMetagame({name: 'Current Hunts', contentPort: null});
+  await priv.start(PRIVATE_PORT);
+  const hx = harness();
+  let hold: ReturnType<FakeMetagame['holdNextStatus']> | undefined;
+  try {
+    await hx.c.init();
+    await hx.c.submitInvite(invite(cert.fingerprint, 'SWITCH-CHECK'));
+    hold = meta.holdNextStatus();
+    const previous = hx.c.connect();
+    await hold.arrived;
+    await hx.c.submitInvite(formatInvite({mode: 'private', host: '127.0.0.1', port: PRIVATE_PORT, fp: null, code: 'NEW-CHECK', name: 'Current Hunts', share: null}));
+    hold.release();
+    await previous;
+    assert.equal(hx.last().server?.port, PRIVATE_PORT);
+    assert.equal(hx.last().status?.name, 'Current Hunts');
+    assert.equal(hx.last().connect.problem, null);
+    assert.ok(priv.statusCalls.length > 0, 'the selected server must actually be checked');
+    hold = priv.holdNextStatus();
+    const forgotten = hx.c.connect();
+    await hold.arrived;
+    await hx.c.forgetServer();
+    hold.release();
+    await forgotten;
+    assert.equal(hx.last().server, null);
+    assert.equal(hx.last().status, null, 'forgotten server replies must stay discarded');
+  } finally {
+    hold?.release();
+    await hx.c.shutdown();
+    await priv.stop();
+  }
+});
+
 test("private mode: the key goes with ServerStatus over plain HTTP to the invite's own host only", async () => {
   const priv = new FakeMetagame({ name: "Tailnet Hunts", validCodes: new Set(["PRIV-CODE"]), contentPort: null });
   await priv.start(PRIVATE_PORT);

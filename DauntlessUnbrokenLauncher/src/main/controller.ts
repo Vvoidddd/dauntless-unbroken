@@ -567,25 +567,33 @@ export class Controller {
     const ep = this.endpoint();
     if (!sv || !ep) return err("server_unreachable");
     if (this.checking) return OK;
+    const sid = this.sid();
+    const current = () => this.sid() === sid && this.s.server?.fp === sv.fp;
     this.checking = true;
     this.publish();
     try {
       this.tailscaleInstalled = sv.mode === "private" ? this.p.findTailscale() !== null : false;
       const { res, stale } = await this.fetchStatus(ep);
+      if (!current()) return OK;
       this.lastCheckedAt = new Date().toISOString();
       if (res.kind === "ok" || res.kind === "unsupported") {
         this.reachable = true;
         this.connectProblem = null;
         this.failedPolls = 0;
-        // Overtaken (logout, new key, other server): the server still answers, but never show a
-        // list that was asked for with a key the launcher no longer has.
+        // Account changes redact the old player list; server changes discard the whole reply.
         this.status = res.kind === "ok" ? (stale ? limitedView(res.status) : res.status) : null;
         this.statusUnsupported = res.kind === "unsupported";
         if (res.kind === "ok" && !stale) await this.rememberServerName(res.status.name);
-        if (sv.mode === "public") this.contentProbe = await probeContent(ep);
+        if (!current()) return OK;
+        if (sv.mode === "public") {
+          const content = await probeContent(ep);
+          if (!current()) return OK;
+          this.contentProbe = content;
+        }
         await this.checkAccount();
+        if (!current()) return OK;
         await this.inspectInstall();
-        void this.loadExtras();
+        if (current()) void this.loadExtras();
       } else {
         this.reachable = false;
         if (res.kind === "bad_answer") this.connectProblem = "bad_answer";
@@ -599,6 +607,8 @@ export class Controller {
     } finally {
       this.checking = false;
       this.publish();
+      // join() may have selected another server while this check was in flight.
+      if (!current() && this.s.server && !this.shuttingDown) await this.connect();
     }
   }
 
