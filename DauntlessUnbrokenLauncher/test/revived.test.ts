@@ -71,15 +71,17 @@ test('timed-out Windows uninstaller stops its owned process and returns to safe 
   assert.ok(Date.now()-started<8000);await new Promise(resolve=>setTimeout(resolve,100));assert.notEqual(child?.exitCode,null);
  }finally{if(child?.exitCode===null)child.kill();}
 });
-test('native stop command accepts quoted paths and stops only a component inside the selected Revived root',{skip:process.platform!=='win32'},async t=>{
+for(const alias of [false,true])test(`native stop accepts quoted paths and canonicalizes aliases (${alias})`,{skip:process.platform!=='win32'},async t=>{
  const h=await fixture(t),root=path.join(h.base,"quoted ' $ root",'DauntlessRevivedLauncher'),exe=path.join(root,'node.exe');
  await fs.mkdir(root,{recursive:true});try{await fs.link(process.execPath,exe);}catch{await fs.copyFile(process.execPath,exe);}
+ const selected=alias?path.join(h.base,'native-alias'):root;if(alias)await fs.symlink(root,selected,'junction');
  const child=spawn(exe,['-e',"console.log('ready');setInterval(()=>{},1000)"],{windowsHide:true,stdio:['ignore','pipe','ignore']});
  try{
   await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Test child did not start')),5000);child.once('error',reject);child.stdout!.once('data',()=>{clearTimeout(timer);resolve();});});
-  const stopped=new Promise(resolve=>child.once('exit',resolve));await revivedNative('stop',root);await stopped;
+  await revivedNative('stop',selected);
+  if(child.exitCode===null)await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Native cleanup did not stop its owned component')),5000);child.once('exit',()=>{clearTimeout(timer);resolve();});});
   assert.notEqual(child.exitCode,null);assert.equal(await fs.readFile(path.join(h.keep,'keep.txt'),'utf8'),'Unbroken');
- }finally{if(child.exitCode===null)child.kill();}
+ }finally{if(child.exitCode===null){const stopped=new Promise(resolve=>child.once('exit',resolve));child.kill();await stopped;}}
 });
 for(const owner of ['revived','unbroken'])test(`registry cleanup preserves an ${owner==='unbroken'?'Unbroken-owned':'unrelated'} handler and removes only Revived-owned entries (${owner})`,{skip:process.platform!=='win32'},async t=>{
  const h=await fixture(t);

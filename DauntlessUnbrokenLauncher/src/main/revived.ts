@@ -33,8 +33,10 @@ if($d.action-eq'stop'){
  $command=$protocol+'\shell\open\command'
  if(Test-Path -LiteralPath $command){$line=(Get-Item -LiteralPath $command).GetValue('');$prefix=[IO.Path]::GetFullPath($d.install)+'\';if($line-is[string]-and$line.IndexOf($prefix,[StringComparison]::OrdinalIgnoreCase)-ge 0){Remove-Item -LiteralPath $protocol -Recurse -Force -Confirm:$false}}
 }else{throw 'Invalid cleanup operation'}`;
-export function revivedNative(action:NativeAction,install:string):Promise<void>{
+export async function revivedNative(action:NativeAction,install:string):Promise<void>{
  const root=process.env.SystemRoot;if(!root||!path.win32.isAbsolute(root))return Promise.reject(Error('Windows system directory unavailable.'));
+ // CIM reports canonical executable paths; TEMP can contain an 8.3 alias such as RUNNER~1.
+ if(action==='stop')install=await fs.realpath(install).catch((e:NodeJS.ErrnoException)=>{if(e.code==='ENOENT')return install;throw e;});
  return new Promise((resolve,reject)=>{
   const child=execFile(path.win32.join(root,'System32','WindowsPowerShell','v1.0','powershell.exe'),['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(REVIVED_WINDOWS_SCRIPT,'utf16le').toString('base64')],{windowsHide:true,timeout:15000,maxBuffer:65536},error=>error?reject(Error('Windows could not stop Revived or remove its uninstall entry. Close Revived and retry.')):resolve());
   child.stdin!.on('error',()=>{});child.stdin!.end(JSON.stringify({action,install}));
