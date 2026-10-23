@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "be7766eb1cee7f110731432b69acc85a7c9f8314",
+      "date": "2026-10-23T01:03:43.378Z",
+      "title": "Latest project updates",
+      "body": "• Organize player support reports and allow admin deletion\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.24",
       "date": "2026-10-23T00:30:35Z",
       "title": "Launcher 1.0.24 is available",
