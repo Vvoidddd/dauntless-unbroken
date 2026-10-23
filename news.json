@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "ba232308e99e39af59051f05c93a7fba54f9b41d",
+      "date": "2026-10-23T00:19:44.551Z",
+      "title": "Latest project updates",
+      "body": "• Add launcher log uploads and private dashboard support inbox\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.23",
       "date": "2026-10-22T23:30:26Z",
       "title": "Launcher 1.0.23 is available",
