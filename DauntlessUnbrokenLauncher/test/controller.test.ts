@@ -1505,6 +1505,55 @@ test("discovered installs stay untouched until confirmation, and downloads wait 
   } finally { await hx.c.shutdown(); }
 });
 
+test('moved backups stay recorded across restarts and account changes; locate and manual export update the receipt',async()=>{
+  const desktop=temp('backup-once-desktop-'),safe=temp('backup-once-safe-');
+  let selected:string|null=null,exportFile:string|null=null;
+  let hx=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{desktopDir:desktop,chooseOpenFile:async()=>selected,chooseSaveFile:async()=>exportFile});
+  const userData=hx.userData;
+  try{
+    await hx.c.init();meta.opts.validCodes!.add('BACKUP-ONCE');await hx.c.submitInvite(invite(cert.fingerprint,'BACKUP-ONCE'));
+    assert.equal((await hx.c.register('BackupOnce')).ok,true);await waitUntil(()=>!!hx.last().account.desktopBackupPath);
+    const first=hx.last().account.desktopBackupPath!,text=readFileSync(first,'utf8'),key=extractAccountKey(text)!;
+    const moved=path.join(safe,'renamed-key.txt');await fs.rename(first,moved);await hx.c.shutdown();
+    meta.users.set(key,{username:'RenamedBackupOnce',id:'UID-backup-once'});
+    hx=harness(RELAY_PORT,userData,undefined,undefined,undefined,undefined,undefined,undefined,{desktopDir:desktop,chooseOpenFile:async()=>selected,chooseSaveFile:async()=>exportFile});
+    await hx.c.init();await waitUntil(()=>hx.last().account.backupTracked===true);
+    assert.equal(hx.last().account.desktopBackupPath,first);assert.equal(hx.last().account.backupMissing,true);assert.deepEqual(await fs.readdir(desktop),[]);
+    const secondKey='UUK_'+'7'.repeat(48);meta.users.set(secondKey,{username:'SecondBackupOnce',id:'UID-second-backup-once'});
+    assert.equal((await hx.c.useExistingKey(secondKey)).ok,true);await waitUntil(()=>!!hx.last().account.desktopBackupPath && !hx.last().account.backupMissing);
+    assert.equal((await hx.c.useExistingKey(key)).ok,true);await waitUntil(()=>hx.last().account.backupMissing===true);
+    assert.equal((await fs.readdir(desktop)).length,1,'switching back must not recreate the moved first account backup');
+    selected=path.join(safe,'wrong.txt');writeFileSync(selected,backupFileText({key:secondKey,username:'Wrong',serverName:'Friday Hunts',host:'127.0.0.1',port:GATEWAY_PORT,fingerprint:cert.fingerprint,date:new Date()}));
+    assert.equal((await hx.c.locateKeyBackup()).ok,false);assert.equal(hx.last().account.desktopBackupPath,first);
+    selected=moved;assert.equal((await hx.c.locateKeyBackup()).ok,true);assert.equal(hx.last().account.desktopBackupPath,moved);assert.equal(hx.last().account.backupMissing,false);
+    exportFile=path.join(safe,'manual-copy.txt');assert.equal((await hx.c.saveKeyBackup()).ok,true);assert.equal(hx.last().account.desktopBackupPath,exportFile);
+    assert.equal(extractAccountKey(readFileSync(exportFile,'utf8')),key);assert.equal(readFileSync(moved,'utf8'),text);
+    await hx.c.shutdown();hx=harness(RELAY_PORT,userData,undefined,undefined,undefined,undefined,undefined,undefined,{desktopDir:desktop});
+    await hx.c.init();await waitUntil(()=>hx.last().account.backupTracked===true);assert.equal(hx.last().account.desktopBackupPath,exportFile);assert.equal(hx.last().account.backupMissing,false);
+    assert.ok(!JSON.stringify(hx.last()).includes(key));assert.ok(!readFileSync(path.join(userData,'settings.json'),'utf8').includes(key));
+  }finally{await hx.c.shutdown();}
+});
+
+test('upgrading an older launcher never recreates a missing Desktop backup',async()=>{
+  const desktop=temp('backup-legacy-');let hx=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{desktopDir:desktop});
+  const userData=hx.userData;
+  try{
+    await hx.c.init();meta.opts.validCodes!.add('BACKUP-LEGACY');await hx.c.submitInvite(invite(cert.fingerprint,'BACKUP-LEGACY'));await hx.c.register('LegacyBackup');
+    await waitUntil(()=>!!hx.last().account.desktopBackupPath);await fs.unlink(hx.last().account.desktopBackupPath!);await hx.c.shutdown();
+    const settingsFile=path.join(userData,'settings.json'),settings=JSON.parse(readFileSync(settingsFile,'utf8'));delete settings.keyBackups;writeFileSync(settingsFile,JSON.stringify(settings));
+    hx=harness(RELAY_PORT,userData,undefined,undefined,undefined,undefined,undefined,undefined,{desktopDir:desktop});
+    await hx.c.init();await waitUntil(()=>hx.last().account.backupTracked===true);
+    assert.equal(hx.last().account.desktopBackupPath,undefined);assert.equal(hx.last().account.backupMissing,true);assert.deepEqual(await fs.readdir(desktop),[]);
+  }finally{await hx.c.shutdown();}
+});
+
+test('importing a backup file records that file instead of exporting another to Desktop',async()=>{
+ const desktop=temp('backup-import-desktop-'),file=path.join(temp('backup-import-safe-'),'key.txt'),key='UUK_'+'8'.repeat(48);
+ meta.users.set(key,{username:'ImportedOnce',id:'UID-imported-once'});writeFileSync(file,backupFileText({key,username:'ImportedOnce',serverName:'Friday Hunts',host:'127.0.0.1',port:GATEWAY_PORT,fingerprint:cert.fingerprint,date:new Date()}));
+ const hx=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{desktopDir:desktop,chooseOpenFile:async()=>file});
+ try{await hx.c.init();assert.equal((await hx.c.importKeyFile()).ok,true);await waitUntil(()=>hx.last().account.backupTracked===true);assert.equal(hx.last().account.desktopBackupPath,file);assert.equal(hx.last().account.backupMissing,false);assert.deepEqual(await fs.readdir(desktop),[]);}finally{await hx.c.shutdown();}
+});
+
 test("Desktop key save happens on registration and import, while failure keeps login and manual export available", async () => {
   const desktop = temp("unbroken-desktop-ctl-");
   const hx = harness(RELAY_PORT, undefined, undefined, undefined, undefined, undefined, undefined, undefined, { desktopDir: desktop });

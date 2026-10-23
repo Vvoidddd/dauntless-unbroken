@@ -33,6 +33,7 @@ export interface StoredSettings {
   showConsole: boolean;
   usernames: Record<string, string>; // per server id, for display only
   backupOffered: Record<string, boolean>; // per server id: the one-time backup offer was shown
+  keyBackups: Record<string, { serverId: string; path: string | null }>; // keyed by account/realm hash, never a plaintext key
 }
 
 export function defaultSettings(language: Language): StoredSettings {
@@ -52,6 +53,7 @@ export function defaultSettings(language: Language): StoredSettings {
     showConsole: false,
     usernames: {},
     backupOffered: {},
+    keyBackups: {},
   };
 }
 
@@ -134,6 +136,13 @@ export function sanitizeSettings(raw: unknown, language: Language, platform: Nod
   }
   if (isObject(raw.backupOffered)) {
     for (const [k, v] of Object.entries(raw.backupOffered)) if (/^[0-9a-f]{24}$/.test(k) && v === true) s.backupOffered[k] = true;
+  }
+  if (isObject(raw.keyBackups)) {
+    for (const [k,v] of Object.entries(raw.keyBackups)) {
+      if (!/^[0-9a-f]{64}$/.test(k) || !isObject(v) || typeof v.serverId !== 'string' || !/^[0-9a-f]{24}$/.test(v.serverId)) continue;
+      const file=v.path;
+      if (file===null || (typeof file==='string' && file.length<4096 && !/[\0\r\n]/.test(file) && (platform==='win32'?path.win32.isAbsolute(file):path.posix.isAbsolute(file)))) s.keyBackups[k]={serverId:v.serverId,path:file};
+    }
   }
   return s;
 }

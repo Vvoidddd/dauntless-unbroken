@@ -70,7 +70,7 @@ import { applyGameConfig } from "./engineini";
 import { locateExistingGame } from "./game-folder";
 import { buildLaunchArgs, describeLaunch, GameProcess, gameLocale, type LaunchRuntime, type SpawnFn } from "./launch";
 import { createRelayOwnerCheck } from "./relay-owner";
-import { backupFileText, backupServer, saveDesktopKey, KeyStore, KeyStoreError, serverId, type Encryptor, type KeySlot } from "./keystore";
+import { backupFileText, backupServer, saveDesktopKey, desktopKeyPath, keyBackupId, matchesKeyBackup, KeyStore, KeyStoreError, serverId, type Encryptor, type KeySlot } from "./keystore";
 import { SettingsStore, type StoredServer, type StoredSettings } from "./settings";
 import { freeBytes, missingVcRuntime } from "./system";
 import { fixedLinkUrl, isAllowedExternalUrl } from "./links";
@@ -200,7 +200,7 @@ export class Controller {
   private supportUploading = false;
   private discovering = false;
   private detectedDirs: string[] = [];
-  private desktopBackups = new Map<string, string>();
+  private desktopBackups = new Map<string, {path:string|null;missing:boolean}>();
   private desktopBackupTasks = new Map<string,{key:string;task:Promise<void>}>();
 
   private install: InstallInfo = { present: 0, missing: [], partFiles: 0, dllsOk: false };
@@ -358,7 +358,9 @@ export class Controller {
       account: {
         username: sid ? this.s.usernames[sid] ?? null : null,
         hasKey: this.hasKey && !this.keyRejected,
-        desktopBackupPath: sid && this.hasKey && !this.keyRejected ? this.desktopBackups.get(sid) : undefined,
+        desktopBackupPath: sid && this.hasKey && !this.keyRejected ? this.desktopBackups.get(sid)?.path ?? undefined : undefined,
+        backupTracked: !!(sid && this.hasKey && !this.keyRejected && this.desktopBackups.has(sid)),
+        backupMissing: !!(sid && this.hasKey && !this.keyRejected && this.desktopBackups.get(sid)?.missing),
         offerBackup: sid !== null && this.hasKey && !this.keyRejected && this.s.backupOffered[sid] !== true,
       },
       install: {
@@ -940,11 +942,11 @@ export class Controller {
     return this.withBusy(() => this.importBackupText(text));
   }
 
-  private async importBackupText(text: string): Promise<ActionResult> {
+  private async importBackupText(text: string, sourceFile?:string): Promise<ActionResult> {
     const key = extractAccountKey(text), server = backupServer(text);
     if (!key || (/^(?:Server|Certificate):/m.test(text) && !server)) return this.fail('key_invalid');
     if (server) { const joined = await this.join(server); if (!joined.ok) return joined; }
-    return this.adoptKey(key);
+    return this.adoptKey(key,sourceFile);
   }
 
   async importKeyFile(): Promise<ActionResult> {
@@ -959,11 +961,11 @@ export class Controller {
         if (!st.isFile() || st.size > 8192) return this.fail("key_invalid");
         text = await fsp.readFile(file, "utf8");
       } catch { return this.fail("key_invalid"); }
-      return this.importBackupText(text);
+      return this.importBackupText(text,file);
     });
   }
 
-  private async adoptKey(key: string): Promise<ActionResult> {
+  private async adoptKey(key: string, sourceFile?:string): Promise<ActionResult> {
     const ep = this.endpoint();
     const slot = this.slot();
     const sid = this.sid();
@@ -981,7 +983,7 @@ export class Controller {
     }
     await this.settings.update((s) => {
       s.usernames[sid] = info.info.username;
-      s.backupOffered[sid] = true; // they already have a copy
+      if(sourceFile){s.keyBackups[keyBackupId({key,host:slot.host,port:slot.port,fingerprint:slot.fp})]={serverId:sid,path:sourceFile};s.backupOffered[sid]=true;}
       if (s.server) s.server.code = null;
     });
     this.hasKey = true;
@@ -996,62 +998,88 @@ export class Controller {
   }
 
   private backupToDesktop(slot: KeySlot, key: string, username: string): Promise<void> {
-    const sv = this.s.server;
-    if (!this.p.desktopDir || !sv) return Promise.resolve();
-    const sid = serverId(slot.host, slot.port, slot.mode);
-    if (this.sid() !== sid || sv.fp !== slot.fp) return Promise.resolve();
+    const sv=this.s.server;
+    if(!sv)return Promise.resolve();
+    const sid=serverId(slot.host,slot.port,slot.mode);
+    if(this.sid()!==sid || sv.fp!==slot.fp)return Promise.resolve();
     const pending=this.desktopBackupTasks.get(sid);
     if(pending?.key===key)return pending.task;
     this.desktopBackups.delete(sid);
+    const opts={key,username,serverName:sv.name,host:slot.host,port:slot.port,fingerprint:slot.fp,date:new Date()},id=keyBackupId(opts);
     const job={key,task:Promise.resolve()};
     const current=()=>this.desktopBackupTasks.get(sid)===job&&this.sid()===sid&&this.s.server?.fp===slot.fp;
     job.task=(async()=>{
+      await Promise.resolve(); // Install the task guard before a receipt with no file can finish synchronously.
       try {
-        const file = await saveDesktopKey(this.p.desktopDir!, { key, username, serverName: sv.name,
-          host: slot.host, port: slot.port, fingerprint: slot.fp, date: new Date() });
+        const receipt=this.s.keyBackups[id];
+        let file:string|null;
+        if(receipt)file=receipt.path;
+        else if(!Object.values(this.s.keyBackups).some(r=>r.serverId===sid) && this.s.backupOffered[sid]){
+          // Older versions stored only an offered/dismissed flag. Never create a new copy during migration.
+          const previous=this.p.desktopDir?desktopKeyPath(this.p.desktopDir,opts):null;
+          file=previous && await matchesKeyBackup(previous,key)?previous:null;
+        }else{
+          if(!this.p.desktopDir)return;
+          file=await saveDesktopKey(this.p.desktopDir,opts);
+        }
+        const missing=!file || !await matchesKeyBackup(file,key);
         if(!current())return;
-        this.desktopBackups.set(sid, file);
-        if (!this.s.backupOffered[sid]) await this.settings.update(s => { s.backupOffered[sid] = true; });
-      } catch {
+        await this.settings.update(s=>{s.keyBackups[id]={serverId:sid,path:file};s.backupOffered[sid]=true;});
+        if(current())this.desktopBackups.set(sid,{path:file,missing});
+      }catch{
         if(!current())return;
         this.desktopBackups.delete(sid);
-        log.warn('Automatic Desktop account key save unavailable; use Save key backup');
-        await this.settings.update(s => { delete s.backupOffered[sid]; });
+        log.warn('Automatic account key backup unavailable; use Save key backup');
+        if(!this.s.keyBackups[id])await this.settings.update(s=>{delete s.backupOffered[sid];});
       }
-    })().catch(()=>log.warn('Automatic Desktop account backup unavailable')).finally(()=>{
+    })().catch(()=>log.warn('Automatic account backup unavailable')).finally(()=>{
       if(this.desktopBackupTasks.get(sid)===job)this.desktopBackupTasks.delete(sid);
       this.publish();
     });
     this.desktopBackupTasks.set(sid,job);
     return job.task;
   }
-  async saveKeyBackup(): Promise<ActionResult> {
-    const sv = this.s.server;
-    const slot = this.slot();
-    const sid = this.sid();
-    if (!sv || !slot || !sid) return err("server_unreachable");
-    const key = await this.keys.load(slot).catch(() => null);
-    if (!key) return this.fail("key_invalid");
-    const username = this.s.usernames[sid] ?? null;
-    const file = await this.p.chooseSaveFile(`Dauntless Unbroken key${username ? ` - ${username}` : ""}.txt`);
-    if (!file) return err("cancelled");
-    try {
-      await fsp.writeFile(
-        file,
-        backupFileText({ key, username, serverName: sv.name, host: sv.host, port: sv.port, fingerprint: sv.fp, date: new Date() }),
-        { mode: 0o600 },
-      );
-    } catch (e) {
-      log.error(`backup not saved: ${describeError(e)}`);
-      return this.fail("unknown");
-    }
-    log.info("key backup saved");
-    await this.settings.update((s) => {
-      s.backupOffered[sid] = true;
+  private async rememberKeyBackup(slot:KeySlot,key:string,file:string):Promise<void>{
+    const sid=serverId(slot.host,slot.port,slot.mode);
+    this.desktopBackupTasks.delete(sid); // A late automatic save must not replace an explicit location.
+    await this.settings.update(s=>{
+      s.keyBackups[keyBackupId({key,host:slot.host,port:slot.port,fingerprint:slot.fp})]={serverId:sid,path:file};
+      s.backupOffered[sid]=true;
     });
-    this.notice = "backup_saved";
-    this.publish();
-    return OK;
+    if(this.sid()===sid && this.s.server?.fp===slot.fp)this.desktopBackups.set(sid,{path:file,missing:false});
+  }
+  async locateKeyBackup():Promise<ActionResult>{
+    if(this.busy || this.task)return err('busy');
+    return this.withBusy(async()=>{
+      const slot=this.slot();
+      if(!slot)return err('server_unreachable');
+      const key=await this.keys.load(slot).catch(()=>null);
+      if(!key)return this.fail('key_invalid');
+      const file=await this.p.chooseOpenFile();
+      if(!file)return err('cancelled');
+      if(!await matchesKeyBackup(file,key))return this.fail('key_invalid');
+      await this.rememberKeyBackup(slot,key,file);
+      this.notice='backup_saved';this.publish();return OK;
+    });
+  }
+  async saveKeyBackup(): Promise<ActionResult> {
+    if(this.busy || this.task)return err('busy');
+    return this.withBusy(async()=>{
+      const sv=this.s.server,slot=this.slot(),sid=this.sid();
+      if(!sv || !slot || !sid)return err('server_unreachable');
+      const key=await this.keys.load(slot).catch(()=>null);
+      if(!key)return this.fail('key_invalid');
+      const username=this.s.usernames[sid]??null;
+      const file=await this.p.chooseSaveFile(`Dauntless Unbroken key${username ? ` - ${username}` : ""}.txt`);
+      if(!file)return err('cancelled');
+      try{
+        await fsp.writeFile(file,backupFileText({key,username,serverName:sv.name,host:sv.host,port:sv.port,fingerprint:sv.fp,date:new Date()}),{mode:0o600});
+      }catch(e){
+        log.error(`backup not saved: ${describeError(e)}`);return this.fail('unknown');
+      }
+      await this.rememberKeyBackup(slot,key,file);
+      log.info('key backup saved');this.notice='backup_saved';this.publish();return OK;
+    });
   }
 
   async dismissBackupOffer(): Promise<void> {

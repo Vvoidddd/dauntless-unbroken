@@ -684,6 +684,16 @@ function newsTeaser(): HTMLElement | null {
   return c;
 }
 
+function backupLocationText(snap:Snapshot):string{
+  const file=snap.account.desktopBackupPath;
+  const shown=snap.settings.streamerMode?'••••••':file;
+  if(!snap.account.backupTracked)return 'Save a backup or locate an existing copy to remember its location.';
+  if(!file)return 'Backup was previously handled. Locate your existing copy to record its location. No new Desktop copy will be created.';
+  return snap.account.backupMissing
+    ? `Backup moved or missing. Last known location: ${shown}. Locate it to update this record; no Desktop copy will be recreated.`
+    : `Account-key backup: ${shown}. Keep this file private. Moving it will not create another Desktop copy.`;
+}
+
 function playReady(snap: Snapshot): HTMLElement[] {
   const user = snap.account.username;
   const out: HTMLElement[] = [eyebrow(snap), ...heading(user ? t("ready_title", { user }) : t("ready_title_nouser"), t("ready_text"))];
@@ -709,8 +719,9 @@ function playReady(snap: Snapshot): HTMLElement[] {
       ),
     );
   }
-  if (snap.account.desktopBackupPath) out.push(card("", h("p", { class: "card-text" },
-    t("backup_desktop", { path: snap.settings.streamerMode ? "••••••" : snap.account.desktopBackupPath }))));
+  if(snap.account.backupTracked)out.push(card('',
+    h('p',{class:'card-text'},backupLocationText(snap)),
+    snap.account.backupMissing?button('Locate existing backup…',()=>void api.locateKeyBackup(),{fk:'backup-locate',disabled:snap.busy}):null));
   const vc = vcWarning(snap);
   if (vc) out.push(vc);
   const teaser = newsTeaser();
@@ -1626,6 +1637,8 @@ function renderSettings(): void {
             button(t("set_logout"), () => showModal({ kind: "logout" }), { cls: "btn-danger", fk: "set-logout", disabled: busy }),
           )
         : settingsRow(t("set_not_signed"), null),
+      snap.server && snap.account.hasKey ? settingsRow('Account-key backup',backupLocationText(snap),
+        button('Locate existing backup…',()=>void api.locateKeyBackup(),{fk:'set-locate-backup',disabled:busy})) : null,
       snap.server ? settingsRow(t("set_server_current"), h("span", {}, `${serverName()} (`, secret(`${snap.server.host}:${snap.server.port}`, "server-address"), ")"), button(t("set_add_server"), () => showModal({ kind: "leave" }), { fk: "set-leave", disabled: busy })) : null,
     );
 

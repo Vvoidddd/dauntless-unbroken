@@ -9,7 +9,7 @@ import { createHash } from "node:crypto";
 import { promises as fsp } from "node:fs";
 import path from "node:path";
 import { isValidFingerprint, isValidHost, isPrivateModeHost, type Invite } from "../shared/invite";
-import { isPlausibleAccountKey } from "../shared/username";
+import { isPlausibleAccountKey, extractAccountKey } from "../shared/username";
 import { addSecret, removeSecret, log } from "./log";
 
 export interface Encryptor {
@@ -227,10 +227,22 @@ export function backupServer(text: string): (Omit<Invite, "code"> & {code:null})
 }
 
 // A Desktop copy is intentionally readable for recovery. Never replace another file or follow a link.
-export async function saveDesktopKey(desktop: string, opts: Parameters<typeof backupFileText>[0]): Promise<string> {
+export function keyBackupId(opts: Pick<Parameters<typeof backupFileText>[0], 'host'|'port'|'fingerprint'|'key'>):string {
+  return createHash('sha256').update(`${opts.host}:${opts.port}\n${opts.fingerprint ?? '-'}\n${opts.key}`).digest('hex');
+}
+export function desktopKeyPath(desktop:string,opts:Parameters<typeof backupFileText>[0]):string {
   const name = (opts.username ?? "Account").replace(/[^\p{L}\p{N}_-]/gu, "_").slice(0, 40) || "Account";
-  const id = createHash("sha256").update(`${opts.host}:${opts.port}\n${opts.fingerprint ?? "-"}\n${opts.key}`).digest("hex").slice(0, 16);
-  const file = path.join(desktop, `Dauntless Unbroken key - ${name} - ${id}.txt`);
+  return path.join(desktop, `Dauntless Unbroken key - ${name} - ${keyBackupId(opts).slice(0,16)}.txt`);
+}
+export async function matchesKeyBackup(file:string,key:string):Promise<boolean> {
+  try {
+    const st=await fsp.lstat(file);
+    if(!st.isFile() || st.size>8192)return false;
+    return extractAccountKey(await fsp.readFile(file,'utf8'))===key;
+  } catch { return false; }
+}
+export async function saveDesktopKey(desktop: string, opts: Parameters<typeof backupFileText>[0]): Promise<string> {
+  const file = desktopKeyPath(desktop,opts);
   const text = backupFileText(opts);
   let handle;
   try { handle = await fsp.open(file, "wx", 0o600); }

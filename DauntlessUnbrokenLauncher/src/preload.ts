@@ -39,6 +39,7 @@ const api = {
   useExistingKey: (text: string): Promise<ActionResult> => ipcRenderer.invoke(IPC.useExistingKey, String(text)),
   importKeyFile: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.importKeyFile),
   saveKeyBackup: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.saveKeyBackup),
+  locateKeyBackup: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.locateKeyBackup),
   dismissBackupOffer: (): Promise<void> => ipcRenderer.invoke(IPC.dismissBackupOffer),
   chooseInstallDir: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.chooseInstallDir),
   useExistingGameFolder: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.useExistingGameFolder),

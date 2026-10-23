@@ -202,6 +202,8 @@ export interface Snapshot {
     hasKey: boolean;
     offerBackup: boolean;
     desktopBackupPath?: string;
+    backupTracked?: boolean;
+    backupMissing?: boolean;
   };
   install: {
     dir: string;
@@ -303,6 +305,7 @@ export const IPC = {
   useExistingKey: "dr:use-existing-key",
   importKeyFile: "dr:import-key-file",
   saveKeyBackup: "dr:save-key-backup",
+  locateKeyBackup: "dr:locate-key-backup",
   dismissBackupOffer: "dr:dismiss-backup-offer",
   chooseInstallDir: "dr:choose-install-dir",
   useExistingGameFolder: "dr:use-existing-game-folder",

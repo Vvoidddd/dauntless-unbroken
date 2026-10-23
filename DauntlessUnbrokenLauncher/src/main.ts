@@ -479,6 +479,7 @@ function registerIpc(c: Controller): void {
   });
   handle(IPC.importKeyFile, () => c.importKeyFile());
   handle(IPC.saveKeyBackup, () => c.saveKeyBackup());
+  handle(IPC.locateKeyBackup, () => c.locateKeyBackup());
   handle(IPC.dismissBackupOffer, () => c.dismissBackupOffer());
   handle(IPC.chooseInstallDir, () => c.chooseInstallDir());
   handle(IPC.dismissDetectedGames, () => c.dismissDetectedGames());

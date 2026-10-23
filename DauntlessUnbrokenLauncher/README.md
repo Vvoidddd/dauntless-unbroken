@@ -46,10 +46,14 @@ databases are excluded; nothing uploads automatically.
    file (right-click > Properties > Unblock, or `Unblock-File`) and run it again. Code-signing is
    roadmap item 4.16.
 2. Open the invite link your host sent you, or paste it on the Play page and press **JOIN**.
-3. Pick a username and press **REGISTER**. The launcher saves your key automatically to your Desktop,
-   including when you import an existing key. These automatic Desktop/Documents copies run in the
-   background so cloud or redirected folders cannot hold registration or sign-in on **PLEASE WAIT**.
-   Keep those files private. Sign-in waits for the encrypted local key; **Save key backup** stays available.
+3. Pick a username and press **REGISTER**. The launcher creates one Desktop key backup and remembers
+   it across restarts, account switches and name changes. Moving, renaming or deleting it does not
+   create another copy. **Settings / Account / Locate existing backup** verifies the selected file
+   belongs to the current account and updates its recorded location without changing accounts.
+   Importing a backup file remembers that file instead of exporting a Desktop duplicate.
+   Older launchers' saved/dismissed backup flags are respected; if no location is known, locate the file.
+   **Save key backup** explicitly exports another copy and remembers its location. Keep backups private.
+   Desktop/Documents recovery work stays in the background so cloud folders cannot hold sign-in on **PLEASE WAIT**.
 4. The launcher first checks common game locations. If it finds Dauntless 1.4.4, it shows the folder
    and asks you to confirm before verifying or changing it. Choose a different folder to download
    a separate copy. If nothing is found, press **INSTALL** (about 11 GB); downloads resume later.
