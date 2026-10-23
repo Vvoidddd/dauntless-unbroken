@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "launcher-v1.0.28",
+      "date": "2026-10-23T05:53:58Z",
+      "title": "Launcher 1.0.28 is available",
+      "body": "Dauntless Unbroken Launcher 1.0.28 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.28-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.28-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.28-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.28-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.28-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.28-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
+    },
+    {
       "id": "12889a765245a2a564101f1ca077e01bf25a21c2",
       "date": "2026-10-23T05:44:03.657Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-22T02:53:33.476Z",
       "title": "Latest project updates",
       "body": "• Simplify project overview and link required notices\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "276d83170a0db49fb9de8bd8ca225c3c054f9503",
-      "date": "2026-10-22T02:44:39.421Z",
-      "title": "Latest project updates",
-      "body": "• Index complete game item catalogue and resolve in-game names for dashboard search\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
