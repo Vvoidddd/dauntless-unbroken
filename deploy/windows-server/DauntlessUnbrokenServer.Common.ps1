@@ -18,7 +18,7 @@ $script:DRPinned = @{
     # Verified DLLs in DauntlessUnbrokenLauncher/assets/ (same pins as friend-kit/).
     Dlls            = [ordered]@{
         'dxgi.dll'                    = 'f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c'
-        'DauntlessUnbroken.dll' = '74d18637a0b317d8c799e62b69ceba1d827c5718ae6ac966e45467bdc48ab54a'
+        'DauntlessUnbroken.dll' = '7accd2c60351418399d9b8626427e0d0cd9a1c1072c168aed51d1af42c31c157'
     }
     # Node.js LTS: the version the fork is developed and tested on. better-sqlite3 is a native
     # module built for this Node major version. SHA-256 from nodejs.org/dist/v24.21.0/SHASUMS256.txt;
