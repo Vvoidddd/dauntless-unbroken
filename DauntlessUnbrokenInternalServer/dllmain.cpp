@@ -634,16 +634,17 @@ void PostLoginHook(void* a1, AArchonPlayerController* a2) {
 
 void* OrigHasFinishedLoading = nullptr;
 
-bool HasFinishedLoadingHook(UObject* a1) {
-    bool Ret = reinterpret_cast<bool(*)(UObject*)>(OrigHasFinishedLoading)(a1);
+bool HasFinishedLoadingHook(UObject* Object) {
+    const bool NativeReady = reinterpret_cast<bool(*)(UObject*)>(OrigHasFinishedLoading)(Object);
+    if (NativeReady) return true;
 
-    if (!Ret) {
-        if (Globals::EnableLogging)
-        std::cout << "[FORCEREADY] " << a1->GetFullName() << std::endl;
-        return true;
-    }
+    // Inventory readiness protects the asynchronous inventory/loadout initialization.
+    // IsA includes bp_archon_inventory_C; do not release its loadout prematurely.
+    if (Object && Object->IsA(AArchonInventory::StaticClass())) return false;
 
-    return Ret;
+    if (Globals::EnableLogging)
+        std::cout << "[FORCEREADY] " << (Object ? Object->GetFullName() : "null") << std::endl;
+    return true;
 }
 
 void* OrigIsNetReady = nullptr;

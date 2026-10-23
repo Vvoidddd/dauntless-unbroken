@@ -1,3 +1,5 @@
+import { PreserveInitializedAppearance } from './characterappearance';
+
 import { and, eq, lt } from "drizzle-orm";
 import { isDeepStrictEqual } from 'node:util';
 import { GetDb } from "../db";
@@ -129,7 +131,7 @@ export function UpdateCharacterForUid(CharacterId: string, UserId: string, Chara
             // A lost HTTP reply can make the world retry an already committed save.
             // Acknowledge only an identical snapshot at the exact stored version.
             if (Current.updateVersion === UpdateVersion && typeof CharacterDataToUpdateWith === 'string') {
-                const Processed = ProcessTriggers(CharacterDataToUpdateWith);
+                const Processed = PreserveInitializedAppearance(Current.data, ProcessTriggers(CharacterDataToUpdateWith)).data;
                 if (isDeepStrictEqual(JSON.parse(Current.data), JSON.parse(Processed))) return {success:true} as CharacterUpdateResult;
             }
             if(Current.updateVersion >= UpdateVersion){
@@ -140,7 +142,8 @@ export function UpdateCharacterForUid(CharacterId: string, UserId: string, Chara
                 throw new CharacterUpdateFailure("invalid_data", `Character data is a ${CharacterDataToUpdateWith === null ? "null" : typeof CharacterDataToUpdateWith}, not a string`);
             }
 
-            const ProcessedData = ProcessTriggers(CharacterDataToUpdateWith);
+            const {data: ProcessedData, preserved: AppearancePreserved} = PreserveInitializedAppearance(Current.data, ProcessTriggers(CharacterDataToUpdateWith));
+            if(AppearancePreserved)logger.warn(`Preserved initialized appearance for characterId ${CharacterId} during ${Reason} at version ${UpdateVersion}`);
 
             EnsureCharacterBaseline(tx, Current);
 
@@ -154,7 +157,7 @@ export function UpdateCharacterForUid(CharacterId: string, UserId: string, Chara
                 throw new CharacterUpdateFailure("conflict", `the update matched no row`, Current.updateVersion);
             }
 
-            RecordCharacterVersion(tx, Updated, Reason);
+            RecordCharacterVersion(tx, Updated, AppearancePreserved ? `${Reason}:appearance-preserved` : Reason);
 
             return {success: true} as CharacterUpdateResult;
         });

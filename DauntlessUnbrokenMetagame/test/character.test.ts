@@ -46,6 +46,25 @@ describe("ProcessTriggers", () => {
 });
 
 describe("UpdateCharacterForUid", () => {
+    it('preserves initialized appearance on incomplete saves and acknowledges normalized retries once', async () => {
+        const {UserId,CharacterId}=await MakePlayer();
+        const appearance=JSON.stringify({CreationState:'EArchonCharacterCreationState::FaceComplete',Data:[{MorphName:'Example',Value:1}],AssetReferences:[],StringData:[{Key:'GenderId',Data:'Feminine'},{Key:'BodyType',Data:'Feminine'}]});
+        const first=JSON.stringify({AppearanceData:appearance,SERIE_example:JSON.stringify({Status:3}),LoginTime:'before'});
+        assert.deepEqual(UpdateCharacterForUid(CharacterId,UserId,first,1),{success:true});
+        const next=JSON.stringify({SERIE_example:JSON.stringify({Status:3,objective:{CurrentAmount:5}}),LoginTime:'after'});
+        assert.deepEqual(UpdateCharacterForUid(CharacterId,UserId,next,2,'save:gameserver'),{success:true});
+        const saved=JSON.parse(ReadCharacter(CharacterId)!.data);
+        assert.equal(saved.AppearanceData,appearance);
+        assert.equal(saved.LoginTime,'after');
+        assert.equal(JSON.parse(saved.SERIE_example).objective.CurrentAmount,5);
+        const count=Count('characterhistory','characterId = ?',CharacterId);
+        assert.deepEqual(UpdateCharacterForUid(CharacterId,UserId,next,2,'save:gameserver'),{success:true});
+        assert.equal(Count('characterhistory','characterId = ?',CharacterId),count);
+        const history=(await GetSaveHistory([CharacterId])).find(row=>row.CharacterId===CharacterId)!;
+        assert.equal(history.CharacterVersions[0].Reason,'save:gameserver:appearance-preserved');
+    });
+
+
     it('acknowledges identical committed retries without writing another history entry', async () => {
         const {UserId, CharacterId} = await MakePlayer();
         assert.deepEqual(UpdateCharacterForUid(CharacterId,UserId,'{"hunt":"complete","reward":1}',1),{success:true});
