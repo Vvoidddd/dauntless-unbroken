@@ -178,7 +178,14 @@ export interface PurchaseHistory {
   limit:number;
 }
 
+export interface RevivedStatus {
+  supported:boolean;detected:boolean;canRemove:boolean;busy:boolean;
+  phase:'idle'|'removing'|'done'|'error';message:string;percent:number|null;
+  currentFile:string;processed:number;total:number;backupPath:string|null;
+}
+
 export interface Snapshot {
+  revived?:RevivedStatus;
   queue?: {state:'idle'|'waiting'|'ready'|'failed'; kind?:'ramsgate'|'hunt'; full?:boolean; position?:number; total?:number; groupSize?:number;groupPosition?:number;groupsTotal?:number;waitSeconds?:number;estimatedWaitSeconds?:number|null;reason?:'capacity'|'matching'|'starting'} | null;
   phase: Phase;
   busy: boolean;
@@ -282,6 +289,9 @@ export const IPC = {
   exportDiagnostics: "dr:export-diagnostics",
   openLogFolder: "dr:open-log-folder",
   uploadDiagnostics: "dr:upload-diagnostics",
+  checkRevived: "dr:check-revived",
+  removeRevived: "dr:remove-revived",
+  openRevivedBackup: "dr:open-revived-backup",
   reportRendererError: "dr:renderer-error",
   checkInvite: "dr:check-invite",
   submitInvite: "dr:submit-invite",

@@ -1810,7 +1810,14 @@ img {
   display: grid;
   gap: 8px;
   padding: 16px 40px 0;
+  max-height: min(35vh, 280px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
+.banners > .card { margin: 0; padding: 14px 16px; }
+.banners .card-title { font-size: 16px; }
+.banners .card-text { margin: 8px 0; }
+.banners .card-row { margin-top: 8px; }
 
 .banners:empty {
   display: none;

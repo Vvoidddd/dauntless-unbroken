@@ -36,6 +36,7 @@ import { INVITE_SCHEME, parseInvite } from "./shared/invite";
 import { IPC, type Snapshot, type OfflineStatus, type TaskProgress } from "./shared/types";
 import { systemLanguage, translate } from "./shared/i18n";
 import { APP_ID, SQUIRREL_NAME, UPDATE_FEED_URL } from "./main/constants";
+import {RevivedManager} from './main/revived';
 import { LocalStackManager } from "./main/local-stack";
 import { makeLocalStack } from "./main/local-stack-factory";
 import { refreshWindowsShortcutIcons } from "./main/windows-icons";
@@ -84,6 +85,10 @@ let localStack: LocalStackManager | null = null;
 function resourcesDir(): string {
   return app.isPackaged ? process.resourcesPath : path.join(app.getAppPath(), "assets");
 }
+
+let revived:RevivedManager|null=null;
+function withRevived(s:Snapshot):Snapshot{return revived?{...s,revived:{...revived.state}}:s;}
+function publishRevived():void{if(controller&&mainWindow&&!mainWindow.isDestroyed())mainWindow.webContents.send(IPC.snapshot,withRevived(controller.snapshot()));}
 
 function makeLauncherLocalStack(): LocalStackManager | null {
   const stack = makeLocalStack({
@@ -380,6 +385,30 @@ function handle(channel: string, fn: (event: IpcMainInvokeEvent, ...args: unknow
 }
 
 function registerIpc(c: Controller): void {
+  handle(IPC.checkRevived,async()=>{await revived?.refresh();return {ok:true};});
+  handle(IPC.openRevivedBackup,async()=>{
+    const dir=revived?.state.backupPath;
+    if(!dir)return {ok:false,error:{code:'folder_invalid'}};
+    const entry=await fsp.lstat(dir);if(!entry.isDirectory()||entry.isSymbolicLink())return {ok:false,error:{code:'folder_invalid'}};
+    const error=await shell.openPath(dir);return error?{ok:false,error:{code:'unknown'}}:{ok:true};
+  });
+  handle(IPC.removeRevived,async()=>{
+    if(!revived?.state.supported||!mainWindow)return {ok:false,error:{code:'unknown'}};
+    const s=c.snapshot();
+    if(s.busy||s.task||s.game.running||c.offlineGameActive)return {ok:false,error:{code:'busy'}};
+    if((await findRunningClients(process.platform)).length)return {ok:false,error:{code:'already_running'}};
+    await revived.refresh();
+    if(!revived.state.canRemove)return {ok:false,error:{code:'folder_invalid'}};
+    const answer=await dialog.showMessageBox(mainWindow,{
+      type:'warning',title:'Remove Dauntless Revived?',message:'Remove the old Revived launcher from this Windows account?',
+      detail:['This closes Revived background processes and removes its standard installation, shortcuts and uninstall entry. Revived profiles, account keys and offline saves are backed up first. Unbroken and downloaded game files are preserved. Portable or custom installations may need manual removal. Removal does not change your selected server.',
+        'Locations to clean up:',...(await revived.locations())].join(String.fromCharCode(10)),
+      buttons:['Cancel','Remove Revived'],defaultId:0,cancelId:0,noLink:true,
+    });
+    if(answer.response!==1)return {ok:false,error:{code:'cancelled'}};
+    return c.maintenance(()=>revived!.remove());
+  });
+
   handle(IPC.openLogFolder,async()=>{
     const dir=path.join(app.getPath('userData'),'logs');await fsp.mkdir(dir,{recursive:true});
     const error=await shell.openPath(dir);return error?{ok:false,error:{code:'unknown'}}:{ok:true};
@@ -427,7 +456,7 @@ function registerIpc(c: Controller): void {
     });
     return r.canceled || r.filePaths.length !== 1 ? { ok: false, error: { code: "cancelled" } } : c.importOfflineSave(r.filePaths[0]);
   });
-  handle(IPC.getSnapshot, () => c.snapshot());
+  handle(IPC.getSnapshot, () => withRevived(c.snapshot()));
   handle(IPC.checkInvite, (_e, text) => {
     const s = boundedString(text, 2048);
     return s === null ? { ok: false, error: { code: "invite_invalid_format" } } : c.checkInvite(s);
@@ -463,7 +492,7 @@ function registerIpc(c: Controller): void {
   handle(IPC.resumeTask, () => c.resumeTask());
   handle(IPC.cancelTask, () => c.cancelTask());
   handle(IPC.repair, () => c.repair());
-  handle(IPC.play, () => c.play());
+  handle(IPC.play, async () => {await revived?.refresh();return c.play();});
   handle(IPC.cancelQueue, () => c.cancelQueue());
   handle(IPC.startOffline, (_e, username) => {
     if (username === undefined) return c.startOffline();
@@ -590,7 +619,7 @@ function makePlatform(): Platform {
       await shell.openPath(dir);
     },
     emitSnapshot: (s) => {
-      send(IPC.snapshot, s);
+      send(IPC.snapshot, withRevived(s));
       discordPresence.update(discordActivity(s, controller?.offlineStatus() ?? { phase: "stopped" }, presenceStarted));
     },
     emitProgress: (p) => send(IPC.progress, p),
@@ -666,8 +695,20 @@ if (!started) {
       registerProtocolClient();
       hardenSessions();
       controller = new Controller(makePlatform());
+      revived=new RevivedManager({
+        platform:process.platform,
+        local:process.env.LOCALAPPDATA??path.join(app.getPath('home'),'AppData','Local'),
+        roaming:app.getPath('appData'),
+        shortcuts:[app.getPath('desktop'),path.join(app.getPath('appData'),'Microsoft','Windows','Start Menu','Programs')],
+        relayPort:relayPortOverride(process.env.DAUNTLESS_UNBROKEN_RELAY_PORT)??61000,
+        protectedPaths:()=>[app.getPath('userData'),controller!.installDir,resourcesDir(),process.execPath],
+        changed:publishRevived,
+      });
+      void revived.refresh();
+
       registerIpc(controller);
       createWindow();
+      mainWindow?.on('focus',()=>void revived?.refresh());
       await controller.init();
 
       if (app.isPackaged && (process.platform === "linux" || process.platform === "win32")) {

@@ -16,6 +16,7 @@ import { formatBytes, formatDate, formatDuration, formatPlaytime, formatRunningT
 import { BADGE_HOURS, badgeProgress } from "../shared/badges";
 import { sortInstances, type InstanceKind, type ServerStatus, type StatusInstance } from "../shared/status";
 import { EXPOSURE_MODES, GAME_LANGUAGES, GRAPHICS_PRESETS, LANGUAGES, type Branding, type ExposureMode, type ExternalTarget, type GameLanguage, type GraphicsPreset, type Language, type LauncherError, type NewsItem, type OfflinePhase, type OfflineStatus, type Snapshot, type TaskProgress } from "../shared/types";
+import {isUnbrokenFleet,revivedConnection} from '../shared/server-identity';
 
 type View = "play" | "news" | "server" | "settings" | "mods" | "credits";
 const VIEWS: readonly View[] = ["play", "news", "server", "settings", "mods", "credits"];
@@ -52,6 +53,7 @@ const state = {
   purchaseHistoryNote: "",
   diagnosticsNote: "",
   diagnosticsUploading: false,
+  revivedResultDismissed:false,
   offlineSaveNote: null as string | null, // the last backup or restore that worked, shown under the row
   existingFormOpen: false,
   news: [] as NewsItem[],
@@ -327,7 +329,7 @@ function stat(label: string, value: string, small = false): HTMLElement {
 }
 
 function serverName(): string {
-  return state.snap?.status?.name ?? state.snap?.server?.name ?? "";
+  return isUnbrokenFleet(state.snap?.server??null)?'Dauntless Unbroken':state.snap?.status?.name ?? state.snap?.server?.name ?? '';
 }
 
 function open(target: ExternalTarget): void {
@@ -336,6 +338,8 @@ function open(target: ExternalTarget): void {
 
 function errorText(e: LauncherError): string {
   switch (e.code) {
+    case 'server_error':
+      return state.snap&&revivedConnection(state.snap)?'This connection is named Dauntless Revived. Use an Unbroken invite from our Discord, then try again.':t('err_server_error');
     case 'account_banned':
       return `You are banned from this server. Reason: ${e.detail || 'Contact support for details.'} You can appeal in Discord.`;
     case "invite_invalid_format":
@@ -1528,7 +1532,7 @@ function renderSettings(): void {
   const container = $("#view-settings");
   const snap = state.snap;
   if (!snap) return;
-  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, state.purchaseHistory, state.purchaseHistoryFor, state.purchaseHistoryBusy, state.purchaseHistoryNote, state.diagnosticsNote, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
+  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, state.purchaseHistory, state.purchaseHistoryFor, state.purchaseHistoryBusy, state.purchaseHistoryNote, state.diagnosticsNote, snap.revived, state.revivedResultDismissed, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
   renderRegion(container, sig, () => {
     const busy = snap.busy || snap.task !== null || snap.game.running;
 
@@ -1645,6 +1649,12 @@ function renderSettings(): void {
     const troubleshooting = card(
       "settings-section",
       h("h2", { class: "card-title" }, t("set_troubleshooting")),
+      snap.revived?.supported?settingsRow('Other launchers',
+        snap.revived.detected?'Dauntless Revived files were found. Running both launchers can cause a port conflict.':snap.revived.message||'Check for an old Revived installation.',
+        button('Check for Revived',()=>void api.checkRevived(),{fk:'revived-settings-check',disabled:snap.busy||snap.revived.busy}),
+        (snap.revived.detected||snap.revived.phase==='error')?button('Remove Revived',()=>void removeRevived(),{fk:'revived-settings-remove',disabled:!snap.revived.canRemove||snap.busy||snap.game.running||snap.task!==null||snap.revived.busy}):null,
+        snap.revived.backupPath?button('Open cleanup log / backups',()=>void api.openRevivedBackup(),{fk:'revived-settings-backup'}):null):null,
+
       settingsRow("Support diagnostics",state.diagnosticsNote||"Upload logs, errors, launcher/system details and your account identity to the server support dashboard. Keys, tokens, saves and databases are excluded.",
         button('Open log folder',()=>void openSupportLogFolder(),{icon:'folder',fk:'open-log-folder'}),
         button('Export to admins',()=>void uploadSupportDiagnostics(),{fk:'upload-diagnostics',disabled:state.diagnosticsUploading}),
@@ -1779,13 +1789,52 @@ function renderCredits(): void {
 
 // ------------------------------------------------------------------ banners
 
+async function removeRevived():Promise<void>{
+  state.revivedResultDismissed=false;
+  const result=await api.removeRevived().catch(()=>({ok:false as const,error:{code:'unknown' as const}}));
+  if(!result.ok&&result.error.code!=='cancelled'&&result.error.code!=='unknown')state.localError=result.error;
+  renderBanners();
+}
+
+function revivedNotice(snap:Snapshot):HTMLElement|null{
+  const r=snap.revived;
+  if(!r?.supported||!r.detected&&(r.phase==='idle'||state.revivedResultDismissed))return null;
+  const parts:HTMLElement[]=[
+    h('h3',{class:'card-title'},icon('warning'),r.busy?'Removing Dauntless Revived':r.phase==='done'?'Revived cleanup complete':r.phase==='error'?'Revived cleanup needs attention':'Dauntless Revived detected'),
+    h('p',{class:'card-text'},r.message||'Revived files were found on this PC. Running both launchers or their background servers can occupy port 61000 and prevent Play. You can remove the old launcher below.'),
+  ];
+  if(r.busy){
+    const fill=h('div',{class:'bar-fill'});fill.style.width=`${r.percent??35}%`;
+    parts.push(h('div',{class:'bar'+(r.percent===null?' indeterminate':''),role:'progressbar','aria-label':r.message,'aria-valuemin':0,'aria-valuemax':100,'aria-valuenow':r.percent??undefined},fill));
+    parts.push(h('p',{class:'progress-file'},r.currentFile));
+    if(r.total)parts.push(h('p',{class:'progress-meta'},`${r.processed} / ${r.total} items processed`));
+  }
+  parts.push(h('div',{class:'card-row'},
+    (r.detected||r.phase==='error')?button('Remove Revived',()=>void removeRevived(),{fk:'revived-remove',disabled:!r.canRemove||r.busy||snap.busy||snap.game.running||snap.task!==null}):null,
+    button('Check again',()=>void api.checkRevived(),{fk:'revived-check',disabled:r.busy}),
+    r.backupPath?button('Open cleanup log / backups',()=>void api.openRevivedBackup(),{fk:'revived-backup'}):null,
+    !r.detected&&!r.busy?linkButton('Dismiss',()=>{state.revivedResultDismissed=true;renderBanners();},{fk:'revived-dismiss'}):null,
+  ));
+  return card('card-warn',...parts);
+}
+
+
 function renderBanners(): void {
   const container = $("#banners");
   const snap = state.snap;
   const error = snap?.lastError && snap.lastError.code !== "cancelled" && !(snap.phase === "register" && snap.lastError.code === "key_rejected") ? snap.lastError : state.localError;
-  const sig = JSON.stringify([state.lang, error, snap?.notice ?? null, snap?.app.updateReady ?? false, snap?.game.running ?? false]);
+  const sig = JSON.stringify([state.lang, error, snap?.notice ?? null, snap?.app.updateReady ?? false, snap?.game.running ?? false, snap?.server, snap?.status?.name, snap?.revived, state.revivedResultDismissed]);
   renderRegion(container, sig, () => {
     const out: HTMLElement[] = [];
+    if(snap){
+      const revivedCard=revivedNotice(snap);if(revivedCard)out.push(revivedCard);
+      if(revivedConnection(snap))out.push(card('card-warn',
+        h('h3',{class:'card-title'},icon('warning'),'Revived server selected'),
+        h('p',{class:'card-text'},'This saved connection is named Dauntless Revived. Use a current Unbroken invite to reach our servers. Removing the old launcher does not change this connection.'),
+        h('div',{class:'card-row'},button('Use an Unbroken invite',()=>showModal({kind:'leave'}),{fk:'revived-server-switch',disabled:snap.busy||snap.game.running||!!snap.task}),linkButton('Get invite in Discord',()=>open('discord'),{fk:'revived-server-discord'})),
+      ));
+    }
+
     if (error) {
       out.push(
         h(

@@ -65,6 +65,26 @@ databases are excluded; nothing uploads automatically.
 In the footer, on every page (also before you join a server), the GitHub
 button opens this repository in your browser, and **Licenses** provides the bundled software notices.
 
+## Revived launcher conflicts on Windows
+
+The launcher checks for the standard Revived installation and saved profiles at
+startup, when it regains focus and before Play. A warning offers **Remove Revived**;
+the same controls are under **Settings → Troubleshooting → Other launchers**.
+Removal requires confirmation, shows progress and filenames, and limits the old
+uninstaller to 60 seconds. Close the game first.
+
+Revived account keys, profiles and offline saves are moved to a backup folder
+before cleanup. **Open cleanup log / backups** shows that folder and any files
+that could not be removed. Unbroken, shared game files and unrelated processes
+are preserved. Linked folders, overlapping game installs and embedded Unbroken
+files stop automatic removal. Portable/custom installations may need manual cleanup.
+
+A separate warning identifies saved connections named Dauntless Revived and
+offers the Unbroken invite flow. Removing a launcher does not change the selected
+server or move account keys to another server. The known Unbroken fleet displays
+its current name only when both the saved endpoint and certificate match.
+
+
 ## Two kinds of server
 
 | | Private (invite v1) | Public (invite v2) |

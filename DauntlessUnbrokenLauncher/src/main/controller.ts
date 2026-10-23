@@ -427,6 +427,11 @@ export class Controller {
     }
   }
 
+  async maintenance(work:()=>Promise<void>):Promise<ActionResult> {
+    if(this.busy||this.task||this.game.running||this.offlineSession||this.offlineStarting)return err('busy');
+    return this.withBusy(async()=>{try{await work();return OK;}catch(error){log.warn('launcher maintenance failed: '+describeError(error));return err('unknown');}});
+  }
+
   setUpdateReady(): void {
     this.updateReady = true;
     this.publish();

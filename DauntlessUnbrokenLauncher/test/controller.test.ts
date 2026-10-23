@@ -180,6 +180,18 @@ function harness(relayPort = RELAY_PORT, userDataDir?: string, chooseFolder: Pla
   return { c, last: () => snap ?? c.snapshot(), spawns, child: () => child, configDir, installDir, userData, offlineStatuses, };
 }
 
+test('cleanup maintenance blocks concurrent launcher work and always releases busy state',async()=>{
+ const h=harness();let release!:()=>void;
+ try{
+  await h.c.init();const gate=new Promise<void>(resolve=>{release=resolve;});
+  const work=h.c.maintenance(()=>gate);assert.equal(h.c.snapshot().busy,true);
+  assert.equal((await h.c.play()).ok,false);let called=false;
+  assert.deepEqual(await h.c.maintenance(async()=>{called=true;}),{ok:false,error:{code:'busy'}});assert.equal(called,false);
+  release();assert.deepEqual(await work,{ok:true});assert.equal(h.c.snapshot().busy,false);
+  assert.equal((await h.c.maintenance(async()=>{throw Error('Test-only failure');})).ok,false);assert.equal(h.c.snapshot().busy,false);
+ }finally{release?.();await h.c.shutdown();}
+});
+
 test('a pending support upload stays bound to its original server credential after leaving the server',async t=>{
  const hx=harness(),lstat=fs.lstat;let release!:()=>void,blocked=false;
  const gate=new Promise<void>(resolve=>{release=resolve;});
