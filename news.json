@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "539b6a4b1d1ca2aba3261bc644434472c24ba6e0",
+      "date": "2026-10-23T04:06:33.490Z",
+      "title": "Latest project updates",
+      "body": "• Remember account backup locations without recreating Desktop copies\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.26",
       "date": "2026-10-23T03:49:29Z",
       "title": "Launcher 1.0.26 is available",
@@ -173,12 +179,6 @@
       "date": "2026-10-21T22:05:05.275Z",
       "title": "Latest project updates",
       "body": "• Keep quiet hunt parties intact and restore chat presence on reconnect\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "01db02dc7e3aac81c62a830c6905a06f66b94f8b",
-      "date": "2026-10-21T21:52:25.197Z",
-      "title": "Latest project updates",
-      "body": "• Keep hunt parties active from authenticated native player snapshots\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
