@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "4f4c4e009b2c4eb559948a0c1006b62441e787ca",
+      "date": "2026-10-23T03:15:21.935Z",
+      "title": "Latest project updates",
+      "body": "• Detect and safely remove conflicting Revived launcher installs\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.25",
       "date": "2026-10-23T01:15:36Z",
       "title": "Launcher 1.0.25 is available",
