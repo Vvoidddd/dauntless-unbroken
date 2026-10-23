@@ -27,6 +27,7 @@ export const PUBLIC_UNBROKEN_API: ReadonlyMap<string, readonly string[]> = new M
     ["huntregion", ["GET", "HEAD", "POST"]],
     ["admission", ["GET", "POST", "DELETE"]],
     ["devicesignals", ["POST"]],
+    ["supportreport", ["POST"]],
     ["registrationstatus", ["GET", "HEAD"]],
 ]);
 

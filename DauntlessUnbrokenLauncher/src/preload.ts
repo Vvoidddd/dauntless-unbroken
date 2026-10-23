@@ -20,6 +20,9 @@ import type {
 const api = {
   getPurchaseHistory: (): Promise<import('./shared/types').PurchaseHistory|null> => ipcRenderer.invoke(IPC.getPurchaseHistory),
   exportDiagnostics: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.exportDiagnostics),
+  openLogFolder: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.openLogFolder),
+  uploadDiagnostics: (name:string): Promise<import('./shared/types').SupportReportResult> => ipcRenderer.invoke(IPC.uploadDiagnostics,name),
+  reportRendererError: (message:string): Promise<ActionResult> => ipcRenderer.invoke(IPC.reportRendererError,message),
   getSnapshot: (): Promise<Snapshot> => ipcRenderer.invoke(IPC.getSnapshot),
   checkInvite: (text: string): Promise<InviteCheck> => ipcRenderer.invoke(IPC.checkInvite, String(text)),
   // acceptNewCertificate: the user confirmed a public server's changed certificate.

@@ -1,6 +1,7 @@
 (() => {
   let key = '', busy = false, lastSample = null, lastWorker = null, lastAus = null, lastGermany = null, lastEu2 = null, accountPage = [], accountOffset = 0, nextOffset = null, accountsBusy = false;
   window.setupDashboardRewards?.(()=>key,get);
+  const support=window.setupDashboardSupport?.(()=>key,get);
   const el = id => document.getElementById(id);
   const number = (n, suffix = '') => Number.isFinite(n) ? `${n.toFixed(1)}${suffix}` : '—';
   const duration = seconds => Number.isFinite(seconds) && seconds >= 0 ? `${Math.floor(seconds / 86400)}d ${Math.floor(seconds / 3600) % 24}h ${Math.floor(seconds / 60) % 60}m` : '—';
@@ -174,6 +175,7 @@
       renderWorker(result.eu2,'eu2');
       for(const name of ['worker','aus','germany','eu2']) {const tab=document.querySelector?.(`[data-view="${name}"]`);if(tab)tab.hidden=!result[name]?.configured;}
       el('login').hidden = true; el('data').hidden = false;
+      void support?.refresh();
       el('invites').hidden = !result.invitesEnabled;
       el('invitesUnavailable').hidden = result.invitesEnabled;
       el('connection').textContent = result.error ? 'Backend unavailable · stale' : 'Connected · private access';
@@ -218,6 +220,7 @@
     if (lastSample) for (const id of charts) graph(id, lastSample.history);
     if (button.dataset.view === 'overview')for(const id of fleetCharts)graph(id,fleetHistory);
     if (button.dataset.view === 'people') loadAccounts();
+    if (button.dataset.view === 'support')void support?.refresh(true);
     if (button.dataset.view === 'worker' && lastWorker) renderWorker(lastWorker);
     if (button.dataset.view === 'aus' && lastAus) renderWorker(lastAus,'aus');
     if (button.dataset.view === 'germany' && lastGermany) renderWorker(lastGermany,'germany');

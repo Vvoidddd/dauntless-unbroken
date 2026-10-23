@@ -244,6 +244,7 @@ function createWindow(): void {
       dialog.showErrorBox("Dauntless Unbroken could not open", "The launcher renderer stopped. Reinstall the latest launcher and send the launcher logs to support.");
     }
   });
+  window.on('unresponsive',()=>log.error('launcher renderer is unresponsive'));
   mainWindow.on("maximize", () => mainWindow?.webContents.send(IPC.windowState, true));
   mainWindow.on("unmaximize", () => mainWindow?.webContents.send(IPC.windowState, false));
 
@@ -365,7 +366,12 @@ function handle(channel: string, fn: (event: IpcMainInvokeEvent, ...args: unknow
       throw new Error("refused");
     }
     try {
-      return await fn(event, ...args);
+      const result=await fn(event,...args);
+      if(result&&typeof result==='object'&&'ok' in result&&result.ok===false){
+        const code='error' in result&&result.error&&typeof result.error==='object'&&'code' in result.error?String(result.error.code).slice(0,100):'unknown';
+        if(code!=='cancelled'&&code!=='busy')log.warn(`launcher action ${channel}: ${code}`);
+      }
+      return result;
     } catch (e) {
       log.error(`IPC ${channel} failed: ${describeError(e)}`);
       return { ok: false, error: { code: "unknown" } };
@@ -374,6 +380,17 @@ function handle(channel: string, fn: (event: IpcMainInvokeEvent, ...args: unknow
 }
 
 function registerIpc(c: Controller): void {
+  handle(IPC.openLogFolder,async()=>{
+    const dir=path.join(app.getPath('userData'),'logs');await fsp.mkdir(dir,{recursive:true});
+    const error=await shell.openPath(dir);return error?{ok:false,error:{code:'unknown'}}:{ok:true};
+  });
+  handle(IPC.uploadDiagnostics,(_event,name)=>c.uploadDiagnostics(typeof name==='string'?name.slice(0,32):''));
+  let rendererErrorsAt=0,rendererErrorCount=0;
+  handle(IPC.reportRendererError,(_event,message)=>{
+    if(Date.now()-rendererErrorsAt>60000){rendererErrorsAt=Date.now();rendererErrorCount=0;}
+    if(typeof message==='string'&&rendererErrorCount++<20)log.error('renderer: '+message.slice(0,4000));
+    return {ok:true};
+  });
   handle(IPC.getPurchaseHistory,()=>c.getPurchaseHistory());
   let diagnosticsExporting=false;
   handle(IPC.exportDiagnostics,async()=>{
@@ -634,6 +651,7 @@ if (!started) {
     app.whenReady().then(async () => {
       Menu.setApplicationMenu(null);
       logToFile(path.join(app.getPath("userData"), "logs"));
+      process.on('uncaughtExceptionMonitor',error=>log.error('uncaught main error: '+(error.stack??describeError(error))));
       log.info(`Dauntless Unbroken Launcher ${app.getVersion()} starting`);
       localStack = makeLauncherLocalStack();
       if (process.platform === "linux") {

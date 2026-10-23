@@ -117,6 +117,7 @@ export interface OfflineStatus {
 }
 
 export type ActionResult = { ok: true } | { ok: false; error: LauncherError };
+export type SupportReportResult = {ok:true;id:string}|{ok:false;error:LauncherError};
 
 // Asked before joining from an invite. certificateChanged: this PC has a key for the invite's
 // host:port that belongs to another certificate (previousFingerprint, null if not recorded).
@@ -279,6 +280,9 @@ export const IPC = {
   getSnapshot: "dr:get-snapshot",
   getPurchaseHistory: "dr:get-purchase-history",
   exportDiagnostics: "dr:export-diagnostics",
+  openLogFolder: "dr:open-log-folder",
+  uploadDiagnostics: "dr:upload-diagnostics",
+  reportRendererError: "dr:renderer-error",
   checkInvite: "dr:check-invite",
   submitInvite: "dr:submit-invite",
   retryConnect: "dr:retry-connect",

@@ -1,0 +1,49 @@
+import {RemoveTestDb} from './setup';
+import './authenv';import './appenv';
+import {after,before,test} from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {GetDb} from '../src/db';
+import {users,userapikeys} from '../src/db/schema';
+import {HashUserAPIKey} from '../src/controllers/auth';
+import {CleanSupportReport,SaveSupportReport,SupportReports,SupportReport} from '../src/controllers/supportreports';
+import {MakePlayer} from './helpers';
+import {StartApp,StopApp,Call} from './appclient';
+before(StartApp);after(async()=>{await StopApp();RemoveTestDb(()=>GetDb().$client.close());});
+const report=()=>({format:'dauntless-unbroken-diagnostics',version:1,launcher:'1.0.24',system:{platform:'win32',secret:'must-not-store'},state:{phase:'register',busy:true,lastError:{code:'server_unreachable'}},logs:{'launcher.log':'ERROR: test failure\npassword=private-password\nUUK_'+'x'.repeat(48)},settings:{key:'must-not-store'}});
+
+test('reports whitelist data, scrub secrets, replay safely and cap retention',()=>{
+ const clean=JSON.stringify(CleanSupportReport(report()));assert.ok(clean.includes('test failure'));
+ for(const secret of ['private-password','x'.repeat(48),'must-not-store'])assert.ok(!clean.includes(secret));
+ const id=randomUUID(),body={report:report(),attemptedName:'ClaimedSlayer'};
+ SaveSupportReport(id,body);SaveSupportReport(id,body);
+ assert.equal(SupportReports('ClaimedSlayer').reports.length,1);
+ assert.throws(()=>SaveSupportReport(id,{...body,report:{...report(),launcher:'different'}}));
+ assert.throws(()=>SaveSupportReport('invalid',body));
+ const db=GetDb().$client;db.prepare('UPDATE support_reports SET created_at=? WHERE id=?').run(Date.now()-15*86400000,id);
+ assert.equal(SupportReports('ClaimedSlayer').reports.length,0);
+ for(let i=0;i<205;i++)SaveSupportReport(randomUUID(),body);
+ assert.equal((db.prepare('SELECT count(*) AS n FROM support_reports').get() as any).n,200);
+ db.prepare('DELETE FROM support_reports').run();
+});
+
+test('uploads work before signup, authenticated identity is server-derived, and only admins can read/review',async()=>{
+ const player=await MakePlayer(),owner=await MakePlayer(),key='UUK_'+'a'.repeat(48),ownerKey='UUK_'+'b'.repeat(48);
+ GetDb().insert(userapikeys).values([{userId:player.UserId,keyHash:HashUserAPIKey(key)},{userId:owner.UserId,keyHash:HashUserAPIKey(ownerKey)}]).run();
+ GetDb().$client.prepare('UPDATE users SET isAdmin=1 WHERE userId=?').run(owner.UserId);
+ const anonId=randomUUID();
+ const anon=await Call('POST','/unbroken/api/SupportReport',{body:{id:anonId,attemptedName:'BeforeSignup',accountId:owner.UserId,report:report()}});
+ assert.equal(anon.status,201);assert.equal(SupportReport(anonId)!.accountId,null);
+ const id=randomUUID(),upload=await Call('POST','/unbroken/api/SupportReport',{headers:{'x-dauntless-unbroken-user-api-key':key},body:{id,attemptedName:'ForgedOwner',accountId:owner.UserId,report:report()}});
+ assert.equal(upload.status,201);assert.equal(SupportReport(id)!.accountId,player.UserId);
+ assert.equal((await Call('GET','/unbroken/api/SupportReports')).status,401);
+ assert.equal((await Call('GET','/unbroken/api/SupportReports',{headers:{'x-dauntless-unbroken-user-api-key':key}})).status,403);
+ const headers={'x-dauntless-unbroken-user-api-key':ownerKey};
+ const list=await Call('GET','/unbroken/api/SupportReports',{headers});assert.equal(list.status,200);assert.ok(list.json.unread>=2);
+ const detail=await Call('GET','/unbroken/api/SupportReports/'+id,{headers});assert.equal(detail.status,200);assert.equal(detail.json.account.id,player.UserId);assert.ok(!detail.text.includes(key));
+ assert.equal((await Call('POST','/unbroken/api/SupportReports/'+id+'/review',{headers})).status,200);
+ assert.ok(SupportReport(id)!.reviewedAt);
+ const proxied=await Call('GET','/unbroken/api/SupportReports',{headers:{...headers,'x-forwarded-for':'203.0.113.1'}});assert.equal(proxied.status,403);
+ const third=await Call('POST','/unbroken/api/SupportReport',{raw:'{"bad":'});assert.equal(third.status,400);
+ assert.equal((await Call('POST','/unbroken/api/SupportReport',{body:{}})).status,429);
+});

@@ -22,6 +22,11 @@ export function redact(text: string): string {
   out = out.replace(/UUK_[A-Za-z0-9_-]+/g, "UUK_<hidden>");
   out = out.replace(/(-AUTH_PASSWORD=)[^\s"']*/gi, "$1<hidden>");
   out = out.replace(/(x-dauntless-unbroken-user-api-key["']?\s*[:=]\s*["']?)[^\s"',}]+/gi, "$1<hidden>");
+  out = out.replace(/\beyJ[A-Za-z0-9_.-]+/g,'<token>');
+  out = out.replace(/(\b(?:bearer|basic)\s+)[A-Za-z0-9_~+/.=-]+/gi,'$1<token>');
+  out = out.replace(/(\b(?:[\w-]{0,64}(?:token|secret|password|api[-_]?key|invite[-_]?code)|AUTH_SIGNING_PRIVKEY_B64)["']?\s*[:=]\s*["']?)[^\s"',}]+/gi,'$1<hidden>');
+  out = out.replace(/(https:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/api(?:\/v\d+)?\/webhooks\/\d+\/)[\w-]+/gi,'$1<token>');
+  out = out.replace(/dauntless-unbroken:\/\/[^\s"'<>]+/gi,'<invite>');
   return out;
 }
 

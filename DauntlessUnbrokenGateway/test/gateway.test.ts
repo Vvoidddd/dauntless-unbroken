@@ -295,7 +295,7 @@ describe("gateway over TLS", () => {
                 Blocked++;
             }
         }
-        assert.equal(Blocked, Routes.length - 12);
+        assert.equal(Blocked, Routes.length - 13);
         assert.ok(Blocked >= 18, `blocked ${Blocked}`);
 
         for(const Path of ["/UNBROKEN/API/CREATEINVITE", "/unbroken/api/createinvite/", "/unbroken//api/CreateInvite", "/unbroken/api/%43reateInvite", "/unbroken/api/GrantEntitlement?UserId=x"]){

@@ -4,6 +4,11 @@ import { CanonicalPath, CheckPath, Classify, HasBearer } from "../src/policy";
 import { IsPublicRoute, DauntlessUnbrokenApiRoutes } from "./helpers";
 
 describe("the /unbroken/api routes", () => {
+    it('allows only support submission while keeping the inbox and review private',()=>{
+        assert.equal(Classify('POST','/unbroken/api/SupportReport',{},false).action,'proxy');
+        for(const method of ['GET','HEAD','POST','DELETE'])for(const route of ['SupportReports','SupportReports/123','SupportReports/123/review'])assert.equal(Classify(method,'/unbroken/api/'+route,{},false).action,'reject');
+        assert.equal(Classify('GET','/unbroken/api/SupportReport',{},false).action,'reject');
+    });
     it('passes account playtime and receipts reads without allowing account mutations',()=>{
         for(const route of ['Playtime','PurchaseHistory']){
             for(const method of ['GET','HEAD']) assert.equal(Classify(method,'/unbroken/api/'+route,{},false).action,'proxy');
@@ -46,7 +51,7 @@ describe("the /unbroken/api routes", () => {
                 assert.equal(Choice.action === "reject" && Choice.reason, "admin_route");
             }
         }
-        assert.equal(Passed, 12);
+        assert.equal(Passed, 13);
         // POST RegistrationStatus changes the registration mode: admin only, blocked.
         assert.equal(Classify("POST", "/unbroken/api/RegistrationStatus", {}, false).action, "reject");
         assert.equal(Classify("HEAD", "/unbroken/api/Register", {}, false).action, "reject");

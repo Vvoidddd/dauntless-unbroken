@@ -51,6 +51,7 @@ const state = {
   purchaseHistoryBusy: false,
   purchaseHistoryNote: "",
   diagnosticsNote: "",
+  diagnosticsUploading: false,
   offlineSaveNote: null as string | null, // the last backup or restore that worked, shown under the row
   existingFormOpen: false,
   news: [] as NewsItem[],
@@ -1508,6 +1509,21 @@ async function exportSupportDiagnostics(){
   renderSettings();
 }
 
+async function uploadSupportDiagnostics(){
+  if(state.diagnosticsUploading)return;
+  state.diagnosticsUploading=true;state.diagnosticsNote='Uploading logs to server support…';renderSettings();
+  try{
+    const result=await api.uploadDiagnostics(state.username.trim());
+    state.diagnosticsNote=result.ok?`Logs uploaded. Support report: ${result.id}`:result.error.code==='rate_limited'?'Upload limit reached. Try again in 10 minutes, or export diagnostics.':'Upload failed. Your logs remain on this PC; retry or export diagnostics.';
+  }catch{state.diagnosticsNote='Upload failed. Retry or export diagnostics.';}
+  finally{state.diagnosticsUploading=false;renderSettings();}
+}
+
+async function openSupportLogFolder(){
+  try{if((await api.openLogFolder()).ok)return;}catch{/* show the local fallback below */}
+  state.diagnosticsNote='The log folder could not be opened. Use Export diagnostics instead.';renderSettings();
+}
+
 function renderSettings(): void {
   const container = $("#view-settings");
   const snap = state.snap;
@@ -1629,7 +1645,10 @@ function renderSettings(): void {
     const troubleshooting = card(
       "settings-section",
       h("h2", { class: "card-title" }, t("set_troubleshooting")),
-      settingsRow("Support diagnostics",state.diagnosticsNote||"Export launcher logs and system information. Account keys and tokens are removed; saves and databases are excluded.",button("Export diagnostics",()=>void exportSupportDiagnostics(),{icon:"folder",fk:"export-diagnostics"})),
+      settingsRow("Support diagnostics",state.diagnosticsNote||"Upload logs, errors, launcher/system details and your account identity to the server support dashboard. Keys, tokens, saves and databases are excluded.",
+        button('Open log folder',()=>void openSupportLogFolder(),{icon:'folder',fk:'open-log-folder'}),
+        button('Upload logs',()=>void uploadSupportDiagnostics(),{fk:'upload-diagnostics',disabled:state.diagnosticsUploading}),
+        button("Export diagnostics",()=>void exportSupportDiagnostics(),{fk:"export-diagnostics"})),
       infoRow(h("span", { class: "settings-row-title", id: "console-label" }, t("set_show_console")), t("set_show_console_text"), showConsole),
     );
     // Other servers joined before: switch to one, or take it off the list (its key stays on this PC).
@@ -2499,6 +2518,8 @@ async function main(): Promise<void> {
   await checkInviteLink();
 }
 
+window.addEventListener('error',event=>{void api.reportRendererError(String(event.error?.stack??event.message)).catch(()=>undefined);});
+window.addEventListener('unhandledrejection',event=>{void api.reportRendererError('Unhandled rejection: '+String(event.reason?.stack??event.reason)).catch(()=>undefined);});
 void main();
 const stopControllerNavigation=installControllerNavigation();
 window.addEventListener("beforeunload",stopControllerNavigation,{once:true});

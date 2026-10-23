@@ -56,6 +56,13 @@ counts use its deploy API (every five seconds). Ramsgate and Training are exclud
 
 ## Accounts and layout
 
+**Player reports** receives manual **Upload logs** submissions from the launcher. Reports show
+the server-verified username/account UID and Discord link when authenticated, or an explicitly
+unverified attempted name before signup. Open a report for redacted logs, errors, launcher/OS
+details and task/connection state; **Mark reviewed** clears its new status. Only administrators
+can read reports. The latest 200 are retained for up to 14 days; uploads are size/rate limited.
+Account keys, tokens, saves and databases are excluded. No background uploads occur.
+
 **Account rewards** searches all 5,471 item IDs from the 1.4.4 catalogue tables,
 using the game's English localization (including string-table names). It includes
 armour, weapons/parts, lanterns, consumables, materials, currencies, cells and

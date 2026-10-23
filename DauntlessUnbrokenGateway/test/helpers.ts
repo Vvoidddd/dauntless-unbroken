@@ -256,9 +256,9 @@ export function PortOpen(Port: number): Promise<boolean> {
 // Every route the metagame registers under /unbroken/api, read from its source so a route added
 // later is covered without touching this test.
 export function DauntlessUnbrokenApiRoutes(): { method: string; path: string }[] {
-    const Source = fs.readFileSync(path.join(ROOT, "..", "DauntlessUnbrokenMetagame", "src", "routes", "unbrokenapi.ts"), "utf8");
+    const Source = ['unbrokenapi.ts','supportreports.ts'].map(file=>fs.readFileSync(path.join(ROOT, "..", "DauntlessUnbrokenMetagame", "src", "routes", file), "utf8")).join('\n');
     const Routes: { method: string; path: string }[] = [];
-    for(const Match of Source.matchAll(/unbrokenApiRouter\.(get|post|put|delete|patch)\(\s*(["'])([^"']+)\2/g)){
+    for(const Match of Source.matchAll(/(?:unbrokenApiRouter|supportReportsRouter)\.(get|post|put|delete|patch)\(\s*(["'])([^"']+)\2/g)){
         Routes.push({ method: Match[1].toUpperCase(), path: "/unbroken/api" + Match[3].replace(/:[A-Za-z]+/g, "ABCD-EFGH-JKMN") });
     }
     return Routes;

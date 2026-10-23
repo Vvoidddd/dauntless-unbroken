@@ -61,6 +61,7 @@ import {
 } from "./hostapi";
 import { compareManifests, resolveInside, type GameManifest, type ManifestFile } from "./manifest";
 import { contentDownloadBase, DownloadError, DownloadJob } from "./downloader";
+import {uploadSupportReport} from './support-upload';
 import { AbortedError, hashFile, removePartFiles, verifyInstall, VerifiedCache } from "./verify";
 import { PlaytimeStore } from "./playtime";
 import { dllStatus, installPinnedDlls, DllError, win64Dir } from "./dlls";
@@ -196,6 +197,7 @@ export class Controller {
   private statusGen = 0;
   private huntRegions: { gen:number; checkedAt:number; regions:Array<'main' | 'ger' | 'us'> } | null = null;
   private busy = false;
+  private supportUploading = false;
   private discovering = false;
   private detectedDirs: string[] = [];
   private desktopBackups = new Map<string, string>();
@@ -405,6 +407,7 @@ export class Controller {
 
   private fail(code: ErrorCode, detail?: string): { ok: false; error: LauncherError } {
     const e = err(code, detail);
+    log.error(`launcher action failed: ${code}${detail?': '+detail:''}`);
     this.lastError = e.error;
     this.publish();
     return e;
@@ -414,9 +417,11 @@ export class Controller {
     this.busy = true;
     this.lastError = null;
     this.publish();
+    const watchdog=setTimeout(()=>log.warn(`launcher operation still waiting: phase=${this.computePhase()}`),15000);
     try {
       return await fn();
     } finally {
+      clearTimeout(watchdog);
       this.busy = false;
       this.publish();
     }
@@ -673,6 +678,15 @@ export class Controller {
     }catch{return null;}
   }
 
+  async uploadDiagnostics(attemptedName:string):Promise<import('../shared/types').SupportReportResult>{
+    if(this.supportUploading)return {ok:false,error:{code:'busy'}};
+    const ep=this.endpoint();if(!ep)return {ok:false,error:{code:'server_unreachable'}};
+    const slot=this.slot(),useKey=this.hasKey&&!this.keyRejected;
+    this.supportUploading=true;
+    try{return await uploadSupportReport(ep,this.p.userDataDir,this.snapshot(),attemptedName||this.snapshot().account.username||'',()=>slot&&useKey?this.keys.load(slot):Promise.resolve(null));}
+    finally{this.supportUploading=false;}
+  }
+
   // The signed-in account's online playtime from the server, after the key check and each online game.
   private async refreshServerPlaytime(): Promise<void> {
     if(this.playtimeChecking) return;
@@ -883,6 +897,7 @@ export class Controller {
         return err(res.error);
       }
       // Preserve the one-use registration result even if the OS key store fails.
+      log.info('registration accepted; saving the local account key');
       const desktopBackup = this.backupToDesktop(slot, res.key, username as string);
       try {
         await this.keys.save(slot, res.key);

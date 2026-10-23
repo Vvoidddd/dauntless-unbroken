@@ -116,15 +116,29 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
     const moderate = req.method === 'POST' && req.url === '/api/moderation';
     const accessAction=req.method==='POST' && ['/api/account-access','/api/discord-moderation'].includes(req.url);
     const rewardGrant=req.method==='POST'&&req.url==='/api/reward-grant';
-    if (req.method !== 'GET' && !createInvite && !moderate && !accessAction && !rewardGrant) { res.writeHead(405).end(); return; }
+    const supportReview=req.method==='POST'&&/^\/api\/support-reports\/[0-9a-f-]{36}\/review$/i.test(req.url??'');
+    if (req.method !== 'GET' && !createInvite && !moderate && !accessAction && !rewardGrant && !supportReview) { res.writeHead(405).end(); return; }
     if (Date.now() - windowStart > 60000) { requests = 0; windowStart = Date.now(); }
     if (++requests > 300) { res.writeHead(429).end(); return; }
     if (req.url === '/') { res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.end(page); return; }
     if (req.url === '/dashboard.js') { res.setHeader('Content-Type', 'text/javascript; charset=utf-8'); res.end(await readFile(new URL('./dashboard-client.js', import.meta.url))); return; }
     if(req.url==='/dashboard-rewards.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(await readFile(new URL('./dashboard-rewards.js',import.meta.url)));return;}
+    if(req.url==='/dashboard-support.js'){res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(await readFile(new URL('./dashboard-support.js',import.meta.url)));return;}
     const supplied = req.headers['x-dashboard-key'];
     if (typeof supplied !== 'string' || !timingSafeEqual(digest(supplied), digest(key))) { res.writeHead(401).end(); return; }
     res.setHeader('Content-Type', 'application/json');
+    if(req.url==='/api/support-reports'||req.url?.startsWith('/api/support-reports?')||/^\/api\/support-reports\/[0-9a-f-]{36}(\/review)?$/i.test(req.url??'')){
+      if(supportReview&&req.headers.origin!==`http://${req.headers.host}`){res.writeHead(403).end();return;}
+      const input=new URL(req.url,'http://localhost'),match=/^\/api\/support-reports\/([0-9a-f-]{36})(\/review)?$/i.exec(input.pathname);
+      if(match?.[2]&&!supportReview){res.writeHead(405).end();return;}
+      const endpoint=new URL(match?`/unbroken/api/SupportReports/${match[1]}${match[2]??''}`:'/unbroken/api/SupportReports',target);
+      if(!match)endpoint.searchParams.set('q',(input.searchParams.get('q')??'').slice(0,100));
+      try{
+        const response=await fetcher(endpoint,{method:supportReview?'POST':'GET',headers:{'x-dauntless-unbroken-user-api-key':key},signal:AbortSignal.timeout(10000),redirect:'error'});
+        res.writeHead(response.status).end(JSON.stringify(await response.json()));
+      }catch{res.writeHead(503).end(JSON.stringify({error:'Support inbox unavailable'}));}
+      return;
+    }
     if(rewardGrant||req.url?.startsWith('/api/reward-catalog?')||req.url?.startsWith('/api/reward-account?')){
       try{
         let body,endpoint;

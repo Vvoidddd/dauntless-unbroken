@@ -1,4 +1,5 @@
 import express from "express";
+import {supportReportsRouter} from './routes/supportreports';
 import {keyRotationRouter} from './routes/keyrotation';
 import {CheckPlayerAccess} from './controllers/moderation';
 import { TrackBackendHealth } from './middleware/BackendHealth';
@@ -27,12 +28,14 @@ import { backupRouter } from './routes/backup';
 export const app = express();
 app.use(TrackBackendHealth);
 // Keep discovery reachable so a banned launcher can display the actual reason.
-app.use((req,res,next)=>{if(/^\/unbroken\/api\/ServerStatus\/?$/i.test(req.path) || CheckPlayerAccess(req,res))next();});
+app.use((req,res,next)=>{if(/^\/unbroken\/api\/ServerStatus\/?$/i.test(req.path) || req.method==='POST'&&/^\/unbroken\/api\/SupportReport\/?$/i.test(req.path) || CheckPlayerAccess(req,res))next();});
 
 // Development logins (AUTH_MODE=NONE) never answer anything relayed by the gateway or
 // another proxy; a no-op with AUTH_MODE=APIKEY. See middleware/RequestOrigin.ts.
 app.use(RefuseProxiedInDevAuthMode);
 
+// Small, scrubbed diagnostics use their own limits and never enter body-capture logs.
+app.use('/unbroken/api',supportReportsRouter);
 app.use(express.json({ limit: "50mb" }));
 
 app.use(express.urlencoded({ extended: true }));

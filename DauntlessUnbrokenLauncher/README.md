@@ -32,6 +32,12 @@ token is required or bundled. Updates are coalesced to at most once every 15 sec
 
 ## For friends
 
+For problems, open **Settings → Support diagnostics**. **Open log folder** shows the local
+rotating logs; **Upload logs** sends a redacted report and account identity to the server's
+private support inbox, even while registration is busy. It returns a report ID for support.
+**Export diagnostics** saves a file when uploading is unavailable. Keys, tokens, saves and
+databases are excluded; nothing uploads automatically.
+
 1. Install a launcher package from the project's release. On Windows use
    `DauntlessUnbrokenLauncher-Setup.exe`. On Linux use the AppImage, `.deb`, `.rpm`, or portable
    ZIP described in [LINUX.md](LINUX.md). Check the download against `SHA256SUMS.txt` from the same

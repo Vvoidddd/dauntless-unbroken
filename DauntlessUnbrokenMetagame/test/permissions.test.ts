@@ -7,6 +7,7 @@ import crypto from "node:crypto";
 import http, { type Server } from "node:http";
 import { app } from "../src/app";
 import { unbrokenApiRouter } from "../src/routes/unbrokenapi";
+import {supportReportsRouter} from '../src/routes/supportreports';
 import { GetDb } from "../src/db";
 import { gameserverapikeys, userapikeys, users } from "../src/db/schema";
 import { HashUserAPIKey, SignMetagameJWTForUid } from "../src/controllers/auth";
@@ -178,6 +179,10 @@ after(async () => {
 // "METHOD path [middleware...]", in registration order. A route added, removed or with
 // different auth middleware fails this test: classify it in route-audit.md, then update this list.
 const EXPECTED_ROUTES = [
+    "POST /unbroken/api/SupportReport [jsonParser]",
+    "GET /unbroken/api/SupportReports [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/SupportReports/:id [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/SupportReports/:id/review [HasDauntlessUnbrokenAdminApiKey]",
     "GET /features/platform/win []",
     "GET /account/link/epic/:AccId []",
     "POST /login [HasDauntlessUnbrokenMetagameAuth]",
@@ -391,7 +396,7 @@ function RegisteredRoutes(){
             continue;
         }
 
-        const Prefix = Layer.handle === unbrokenApiRouter ? "/unbroken/api" : "";
+        const Prefix = Layer.handle === unbrokenApiRouter || Layer.handle === supportReportsRouter ? "/unbroken/api" : "";
 
         for(const RouteLayer of Layer.handle.stack){
             if(!RouteLayer.route){

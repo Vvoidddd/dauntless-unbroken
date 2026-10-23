@@ -41,6 +41,7 @@ let content: FakeContentServer;
 let gatewayRequests: string[] = [];
 let regionMode = false;
 const regionPosts: string[] = [];
+const supportUploads:Array<{key:unknown;body:any}>=[];
 let deviceBlocked = false;
 let admissionResponse: {state:string;kind?:string;full?:boolean;position?:number;total?:number} | null = null;
 let admissionCancels = 0;
@@ -67,6 +68,9 @@ before(async () => {
   content = new FakeContentServer({ key: "unused", files });
   gateway = https.createServer({ cert: cert.certPem, key: cert.keyPem }, (req, res) => {
     gatewayRequests.push(`${req.method} ${req.url}`);
+    if(req.url==='/unbroken/api/SupportReport'){
+      let raw='';req.on('data',chunk=>raw+=chunk);req.on('end',()=>{const body=JSON.parse(raw);supportUploads.push({key:req.headers['x-dauntless-unbroken-user-api-key'],body});res.writeHead(201,{'content-type':'application/json'}).end(JSON.stringify({id:body.id}));});return;
+    }
     if (regionMode && req.url === '/unbroken/api/HuntRegion') {
       if (req.method === 'GET') { req.resume(); res.writeHead(200,{'content-type':'application/json'}).end(JSON.stringify({region:'main',enabled:false,probes:[]})); return; }
       let data=''; req.on('data',chunk=>data+=chunk); req.on('end',()=>{
@@ -175,6 +179,20 @@ function harness(relayPort = RELAY_PORT, userDataDir?: string, chooseFolder: Pla
   const c = new Controller(p);
   return { c, last: () => snap ?? c.snapshot(), spawns, child: () => child, configDir, installDir, userData, offlineStatuses, };
 }
+
+test('a pending support upload stays bound to its original server credential after leaving the server',async t=>{
+ const hx=harness(),lstat=fs.lstat;let release!:()=>void,blocked=false;
+ const gate=new Promise<void>(resolve=>{release=resolve;});
+ let upload:ReturnType<Controller['uploadDiagnostics']>|undefined;
+ try{
+  await hx.c.init();meta.opts.validCodes!.add('SUPPORT-SLOT');await hx.c.submitInvite(invite(cert.fingerprint,'SUPPORT-SLOT'));await hx.c.register('SupportSlot');
+  const key=[...meta.users].find(([,user])=>user.username==='SupportSlot')![0];
+  t.mock.method(fs,'lstat',async(...args:Parameters<typeof fs.lstat>)=>{if(String(args[0])===path.join(hx.userData,'logs','launcher.log')){blocked=true;await gate;}return lstat(...args);});
+  upload=hx.c.uploadDiagnostics('SupportSlot');await waitUntil(()=>blocked);
+  await hx.c.forgetServer();release();assert.equal((await upload).ok,true);
+  assert.equal(supportUploads.at(-1)!.key,key);assert.equal(supportUploads.at(-1)!.body.attemptedName,'SupportSlot');
+ }finally{release();await upload;await hx.c.shutdown();}
+});
 
 test('a fresh second device imports the PC account backup without a registration invite',async()=>{
   const key='UUK_'+'c'.repeat(48),username='DeckTransfer';

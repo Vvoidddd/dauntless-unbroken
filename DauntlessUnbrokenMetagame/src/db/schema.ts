@@ -26,6 +26,12 @@ export const users = sqliteTable("users", {
     isAdmin: integer("isAdmin", {mode: "boolean"}).notNull().default(false)
 })
 
+export const supportreports=sqliteTable('support_reports',{
+    id:text('id').notNull().primaryKey(),createdAt:integer('created_at').notNull(),
+    accountId:text('account_id'),username:text('username'),claimedName:text('claimed_name').notNull(),
+    launcher:text('launcher').notNull(),summary:text('summary').notNull(),reviewedAt:integer('reviewed_at'),report:text('report').notNull()
+},t=>[index('support_reports_created').on(t.createdAt)]);
+
 export const playeraddresses = sqliteTable('player_addresses', {
     accountId:text('account_id').notNull(), address:text('address').notNull(), lastSeen:integer('last_seen').notNull()
 },t=>[primaryKey({columns:[t.accountId,t.address]})]);
