@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "463256c02bc5fc3ddde6b52b810a1c2ad6cf496c",
+      "date": "2026-10-23T03:29:38.670Z",
+      "title": "Latest project updates",
+      "body": "• Resolve Windows path aliases before stopping Revived components\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "4f4c4e009b2c4eb559948a0c1006b62441e787ca",
       "date": "2026-10-23T03:15:21.935Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-21T21:32:07.951Z",
       "title": "Latest project updates",
       "body": "• Avoid reserved Windows ports in launcher network tests\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "3f7a956ab3fe2ebb3960c236bc0c369511b54d43",
-      "date": "2026-10-21T21:25:24.257Z",
-      "title": "Latest project updates",
-      "body": "• Preserve parties across backend restarts and improve launcher access and news\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
