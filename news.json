@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "fa32497b791ce5bf15ec2bc05e16d25aa5259404",
+      "date": "2026-10-23T23:24:39.005Z",
+      "title": "Latest project updates",
+      "body": "• Reject malformed EOS login codes before hashing\n• Discard outdated launcher connection checks after switching servers\n• Restore Granny tonic purchases without changing quest progress\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.28",
       "date": "2026-10-23T05:53:58Z",
       "title": "Launcher 1.0.28 is available",
@@ -173,12 +179,6 @@
       "date": "2026-10-22T02:59:28.512Z",
       "title": "Latest project updates",
       "body": "• Condense project docs and consolidate software notices\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "ac303f3e5c36ce256d4d53c3af98171278436b54",
-      "date": "2026-10-22T02:53:33.476Z",
-      "title": "Latest project updates",
-      "body": "• Simplify project overview and link required notices\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
