@@ -1,3 +1,5 @@
+import {LinkTrackPaths,IsLinkTrack} from './slayerlinkconfig';
+
 import fs from "node:fs";
 import path from "node:path";
 import bundledConfig from "../vendor/progression_config.json";
@@ -181,6 +183,9 @@ function Load(Folder: string | undefined, Active: string): LoadedConfig {
         Payload = {...(bundledConfig as any), payload: {...(bundledConfig as any).payload, paths: Paths}};
         Description = `${Paths.length} tracks, from ${Folder}: ${[...Replaced.map((Id) => `${Id} replaced`), ...Added.map((Id) => `${Id} added`)].join(", ")}`;
     }
+
+    Paths = [...Paths.filter(Path=>!IsLinkTrack(Path.progression_id)),...LinkTrackPaths()];
+    Payload = {...(bundledConfig as any),payload:{...(bundledConfig as any).payload,paths:Paths}};
 
     const ById = new Map(Paths.map((Path) => [Path.progression_id, Path]));
 

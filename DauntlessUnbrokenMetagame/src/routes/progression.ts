@@ -1,3 +1,7 @@
+import {IsLinkTrack,LinkTrackId} from '../controllers/slayerlinkconfig';
+import {GetLinkTrack,SlayerLinkError} from '../controllers/slayerlinklifecycle';
+import {SlayerLinks} from '../features';
+
 import { Router } from "express";
 import { HasDauntlessUnbrokenMetagameAuth } from "../middleware/HasDauntlessUnbrokenMetagameAuth";
 import { logger } from "../logger";
@@ -315,6 +319,16 @@ function ConfirmOn(req: any, res: any, next: any){
     next(process.env.PROGRESSION_CONFIRM === "off" ? "route" : undefined);
 }
 
+// Link progression is shared by the pair, even when ordinary progression uses stubs.
+function LinkTrackRoute(req:any,res:any,next:any){
+    if(!IsLinkTrack(req.params.progressionId)){next('route');return;}
+    if(!SlayerLinks()){res.status(404).send();return;}
+    if(RefuseForeignPlayer(req,res))return;
+    try{res.json({code:'OK',message:'OK',payload:GetLinkTrack(req.params.userId,req.params.progressionId)});}
+    catch(error){if(error instanceof SlayerLinkError)res.status(error.status).send();else throw error;}
+}
+progressionRouter.get("/progression/:userId/:progressionId",HasDauntlessUnbrokenMetagameAuth,LinkTrackRoute);
+
 progressionRouter.post("/progression/:userId/:progressionId/:rank/confirm/:kind", RealProgressionOnly, ConfirmOn, HasDauntlessUnbrokenMetagameAuth, (req: any, res) => {
     if(!req.AuthData.IsGameserver){
         logger.warn(`Refusing rank confirm for ${req.params.userId} from a player client`);
@@ -409,7 +423,7 @@ progressionRouter.get("/progression/:userId", HasDauntlessUnbrokenMetagameAuth, 
     res.json({
         code: null,
         message: "OK",
-        payload: StubbedProgressTrackTemplates().map((TrackTemplate) => ({ phx_account_id: RequestorAccountId, ...TrackTemplate }))
+        payload: StubbedProgressTrackTemplates().filter(Track=>!IsLinkTrack(Track.progression_id)).map(TrackTemplate=>({phx_account_id:RequestorAccountId,...TrackTemplate})).concat(SlayerLinks()?[1,2,3].map(slot=>GetLinkTrack(RequestorAccountId,LinkTrackId(slot))):[])
     })
 });
 

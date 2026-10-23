@@ -309,8 +309,13 @@ const EXPECTED_ROUTES = [
     "PUT /slayerlink/invite [SlayerLinksOn, HasDauntlessUnbrokenMetagameAuth, PlayerTokenOnly]",
     "POST /slayerlink/invite [SlayerLinksOn, HasDauntlessUnbrokenMetagameAuth, PlayerTokenOnly]",
     "DELETE /slayerlink/invites/:accountId [SlayerLinksOn, HasDauntlessUnbrokenMetagameAuth, PlayerTokenOnly]",
+    "DELETE /slayerlink/links [SlayerLinksOn, HasDauntlessUnbrokenMetagameAuth]",
+
     "DELETE /slayerlink/links [SlayerLinksOn, HasDauntlessUnbrokenMetagameAuth, PlayerTokenOnly]",
     "POST /slayerlink/availability [SlayerLinksOn, HasDauntlessUnbrokenMetagameAuth, PlayerTokenOnly]",
+    "PUT /slayerlink/links/rewards [SlayerLinksOn, HasDauntlessUnbrokenMetagameAuth]",
+    "GET /slayerlink/links/rewards/:accountId/:slot [SlayerLinksOn, HasDauntlessUnbrokenMetagameAuth]",
+
     "GET /encountered-content/:characterId/:contentType [HasDauntlessUnbrokenMetagameAuth]",
     "POST /encountered-content/query/:characterId [HasDauntlessUnbrokenMetagameAuth]",
     "POST /encountered-content/:characterId [HasDauntlessUnbrokenMetagameAuth]",
@@ -319,6 +324,8 @@ const EXPECTED_ROUTES = [
     "GET /breadcrumbs/:characterId [HasDauntlessUnbrokenMetagameAuth]",
     "POST /breadcrumbs/:characterId [HasDauntlessUnbrokenMetagameAuth]",
     "POST /progression/:userId [HasDauntlessUnbrokenMetagameAuth]",
+    "GET /progression/:userId/:progressionId [HasDauntlessUnbrokenMetagameAuth, LinkTrackRoute]",
+
     "POST /progression/:userId/:progressionId/:rank/confirm/:kind [RealProgressionOnly, ConfirmOn, HasDauntlessUnbrokenMetagameAuth]",
     "POST /progression/:userId/:progressionId/:amount [RealProgressionOnly, HasDauntlessUnbrokenMetagameAuth]",
     "GET /progression/:userId/:progressionId [RealProgressionOnly, HasDauntlessUnbrokenMetagameAuth]",
@@ -455,7 +462,7 @@ describe("real-mode reads of an account", () => {
 
         const ForC = await Call("GET", `/progression/${C}`, { as: A });
         assert.equal(ForC.status, 200);
-        assert.ok(ForC.json.payload.every((Track: any) => Track.phx_account_id === A && Track.progress === 99999999), "the stub for the token's own account");
+        assert.ok(ForC.json.payload.every((Track: any) => Track.phx_account_id === A && Track.progress === (Track.progression_id.startsWith('Linked_Slayer_Slot_')?0:99999999)), "the stub for the token's own account");
 
         const Entitlements = await Call("GET", "/entitlementsv2", { as: B });
         assert.equal(Entitlements.status, 200);

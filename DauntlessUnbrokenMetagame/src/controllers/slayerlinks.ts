@@ -1,7 +1,9 @@
+import {ListedLinks,PrizePool,DeleteLinkSide,SlayerLinkError,SetLinkLifecycleClock} from './slayerlinklifecycle';
+
 // Ported from Harmonicrain/Undaunted (895f7c7), Copyright (C) 2026 Harmonic, AGPL-3.0-only; rewritten and
 // corrected against the 1.4.4 executable for Dauntless Unbroken.
 import crypto from "node:crypto";
-import { and, asc, count, eq, gt, inArray, lte, ne, or } from "drizzle-orm";
+import { and, asc, desc, sql, count, eq, gt, inArray, lte, ne, or } from "drizzle-orm";
 import { GetDb } from "../db";
 import { slayerlinkinvites, slayerlinks, users } from "../db/schema";
 import { logger } from "../logger";
@@ -69,6 +71,8 @@ let Clock: () => number = () => Date.now();
 // Tests only: a controllable clock
 export function SetSlayerLinkClockForTests(NewClock?: () => number){
     Clock = NewClock ?? (() => Date.now());
+    SetLinkLifecycleClock(NewClock);
+
 }
 
 function Ok(Payload: unknown): SlayerLinkReply {
@@ -128,9 +132,7 @@ function PendingInvitesOf(tx: Tx, AccountId: string, Now: number): InviteRow[] {
 }
 
 function ActiveLinksOf(tx: Tx, AccountId: string, Now: number): LinkRow[] {
-    return tx.select().from(slayerlinks)
-        .where(and(gt(slayerlinks.endsAt, Now), or(eq(slayerlinks.senderId, AccountId), eq(slayerlinks.targetId, AccountId))))
-        .orderBy(asc(slayerlinks.createdAt)).all();
+    return ListedLinks(tx,AccountId).sort((a,b)=>a.createdAt-b.createdAt);
 }
 
 // Slots not held by a running link
@@ -151,7 +153,6 @@ function SweepInTx(tx: Tx, Now: number){
 
     tx.delete(slayerlinkinvites).where(and(inArray(slayerlinkinvites.status, ["DECLINED", "CANCELED", "EXPIRED"]), lte(slayerlinkinvites.expiresAt, Now))).run();
     tx.delete(slayerlinkinvites).where(and(ne(slayerlinkinvites.status, "PENDING"), lte(slayerlinkinvites.expiresAt, Before))).run();
-    tx.delete(slayerlinks).where(lte(slayerlinks.endsAt, Before)).run();
 }
 
 // New invites this player sent in the last INVITE_WINDOW_MS, whatever became of them
@@ -162,12 +163,14 @@ function RecentInvitesBy(tx: Tx, AccountId: string, Now: number){
 
 // ---- Replies ----
 
-function InviteEntry(Row: InviteRow, AccountId: string){
+function InviteEntry(Row: InviteRow, AccountId: string, Links:LinkRow[]){
     return {
         account_id: OtherOf(Row, AccountId),
         slot: Row.senderSlot,
         direction: Row.senderId === AccountId ? "Sent" : "Received",
-        status: "Pending",
+        status: Row.status==='ACCEPTED'
+            ? (Links.some(Link=>Link.linkId===Row.inviteId)?'Accepted':'Canceled')
+            : ({PENDING:'Pending',DECLINED:'Declined',CANCELED:'Canceled'} as Record<string,string>)[Row.status],
         expires: new Date(Row.expiresAt).toISOString(),
         link_id: Row.inviteId
     };
@@ -182,7 +185,7 @@ function LinkEntry(Link: LinkRow, AccountId: string){
         slot: LinkSlotOf(Link, AccountId),
         ends: new Date(Link.endsAt).toISOString(),
         link_id: Link.linkId,
-        prize_pool: []
+        prize_pool: PrizePool(GetDb(),Link.linkId,AccountId)
     };
 }
 
@@ -192,9 +195,26 @@ function ReadLists(AccountId: string){
     return GetDb().transaction((tx) => {
         ExpireInvitesInTx(tx, [AccountId], Now);
 
+        const Links=ActiveLinksOf(tx,AccountId,Now),Partners=new Set<string>(),Slots=new Set<number>();
+        // The 1.4.4 invite-list callback (0x141607670) arms the inviter's native
+        // activation only when it receives Accepted. Returning only Pending loses
+        // that event, even though the link is already in /links and the database.
+        const Notices=tx.select().from(slayerlinkinvites).where(and(Involving(AccountId),gt(slayerlinkinvites.expiresAt,Now)))
+            .orderBy(desc(slayerlinkinvites.createdAt),desc(sql`rowid`)).all().filter(Row=>{
+                const Other=OtherOf(Row,AccountId);
+                if(Partners.has(Other))return false;
+                Partners.add(Other);
+                if(Row.expiresAt<=Now || (Row.status!=='PENDING' && Row.senderId!==AccountId))return false;
+                if(!['PENDING','ACCEPTED','DECLINED','CANCELED'].includes(Row.status))return false;
+                if(Row.senderId===AccountId){
+                    if(Slots.has(Row.senderSlot) || Links.some(Link=>LinkSlotOf(Link,AccountId)===Row.senderSlot && Link.linkId!==Row.inviteId))return false;
+                    Slots.add(Row.senderSlot);
+                }
+                return true;
+            });
         return {
-            Invites: PendingInvitesOf(tx, AccountId, Now).map((Row) => InviteEntry(Row, AccountId)),
-            Links: ActiveLinksOf(tx, AccountId, Now).map((Link) => LinkEntry(Link, AccountId)).sort((A, B) => A.slot - B.slot)
+            Invites: Notices.map(Row=>InviteEntry(Row,AccountId,Links)),
+            Links: Links.map(Link=>LinkEntry(Link,AccountId)).sort((A,B)=>A.slot-B.slot)
         };
     });
 }
@@ -465,22 +485,11 @@ export function DeleteSlayerLink(Caller: string, Body: any, Query: any): SlayerL
     }
 
     const Now = Clock();
-    const Removed = GetDb().transaction((tx) => {
-        const Links = ActiveLinksOf(tx, Caller, Now);
-        const Link = Links.find((Each) => (Slot === undefined || LinkSlotOf(Each, Caller) === Slot) && (!HasOther || OtherOf(Each, Caller) === Other))
-            ?? Links.find((Each) => HasOther && OtherOf(Each, Caller) === Other)
-            ?? Links.find((Each) => Slot !== undefined && LinkSlotOf(Each, Caller) === Slot);
-
-        if(Link !== undefined){
-            tx.delete(slayerlinks).where(eq(slayerlinks.linkId, Link.linkId)).run();
-        }
-
-        return Link;
-    });
-
-    logger.info(`slayerlink: delete link by=${Caller} slot=${Slot ?? "-"} other=${HasOther ? Other : "-"} delete_pair=${JSON.stringify(Body?.delete_pair ?? null)} -> ${Removed !== undefined ? `removed ${Removed.linkId} (with ${OtherOf(Removed, Caller)})` : "nothing to remove"}`);
-
+    const Link = GetDb().transaction(tx=>ActiveLinksOf(tx,Caller,Now).find(Each=>(Slot===undefined||LinkSlotOf(Each,Caller)===Slot)&&(!HasOther||OtherOf(Each,Caller)===Other)));
+    try { if(Link)DeleteLinkSide(Caller,LinkSlotOf(Link,Caller),Body?.link_id??Link.linkId); }
+    catch(error){if(error instanceof SlayerLinkError)return Fail(error.status,error.message);throw error;}
     return Ok({});
+
 }
 
 // POST /slayerlink/availability {account_ids}: which of these friends the caller could invite now

@@ -59,7 +59,7 @@ describe("progression with no settings (real is the default)", () => {
         assert.equal(Tracks.status, 200);
         assert.equal(Tracks.json.code, 200);
         assert.ok(Array.isArray(Tracks.json.payload), "real mode sends an array");
-        assert.equal(Tracks.json.payload.length, 10);
+        assert.equal(Tracks.json.payload.length, 13);
         for(const Track of Tracks.json.payload){
             assert.equal(Track.phx_account_id, UserId);
             assert.deepEqual([Track.progress, Track.confirmed_fremium_rank, Track.confirmed_premium_rank], [0, 0, 0], Track.progression_id);

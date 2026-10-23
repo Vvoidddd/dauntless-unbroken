@@ -14,11 +14,11 @@ const Track = (UserId: string, Id: string) => GetTrackRecord(UserId, Id)!;
 const Payload = (Reply: any) => Reply.Body.payload;
 
 describe("GetTrackRecords (GET /progression/:uid)", () => {
-    it("lists all 10 configured tracks at 0 for a new account, keyed by the URL account", async () => {
+    it("lists all 13 configured tracks at 0 for a new account, keyed by the URL account", async () => {
         const {UserId} = await MakePlayer();
         const Records = GetTrackRecords(UserId);
 
-        assert.equal(Records.length, 10);
+        assert.equal(Records.length, 13);
         for(const Record of Records){
             assert.deepEqual(Object.keys(Record), ["phx_account_id", "progression_id", "progress", "confirmed_fremium_rank", "confirmed_premium_rank", "confirmed_date"]);
             assert.equal(Record.phx_account_id, UserId);
@@ -77,7 +77,7 @@ describe("GrantProgression (POST /progression/:uid)", () => {
         ]);
 
         assert.deepEqual(Payload(Reply).progress_tracks.map((T: TrackRecord) => [T.progression_id, T.progress]), [["MasteryTrack_Behemoth", 0], ["MasteryTrack_PlayerLevel", 5000], ["MasteryTrack_Weapon_Axe", 7], ["SomeFutureTrack", 1]]);
-        assert.equal(GetTrackRecords(UserId).length, 11);
+        assert.equal(GetTrackRecords(UserId).length, 14);
         assert.equal(Track(UserId, "SomeFutureTrack").progress, 1);
     });
 

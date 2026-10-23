@@ -70,6 +70,24 @@ function AssertRefused(Reply: Reply, Status: number, Message?: string){
 }
 
 describe("Slayer Links", () => {
+    it('accepted notices reach the sender without duplicates and old notices cannot reactivate a replacement slot',async()=>{
+        const A=Player('NoticeA'),B=Player('NoticeB'),C=Player('NoticeC');let Now=Date.now();SetSlayerLinkClockForTests(()=>Now);
+        await Befriend(A,B);await Befriend(A,C);
+        const First=AssertOk(await Invite(A,B,1)).link_id;AssertOk(await Answer(B,A,'accept',-1));
+        for(let i=0;i<3;i++)assert.deepEqual((await Invites(A)).map(x=>[x.link_id,x.status]),[[First,'Accepted']]);
+        assert.deepEqual(await Invites(B),[],'acceptor already has the native accept callback');
+        AssertOk(await RemoveLink(A,B,1));assert.equal((await Invites(A))[0].status,'Canceled');
+        const Second=AssertOk(await Invite(A,C,1)).link_id;AssertOk(await Answer(C,A,'accept'));
+        assert.deepEqual((await Invites(A)).map(x=>[x.link_id,x.status]),[[Second,'Accepted']],'equal timestamps use row order and the current slot generation');
+        AssertOk(await RemoveLink(A,C,1));
+        const Third=AssertOk(await Invite(A,B,2)).link_id;
+        assert.deepEqual((await Invites(A)).filter(x=>x.account_id===B).map(x=>[x.link_id,x.slot,x.status]),[[Third,2,'Pending']]);
+        AssertOk(await Call('PUT','/slayerlink/invite',{as:A,body:{account_id:B,slot:2,action:'cancel'}}));
+        assert.equal(GetDb().select().from(slayerlinkinvites).where(eq(slayerlinkinvites.inviteId,Third)).get()?.status,'CANCELED');
+        assert.deepEqual((await Invites(A)).filter(x=>x.account_id===B).map(x=>[x.link_id,x.status]),[[Third,'Canceled']]);
+        Now+=INVITE_EXPIRY_HOURS*HOUR+1;assert.deepEqual(await Invites(A),[]);
+    });
+
     // from Harmonicrain/Undaunted test/social-friends.test.js:76, rewritten to the client's paths and bodies
     it("a friend is invited, accepts, both see the link, outsiders cannot touch it, and it is removed for both", async () => {
         const John = Player("John"), Manda = Player("Manda"), Todd = Player("Todd");
@@ -118,7 +136,8 @@ describe("Slayer Links", () => {
         assert.deepEqual(Object.keys(Status), ["invites", "links", "config"]);
         assert.deepEqual(Status.config, { link_duration_hours: 168, invite_expiry_hours: 24 });
         assert.deepEqual(Status.links, OfJohn);
-        assert.deepEqual(Status.invites, []);
+        assert.deepEqual(Status.invites.map((Entry:any)=>[Entry.account_id,Entry.direction,Entry.status]),[[Manda,'Sent','Accepted']]);
+        assert.deepEqual(Status.invites,await Invites(John),'heartbeat and dedicated list must carry the same activation notice');
 
         AssertOk(await RemoveLink(Todd, John, 1), "someone without that link");
         assert.equal((await Links(John)).length, 1, "Todd removed nothing");
@@ -139,7 +158,7 @@ describe("Slayer Links", () => {
         AssertOk(await Answer(Ben, Ann, "reject"));
         AssertOk(await Answer(Ben, Ann, "reject"), "a repeated reject");
         AssertRefused(await Answer(Ben, Ann, "accept"), 409, "the invite was declined");
-        assert.deepEqual(await Invites(Ann), []);
+        assert.deepEqual((await Invites(Ann)).map(Entry=>[Entry.account_id,Entry.status]),[[Ben,'Declined']]);
         assert.deepEqual(await Invites(Ben), []);
 
         const Second = AssertOk(await Invite(Ann, Ben, 2)).link_id;
@@ -163,12 +182,12 @@ describe("Slayer Links", () => {
         AssertOk(await Invite(Lea, Ivy, 1));
 
         AssertOk(await Call("DELETE", `/slayerlink/invites/${Jon}`, { as: Ivy }));
-        assert.deepEqual((await Invites(Ivy)).map((Entry) => Entry.account_id).sort(), [Kim, Lea].sort());
+        assert.deepEqual((await Invites(Ivy)).filter(Entry=>Entry.status==='Pending').map((Entry) => Entry.account_id).sort(), [Kim, Lea].sort());
         assert.deepEqual(await Invites(Jon), []);
 
         AssertOk(await Call("DELETE", `/slayerlink/invites/${Ivy}`, { as: Ivy }));
-        assert.deepEqual(await Invites(Ivy), []);
-        assert.deepEqual(await Invites(Lea), []);
+        assert.deepEqual((await Invites(Ivy)).map(Entry=>Entry.status),['Canceled','Canceled']);
+        assert.deepEqual((await Invites(Lea)).map(Entry=>Entry.status),['Declined']);
         assert.deepEqual(GetDb().select({ status: slayerlinkinvites.status }).from(slayerlinkinvites).where(eq(slayerlinkinvites.senderId, Lea)).all(), [{ status: "DECLINED" }]);
         AssertRefused(await Call("DELETE", "/slayerlink/invites/not%20an%20id", { as: Ivy }), 400);
     });
@@ -237,10 +256,15 @@ describe("Slayer Links", () => {
         Now += LINK_DURATION_HOURS * HOUR - 1;
         assert.equal((await Links(Ola)).length, 1, "a week less a moment");
         Now += 2;
-        assert.deepEqual(await Links(Ola), []);
-        assert.deepEqual(await Links(Pia), []);
-        AssertOk(await Invite(Ola, Pia, 1), "the slot and the pair are free again");
+        assert.equal((await Links(Ola)).length,1,"expired links remain available for collection");
+        AssertOk(await RemoveLink(Ola,Pia,1));
+        assert.equal((await Links(Pia)).length,1,"releasing one side preserves the partner's collection");
+        AssertOk(await RemoveLink(Pia,Ola,1));
+        assert.deepEqual(await Links(Ola),[]);
+        assert.deepEqual(await Links(Pia),[]);
+        AssertOk(await Invite(Ola,Pia,1),"both released slots are free again");
     });
+
 
     it("an unfriend or a block cancels the waiting invites; a running link stays until it ends", async () => {
         const Rex = Player("Rex"), Sam = Player("Sam"), Tia = Player("Tia");
@@ -267,7 +291,7 @@ describe("Slayer Links", () => {
         await Befriend(Uma, Sam);
         AssertOk(await Invite(Uma, Sam, 1));
         assert.equal((await Call("POST", `/friends/api/public/blocklist/${Sam}/${Uma}`, { as: Sam })).status, 204);
-        assert.deepEqual(await Invites(Uma), []);
+        assert.deepEqual((await Invites(Uma)).map(Entry=>Entry.status),['Canceled']);
         assert.equal(Count("slayerlinkinvites", "senderId = ? and status = 'CANCELED'", Uma), 1);
     });
 
@@ -333,6 +357,6 @@ describe("Slayer Links", () => {
         });
 
         assert.equal((await Links(Val)).length, 1, "the link is still there once the switch is back on");
-        assert.equal((await Call("GET", "/slayerlink/links/rewards/UID-x/1", { as: Val })).status, 404, "the reward routes are not answered");
+        assert.equal((await Call("GET", "/slayerlink/links/rewards/UID-x/1", { as: Val })).status, 403, "a player cannot read another account's rewards");
     });
 });

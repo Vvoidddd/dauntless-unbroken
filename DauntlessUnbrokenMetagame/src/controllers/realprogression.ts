@@ -1,3 +1,6 @@
+import {ApplyLinkXp,GetLinkTrack,ConfirmLinkRank,SlayerLinkError} from './slayerlinklifecycle';
+import {IsLinkTrack} from './slayerlinkconfig';
+
 import { and, asc, desc, eq, exists, inArray, notExists, sql } from "drizzle-orm";
 import { GetDb } from "../db";
 import { characters, huntpassselection, objectives, progressionevents, progresstracks, users } from "../db/schema";
@@ -109,7 +112,7 @@ export function GetTrackRecords(AccountId: string): TrackRecord[]{
     const Rows = GetDb().select().from(progresstracks).where(eq(progresstracks.accountId, AccountId)).all();
     const ByTrack = new Map(Rows.map((Row) => [Row.progressionId, Row]));
 
-    const Records = GetProgressionPaths().map((Path) => ToTrackRecord(AccountId, Path.progression_id, ByTrack.get(Path.progression_id)));
+    const Records = GetProgressionPaths().map(Path=>IsLinkTrack(Path.progression_id)?GetLinkTrack(AccountId,Path.progression_id):ToTrackRecord(AccountId,Path.progression_id,ByTrack.get(Path.progression_id)));
 
     for(const Row of Rows){
         if(GetProgressionPath(Row.progressionId) == undefined){
@@ -122,6 +125,8 @@ export function GetTrackRecords(AccountId: string): TrackRecord[]{
 
 // undefined for a track that is neither configured nor stored
 export function GetTrackRecord(AccountId: string, ProgressionId: string): TrackRecord | undefined{
+    if(IsLinkTrack(ProgressionId))return GetLinkTrack(AccountId,ProgressionId);
+
     const Row = GetDb().select().from(progresstracks).where(TrackFor(AccountId, ProgressionId)).get();
 
     if(Row == undefined && GetProgressionPath(ProgressionId) == undefined){
@@ -324,6 +329,8 @@ export function GrantProgression(AccountId: string, Body: unknown, Who: Caller):
         const Summary: string[] = [];
 
         for(const [ProgressionId, Amount] of Parsed.Tracks){
+            if(IsLinkTrack(ProgressionId)){TrackReplies.push(GetLinkTrack(AccountId,ProgressionId));continue;}
+
             const Current = ReadTrack(tx, AccountId, ProgressionId);
             const OldProgress = Current?.progress ?? 0;
             const NewProgress = Math.min(OldProgress + Amount, INT32_MAX);
@@ -338,6 +345,8 @@ export function GrantProgression(AccountId: string, Body: unknown, Who: Caller):
                 confirmedPremiumRank: Current?.confirmedPremiumRank ?? 0,
                 confirmedDate: Current?.confirmedDate ?? DEFAULT_CONFIRMED_DATE
             });
+
+            if(Who==='gameserver'&&ProgressionId===GetSelectedHuntPass(AccountId))ApplyLinkXp(tx,AccountId,NewProgress-OldProgress);
 
             TrackReplies.push(ToTrackRecord(AccountId, ProgressionId, Written));
 
@@ -394,6 +403,8 @@ export function GrantProgression(AccountId: string, Body: unknown, Who: Caller):
 
 // POST /progression/:uid/:track/:amount (game server; quest and tutorial rewards). No body.
 export function GrantProgressionInTrack(AccountId: string, ProgressionId: string, AmountRaw: string, Who: Caller): RealReply{
+    if(IsLinkTrack(ProgressionId))return {Status:200,Body:{code:'OK',message:'OK',payload:GetLinkTrack(AccountId,ProgressionId)}};
+
     const Route = "POST /progression/:uid/:track/:amount";
     const Notes: string[] = [];
     const Amount = ParsePathInteger(AmountRaw, true);
@@ -438,6 +449,8 @@ export function GrantProgressionInTrack(AccountId: string, ProgressionId: string
             confirmedDate: Current?.confirmedDate ?? DEFAULT_CONFIRMED_DATE
         });
 
+        if(Who==='gameserver'&&ProgressionId===GetSelectedHuntPass(AccountId))ApplyLinkXp(tx,AccountId,Written.progress-OldProgress);
+
         const Reply = {code: "OK", message: "OK", payload: ToTrackRecord(AccountId, ProgressionId, Written)};
 
         RecordProgressionEvent(tx, {AccountId, Caller: Who, Route, Status: 200, Reply, Notes: [`track ${ProgressionId} amount ${AmountRaw}`, ...Notes]});
@@ -480,6 +493,12 @@ function GrantRankEntitlements(tx: Tx, AccountId: string, Path: ProgressionPath,
 // Raises the confirmed rank to min(rank, earned); never lowers it, never grants items.
 // Premium needs the track's premium_gating_entitlement (season09b_premium).
 export function ConfirmRank(AccountId: string, ProgressionId: string, RankRaw: string, Kind: string, Who: Caller): RealReply{
+    if(IsLinkTrack(ProgressionId)){
+        if(Kind!=='public'&&Kind!=='premium')return {Status:400};
+        try{return {Status:200,Body:{code:'OK',message:'OK',payload:Kind==='premium'?GetLinkTrack(AccountId,ProgressionId):ConfirmLinkRank(AccountId,ProgressionId,Number(RankRaw))}};}
+        catch(error){if(error instanceof SlayerLinkError)return {Status:error.status};throw error;}
+    }
+
     const Route = "POST /progression/:uid/:track/:rank/confirm/:kind";
     const Context = `track ${ProgressionId} rank ${RankRaw} ${Kind}`;
     const Rank = ParsePathInteger(RankRaw);
@@ -579,6 +598,8 @@ export function ConfirmRank(AccountId: string, ProgressionId: string, RankRaw: s
 
 // DELETE /progression/:uid/:track: back to progress 0 and ranks 0
 export function ResetTrack(AccountId: string, ProgressionId: string, Who: Caller): RealReply{
+    if(IsLinkTrack(ProgressionId))return {Status:409}; // Releasing a slot must preserve earned rewards.
+
     const Route = "DELETE /progression/:uid/:track";
 
     return GetDb().transaction((tx) => {
@@ -672,6 +693,8 @@ export function SeedProgression(AccountId: string, Mode: SeedMode, Admin: string
         }
 
         for(const Path of GetProgressionPaths()){
+            if(IsLinkTrack(Path.progression_id))continue; // Pair progress is never seeded as personal XP.
+
             WriteTrack(tx, AccountId, Path.progression_id, SeedTrack(Path, Before.find((Row) => Row.progressionId === Path.progression_id), Mode));
         }
 

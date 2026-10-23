@@ -283,14 +283,15 @@ describe("the progression config (PROGRESSION_CONFIG_DIR, ACTIVE_HUNT_PASS)", ()
         return Where;
     }
 
-    it("serves the bundled file unchanged when nothing is set", async () => {
+    it("serves the original bundled tracks plus the native link tracks when nothing is set", async () => {
         const { UserId } = await MakePlayer();
 
         assert.equal(CheckProgressionConfig(), "bundled, 10 tracks; active Hunt Pass season09b");
-        assert.equal(GetProgressionConfigPayload(), BundledConfig, "the very same object");
+        assert.deepEqual((GetProgressionConfigPayload() as any).payload.paths.slice(0,10),BundledConfig.payload.paths);
+        assert.equal(BundledConfig.payload.paths.length,10,'bundled data is not mutated');
 
         const Served = await Call("GET", "/progression/config", { as: UserId });
-        assert.equal(Served.text, JSON.stringify(BundledConfig));
+        assert.equal(Served.text, JSON.stringify(GetProgressionConfigPayload()));
     });
 
     it("an override from the folder feeds both GET /progression/config and the rank math", async () => {
@@ -304,7 +305,7 @@ describe("the progression config (PROGRESSION_CONFIG_DIR, ACTIVE_HUNT_PASS)", ()
             assert.match(CheckProgressionConfig(), /^11 tracks, from .*override: season09b replaced, season_test added; active Hunt Pass season09b$/);
 
             const Paths = (await Call("GET", "/progression/config", { as: UserId })).json.payload.paths;
-            assert.equal(Paths.length, 11);
+            assert.equal(Paths.length, 14);
             assert.equal(Paths[0].progression_id, "season09b", "an override keeps its place");
             assert.equal(Paths[0].requirements[1].xp_required, 200);
             assert.equal(Paths[10].progression_id, "season_test");
@@ -312,7 +313,7 @@ describe("the progression config (PROGRESSION_CONFIG_DIR, ACTIVE_HUNT_PASS)", ()
             // 250 XP is rank 2 with the bundled costs, rank 1 with the doubled ones: a confirm is clamped to 1
             await Grant(UserId, { progress_tracks: [{ progression_id: "season09b", progress: 250 }], objectives: [] });
             assert.equal((await Confirm(UserId, "season09b", 2)).json.payload.confirmed_fremium_rank, 1);
-            assert.equal((await Call("GET", `/progression/${UserId}`, { as: UserId })).json.payload.length, 11);
+            assert.equal((await Call("GET", `/progression/${UserId}`, { as: UserId })).json.payload.length, 14);
         });
 
         assert.equal(CheckProgressionConfig(), "bundled, 10 tracks; active Hunt Pass season09b", "back to the bundled file");

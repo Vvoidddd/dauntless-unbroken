@@ -9,8 +9,8 @@ function Earned(ProgressionId: string, Progress: number, HasPremium = false){
 }
 
 describe("progression config", () => {
-    it("has the 10 tracks the roadmap lists, requirements sorted by rank_id", () => {
-        assert.deepEqual(GetProgressionPaths().map((Path) => Path.progression_id).sort(), ["MasteryTrack_Behemoth", "MasteryTrack_PlayerLevel", ...WEAPONS, "season09b"].sort());
+    it("has the 10 original tracks and the 3 Slayer Link slots, requirements sorted by rank_id", () => {
+        assert.deepEqual(GetProgressionPaths().map((Path) => Path.progression_id).sort(), ["MasteryTrack_Behemoth", "MasteryTrack_PlayerLevel", ...WEAPONS, "season09b", "Linked_Slayer_Slot_1", "Linked_Slayer_Slot_2", "Linked_Slayer_Slot_3"].sort());
 
         for(const Path of GetProgressionPaths()){
             const Ranks = Path.requirements!.map((Requirement) => Requirement.rank_id);

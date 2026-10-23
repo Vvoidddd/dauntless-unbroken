@@ -508,6 +508,22 @@ export const slayerlinks = sqliteTable("slayerlinks", {
     index("slayerlinks_target").on(table.targetId)
 ]);
 
+// Separate lifecycle rows preserve the existing link table and allow rollback.
+export const slayerlinkstate=sqliteTable('slayerlinkstate',{
+    linkId:text('linkId').notNull().primaryKey(),progress:integer('progress').notNull().default(0),
+    canceledAt:integer('canceledAt'),senderReleasedAt:integer('senderReleasedAt'),targetReleasedAt:integer('targetReleasedAt'),
+    senderConfirmedRank:integer('senderConfirmedRank').notNull().default(0),targetConfirmedRank:integer('targetConfirmedRank').notNull().default(0)
+});
+export const slayerlinkpools=sqliteTable('slayerlinkpools',{
+    linkId:text('linkId').notNull(),userId:text('userId').notNull(),pool:text('pool').notNull(),poolHash:text('poolHash').notNull(),
+    createdAt:integer('createdAt').notNull(),servedAt:integer('servedAt'),claimTransactionId:text('claimTransactionId'),
+    claimCharacterId:text('claimCharacterId'),claimedRewards:text('claimedRewards'),claimedAt:integer('claimedAt')
+},t=>[primaryKey({columns:[t.linkId,t.userId]}),index('slayerlinkpools_user').on(t.userId)]);
+export const slayerlinkxp=sqliteTable('slayerlinkxp',{
+    eventId:text('eventId').notNull(),linkId:text('linkId').notNull(),sourceUserId:text('sourceUserId').notNull(),
+    amount:integer('amount').notNull(),createdAt:integer('createdAt').notNull()
+},t=>[primaryKey({columns:[t.eventId,t.linkId]})]);
+
 // One-time data jobs the metagame ran at startup (migrations may only add tables, so a build can be
 // rolled back); a job whose id is here is never run again
 export const onetimejobs = sqliteTable("onetimejobs", {

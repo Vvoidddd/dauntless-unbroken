@@ -1,3 +1,6 @@
+import {GrantLinkRewards,LINK_GRANT_SOURCE,SlayerLinkError} from '../controllers/slayerlinklifecycle';
+import {InventoryErrorOf} from '../controllers/inventory';
+
 import { Router } from "express";
 import { PlayerMutationRateLimit } from "../middleware/RateLimits";
 import { HasDauntlessUnbrokenMetagameAuth } from "../middleware/HasDauntlessUnbrokenMetagameAuth";
@@ -74,6 +77,12 @@ inventoryRouter.post("/inventory", HasDauntlessUnbrokenMetagameAuth, PlayerMutat
     const InstancedItemsToRemove = req.body.removeInstancedItems;
     const StackedItemsToRemove = req.body.removeStackedItems;
     const InstancedItemsToSave = req.body.saveInstancedItems;
+
+    if(req.body.source===LINK_GRANT_SOURCE){
+        try{res.json(GrantLinkRewards(req.AuthData,{UserId,CharacterId,TransactionId,InstancedItemsToAdd,StackedItemsToAdd,InstancedItemsToRemove,StackedItemsToRemove,InstancedItemsToSave}));}
+        catch(error){const known=InventoryErrorOf(error);if(error instanceof SlayerLinkError)res.status(error.status).json({message:error.message});else if(known)res.status(StatusForInventoryError(known)).send();else throw error;}
+        return;
+    }
 
     const TransactionResult = await RunInventoryTransaction(UserId, CharacterId, TransactionId, InstancedItemsToAdd, StackedItemsToAdd, InstancedItemsToRemove, StackedItemsToRemove, InstancedItemsToSave, {
         Caller: req.AuthData.IsGameserver ? "gameserver" : "client",
