@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "launcher-v1.0.29",
+      "date": "2026-10-23T23:33:55Z",
+      "title": "Launcher 1.0.29 is available",
+      "body": "Dauntless Unbroken Launcher 1.0.29 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.29-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.29-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.29-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.29-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.29-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.29-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
+    },
+    {
       "id": "fa32497b791ce5bf15ec2bc05e16d25aa5259404",
       "date": "2026-10-23T23:24:39.005Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-22T03:03:52.609Z",
       "title": "Latest project updates",
       "body": "• Remove optional author lists from remaining Markdown guides\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "9380db1c6dbb35a61c8e91e729cc41b4c890685e",
-      "date": "2026-10-22T02:59:28.512Z",
-      "title": "Latest project updates",
-      "body": "• Condense project docs and consolidate software notices\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
