@@ -11,8 +11,14 @@ import { LoginRateLimit, TokenVerifyRateLimit } from "../middleware/RateLimits";
 export const eosRouter = Router();
 
 eosRouter.post("/account/api/oauth/token", LoginRateLimit, async (req, res) => {
+    const ExchangeCode = req.body?.exchange_code;
+    if(typeof ExchangeCode !== "string" || ExchangeCode.length === 0){
+        res.status(400).send();
+        return;
+    }
+
     if(process.env.AUTH_MODE === "NONE" && process.env.NODE_ENV !== "production"){
-        const UserId = req.body.exchange_code;
+        const UserId = ExchangeCode;
 
         logger.info(`Logging in ${UserId}!`);
 
@@ -34,7 +40,7 @@ eosRouter.post("/account/api/oauth/token", LoginRateLimit, async (req, res) => {
         });
     }
     else if(process.env.AUTH_MODE === "APIKEY"){
-        const ApiKey = req.body.exchange_code;
+        const ApiKey = ExchangeCode;
 
         const UserId = await GetUserIDForAPIKey(ApiKey);
 
@@ -68,6 +74,7 @@ eosRouter.post("/account/api/oauth/token", LoginRateLimit, async (req, res) => {
     }
     else{
         logger.fatal("No login method configured!");
+        res.status(503).send();
     }
 });
 

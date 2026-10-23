@@ -28,7 +28,11 @@ export async function DrainAndRegisterUserAPIKeys(){
     logger.info(`Registered ${APIKeysToRegister.length} new User API Key(s) on boot!`);
 }
 
-export async function GetUserIDForAPIKey(UserAPIKey: string){
+export async function GetUserIDForAPIKey(UserAPIKey: unknown){
+    if(typeof UserAPIKey !== "string" || UserAPIKey.length === 0){
+        return undefined;
+    }
+
     const AllAPIKeyHashes = await GetDb().query.userapikeys.findMany();
 
     const IncomingUserAPIKeyHashBuffer = Buffer.from(HashUserAPIKey(UserAPIKey), "hex");
