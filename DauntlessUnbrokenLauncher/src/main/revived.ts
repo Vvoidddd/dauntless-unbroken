@@ -24,14 +24,18 @@ export const REVIVED_WINDOWS_SCRIPT=String.raw`$ErrorActionPreference='Stop';$d=
 if($d.action-eq'stop'){
  $prefix=[IO.Path]::GetFullPath($d.install)+'\'
  foreach($p in Get-CimInstance Win32_Process -Filter "Name='DauntlessRevivedLauncher.exe' OR Name='Update.exe' OR Name='node.exe'"){
-  if($p.ExecutablePath-and$p.ExecutablePath.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)){Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop}
+  if($p.ExecutablePath-and[IO.Path]::GetFullPath($p.ExecutablePath).StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)){Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop}
  }
 }elseif($d.action-eq'finish'){
  $key='HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\DauntlessRevivedLauncher'
  if(Test-Path -LiteralPath $key){$n=(Get-ItemProperty -LiteralPath $key).DisplayName;if($n-in@('Dauntless Revived Launcher','DauntlessRevivedLauncher')){Remove-Item -LiteralPath $key -Force -Confirm:$false}}
  $protocol='HKCU:\Software\Classes\dauntless-revived'
  $command=$protocol+'\shell\open\command'
- if(Test-Path -LiteralPath $command){$line=(Get-Item -LiteralPath $command).GetValue('');$prefix=[IO.Path]::GetFullPath($d.install)+'\';if($line-is[string]-and$line.IndexOf($prefix,[StringComparison]::OrdinalIgnoreCase)-ge 0){Remove-Item -LiteralPath $protocol -Recurse -Force -Confirm:$false}}
+ if(Test-Path -LiteralPath $command){
+  $line=(Get-Item -LiteralPath $command).GetValue('');$prefix=[IO.Path]::GetFullPath($d.install)+'\'
+  $exe=if($line-is[string]-and$line-match'^\s*"([^"]+)"'){$Matches[1]}elseif($line-is[string]-and$line-match'^\s*(\S+\.exe)(?:\s|$)'){$Matches[1]}else{$null}
+  if($exe){try{$owned=[IO.Path]::GetFullPath($exe).StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)}catch{$owned=$false};if($owned){Remove-Item -LiteralPath $protocol -Recurse -Force -Confirm:$false}}
+ }
 }else{throw 'Invalid cleanup operation'}`;
 export async function revivedNative(action:NativeAction,install:string):Promise<void>{
  const root=process.env.SystemRoot;if(!root||!path.win32.isAbsolute(root))return Promise.reject(Error('Windows system directory unavailable.'));

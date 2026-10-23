@@ -99,7 +99,7 @@ function Remove-Item {param($LiteralPath,[switch]$Force,[switch]$Recurse,$Confir
 ConvertTo-Json -InputObject @($script:removed) -Compress`;
  const result=await new Promise<string>((resolve,reject)=>{
   const child=execFile(path.join(process.env.SystemRoot!,'System32','WindowsPowerShell','v1.0','powershell.exe'),['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{windowsHide:true,timeout:8000},(error,out,err)=>error?reject(Error(err||error.message)):resolve(out));
-  child.stdin!.end(JSON.stringify({action:'finish',install:h.install,testLine:'"'+path.join(owner==='revived'?h.install:h.keep,owner==='revived'?'DauntlessRevivedLauncher.exe':'DauntlessUnbrokenLauncher.exe')+'" "%1"'}));
+  child.stdin!.end(JSON.stringify({action:'finish',install:h.install,testLine:'"'+path.join(owner==='revived'?h.install:h.keep,owner==='revived'?'DauntlessRevivedLauncher.exe':'DauntlessUnbrokenLauncher.exe')+'" "%1" "'+h.install+'\\argument-only"'}));
  });
  const removed=JSON.parse(result) as string[];
  assert.ok(removed.includes('HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\DauntlessRevivedLauncher'));
