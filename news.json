@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "5a79a0f0a8a7e24a4fd630363813532055da513c",
+      "date": "2026-10-24T21:53:08.574Z",
+      "title": "Latest project updates",
+      "body": "• Report drained workers accurately in fleet status\n• Prevent Escalation amp selection replays and reward counter drift\n• Validate separate client and server native artifact pins\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.31",
       "date": "2026-10-24T01:17:26Z",
       "title": "Launcher 1.0.31 is available",
@@ -173,12 +179,6 @@
       "date": "2026-10-22T17:47:11.817Z",
       "title": "Latest project updates",
       "body": "• Fix launcher startup with disabled hunt regions\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "6f88f164b53b3e986ba4af0dafdcb9996f5f08f8",
-      "date": "2026-10-22T06:21:57.278Z",
-      "title": "Latest project updates",
-      "body": "• Allow unreachable hunt ports to be excluded from allocation\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
