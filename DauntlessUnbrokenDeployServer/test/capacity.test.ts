@@ -22,7 +22,7 @@ test('hard hunt slots include pending allocations and release exactly once',()=>
     let running=4;
     const slots=new HuntAdmission(()=>running,()=>5);
     const release=slots.reserve();
-    assert.deepEqual(slots.status(),{running:4,pending:1,limit:5});
+    assert.deepEqual(slots.status(),{running:4,pending:1,limit:5,draining:false});
     assert.throws(()=>slots.reserve(),CapacityUnavailable);
     running++; release(); release();
     assert.throws(()=>slots.reserve(),CapacityUnavailable);
@@ -145,12 +145,15 @@ test('a drain file stops new hunts and lets running ones finish',()=>{
         const slots=new HuntAdmission(()=>3,()=>96);
         const held=slots.reserve();
         assert.equal(HuntsDraining(),false);
+        assert.equal(slots.status().draining,false);
         fs.writeFileSync(file,'');
         assert.equal(HuntsDraining(),true);
+        assert.equal(slots.status().draining,true);
         assert.throws(()=>slots.reserve(),CapacityUnavailable);
         assert.throws(()=>slots.reserve(true),CapacityUnavailable);
         held();
         fs.unlinkSync(file);
+        assert.equal(slots.status().draining,false);
         slots.reserve()();
     } finally {
         saved===undefined?delete process.env.DRAIN_FILE:process.env.DRAIN_FILE=saved;

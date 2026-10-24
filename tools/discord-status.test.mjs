@@ -4,6 +4,17 @@ import {payload, Publisher, sampleBackend, webhookUrl} from './discord-status.mj
 import {sampleFleet, sampleLocalCapacity, applyLocalCapacity} from './discord-status.mjs';
 import {publicWatchdog} from './discord-status.mjs';
 
+test('drain state reaches the public embed without claiming admission headroom',async()=>{
+ for(const draining of [true,false,undefined]){
+  const c=await sampleLocalCapacity('http://127.0.0.1:61001',async()=>Response.json({capacity:{running:0,pending:0,limit:42,draining,cpu:{blocked:false,percent:1,limit:80,resume:65}}}));
+  assert.equal(c.draining,draining);
+  const text=JSON.stringify(payload(null,Date.now(),{online:1,servers:1,rows:[{id:5,at:Date.now(),online:true,hunts:0,capacity:c,ramUsedMB:0,ramTotalMB:65536}],knownHunts:0,hunts:0,meanCpu:1,ramUsedMB:0,ramTotalMB:65536}));
+  if(draining===true){assert.ok(text.includes('Draining · new hunts paused'));assert.ok(!text.includes('Below CPU/count limits'));}
+  else if(draining===false)assert.ok(text.includes('Below CPU/count limits'));
+  else {assert.ok(text.includes('drain state unknown'));assert.ok(!text.includes('Below CPU/count limits'));}
+ }
+});
+
 test('watchdog publishes only fresh aggregate health and approved service labels',()=>{
  const now=Date.now(), raw={at:new Date(now).toISOString(),retired:3,errors:0,tasks:[{name:'Dauntless Unbroken key bot',state:'Running'},{name:'Dauntless Unbroken private tunnel',state:'Ready'},{name:'SECRET',state:'Running'}],hunts:[{port:8770}],token:'SECRET'};
  const projected=publicWatchdog(raw,now);

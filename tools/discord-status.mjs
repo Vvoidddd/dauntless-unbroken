@@ -31,7 +31,7 @@ export function payload(sample, now = Date.now(), fleet = null) {
     const name=`Server #${r.id} · ${names[r.id] ?? 'Worker'}`;
     const age=Number.isFinite(r.at)?`Host sample <t:${Math.floor(r.at/1000)}:R>`:'No host sample';
     const c=r.capacity;
-    const admission=!c?'Unknown':c.blocked===true?'Waiting for CPU headroom':c.limit!==null&&c.running+c.pending>=c.limit?'Hunt limit reached':c.blocked===false?'Below CPU/count limits':'CPU status unknown';
+    const admission=!c?'Unknown':c.draining===true?'Draining · new hunts paused':c.blocked===true?'Waiting for CPU headroom':c.limit!==null&&c.running+c.pending>=c.limit?'Hunt limit reached':c.blocked===false?(c.draining===false?'Below CPU/count limits':'CPU/count headroom · drain state unknown'):'CPU status unknown';
     const huntInfo=r.id===2?'Key distribution · no hunt hosting':`Hunts: ${Number.isInteger(r.hunts)?r.hunts:'Unknown'} / ${c?.limit??'Unknown'} · starting ${c?.pending??'Unknown'}\nAdmission: ${admission}${c?.blocked&&c.resume!==null&&c.resume!==undefined?` (resume ≤${num(c.resume,'%')})`:''}\nHunt sample: ${Number.isFinite(r.huntAt)?`<t:${Math.floor(r.huntAt/1000)}:R>`:'Unknown'}`;
     const health=r.watchdog;
     const watchdogInfo=health?`\nWatchdog: ${health.errors?'⚠️ check failed':'🟢 running'} · ${health.retired} fallback cleanups\n${Object.entries(health.services).map(([name,up])=>`${name}: ${up?'🟢':'⚠️'}`).join(' · ')}`:'\nWatchdog: Unknown';
@@ -174,7 +174,8 @@ export async function sampleLocalCapacity(deploy,fetcher=fetch) {
 function publicCapacity(c) {
   if(!c||![c.running,c.pending].every(n=>Number.isSafeInteger(n)&&n>=0)||!(c.limit===null||Number.isSafeInteger(c.limit)&&c.limit>=0))return null;
   const n=v=>Number.isFinite(v)&&v>=0?v:null;
-  return {running:c.running,pending:c.pending,limit:c.limit,blocked:typeof c.cpu?.blocked==='boolean'?c.cpu.blocked:null,percent:n(c.cpu?.percent),cpuLimit:n(c.cpu?.limit),resume:n(c.cpu?.resume)};
+  return {running:c.running,pending:c.pending,limit:c.limit,blocked:typeof c.cpu?.blocked==='boolean'?c.cpu.blocked:null,percent:n(c.cpu?.percent),cpuLimit:n(c.cpu?.limit),resume:n(c.cpu?.resume),
+    ...(typeof c.draining==='boolean'?{draining:c.draining}:{})};
 }
 
 export function applyLocalCapacity(fleet,capacity,now=Date.now()) {

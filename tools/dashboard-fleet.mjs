@@ -7,7 +7,8 @@ export function validCapacity(sample, now = Date.now()) {
   const percent=value.cpu?.percent, limit=value.cpu?.limit, resume=value.cpu?.resume;
   const cpu=value.cpu && typeof value.cpu.blocked==='boolean' && [percent,limit,resume].every(n=>finite(n)!==null && n<=100)
     ? {blocked:value.cpu.blocked,percent,limit,resume} : null;
-  return {running:value.running,pending:value.pending,limit:value.limit,cpu};
+  return {running:value.running,pending:value.pending,limit:value.limit,cpu,
+    ...(typeof value.draining==='boolean'?{draining:value.draining}:{})};
 }
 export function fleetSummary(main, worker, mainError = null, now = Date.now(), aus = null, germany = null, eu2 = null) {
   const mainOnline = !!main && !mainError && fresh(main.at,30000,now);

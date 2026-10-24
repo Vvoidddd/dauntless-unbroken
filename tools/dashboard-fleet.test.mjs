@@ -1,9 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fleetSummary } from './dashboard-fleet.mjs';
+import { fleetSummary, validCapacity } from './dashboard-fleet.mjs';
 const now=Date.now(), at=new Date(now).toISOString();
 const main={at,cpu:50,logicalCpus:5,ramUsedMB:6000,ramTotalMB:12000,performance:{at,stale:false,processes:[{role:'ramsgate'},{role:'hunt'},{role:'tutorial'}]}};
 const worker={configured:true,online:true,sample:{at,cpu:5,logicalCpus:2,ramUsedMB:2000,ramTotalMB:8000,hunts:[{}]}};
+
+test('fresh drain state survives projection and expires with allocator telemetry',()=>{
+ const sample={capacitySampleAt:at,capacity:{running:0,pending:0,limit:42,draining:true}};
+ assert.equal(validCapacity(sample,now).draining,true);
+ assert.equal(validCapacity({...sample,capacity:{...sample.capacity,draining:false}},now).draining,false);
+ assert.equal(validCapacity({...sample,capacity:{running:0,pending:0,limit:42}},now).draining,undefined);
+ assert.equal(validCapacity(sample,now+31000),null);
+});
 test('fleet totals sum RAM and hunts and label the unweighted CPU mean',()=>{
   const f=fleetSummary(main,worker,null,now);
   assert.deepEqual(f.rows.map(r=>r.hunts),[2,1]);

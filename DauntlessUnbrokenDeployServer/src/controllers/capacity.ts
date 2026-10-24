@@ -53,7 +53,7 @@ export class HuntAdmission {
     constructor(private running: () => number, private limit = HuntLimit) {}
     status() {
         const limit=this.limit(), protectedSlots=limit === null ? 0 : Math.min(reserved('PRIORITY_RESERVED_HUNTS'), Math.max(0,limit-1));
-        return {running:this.running(), pending:this.pending, limit,
+        return {running:this.running(), pending:this.pending, limit, draining:HuntsDraining(),
             ...(protectedSlots ? {reserved:protectedSlots,publicLimit:limit!-protectedSlots} : {})};
     }
     reserve(priority = false) {
