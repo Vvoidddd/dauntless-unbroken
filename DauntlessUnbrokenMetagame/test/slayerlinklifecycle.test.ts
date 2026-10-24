@@ -9,8 +9,8 @@ import {GetDb} from '../src/db';
 import {users,characters,inventory,slayerlinks,slayerlinkpools,slayerlinkstate} from '../src/db/schema';
 import {SetSlayerLinkClockForTests} from '../src/controllers/slayerlinks';
 import {SetPartyClockForTests,ResetPartiesForTests,PollParty,InviteToParty,AcceptPartyInvite,TouchPlayer,LeaveParty} from '../src/controllers/party';
-import {ApplyLinkXp,GetLinkTrack,LINK_GRANT_SOURCE} from '../src/controllers/slayerlinklifecycle';
-import {LinkRank,ReadLinkPool} from '../src/controllers/slayerlinkconfig';
+import {ApplyLinkXp,GetLinkTrack,LINK_GRANT_SOURCE,RepairMissingLinkPools} from '../src/controllers/slayerlinklifecycle';
+import {LinkRank,ReadLinkPool,RollLinkPool} from '../src/controllers/slayerlinkconfig';
 
 const WEEK=168*3600000;
 const pool=[{catalog_id:'CURRENCY_NOTES',quantity:1000,received_for_level:1},{catalog_id:'CURRENCY_NOTES',quantity:2000,received_for_level:2},{catalog_id:'CURRENCY_NOTES',quantity:3000,received_for_level:-1}];
@@ -114,4 +114,67 @@ it('batch deletion rolls back all entries on error and never releases a partner 
     now+=WEEK+1;assert.equal((await release(a.uid,1)).status,200);
     assert.equal((await Call('GET','/slayerlink/links',{as:b.uid})).json.payload.links.length,1);
     assert.equal(GetDb().select().from(slayerlinkstate).where(eq(slayerlinkstate.linkId,id)).get()!.targetReleasedAt,null);
+});
+
+it('legacy recovery fills only missing eligible sides, preserves progress and pools, and pays earned loot once after expiry',async()=>{
+    const {a,b,id}=await linked();
+    assert.equal((await store(a.uid,1)).status,200);
+    const original=GetDb().select().from(slayerlinkpools).where(eq(slayerlinkpools.linkId,id)).get()!;
+    GetDb().transaction(tx=>ApplyLinkXp(tx,a.uid,405,'legacy-earned'));
+    const state=GetDb().select().from(slayerlinkstate).where(eq(slayerlinkstate.linkId,id)).get();
+    const oldLink=GetDb().select().from(slayerlinks).where(eq(slayerlinks.linkId,id)).get();
+    now+=1000;
+    const newerId=randomUUID();
+    GetDb().insert(slayerlinks).values({linkId:newerId,senderId:a.uid,targetId:b.uid,senderSlot:3,targetSlot:3,createdAt:now,endsAt:now+WEEK}).run();
+    const cutoff=now-1;
+    assert.throws(()=>RepairMissingLinkPools(now+1));
+    const preview=RepairMissingLinkPools(cutoff);
+    assert.equal(preview.applied,false);
+    assert.ok(preview.pools>=1);
+    assert.equal(GetDb().select().from(slayerlinkpools).where(eq(slayerlinkpools.linkId,id)).all().length,1);
+    const repaired=RepairMissingLinkPools(cutoff,true);
+    assert.equal(repaired.pools,preview.pools);
+    assert.equal(RepairMissingLinkPools(cutoff,true).pools,0);
+    assert.deepEqual(GetDb().select().from(slayerlinkpools).where(eq(slayerlinkpools.linkId,id)).all().find(p=>p.userId===a.uid),original);
+    assert.equal(GetDb().select().from(slayerlinkpools).where(eq(slayerlinkpools.linkId,newerId)).all().length,0);
+    assert.deepEqual(GetDb().select().from(slayerlinkstate).where(eq(slayerlinkstate.linkId,id)).get(),state);
+    assert.deepEqual(GetDb().select().from(slayerlinks).where(eq(slayerlinks.linkId,id)).get(),oldLink);
+    const listing=await Call('GET','/slayerlink/links',{as:b.uid});
+    assert.equal(listing.json.payload.links.find((l:any)=>l.slot===2).prize_pool.length,12);
+    assert.equal((await rewards(b.uid,2)).status,409,'recovery does not bypass the week');
+    assert.equal(balance(b.cid),0,'recovery does not grant inventory');
+    now+=WEEK;
+    const earned=(await rewards(b.uid,2)).json.payload.rewards;
+    assert.equal(earned.length,2,'only the two earned ranks are claimable');
+    const transaction={accountId:b.uid,characterId:b.cid,source:LINK_GRANT_SOURCE,transactionId:randomUUID(),
+        addStackedItems:earned.map((r:any)=>({catalogId:r.catalog_id,quantity:r.quantity})),addInstancedItems:[]};
+    assert.equal((await Call('POST','/inventory',{gs:true,body:transaction})).status,200);
+    const inventoryBefore=GetDb().select().from(inventory).where(eq(inventory.characterId,b.cid)).get();
+    assert.equal((await Call('POST','/inventory',{gs:true,body:{...transaction,transactionId:randomUUID()}})).status,200);
+    assert.deepEqual(GetDb().select().from(inventory).where(eq(inventory.characterId,b.cid)).get(),inventoryBefore);
+    assert.equal(RepairMissingLinkPools(cutoff,true).pools,0,'claimed pools cannot be rerolled');
+});
+
+it('recovery roll uses native rows, twelve candidates and four ranks and refuses incomplete rolls',()=>{
+    for(let i=0;i<20;i++){
+        const rolled=RollLinkPool();
+        assert.equal(rolled.length,12);
+        assert.deepEqual(ReadLinkPool(rolled),rolled);
+        assert.deepEqual(rolled.filter(p=>p.received_for_level>0).map(p=>p.received_for_level).sort(),[1,2,3,4]);
+    }
+    assert.equal(RollLinkPool(()=>0).length,12);
+    assert.throws(()=>RollLinkPool(()=>32767),/did not complete/);
+});
+
+it('recovery skips canceled links and released sides without discarding the partner entitlement',async()=>{
+    const {a,b,id}=await linked();
+    GetDb().insert(slayerlinkstate).values({linkId:id,progress:405,canceledAt:now}).run();
+    now+=1000;
+    RepairMissingLinkPools(now,true);
+    assert.equal(GetDb().select().from(slayerlinkpools).where(eq(slayerlinkpools.linkId,id)).all().length,0);
+    GetDb().update(slayerlinkstate).set({canceledAt:null,senderReleasedAt:now}).where(eq(slayerlinkstate.linkId,id)).run();
+    RepairMissingLinkPools(now,true);
+    const pools=GetDb().select().from(slayerlinkpools).where(eq(slayerlinkpools.linkId,id)).all();
+    assert.deepEqual(pools.map(p=>p.userId),[b.uid]);
+    assert.ok(!pools.some(p=>p.userId===a.uid));
 });

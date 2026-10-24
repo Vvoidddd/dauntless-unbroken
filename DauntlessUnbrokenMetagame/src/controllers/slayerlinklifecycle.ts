@@ -6,7 +6,7 @@ import type {Tx} from './savehistory';
 import {ApplyInventoryTransactionInTx,type InventoryTransactionRequest,type TransactionResponse} from './inventory';
 import {GetPartyOf,SeenWithinMs} from './party';
 import {SlayerLinks} from '../features';
-import {LinkRank,LinkTrackId,ParseLinkTrack,ReadLinkPool,type LinkPrize} from './slayerlinkconfig';
+import {LinkRank,LinkTrackId,ParseLinkTrack,ReadLinkPool,RollLinkPool,type LinkPrize} from './slayerlinkconfig';
 
 export const LINK_GRANT_SOURCE='SlayerLinks.GrantRewards';
 export class SlayerLinkError extends Error{constructor(public status:number,message:string){super(message);}}
@@ -33,6 +33,34 @@ function State(tx:Tx,link:StoredLink,values:Partial<typeof slayerlinkstate.$infe
 }
 const Pool=(tx:LinkReader,id:string,uid:string)=>tx.select().from(slayerlinkpools).where(and(eq(slayerlinkpools.linkId,id),eq(slayerlinkpools.userId,uid))).get();
 export function PrizePool(tx:LinkReader,id:string,uid:string):LinkPrize[]{return JSON.parse(Pool(tx,id,uid)?.pool??'[]');}
+
+// Explicit administrator recovery, never called by an HTTP read or new-link flow.
+// A cutoff keeps in-flight native generation on newer links untouched.
+export function RepairMissingLinkPools(createdBefore:number,apply=false){
+    if(!Number.isSafeInteger(createdBefore)||createdBefore<=0||createdBefore>Clock())throw new SlayerLinkError(400,'A past link creation cutoff is required');
+    return GetDb().transaction(tx=>{
+        const read=()=>tx.select({link:slayerlinks,state:slayerlinkstate}).from(slayerlinks)
+            .leftJoin(slayerlinkstate,eq(slayerlinks.linkId,slayerlinkstate.linkId)).all();
+        const rows=read(),before=JSON.stringify(rows);
+        let links=0,pools=0;
+        for(const {link,state} of rows){
+            if(link.createdAt>=createdBefore||state?.canceledAt!=null)continue;
+            let missing=false;
+            for(const [uid,released] of [[link.senderId,state?.senderReleasedAt],[link.targetId,state?.targetReleasedAt]] as const){
+                if(released!=null||Pool(tx,link.linkId,uid))continue;
+                missing=true;pools++;
+                if(apply){
+                    const encoded=JSON.stringify(RollLinkPool());
+                    tx.insert(slayerlinkpools).values({linkId:link.linkId,userId:uid,pool:encoded,
+                        poolHash:createHash('sha256').update(encoded).digest('hex'),createdAt:Clock()}).run();
+                }
+            }
+            if(missing)links++;
+        }
+        if(before!==JSON.stringify(read()))throw Error('Link metadata changed during prize-pool recovery');
+        return {links,pools,applied:apply,linkMetadataUnchanged:true};
+    },{behavior:apply?'immediate':'deferred'});
+}
 function Earned(link:StoredLink,pool:LinkPrize[]){return pool.filter(x=>x.received_for_level>0&&x.received_for_level<=LinkRank(link.progress));}
 function AssertGeneration(link:StoredLink|undefined,expected:unknown){if(expected!==undefined&&(!link||expected!==link.linkId))throw new SlayerLinkError(409,'Slayer Link generation changed');}
 export type LinkAuth={IsGameserver?:boolean;userId?:string};
