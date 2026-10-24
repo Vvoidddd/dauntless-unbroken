@@ -231,6 +231,7 @@ export class FakeMetagame {
   private server: http.Server | null = null;
   private counter = 0;
   private held: { arrived: () => void; gate: Promise<void> } | null = null;
+  private heldUserInfo: { arrived: () => void; gate: Promise<void> } | null = null;
 
   // The next ServerStatus request is answered (as of its arrival: key checked, list chosen) only
   // after release(): for a launcher action that overtakes a status request on its way.
@@ -245,6 +246,14 @@ export class FakeMetagame {
 
   constructor(public opts: MetagameOptions) {
     for (const [lower, key] of opts.existingUsers ?? []) this.users.set(key, { username: lower, id: `UID-${lower}` });
+  }
+
+  holdNextUserInfo(): { arrived: Promise<void>; release: () => void } {
+    let arrived!: () => void, release!: () => void;
+    const arrival = new Promise<void>(resolve => { arrived = resolve; });
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    this.heldUserInfo = {arrived, gate};
+    return {arrived: arrival, release};
   }
 
   start(port = METAGAME_PORT, tls?: TlsOptions): Promise<number> {
@@ -312,8 +321,10 @@ export class FakeMetagame {
     if (url.pathname === "/unbroken/api/GetUserInfo") {
       const key = req.headers["x-dauntless-unbroken-user-api-key"];
       const user = typeof key === "string" ? this.users.get(key) : undefined;
-      if (!user) return this.json(res, 401, {});
-      return this.json(res, 200, { UserId: user.id, Username: user.username, IsAdmin: false });
+      const answer = () => user ? this.json(res, 200, {UserId: user.id, Username: user.username, IsAdmin: false}) : this.json(res, 401, {});
+      const held = this.heldUserInfo; this.heldUserInfo = null;
+      if (!held) return answer();
+      held.arrived(); void held.gate.then(answer); return;
     }
     if (url.pathname === "/unbroken/api/Register" && req.method === "POST") {
       let body = "";

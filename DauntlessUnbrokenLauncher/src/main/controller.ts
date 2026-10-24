@@ -163,6 +163,8 @@ export function endpointFor(sv: StoredServer): Endpoint {
 export class Controller {
   private readonly settings: SettingsStore;
   private readonly keys: KeyStore;
+  private readonly savedKeys: KeyStore;
+  private activeAccountId: string | null = null;
   private readonly offlineKeys: KeyStore;
   private readonly game: GameProcess;
   private endPlayingSession: (()=>Promise<void>) | null = null;
@@ -225,6 +227,7 @@ export class Controller {
   constructor(private readonly p: Platform) {
     this.settings = new SettingsStore(p.userDataDir, p.defaultLanguage, p.hostPlatform ?? process.platform);
     this.keys = new KeyStore(path.join(p.userDataDir, "keys"), p.encryptor, p.documentsDir ? path.join(p.documentsDir, "Dauntless Unbroken", "Account Keys") : undefined);
+    this.savedKeys = new KeyStore(path.join(p.userDataDir, "accounts"), p.encryptor);
     // Local identity stays in userData; online account recovery in Documents is unchanged.
     this.offlineKeys = new KeyStore(path.join(p.userDataDir, "keys"), p.encryptor);
     this.game = new GameProcess(p.spawn);
@@ -356,6 +359,7 @@ export class Controller {
         : null,
       connect: { checking: this.checking, problem: this.connectProblem, tailscaleInstalled: this.tailscaleInstalled, lastCheckedAt: this.lastCheckedAt },
       account: {
+        saved: sid ? (this.s.accounts[sid] ?? []).map(account => ({...account, current: account.id === this.activeAccountId && this.hasKey})) : [],
         username: sid ? this.s.usernames[sid] ?? null : null,
         hasKey: this.hasKey && !this.keyRejected,
         desktopBackupPath: sid && this.hasKey && !this.keyRejected ? this.desktopBackups.get(sid)?.path ?? undefined : undefined,
@@ -552,7 +556,7 @@ export class Controller {
   }
 
   async forgetServer(): Promise<ActionResult> {
-    if (this.task || this.game.running) return err("busy");
+    if (this.accountChangeLocked()) return err("busy");
     await this.settings.update((s) => {
       s.server = null;
     });
@@ -622,8 +626,13 @@ export class Controller {
   }
 
   private async refreshKeyFlag(): Promise<void> {
+    const gen = this.statusGen;
     const slot = this.slot();
-    this.hasKey = slot ? await this.keys.has(slot) : false;
+    const key = slot ? await this.keys.load(slot).catch(() => null) : null;
+    if (gen !== this.statusGen) return;
+    this.hasKey = key !== null;
+    this.activeAccountId = slot && key ? this.accountId(slot, key) : null;
+    if (slot && key) await this.rememberAccount(slot, key, this.s.usernames[this.sid()!] ?? 'Saved account', gen).catch(() => log.warn('Could not save the current account for switching'));
   }
 
   // The key sent with ServerStatus, so the server lists who is online (it shows the list to
@@ -652,7 +661,9 @@ export class Controller {
   }
 
   // Confirms the stored key with GetUserInfo and refreshes the username.
-  private async checkAccount(): Promise<void> {
+  private async checkAccount(force = false): Promise<void> {
+    if (this.busy && !force) return;
+    const gen = this.statusGen;
     const ep = this.endpoint();
     const slot = this.slot();
     const sid = this.sid();
@@ -663,10 +674,15 @@ export class Controller {
     } catch {
       key = null;
     }
+    if (gen !== this.statusGen) return;
     this.hasKey = key !== null;
     if (!key) return;
     const info = await fetchUserInfo(ep, key);
+    if (gen !== this.statusGen) return;
     if (info.ok) {
+      await this.rememberAccount(slot, key, info.info.username, gen).catch(() => log.warn('Could not save the account for switching'));
+      if (gen !== this.statusGen) return;
+      this.activeAccountId = this.accountId(slot, key);
       this.keyRejected = false;
       void this.backupToDesktop(slot, key, info.info.username);
       void this.refreshServerPlaytime();
@@ -854,6 +870,67 @@ export class Controller {
     return this.art.get(id) ?? null;
   }
 
+  private accountId(slot: KeySlot, key: string): string {
+    return keyBackupId({key, host: slot.host, port: slot.port, fingerprint: null});
+  }
+
+  private async rememberAccount(slot: KeySlot, key: string, username: string, generation?: number): Promise<string> {
+    const id = this.accountId(slot, key), sid = serverId(slot.host, slot.port, slot.mode);
+    const savedSlot = {...slot, account: id};
+    const stored = await this.savedKeys.load(savedSlot);
+    if (generation !== undefined && generation !== this.statusGen) return id;
+    if (stored !== key) await this.savedKeys.save(savedSlot, key);
+    if (this.s.accounts[sid]?.find(account => account.id === id)?.username !== username) {
+      await this.settings.update(s => {
+        if (generation !== undefined && generation !== this.statusGen) return;
+        const accounts = s.accounts[sid] ??= [];
+        const existing = accounts.find(account => account.id === id);
+        if (existing) existing.username = username;
+        else accounts.push({id, username});
+      });
+    }
+    return id;
+  }
+
+  private async rememberActiveAccount(slot: KeySlot): Promise<void> {
+    const key = await this.keys.load(slot);
+    const sid = serverId(slot.host, slot.port, slot.mode);
+    if (key) await this.rememberAccount(slot, key, this.s.usernames[sid] ?? "Saved account");
+  }
+
+  private accountChangeLocked(): boolean {
+    return !!(this.busy || this.task || this.game.running || this.offlineStarting || this.offlineSession || this.shuttingDown);
+  }
+
+  async switchAccount(id: unknown): Promise<ActionResult> {
+    if (this.accountChangeLocked()) return err("busy");
+    const slot = this.slot(), sid = this.sid();
+    if (!slot || !sid) return err("server_unreachable");
+    if (typeof id !== "string" || !this.s.accounts[sid]?.some(account => account.id === id)) return err("key_invalid");
+    return this.withBusy(async () => {
+      try {
+        const key = await this.savedKeys.load({...slot, account: id});
+        if (!key) return this.fail("key_invalid");
+        return await this.adoptKey(key);
+      } catch { return this.fail("key_storage_unavailable"); }
+    });
+  }
+
+  async removeSavedAccount(id: unknown): Promise<ActionResult> {
+    if (this.accountChangeLocked()) return err("busy");
+    const slot = this.slot(), sid = this.sid();
+    if (!slot || !sid || typeof id !== "string" || !this.s.accounts[sid]?.some(account => account.id === id)) return err("key_invalid");
+    if (id === this.activeAccountId) return this.logout();
+    return this.withBusy(async () => {
+      try {
+        await this.savedKeys.remove({...slot, account: id});
+        await this.settings.update(s => { s.accounts[sid] = s.accounts[sid].filter(account => account.id !== id); });
+        return OK;
+      } catch { return this.fail("key_storage_unavailable"); }
+    });
+  }
+
+
   // ------------------------------------------------------------------ account
 
   private async offlineAccount(ep: Endpoint): Promise<OfflineAccountResult> {
@@ -898,7 +975,7 @@ export class Controller {
   }
 
   async register(username: unknown): Promise<RegisterOutcome> {
-    if (this.busy || this.task) return err("busy");
+    if (this.accountChangeLocked()) return err("busy");
     const check = checkUsername(username);
     if (check !== "ok") return this.fail("username_invalid", check);
     const ep = this.endpoint();
@@ -917,6 +994,9 @@ export class Controller {
       log.info('registration accepted; saving the local account key');
       const desktopBackup = this.backupToDesktop(slot, res.key, username as string);
       try {
+        await this.rememberActiveAccount(slot);
+        await this.rememberAccount(slot, res.key, username as string);
+        this.statusGen++;
         await this.keys.save(slot, res.key);
       } catch (e) {
         // Give a fast fallback copy time to finish, without hanging on cloud storage.
@@ -936,9 +1016,10 @@ export class Controller {
       void this.backupToDesktop(slot, res.key, username as string);
       this.hasKey = true;
       this.keyRejected = false;
+      this.activeAccountId = this.accountId(slot, res.key);
       this.statusGen++;
       log.info(`registered as ${username as string}`);
-      await this.checkAccount();
+      await this.checkAccount(true);
       await this.inspectInstall();
       // Now a registered player: ask again, with the key, so the player list shows at once.
       await this.pollStatus();
@@ -947,7 +1028,7 @@ export class Controller {
   }
 
   async useExistingKey(text: unknown): Promise<ActionResult> {
-    if (this.busy || this.task || this.game.running) return err("busy");
+    if (this.accountChangeLocked()) return err("busy");
     if (typeof text !== 'string' || text.length > 8192) return this.fail('key_invalid');
     return this.withBusy(() => this.importBackupText(text));
   }
@@ -960,8 +1041,8 @@ export class Controller {
   }
 
   async importKeyFile(): Promise<ActionResult> {
-    if (this.busy || this.task) return err("busy");
     if (this.game.running) return this.fail("already_running");
+    if (this.accountChangeLocked()) return err("busy");
     return this.withBusy(async () => {
       const file = await this.p.chooseOpenFile();
       if (!file) return err("cancelled");
@@ -976,16 +1057,24 @@ export class Controller {
   }
 
   private async adoptKey(key: string, sourceFile?:string): Promise<ActionResult> {
+    const gen = this.statusGen;
     const ep = this.endpoint();
     const slot = this.slot();
     const sid = this.sid();
     if (!ep || !slot || !sid) return err("server_unreachable");
     const info = await fetchUserInfo(ep, key);
+    if (gen !== this.statusGen) return err("busy");
     if (!info.ok) {
       this.lastError = { code: info.error, detail: info.detail };
       return {ok:false,error:this.lastError};
     }
     try {
+      await this.rememberActiveAccount(slot);
+      await this.rememberAccount(slot, key, info.info.username);
+      this.statusGen++;
+      if (this.status) this.status = limitedView(this.status);
+      this.desktopBackups.delete(sid);
+      this.desktopBackupTasks.delete(sid);
       await this.keys.save(slot, key);
     } catch (e) {
       this.lastError = { code: e instanceof KeyStoreError && e.code === "invalid" ? "key_invalid" : "key_storage_unavailable" };
@@ -998,6 +1087,7 @@ export class Controller {
     });
     this.hasKey = true;
     this.keyRejected = false;
+    this.activeAccountId = this.accountId(slot, key);
     this.statusGen++;
     void this.backupToDesktop(slot, key, info.info.username);
     log.info(`using an existing key for ${info.info.username}`);
@@ -1102,24 +1192,30 @@ export class Controller {
   }
 
   async logout(): Promise<ActionResult> {
-    if (this.task || this.game.running) return err("busy");
-    const slot = this.slot();
-    const sid = this.sid();
+    if (this.accountChangeLocked()) return err("busy");
+    const slot = this.slot(), sid = this.sid();
     if (!slot || !sid) return OK;
-    await this.keys.remove(slot);
-    await this.settings.update((s) => {
-      delete s.usernames[sid];
-      delete s.backupOffered[sid];
+    return this.withBusy(async () => {
+      this.statusGen++;
+      if (this.status) this.status = limitedView(this.status);
+      this.desktopBackupTasks.delete(sid);
+      const key = await this.keys.load(slot).catch(() => null);
+      const id = key ? this.accountId(slot, key) : this.activeAccountId;
+      await this.keys.remove(slot);
+      if (id) await this.savedKeys.remove({...slot, account: id});
+      await this.settings.update(s => {
+        delete s.usernames[sid];
+        delete s.backupOffered[sid];
+        if (id) s.accounts[sid] = (s.accounts[sid] ?? []).filter(account => account.id !== id);
+      });
+      this.hasKey = false;
+      this.keyRejected = false;
+      this.activeAccountId = null;
+      this.statusGen++;
+      this.desktopBackups.delete(sid);
+      log.info("logged out; saved sign-in removed");
+      return OK;
     });
-    this.hasKey = false;
-    this.keyRejected = false;
-    // Without a key the server no longer lists who is online; stop showing the old list now, and
-    // drop any status request still on its way with the old key (it would bring the list back).
-    this.statusGen++;
-    if (this.status) this.status = limitedView(this.status);
-    log.info("logged out; key removed");
-    this.publish();
-    return OK;
   }
 
   // ------------------------------------------------------------------ install folder

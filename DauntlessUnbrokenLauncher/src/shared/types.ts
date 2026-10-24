@@ -198,6 +198,7 @@ export interface Snapshot {
     lastCheckedAt: string | null;
   };
   account: {
+    saved?: { id: string; username: string; current: boolean }[];
     username: string | null;
     hasKey: boolean;
     offerBackup: boolean;
@@ -303,6 +304,8 @@ export const IPC = {
   removeSavedServer: "dr:remove-saved-server",
   register: "dr:register",
   useExistingKey: "dr:use-existing-key",
+  switchAccount: "dr:switch-account",
+  removeSavedAccount: "dr:remove-saved-account",
   importKeyFile: "dr:import-key-file",
   saveKeyBackup: "dr:save-key-backup",
   locateKeyBackup: "dr:locate-key-backup",

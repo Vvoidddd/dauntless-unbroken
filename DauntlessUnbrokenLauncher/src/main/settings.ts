@@ -32,6 +32,7 @@ export interface StoredSettings {
   gameLanguage: GameLanguage;
   showConsole: boolean;
   usernames: Record<string, string>; // per server id, for display only
+  accounts: Record<string, { id: string; username: string }[]>; // per server; keys remain encrypted
   backupOffered: Record<string, boolean>; // per server id: the one-time backup offer was shown
   keyBackups: Record<string, { serverId: string; path: string | null }>; // keyed by account/realm hash, never a plaintext key
 }
@@ -52,6 +53,7 @@ export function defaultSettings(language: Language): StoredSettings {
     gameLanguage: "auto",
     showConsole: false,
     usernames: {},
+    accounts: {},
     backupOffered: {},
     keyBackups: {},
   };
@@ -132,6 +134,18 @@ export function sanitizeSettings(raw: unknown, language: Language, platform: Nod
     for (const [k, v] of Object.entries(raw.usernames)) {
       const name = cleanText(v, 32);
       if (/^[0-9a-f]{24}$/.test(k) && name !== null && name === v) s.usernames[k] = name;
+    }
+  }
+  if (isObject(raw.accounts)) {
+    for (const [sid, entries] of Object.entries(raw.accounts)) {
+      if (!/^[0-9a-f]{24}$/.test(sid) || !Array.isArray(entries)) continue;
+      const accounts: StoredSettings['accounts'][string] = [];
+      for (const entry of entries) {
+        if (!isObject(entry) || typeof entry.id !== 'string' || !/^[0-9a-f]{64}$/.test(entry.id)) continue;
+        const username = cleanText(entry.username, 32);
+        if (username && !accounts.some(account => account.id === entry.id)) accounts.push({id: entry.id, username});
+      }
+      s.accounts[sid] = accounts;
     }
   }
   if (isObject(raw.backupOffered)) {

@@ -31,6 +31,22 @@ const FP_A = "a1".repeat(32);
 const FP_B = "b2".repeat(32);
 const pub = (fp: string | null): KeySlot => ({ host: "203.0.113.10", port: 443, mode: "public", fp });
 
+test('saved account slots isolate identities, realms and certificates without falling back to the active key', async () => {
+  const {ks} = store(), a = {...pub(FP_A), account: 'a'.repeat(64)}, b = {...pub(FP_A), account: 'b'.repeat(64)};
+  const second = 'UUK_' + 'cd'.repeat(24);
+  await ks.save(pub(FP_A), KEY);
+  await ks.save(a, KEY); await ks.save(b, second);
+  assert.equal(await ks.load(a), KEY); assert.equal(await ks.load(b), second);
+  assert.equal(await ks.load({...a, fp: FP_B}), null);
+  assert.equal(await ks.load({...a, port: 444}), null);
+  assert.equal(await ks.load({...a, account: 'c'.repeat(64)}), null);
+  await ks.remove(a);
+  assert.equal(await ks.load(a), null);
+  assert.equal(await ks.load(b), second);
+  assert.equal(await ks.load(pub(FP_A)), KEY);
+  await assert.rejects(ks.save({...a, account: '../outside'}, KEY), KeyStoreError);
+});
+
 async function waitRecovery(dir:string,key:string):Promise<void>{
   const file=path.join(dir,`${serverId('203.0.113.10',443,'public')}.txt`),until=Date.now()+3000;
   for(;;){try{if(readFileSync(file,'utf8').endsWith('\n'+key))return;}catch{}

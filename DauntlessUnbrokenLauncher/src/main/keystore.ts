@@ -1,4 +1,4 @@
-// Account keys, one per server, stored only through Electron safeStorage (DPAPI on Windows, the desktop secret store on Linux).
+// Active and saved account keys use Electron safeStorage (DPAPI on Windows, the desktop secret store on Linux).
 // The key never goes to the renderer; it is read here when a request or the game launch needs it.
 //
 // A public server's key is tied to the certificate fingerprint it was saved with. An invite for the
@@ -25,7 +25,7 @@ export class KeyStoreError extends Error {
   }
 }
 
-// One key per server. Private servers keep the plain host:port id; public servers get their own
+// One active key per server; saved accounts add a validated namespace. Private servers keep the host:port id; public servers get their own
 // namespace, so a public and a private server on the same address never share a key.
 export function serverId(host: string, port: number, mode: "private" | "public" = "private"): string {
   const id = mode === "public" ? `public:${host}:${port}` : `${host}:${port}`;
@@ -37,6 +37,7 @@ export interface KeySlot {
   port: number;
   mode: "private" | "public";
   fp: string | null; // public mode: the certificate fingerprint the key belongs to
+  account?: string; // encrypted saved-account namespace; never a path supplied by the renderer
 }
 
 // What is inside a key file after decryption: "DRK2\n<fingerprint or ->\n<key>". The first
@@ -61,8 +62,13 @@ export class KeyStore {
     return result;
   }
 
+  private id(slot: KeySlot): string {
+    if (slot.account !== undefined && !/^[0-9a-f]{64}$/.test(slot.account)) throw new KeyStoreError("invalid");
+    return serverId(slot.host, slot.port, slot.mode) + (slot.account ? `.${slot.account}` : "");
+  }
+
   private file(slot: KeySlot): string {
-    return path.join(this.dir, `${serverId(slot.host, slot.port, slot.mode)}.key`);
+    return path.join(this.dir, `${this.id(slot)}.key`);
   }
 
   private async read(slot: KeySlot): Promise<StoredKey | null> {
@@ -76,7 +82,7 @@ export class KeyStore {
         let timer: ReturnType<typeof setTimeout> | undefined;
         try {
           const found = await Promise.race([
-            this.recoveryPending.then(() => fsp.readFile(path.join(this.recoveryDir!, `${serverId(slot.host, slot.port, slot.mode)}.txt`))),
+            this.recoveryPending.then(() => fsp.readFile(path.join(this.recoveryDir!, `${this.id(slot)}.txt`))),
             new Promise<null>(resolve => { timer=setTimeout(()=>resolve(null),1500); }),
           ]);
           if (!found) return null;
@@ -126,7 +132,7 @@ export class KeyStore {
   // A redirected/cloud Documents folder must not hold the local key mutation queue.
   private queueRecovery(slot:KeySlot,key:string,fp:string|null):void {
     if (!this.recoveryDir) return;
-    const id=serverId(slot.host,slot.port,slot.mode),text=`${FORMAT}\n${fp??'-'}\n${key}`;
+    const id=this.id(slot),text=`${FORMAT}\n${fp??'-'}\n${key}`;
     const identity=createHash('sha256').update(text).digest('hex');
     if(this.recoveryQueued.get(id)===identity)return;
     this.recoveryQueued.set(id,identity);
@@ -183,8 +189,8 @@ export class KeyStore {
       if (stored) removeSecret(stored.key);
       await this.recoveryPending;
       await fsp.unlink(this.file(slot)).catch(() => undefined);
-      if (this.recoveryDir) await fsp.unlink(path.join(this.recoveryDir, `${serverId(slot.host, slot.port, slot.mode)}.txt`)).catch(() => undefined);
-      this.recoveryQueued.delete(serverId(slot.host,slot.port,slot.mode));
+      if (this.recoveryDir) await fsp.unlink(path.join(this.recoveryDir, `${this.id(slot)}.txt`)).catch(() => undefined);
+      this.recoveryQueued.delete(this.id(slot));
     });
   }
 }

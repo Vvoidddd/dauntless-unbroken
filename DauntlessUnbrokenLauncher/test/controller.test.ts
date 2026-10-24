@@ -19,7 +19,8 @@ import { Controller, type Platform } from "../src/main/controller";
 import { validateManifest, type GameManifest } from "../src/main/manifest";
 import { formatInvite } from "../src/shared/invite";
 import { setSink } from "../src/main/log";
-import { KeyStore,backupFileText } from "../src/main/keystore";
+import { KeyStore,backupFileText,serverId } from "../src/main/keystore";
+import { SettingsStore } from "../src/main/settings";
 import { extractAccountKey } from '../src/shared/username';
 import { PortableOfflineSave, OFFLINE_KEY_SLOT } from "../src/main/offline-save";
 import { offlineLayout } from "../src/main/offline-layout";
@@ -320,6 +321,96 @@ test('full servers hold PLAY without spawning, show position, cancel, and admit 
 function invite(fp: string, code = "ABCD-EFGH-JKLM"): string {
   return formatInvite({ mode: "public", host: "127.0.0.1", port: GATEWAY_PORT, fp, code, name: "Friday Hunts", share: null });
 }
+
+test('an existing one-account installation migrates its encrypted key into saved accounts without registration', async () => {
+  const dir = temp('legacy-account-'), key = 'UUK_' + '5e'.repeat(24);
+  const slot = {mode: 'public' as const, host: '127.0.0.1', port: GATEWAY_PORT, fp: cert.fingerprint};
+  const settings = new SettingsStore(dir, 'en');
+  await settings.update(s => {s.server = {...slot, name: 'Friday Hunts', share: null, code: null}; s.usernames[serverId(slot.host, slot.port, slot.mode)] = 'LegacyPlayer';});
+  const old = JSON.parse(readFileSync(path.join(dir, 'settings.json'), 'utf8')); delete old.accounts;
+  writeFileSync(path.join(dir, 'settings.json'), JSON.stringify(old));
+  const store = new KeyStore(path.join(dir, 'keys'), {isAvailable: () => true, encrypt: text => Buffer.from('enc:' + Buffer.from(text).toString('base64')), decrypt: data => Buffer.from(data.toString().slice(4), 'base64').toString()});
+  await store.save(slot, key);
+  meta.users.set(key, {username: 'LegacyPlayer', id: 'UID-legacy-player'});
+  const hx = harness(RELAY_PORT, dir), registrations = meta.registrations.length;
+  try {
+    await hx.c.init();
+    assert.equal(hx.last().account.hasKey, true);
+    assert.deepEqual(hx.last().account.saved!.map(account => [account.username, account.current]), [['LegacyPlayer', true]]);
+    assert.equal(meta.registrations.length, registrations);
+  } finally {await hx.c.shutdown();}
+});
+
+test('an outdated account lookup cannot overwrite the account selected during its request', async () => {
+  const hx = harness(), first = 'UUK_' + '3c'.repeat(24), second = 'UUK_' + '4d'.repeat(24);
+  meta.users.set(first, {username: 'LookupOld', id: 'UID-lookup-old'});
+  meta.users.set(second, {username: 'LookupNew', id: 'UID-lookup-new'});
+  let held: ReturnType<FakeMetagame['holdNextUserInfo']> | undefined;
+  let checking: Promise<unknown> | undefined;
+  try {
+    await hx.c.init(); await hx.c.submitInvite(invite(cert.fingerprint));
+    assert.equal((await hx.c.useExistingKey(first)).ok, true);
+    held = meta.holdNextUserInfo(); checking = hx.c.connect(); await held.arrived;
+    assert.equal((await hx.c.useExistingKey(second)).ok, true);
+    held.release(); await checking;
+    assert.equal(hx.last().account.username, 'LookupNew');
+    assert.equal(hx.last().account.saved!.find(account => account.current)?.username, 'LookupNew');
+  } finally { held?.release(); await checking; await hx.c.shutdown(); }
+});
+
+test('saved accounts switch credentials, survive restart, and keep rejected or busy switches on the current account', async () => {
+  const accountRelayPort = await availablePort(), hx = harness(accountRelayPort);
+  const first = 'UUK_' + '1a'.repeat(24), second = 'UUK_' + '2b'.repeat(24);
+  meta.users.set(first, {username: 'SharedVoid', id: 'UID-shared-void'});
+  meta.users.set(second, {username: 'SharedNyxxie', id: 'UID-shared-nyxxie'});
+  let restarted: Harness | undefined;
+  try {
+    await hx.c.init();
+    await hx.c.submitInvite(invite(cert.fingerprint));
+    assert.equal((await hx.c.useExistingKey(first)).ok, true);
+    assert.equal((await hx.c.useExistingKey(second)).ok, true);
+    const saved = hx.last().account.saved!;
+    assert.equal(saved.length, 2);
+    const voidId = saved.find(account => account.username === 'SharedVoid')!.id;
+    const nyxxieId = saved.find(account => account.username === 'SharedNyxxie')!.id;
+    assert.equal((await hx.c.switchAccount(voidId)).ok, true);
+    assert.equal(hx.last().account.username, 'SharedVoid');
+    assert.equal(hx.last().account.saved!.filter(account => account.current).length, 1);
+    assert.equal((await hx.c.useExistingKey(first)).ok, true);
+    assert.equal(hx.last().account.saved!.length, 2, 're-importing the same key never duplicates its profile');
+    const settings = readFileSync(path.join(hx.userData, 'settings.json'), 'utf8');
+    assert.ok(!settings.includes(first) && !settings.includes(second));
+    assert.ok(!JSON.stringify(hx.last()).includes(first) && !JSON.stringify(hx.last()).includes(second));
+    const encrypted = await fs.readdir(path.join(hx.userData, 'accounts'));
+    assert.equal(encrypted.length, 2);
+    for (const file of encrypted) assert.ok(readFileSync(path.join(hx.userData, 'accounts', file), 'utf8').startsWith('enc:'));
+    meta.users.delete(second);
+    assert.equal((await hx.c.switchAccount(nyxxieId)).ok, false);
+    assert.equal(hx.last().account.username, 'SharedVoid', 'a rejected key must not replace the working account');
+    meta.users.set(second, {username: 'SharedNyxxie', id: 'UID-shared-nyxxie'});
+    await hx.c.shutdown();
+    restarted = harness(accountRelayPort, hx.userData);
+    await restarted.c.init();
+    assert.equal(restarted.last().account.saved!.length, 2);
+    assert.equal((await restarted.c.switchAccount(nyxxieId)).ok, true);
+    assert.equal(restarted.last().account.username, 'SharedNyxxie');
+    await restarted.c.repair();
+    assert.equal((await restarted.c.play()).ok, true);
+    assert.deepEqual(await restarted.c.switchAccount(voidId), {ok: false, error: {code: 'busy'}});
+    assert.deepEqual(await restarted.c.removeSavedAccount(nyxxieId), {ok: false, error: {code: 'busy'}});
+    assert.equal(restarted.last().account.username, 'SharedNyxxie');
+    restarted.child()!.emit('exit', 0);
+    await waitUntil(() => !restarted!.last().game.running);
+    assert.equal((await restarted.c.removeSavedAccount(voidId)).ok, true);
+    assert.equal(restarted.last().account.saved!.length, 1);
+    assert.equal((await restarted.c.switchAccount(voidId)).ok, false);
+    assert.equal((await restarted.c.logout()).ok, true);
+    assert.deepEqual(restarted.last().account.saved, []);
+  } finally {
+    hx.child()?.emit('exit', 0); restarted?.child()?.emit('exit', 0);
+    await hx.c.shutdown(); await restarted?.c.shutdown();
+  }
+});
 
 function get(port: number, p: string): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {

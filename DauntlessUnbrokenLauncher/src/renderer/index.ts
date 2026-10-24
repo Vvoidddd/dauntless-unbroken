@@ -25,6 +25,8 @@ type Modal =
   // A public invite whose certificate is not the one this PC's key for that server belongs to.
   | { kind: "cert_changed"; link: string; name: string; host: string; oldFp: string | null; newFp: string }
   | { kind: "logout" }
+  | { kind: "add_account" }
+  | { kind: "remove_account"; id: string; username: string }
   | { kind: "leave" }
   | { kind: "remove_server"; id: string; name: string }
   | { kind: "offline_restore" };
@@ -1363,7 +1365,7 @@ function renderServer(): void {
 
 // ------------------------------------------------------------------ settings page
 
-function settingsRow(title: string, sub: string | Node | null, ...actions: (HTMLElement | null)[]): HTMLElement {
+function settingsRow(title: string | Node, sub: string | Node | null, ...actions: (HTMLElement | null)[]): HTMLElement {
   return h(
     "div",
     { class: "settings-row" },
@@ -1538,6 +1540,31 @@ async function openSupportLogFolder(){
   try{if((await api.openLogFolder()).ok)return;}catch{/* show the local fallback below */}
   state.diagnosticsNote='The log folder could not be opened. Use Save local copy instead.';renderSettings();
 }
+
+async function switchSavedAccount(id: string): Promise<void> {
+  const result = await api.switchAccount(id);
+  if (!result.ok) { state.localError = result.error; renderBanners(); }
+}
+
+function savedAccountsCard(snap: Snapshot): HTMLElement | null {
+  if (!snap.server) return null;
+  const locked = snap.busy || snap.task !== null || snap.game.running || offlineActive();
+  return card("settings-section",
+    h("h2", {class: "card-title"}, "Saved accounts"),
+    h("p", {class: "card-text"}, "Share this PC without re-importing keys each time. Add each player's existing account once, then switch below."),
+    h("p", {class: "small-print"}, locked ? "Close the game and finish any launcher operation before switching accounts." : "Online progress stays with the selected account. Offline play uses this PC's separate offline save."),
+    ...(snap.account.saved ?? []).map(account => settingsRow(
+      secret(account.username, "saved-account-" + account.id),
+      account.current ? "Currently selected" : null,
+      button(account.current ? "Selected" : "Switch account", () => void switchSavedAccount(account.id), {fk: "account-switch-" + account.id, cls: account.current ? "" : "btn-primary", disabled: locked || account.current}),
+      linkButton("Remove from PC", () => showModal({kind: "remove_account", id: account.id, username: account.username}), {fk: "account-remove-" + account.id, disabled: locked})
+    )),
+    h("div", {class: "card-row"},
+      button("Import account backup…", () => void api.importKeyFile(), {icon: "folder", fk: "account-import", disabled: locked}),
+      button("Add account key…", () => showModal({kind: "add_account"}), {icon: "key", fk: "account-add", disabled: locked}))
+  );
+}
+
 
 function renderSettings(): void {
   const container = $("#view-settings");
@@ -1725,7 +1752,7 @@ function renderSettings(): void {
     const panels: Record<SettingsTab, (HTMLElement | null)[]> = {
       game: [game],
       graphics: [graphics],
-      account: [account, purchaseHistoryCard(snap), playtimeCard(snap), h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
+      account: [savedAccountsCard(snap), account, purchaseHistoryCard(snap), playtimeCard(snap), h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
       launcher: [language, offlineCard, troubleshooting, streaming, about],
     };
     const tabs = h("div", { class: "settings-tabs", role: "tablist", "aria-label": t("set_title") });
@@ -1920,11 +1947,13 @@ function renderRail(): void {
   );
   const chip = $("#account-chip");
   const user = snap?.account.hasKey ? snap.account.username : null;
-  // With other servers saved, the chip is also the server switcher: a click lists them, one more click joins.
+  // Quick account switching and server selection share the existing account menu.
   const others = snap?.savedServers.filter((sv) => !sv.current) ?? [];
-  const locked = !snap || snap.busy || snap.task !== null || snap.game.running;
-  if (others.length === 0 || locked) state.serverMenu = false;
-  renderRegion(chip, JSON.stringify([state.lang, user, snap?.server?.name ?? null, snap?.status?.name ?? null, others, locked, state.serverMenu]), () => {
+  const accounts = snap?.account.saved?.filter(account => !account.current) ?? [];
+  const locked = !snap || snap.busy || snap.task !== null || snap.game.running || offlineActive();
+  const hasMenu = !!snap?.server || others.length > 0;
+  if (!hasMenu || locked) state.serverMenu = false;
+  renderRegion(chip, JSON.stringify([state.lang, user, snap?.server?.name ?? null, snap?.status?.name ?? null, others, accounts, locked, state.serverMenu]), () => {
     const inner = [
       h("span", { class: `avatar${user ? "" : " empty"}`, "aria-hidden": "true" }, user ? Array.from(user)[0].toUpperCase() : "?"),
       h(
@@ -1934,16 +1963,25 @@ function renderRail(): void {
         h("span", { class: "account-name" }, user ?? t("rail_not_signed_in")),
       ),
     ];
-    if (others.length === 0) return inner;
-    const toggle = h("button", { type: "button", class: "account-switch", "data-fk": "server-switch", "aria-haspopup": "menu", "aria-expanded": state.serverMenu ? "true" : "false", title: t("saved_switch"), disabled: locked }, ...inner);
+    if (!hasMenu) return inner;
+    const toggle = h("button", { type: "button", class: "account-switch", "data-fk": "server-switch", "aria-haspopup": "menu", "aria-expanded": state.serverMenu ? "true" : "false", title: "Switch account or server", disabled: locked }, ...inner);
     toggle.addEventListener("click", () => {
       state.serverMenu = !state.serverMenu;
       renderRail();
     });
+    const manage = h("button", {type: "button", class: "server-menu-item", role: "menuitem", "data-fk": "manage-accounts"}, "Manage accounts…");
+    manage.addEventListener("click", () => {state.serverMenu = false; state.settingsTab = "account"; setView("settings");});
     const menu = h(
       "ul",
-      { class: "server-menu", role: "menu", "aria-label": t("saved_switch"), hidden: !state.serverMenu },
-      h("li", { class: "server-menu-head", role: "presentation" }, t("saved_switch")),
+      { class: "server-menu", role: "menu", "aria-label": "Accounts and servers", hidden: !state.serverMenu },
+      h("li", { class: "server-menu-head", role: "presentation" }, "Switch account"),
+      ...accounts.map(account => {
+        const item = h("button", {type: "button", class: "server-menu-item", role: "menuitem", "data-fk": "quick-account-" + account.id}, secret(account.username, "quick-account-name-" + account.id));
+        item.addEventListener("click", () => {state.serverMenu = false; renderRail(); void switchSavedAccount(account.id);});
+        return h("li", {role: "none"}, item);
+      }),
+      h("li", {role: "none"}, manage),
+      others.length ? h("li", { class: "server-menu-head", role: "presentation" }, t("saved_switch")) : null,
       ...others.map((sv) => {
         const item = h("button", { type: "button", class: "server-menu-item", role: "menuitem", "data-fk": `switch-${sv.id}` }, h("span", { class: "server-menu-name" }, sv.name), h("span", { class: "server-menu-sub" }, savedServerSub(sv)));
         item.addEventListener("click", () => {
@@ -2109,6 +2147,21 @@ function renderModal(): void {
         return null;
       };
       break;
+    case "add_account": {
+      title = "Add an existing account";
+      const input = h("input", {class: "input", id: "saved-account-key", type: "password", autocomplete: "off", spellcheck: "false", maxlength: 8192, "data-fk": "saved-account-key"});
+      text = [h("p", {class: "modal-text"}, "Enter the other player's launcher account key. Their account will be saved on this PC and selected after validation. Your current account stays saved."), h("label", {class: "field-label", for: "saved-account-key"}, "Account key"), input];
+      confirmLabel = "Save and switch";
+      onConfirm = async () => { const key = input.value; input.value = ""; await report(await api.useExistingKey(key)); return null; };
+      break;
+    }
+    case "remove_account":
+      title = "Remove saved account?";
+      text = [h("p", {class: "modal-text"}, "Remove " + hideText(m.username) + " from this PC's saved accounts? This does not delete the server account or its progress. Exported key backup files are kept.")];
+      confirmLabel = "Remove from PC";
+      confirmCls = "btn-danger";
+      onConfirm = async () => { await report(await api.removeSavedAccount(m.id)); return null; };
+      break;
     case "logout":
       title = t("logout_title", { name });
       text = [h("p", { class: "modal-text" }, t("logout_text"))];
@@ -2178,7 +2231,7 @@ function renderModal(): void {
   root.replaceChildren(dialog);
   root.hidden = false;
   // Destructive or risky choices never get the default focus.
-  (m.kind === "logout" || m.kind === "cert_changed" || m.kind === "remove_server" ? cancel : confirm).focus();
+  (m.kind === "logout" || m.kind === "cert_changed" || m.kind === "remove_server" || m.kind === "remove_account" ? cancel : m.kind === "add_account" ? dialog.querySelector<HTMLInputElement>("input")! : confirm).focus();
 }
 
 // The server switcher closes on a click anywhere else, and on Escape.
