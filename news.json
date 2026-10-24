@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "30bde52fed26025712bcf2204a35dda5a183bf7a",
+      "date": "2026-10-24T01:05:38.999Z",
+      "title": "Latest project updates",
+      "body": "• Fix saved-account actions and Revived cleanup; restore stable native runtime\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.30",
       "date": "2026-10-24T00:48:50Z",
       "title": "Launcher 1.0.30 is available",
@@ -173,12 +179,6 @@
       "date": "2026-10-22T05:06:47.027Z",
       "title": "Latest project updates",
       "body": "• Ship warm-city DLL with matching installation checksums\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "fcbfa80e9f401a73f034c0048dc8f043a910f007",
-      "date": "2026-10-22T05:01:17.992Z",
-      "title": "Latest project updates",
-      "body": "• Keep Ramsgate destinations alive during return travel\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
