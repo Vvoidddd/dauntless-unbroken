@@ -18,7 +18,7 @@ import { ApplyInventoryTransactionInTx, InventoryErrorOf } from "./inventory";
 import { Tx } from "./savehistory";
 import { FinalizeCompletedTrialWeeks } from "./trials";
 import { PriceInRams } from "./ramspricing";
-import { ShopLayout } from "./shoplayout";
+import { RECRUIT_DYE_SKU, ShopLayout } from "./shoplayout";
 import { WeeklyStoreWindow } from "./storeclock";
 
 // The free store (roadmap 3.7, STORE=free). The client's flow (0x140b39657, 0x140b55011):
@@ -206,6 +206,8 @@ const Hash = (Value: string) => createHash("sha256").update(Value).digest("hex")
 const OfferHash = (Offer: StoreOffer) => Hash(JSON.stringify(Offer));
 
 export function GrantKind(CatalogId: string): "stacked" | "instanced" | undefined {
+    // Native Tutorial_Store_Quest requires this one receipt item, not dye ownership.
+    if(CatalogId === 'TOKEN_STORE_TUTORIAL_DYE_BUNDLE') return 'stacked';
     if(MIDDLEMAN_CELL_IDS.has(CatalogId)){
         return "stacked";
     }
@@ -243,7 +245,7 @@ function IsListed(Offer: StoreOffer){
     if(LadyLuckOffer && !TrialsStore()) return false;
     if(MiddlemanOffer && !MiddlemanStore()) return false;
     if(!LadyLuckOffer && !MiddlemanOffer && StoreMode() !== "free") return false;
-    if (process.env.STORE_CATALOG_PROFILE === "curated30" && Offer.tags.includes("webstore") && !curated30.includes(Offer.id)) return false;
+    if (process.env.STORE_CATALOG_PROFILE === "curated30" && Offer.tags.includes("webstore") && Offer.id !== RECRUIT_DYE_SKU && !curated30.includes(Offer.id)) return false;
     return !IsRepeatable(Offer) || LADY_LUCK_REPEATABLE.has(Offer.id) || MiddlemanOffer || StoreRepeatableTokens();
 }
 

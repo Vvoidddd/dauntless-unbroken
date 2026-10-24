@@ -3,13 +3,15 @@ import type {StoreOffer} from './freestore';
 import {RamsEnabled} from './ramspricing';
 import {WeeklyStoreWindow} from './storeclock';
 
+export const RECRUIT_DYE_SKU = 'store_tutorial_dye_bundle_openbeta';
+
 // A seed refreshes current stock without changing the weekly schedule.
 export function ShopLayout(offers: StoreOffer[], accountId: string, now = new Date()): StoreOffer[] {
     if(!RamsEnabled(accountId) || process.env.STORE_WEEKLY_ROTATION !== '1') return offers;
     const window=WeeklyStoreWindow(now);
     const week=window.index;
     const seed=process.env.STORE_ROTATION_SEED ?? '';
-    const ranked=offers.map(o=>({id:o.id,rank:createHash('sha256').update(`${seed}:${o.id}`).digest('hex')}))
+    const ranked=offers.filter(o=>o.id!==RECRUIT_DYE_SKU).map(o=>({id:o.id,rank:createHash('sha256').update(`${seed}:${o.id}`).digest('hex')}))
         .sort((a,b)=>a.rank.localeCompare(b.rank)||a.id.localeCompare(b.id));
     const cleaned=offers.map(offer=>{
         const tags=offer.tags.filter(tag=>tag!=='feature'
@@ -35,9 +37,9 @@ export function ShopLayout(offers: StoreOffer[], accountId: string, now = new Da
         for(let i=0;i<count;i++) selected.push(group[(start+i)%group.length]);
     }
     const featured=new Set(selected.slice(0,8).map(o=>o.id));
-    return selected.map(o=>({...o,
+    return [...cleaned.filter(o=>o.id===RECRUIT_DYE_SKU).map(o=>({...o,availableFrom:null,availableTo:null,timeAvailabilityReason:null})), ...selected.map(o=>({...o,
         tags:featured.has(o.id)?[...o.tags,'feature']:o.tags,
         availableFrom:new Date(window.start).toISOString(),
         availableTo:new Date(window.end).toISOString()
-    }));
+    }))];
 }

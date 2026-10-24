@@ -26,6 +26,26 @@
   ],
   "webstore": [
     {
+      "id": "store_tutorial_dye_bundle_openbeta",
+      "displayName": "Recruit's Dye Bundle",
+      "displayDescription": "Claim your free starter dyes to complete the store tutorial. Always available.",
+      "displayPriority": 2000,
+      "tags": ["webstore", "supplies_supplies", "dye_armour", "personality_stylekit"],
+      "platinumPrice": 0,
+      "items": [
+        {"catalogId": "DYE_BLUE03_DURABLE", "quantity": 1},
+        {"catalogId": "DYE_GREEN03_DURABLE", "quantity": 1},
+        {"catalogId": "DYE_BROWN01_DURABLE", "quantity": 1},
+        {"catalogId": "TOKEN_STORE_TUTORIAL_DYE_BUNDLE", "quantity": 1}
+      ],
+      "entitlements": [],
+      "maxAllowed": 1,
+      "remaining": 1,
+      "availableFrom": null,
+      "availableTo": null,
+      "timeAvailabilityReason": null
+    },
+    {
       "id": "bundle_currency_bounty_small",
       "displayName": "20 Bounty Tokens",
       "displayDescription": "Purchased Bounty Tokens persist into the next season. Free on this private server.",

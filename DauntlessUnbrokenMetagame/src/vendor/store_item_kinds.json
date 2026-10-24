@@ -1,4 +1,7 @@
 {
+  "TOKEN_STORE_TUTORIAL_DYE_BUNDLE": "stacked",
+  "DYE_BLUE03_DURABLE": "stacked",
+  "DYE_GREEN03_DURABLE": "stacked",
   "_comment": [
     "How the store grants each item it sells: stacked (a stack with a quantity) or instanced (an item with its own instance id).",
     "The value is the stackable flag of the item in the 1.4.4 client's item catalogue (ArchonCatalog). Keys starting with _ are notes.",

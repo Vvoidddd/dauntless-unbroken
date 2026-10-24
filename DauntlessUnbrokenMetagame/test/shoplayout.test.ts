@@ -1,12 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {ShopLayout} from '../src/controllers/shoplayout';
+import {RECRUIT_DYE_SKU, ShopLayout} from '../src/controllers/shoplayout';
 import {WithEnv} from './appenv';
 import catalog from '../src/vendor/store_catalog.json';
 import type {StoreOffer} from '../src/controllers/freestore';
 
 test('every sufficiently stocked category changes all three offers each week',()=>WithEnv({STORE_RAMS:'1',STORE_WEEKLY_ROTATION:'1',STORE_ROTATION_SEED:'weekly'},()=>{
-    const offers=catalog.webstore as StoreOffer[];
+    const offers=(catalog.webstore as StoreOffer[]).filter(o=>o.id!==RECRUIT_DYE_SKU);
     const a=ShopLayout(offers,'player',new Date('2026-10-17T00:00:00Z'));
     const b=ShopLayout(offers,'player',new Date('2026-10-23T12:00:00Z'));
     const category=(o:StoreOffer)=>o.tags.find(t=>/^(skin_|social_|dye_|personality_|supplies_)/.test(t)) ?? 'other';

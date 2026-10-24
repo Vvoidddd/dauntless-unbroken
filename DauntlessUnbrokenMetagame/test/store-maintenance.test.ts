@@ -23,12 +23,14 @@ afterEach(() => {
     delete process.env.MIDDLEMAN_STORE;
 });
 
-test('curated shop has exactly 30 free cosmetics and blocks excluded direct purchases', async () => {
+test('curated shop has 30 free cosmetics plus the permanent tutorial bundle and blocks other purchases', async () => {
     const player = await MakePlayer();
     process.env.STORE_CATALOG_PROFILE = 'curated30';
     process.env.STORE_REPEATABLE_TOKENS = '1';
     try {
-        const offers = ListStoreOffers(player.UserId, 'webstore');
+        const all = ListStoreOffers(player.UserId, 'webstore');
+        assert.equal(all.filter(o=>o.id==='store_tutorial_dye_bundle_openbeta').length,1);
+        const offers = all.filter(o=>o.id!=='store_tutorial_dye_bundle_openbeta');
         assert.equal(offers.length, 30);
         assert.equal(new Set(offers.map(o => o.id)).size, 30);
         assert.ok(offers.some(o => o.id === "bundle_dyes_palette_01"));
