@@ -10,8 +10,7 @@
 //   - a tracked file contains something shaped like a real secret: an account key (UUK_ and 48 hex
 //     characters, as the metagame makes them), a JWT, a private key block (also base64-encoded, the way
 //     AUTH_SIGNING_PRIVKEY_B64 stores one), a Tailscale auth key or a GitHub token;
-//   - the two prebuilt server DLLs in DauntlessUnbrokenLauncher/assets/ differ from the SHA-256 pins in the launcher
-//     and the Windows Server kit;
+//   - the prebuilt client/server DLLs differ from their respective SHA-256 pins;
 //   - DauntlessUnbrokenLauncher/package.json "version" is not a launcher version (a semantic version without build
 //     metadata; it names the launcher release tag launcher-v<version>; see tools/ci/launcher-version.js).
 //
@@ -42,16 +41,17 @@ const ALLOWED_CONTENT = {
     "DauntlessUnbrokenLauncher/scripts/portable-save-smoke.cjs": ["private-key"],
 };
 
-// The only DLLs the repository may hold: Undaunted's prebuilt server DLLs, which the launcher ships and the
-// kit installs. Each must match its pin in both files below.
-const PINNED_DLLS = ["DauntlessUnbrokenLauncher/assets/dxgi.dll", "DauntlessUnbrokenLauncher/assets/DauntlessUnbroken.dll"];
+// The client and server may ship different native builds; validate each against its own pin.
+const CLIENT_DLLS = ["DauntlessUnbrokenLauncher/assets/dxgi.dll", "DauntlessUnbrokenLauncher/assets/DauntlessUnbroken.dll"];
+const SERVER_DLLS = [CLIENT_DLLS[0], "deploy/windows-server/assets/DauntlessUnbroken.dll"];
+const PINNED_DLLS = [...CLIENT_DLLS, SERVER_DLLS[1]];
 // UE4SS (MIT) and its loader, for the optional client mods in client-mods/. Each must match its SHA-256 in
 // client-mods/manifest.json, which the launcher and the friend kit check before installing.
 const CLIENT_MODS_MANIFEST = "client-mods/manifest.json";
 const CLIENT_MODS_DLLS = ["client-mods/dwmapi.dll", "client-mods/ue4ss/UE4SS.dll"];
 const DLL_PIN_SOURCES = [
-    { file: "DauntlessUnbrokenLauncher/src/main/constants.ts", pattern: /name:\s*"([^"]+\.dll)",\s*sha256:\s*"([0-9a-fA-F]{64})"/g },
-    { file: "deploy/windows-server/DauntlessUnbrokenServer.Common.ps1", pattern: /'([^']+\.dll)'\s*=\s*'([0-9a-fA-F]{64})'/g },
+    { file: "DauntlessUnbrokenLauncher/src/main/constants.ts", dlls: CLIENT_DLLS, pattern: /name:\s*"([^"]+\.dll)",\s*sha256:\s*"([0-9a-fA-F]{64})"/g },
+    { file: "deploy/windows-server/DauntlessUnbrokenServer.Common.ps1", dlls: SERVER_DLLS, pattern: /'([^']+\.dll)'\s*=\s*'([0-9a-fA-F]{64})'/g },
 ];
 
 // Forbidden by name. Tested against the lower-cased path with forward slashes.
@@ -278,7 +278,7 @@ for (const source of DLL_PIN_SOURCES) {
         continue;
     }
     const pins = new Map([...text.matchAll(source.pattern)].map((m) => [m[1].toLowerCase(), m[2].toLowerCase()]));
-    for (const dll of PINNED_DLLS) {
+    for (const dll of source.dlls) {
         const name = dll.slice(dll.lastIndexOf("/") + 1).toLowerCase();
         if (!fileHashes.has(dll)) fail(dll, "is missing (it must be tracked)");
         else if (!pins.has(name)) fail(source.file, `has no SHA-256 pin for ${name}`);

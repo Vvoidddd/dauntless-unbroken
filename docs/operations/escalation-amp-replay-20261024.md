@@ -53,3 +53,10 @@ their mapped DLL and retire normally; do not restart occupied worlds to force
 this patch. Keep the previous DLL and matching pin for rollback, and compare the
 actual module mapped in a newly created world with the expected candidate path
 and hash. A readiness smoke test is not an in-game amp/XP playthrough.
+
+The Release x64 build and replay policy check passed. An isolated worker process
+and a primary-host process reached readiness with the candidate loaded. After
+disk rollout, a naturally allocated worker world was observed with the candidate's
+mapped image timestamp `1792878087` and image size `335872`; all pre-rollout world
+PIDs remained alive at replacement. No live services were restarted. A complete
+in-game amp-selection and per-round XP playthrough is still outstanding.
