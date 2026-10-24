@@ -1,10 +1,14 @@
-import {promises as fs} from 'node:fs';
+import {promises as nodeFs} from 'node:fs';
 import path from 'node:path';
 import {spawn,execFile,type ChildProcess} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import net from 'node:net';
 import type {RevivedStatus} from '../shared/types';
 import {log} from './log';
+
+// Cleanup must see physical files: Electron's patched fs exposes app.asar as a
+// virtual directory, whose entries cannot be unlinked. Never toggle global noAsar.
+const fs:typeof nodeFs=process.versions.electron ? require('original-fs').promises : nodeFs;
 
 const INSTALL='DauntlessRevivedLauncher';
 const PROFILES=['dauntless-revived-launcher','Dauntless Revived Launcher',INSTALL];

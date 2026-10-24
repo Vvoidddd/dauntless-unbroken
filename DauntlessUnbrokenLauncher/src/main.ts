@@ -520,8 +520,8 @@ function registerIpc(c: Controller): void {
   });
   handle(IPC.openGameFolder, () => c.openGameFolder());
   handle(IPC.logout, () => c.logout());
-  handle(IPC.switchAccount, (id: unknown) => c.switchAccount(id));
-  handle(IPC.removeSavedAccount, (id: unknown) => c.removeSavedAccount(id));
+  handle(IPC.switchAccount, (_e, id) => c.switchAccount(id));
+  handle(IPC.removeSavedAccount, (_e, id) => c.removeSavedAccount(id));
   handle(IPC.installUpdate, () => c.installUpdate());
   handle(IPC.dismissNotice, () => c.dismissNotice());
   handle(IPC.dismissError, () => c.dismissError());

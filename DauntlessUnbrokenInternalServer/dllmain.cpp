@@ -777,6 +777,43 @@ bool MakeDoDamageHook(void* a1, void* a2, void* a3) {
 
 void* OrigProcessEventClient = nullptr;
 
+static bool IsPurchasableTonic(const UEquipmentItemViewModel* Item) {
+    if (!Item || Item->PurchaseItemId.ToString() != "CURRENCY_NOTES" || Item->PurchaseCost <= 0 || Item->MaxCanPurchase <= 0)
+        return false;
+
+    const std::string Id = Item->ItemId.ToString();
+    return Id == "QI_ATTACK_SPEED_POTION"
+        || Id == "QI_DAMAGE_BLOCK_POTION"
+        || Id == "QI_DAMAGE_ENRAGEBONUS_POTION"
+        || Id == "QI_EXPOSE_POTION"
+        || Id == "QI_LANTERN_POTION"
+        || Id == "QI_LIFESTEAL_AOE_POTION"
+        || Id == "QI_STAGGER_POTION"
+        || Id == "QI_STAMINA_POTION_00";
+}
+
+static bool IsPotionPurchaseQuestOpen() {
+    for (int i = 0; i < SDK::UObject::GObjects->Num(); i++) {
+        SDK::UObject* Obj = SDK::UObject::GObjects->GetByIndex(i);
+        if (!Obj || Obj->IsDefaultObject() || !Obj->IsA(SDK::UQuestSystemComponent::StaticClass()))
+            continue;
+
+        auto* QuestSystem = static_cast<UQuestSystemComponent*>(Obj);
+        for (UQuest* Quest : QuestSystem->GetAllQuests()) {
+            if (!Quest || Quest->GetId().ToString() != "CR19_S5_Q2C2_Bosun_PotionPurchase")
+                continue;
+
+            const EQuestStatus Status = Quest->GetStatus();
+            return Status == EQuestStatus::Accepted
+                || Status == EQuestStatus::Redeemable
+                || Status == EQuestStatus::Redeemed
+                || Status == EQuestStatus::Available;
+        }
+    }
+
+    return false;
+}
+
 #include "GrannyPurchaseTabs.h"
 #include "CreatorRewardRefresh.h"
 
@@ -798,6 +835,21 @@ void ProcessEventClientHook(UObject* Object, UFunction* Function, void* Parms) {
 
     DeveloperStyle::OnProcessEvent(Object, Function);
 
+    static UFunction* CanPurchase = nullptr;
+    if (Function == CanPurchase || (!CanPurchase && Function && Function->GetFullName().contains("EquipmentItemViewModel.CanPurchase"))) {
+        CanPurchase = Function;
+
+        auto* Item = Object && Object->IsA(UEquipmentItemViewModel::StaticClass())
+            ? static_cast<UEquipmentItemViewModel*>(Object)
+            : nullptr;
+        auto* Purchase = static_cast<Params::EquipmentItemViewModel_CanPurchase*>(Parms);
+
+        // 1.4.4 gates every normal tonic purchase on CR19_S5_Q2C2_Bosun_PotionPurchase.
+        // Revived can leave that child quest Available while the vendor screen is already open.
+        // Preserve the retail price/affordability gate and only relax this one quest-state mismatch.
+        if (Purchase && !Purchase->ReturnValue && IsPurchasableTonic(Item) && IsPotionPurchaseQuestOpen())
+            Purchase->ReturnValue = true;
+    }
 }
 
 static int NumTimesOnAirshipUpdated = 0;

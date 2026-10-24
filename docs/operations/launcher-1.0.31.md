@@ -1,0 +1,7 @@
+# Launcher 1.0.31
+
+- Account switching and saved-account removal now forward the renderer's account ID after Electron's event argument. The 1.0.30 handlers accidentally forwarded the event instead, producing `key_invalid` despite valid saved keys. No account data migration or key replacement is needed.
+- Revived cleanup uses Electron's `original-fs` module to remove physical `app.asar` files instead of enumerating archive contents. Backups, progress reporting, protected paths and link checks remain. Restart into the updated launcher before retrying cleanup.
+- Native source and the bundled DLL return to 1.0.28. The 1.0.29 purchase requirement hook is withdrawn following reported hunt-exit crashes. This removes the native regression candidate; no affected-client crash dump was available to prove causation. The earlier inventory readiness fix remains. The absent-tutorial Granny purchase issue may remain; see [the investigation](../findings/tonic-purchase-gate.md).
+
+Validation: 390 launcher tests passed, three platform skips; typecheck, renderer build, Forge main build and repository hygiene passed. Real Electron ASAR fixtures reproduce the old deletion failure and pass with the fix. IPC tests execute the actual callbacks from `main.ts` with an event and account ID. The DLL is byte-identical to the 1.0.28 artifact, SHA-256 `74d18637a0b317d8c799e62b69ceba1d827c5718ae6ac966e45467bdc48ab54a`; native source matches that revision. Gameplay hunt-return confirmation is still outstanding.
