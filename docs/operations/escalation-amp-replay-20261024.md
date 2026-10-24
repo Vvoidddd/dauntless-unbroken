@@ -60,3 +60,9 @@ disk rollout, a naturally allocated worker world was observed with the candidate
 mapped image timestamp `1792878087` and image size `335872`; all pre-rollout world
 PIDs remained alive at replacement. No live services were restarted. A complete
 in-game amp-selection and per-round XP playthrough is still outstanding.
+
+Repository hygiene/pin checks passed. The broader local deployment-kit run ended
+with 207 checks passing and two chat-listener status checks failing. A focused
+listener probe reproduced the same status failure with the pre-patch helper from
+`30bde52`; its chat functions are unchanged. Do not describe the entire kit suite
+as passing or treat this as an Escalation regression.
