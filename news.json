@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "e2d432fde9b3b357e283e89beab762a6e4d45612",
+      "date": "2026-10-24T00:39:33.008Z",
+      "title": "Latest project updates",
+      "body": "• Add encrypted saved accounts and quick launcher switching\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.29",
       "date": "2026-10-23T23:33:55Z",
       "title": "Launcher 1.0.29 is available",
@@ -173,12 +179,6 @@
       "date": "2026-10-22T03:20:36.373Z",
       "title": "Latest project updates",
       "body": "• Add timed Escalation boost giveaways and max armour rewards\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "197dbafd5e68a83ee8a64e08de861c1dfddc7ef5",
-      "date": "2026-10-22T03:03:52.609Z",
-      "title": "Latest project updates",
-      "body": "• Remove optional author lists from remaining Markdown guides\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
