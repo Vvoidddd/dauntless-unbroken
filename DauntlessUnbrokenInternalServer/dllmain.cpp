@@ -41,6 +41,7 @@
 
 #include "SDK/GameplayAbilities_parameters.hpp"
 #include "SDK/Archon_parameters.hpp"
+#include "EscalationSelectionGuard.h"
 #include "SDK/lantern_equipped_ab_parameters.hpp"
 
 using namespace SDK;
@@ -858,8 +859,9 @@ bool DidDoTravelReset = false;
 void* OrigProcessEvent = nullptr;
 
 void ProcessEventHook(UObject* Object, UFunction* Function, void* Parms) {
-    // This hook is installed only in game servers. Never inspect RPC arguments
-    // or infer bans from timing, movement corrections, or server-side calls.
+    // Server-only domain validation. Reject duplicate amp choices without bans.
+    if (!EscalationSelectionGuard::Allow(Object, Function, Parms)) return;
+    // Privileged RPC denial never infers bans from timing or movement corrections.
     if (Function && (Function->FunctionFlags & static_cast<uint32_t>(EFunctionFlags::NetServer))) {
         static thread_local std::map<UFunction*, bool> GuardDecisions;
         auto [Entry, Inserted] = GuardDecisions.try_emplace(Function, false);

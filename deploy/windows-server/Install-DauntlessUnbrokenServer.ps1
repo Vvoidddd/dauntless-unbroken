@@ -809,13 +809,14 @@ try {
     } else {
         Write-DRInfo "(what-if: the game would be extracted to $GameRoot and checked)"
     }
-    # The two server DLLs, checked before and after copying (same pins as the friend kit).
+    # Server amp validation is independent of the stable launcher/client DLL.
     $win64 = Split-Path $exe -Parent
     $assets = Join-Path $P.App 'DauntlessUnbrokenLauncher\assets'
     foreach ($dll in $DRPinned.Dlls.Keys) {
         $target = Join-Path $win64 $dll
         if ((Test-Path -LiteralPath $target) -and ((Get-DRSha256 $target) -eq $DRPinned.Dlls[$dll])) { Write-DROk "$dll in place"; continue }
         $src = Join-Path $assets $dll
+        if ($dll -eq 'DauntlessUnbroken.dll') { $src = Join-Path $P.App 'deploy\windows-server\assets\DauntlessUnbroken.dll' }
         if (-not (Test-Path -LiteralPath $src)) {
             if ($IsWhatIf) { Write-DRInfo "(what-if: $dll would be copied from the built code)"; continue }
             Stop-DR "$dll is missing from $assets"

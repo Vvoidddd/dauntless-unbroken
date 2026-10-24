@@ -154,6 +154,8 @@
     <ClInclude Include="StoreCategoryFix.h" />
     <ClInclude Include="DataTables.h" />
     <ClInclude Include="FallRecoveryPolicy.h" />
+    <ClInclude Include="EscalationSelectionPolicy.h" />
+    <ClInclude Include="EscalationSelectionGuard.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
