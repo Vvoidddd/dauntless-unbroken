@@ -121,32 +121,28 @@ local function render()
     if not selected or #rows == 0 or not Settings.Get("pm_visible", true) then removeUI() return end
     -- ponytail: at most 16 rows; show an explicit overflow count, add paging if a new boss needs it.
     local count = math.min(16, #rows)
-    local columns = count > 6 and 2 or 1
-    local perColumn = math.ceil(count / columns)
-    local rowHeight = columns == 1 and 42 or 31
-    local width, height = columns * 254, 59 + perColumn * rowHeight
+    -- Keep the reference's narrow, single-column silhouette. Dense anatomies
+    -- tighten vertically instead of expanding across the hunt view.
+    local rowHeight = math.min(50, math.floor(416 / count))
+    local width, height = 192, 8 + count * rowHeight + (#rows > count and 20 or 0)
     local key = selected.id .. ":" .. selected.world .. ":" .. tostring(count)
     if layoutKey ~= key or not panel or not HUD.Valid(panel.root) then
         removeUI()
-        panel = HUD.New(selected.pc, TAG, {X = 1, Y = 0.5}, -24 - width, -20, width, height)
-        HUD.Label(panel, "title", "PART STATUS", 19, white, 10, 5, width - 20)
-        HUD.Label(panel, "target", "Nearest behemoth", 13, muted, 10, 31, width - 20)
+        panel = HUD.New(selected.pc, TAG, {X = 1, Y = 0.49}, -24 - width, 0, width, height)
         for i = 1, count do
-            local x, y = math.floor((i - 1) / perColumn) * 254, 57 + ((i - 1) % perColumn) * rowHeight
-            HUD.Label(panel, "dot" .. i, "●", 19, muted, x + 10, y, 22)
-            HUD.Label(panel, "name" .. i, "", columns == 1 and 20 or 17, white, x + 34, y, 136)
-            HUD.Label(panel, "state" .. i, "", 15, muted, x + 176, y + 3, 68)
-            HUD.Bar(panel, "hp" .. i, x + 12, y + (columns == 1 and 31 or 23), 230, columns == 1 and 6 or 4)
+            local y = 4 + (i - 1) * rowHeight
+            local size = rowHeight >= 40 and 22 or 17
+            HUD.Indicator(panel, "dot" .. i, 8, y + 3, 22)
+            HUD.Label(panel, "name" .. i, "", size, white, 36, y, 148)
+            HUD.Bar(panel, "hp" .. i, 16, y + rowHeight - 13, 164, rowHeight >= 40 and 8 or 4)
         end
+        if #rows > count then HUD.Label(panel, "overflow", "+" .. (#rows - count) .. " parts", 14, muted, 16, 6 + count * rowHeight, 164) end
         layoutKey = key
     end
-    local overflow = #rows > count and " · +" .. (#rows - count) .. " parts" or ""
-    HUD.Set(panel, "target", string.format("Nearest behemoth · %.0f m", targetDistance) .. overflow)
     for i = 1, count do
         local row = rows[i]
-        HUD.Set(panel, "dot" .. i, "●", Status.colors[row.color])
+        HUD.Tint(panel, "dot" .. i, Status.colors[row.color])
         HUD.Set(panel, "name" .. i, row.name)
-        HUD.Set(panel, "state" .. i, row.word, Status.colors[row.color])
         HUD.Fill(panel, "hp" .. i, row.fraction, Status.colors[row.color])
     end
 end

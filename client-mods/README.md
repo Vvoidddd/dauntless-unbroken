@@ -5,9 +5,10 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
 - **UE4SS 3.0.1** (`dwmapi.dll`, `ue4ss/UE4SS.dll`; MIT, see `ue4ss/LICENSE`): the Lua mod loader.
 - **Behemoth Health Bars**: a fixed HP and shield bar at the bottom of the screen (two bars when two behemoths are up).
 - **Behemoth Tracker**: an arrow and distance to the behemoth in the top right.
-- **Hunt Damage** (`DamageMeter`): a left-side panel with your core, part, stagger and wound damage,
+- **Hunt Damage** (`DamageMeter`, made by Void): a left-side panel with your core, part, stagger and wound damage,
   DPS since the first observed hit, each teammate's core damage/share, and the team's core total.
-  The compact view keeps the team total visible; individual team rows are collapsed by default.
+  The compact view has five aligned value/label rows in a rounded translucent panel.
+  The optional team breakdown adds the team total and individual rows; it is off by default.
   Totals cover this visit to the hunt and reset for a new session. These are client observations:
   late joins, distant hits or lost network events can leave damage uncounted. Core damage alone
   determines DPS and contribution; the four overlapping channels are never added together.
@@ -17,7 +18,8 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
   an HP bar and state: green above 50%, orange at 50% or below, red for a confirmed break/sever.
   Broken bars are empty; missing, fixed or otherwise disabled parts stay gray. Removed armour
   is red only when its break-stage data confirms the armour-to-disabled transition. Names retain
-  the real left/right part data. More than six rows use two columns; a count identifies overflow
+  the real left/right part data. The narrow single-column list uses image-based glow indicators
+  and thin bars, with tighter rows for larger anatomies; a count identifies overflow
   beyond sixteen. Home → Behemoth Parts hides/shows it live.
 - **Mod Menu**: Home opens it, Up/Down (or PgUp/PgDn) choose, End flips the chosen switch. MODS turns
   whole mods on or off (applied after restarting the game); SETTINGS changes the mods live (shield bar, HP numbers,
@@ -60,3 +62,7 @@ Edit the files here, then rebuild the manifest and commit both:
 Updates preserve existing mod switches, add newly shipped mods to `mods.txt`, and disable the retired status indicator. CraftStar is added before Keybinds on existing installations; an explicit CraftStar off setting is preserved.
 
 HUD monitor regression check (Lua 5.4): `lua tests/client-mods/damage-meter.lua` from the repository root.
+
+HUD panels use the cooked RobotoCondensed font (Regular labels, Bold values), with no text outline.
+`shared/HudPanel/panel.png` and `indicator.png` are antialiased RGBA artwork created for these mods:
+the panel uses a nine-slice brush and the indicators are images, avoiding missing Unicode glyphs.

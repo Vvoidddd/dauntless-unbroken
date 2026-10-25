@@ -1,9 +1,9 @@
-# Behemoth part monitor preview
+# Behemoth part monitor
 
-Launcher `1.0.35-damage.3` adds the optional Windows PartMonitor and a compact
-left-side damage summary. Both mod cards credit Void. The team core total stays
-visible on the left; individual teammate rows are a live setting, collapsed by
-default. The right panel shows the closest living Behemoth within 50 m, with
+Launcher `1.0.35` ships the optional Windows PartMonitor and a compact
+left-side damage summary. Both mod cards credit Void and appear first on Client Mods.
+The default left panel has five aligned value/label rows; the optional team view
+adds the team core total and individual rows. The right panel shows the closest living Behemoth within 50 m, with
 small distance hysteresis to avoid switching constantly between two targets.
 Outside that range it leaves the existing distant tracker unobstructed.
 
@@ -39,10 +39,15 @@ Kharabak's FrontLeftWing/FrontRightWing are examples of actual cooked names.
 Skarn armour and flesh are separate parts; deduplication uses shared health-actor
 identity, never body-part type. Fixed core-body/kill components are omitted.
 
-Both panels use shared native Image/text widgets. Brushes/fonts are set before
-viewport construction; every widget is hit-test-invisible. The right monitor
+Both panels use shared native Image/text widgets. The cooked RobotoCondensed font
+uses Regular labels and Bold values, without an outline. The previous version copied
+the HP widget's bold font and added an outline. SetFont now explicitly refreshes
+Slate after the reused chat widget is constructed. Tiny antialiased RGBA
+textures provide a nine-slice rounded translucent panel and glow indicators, imported
+using KismetRenderingLibrary.ImportFileAsTexture2D. No font glyph is used as a dot.
+Every widget is hit-test-invisible and text clips to its assigned bounds. The right monitor
 uses opacity tag 0.994, distinct from damage 0.995, tracker 0.996, menu 0.997 and
-lock-on 0.993. Six parts fit one column; seven or more use two compact columns,
+lock-on 0.993. Parts stay in one narrow column; larger anatomies use tighter rows,
 with an explicit overflow count beyond sixteen. Positions are anchored to
 opposite viewport edges and vertically relative to the centre.
 
@@ -52,4 +57,4 @@ boundary, false breakability, missing actors, duplicate shapes, regeneration,
 armour lineage, same-map travel, ownership cleanup and input transparency.
 Native in-game rendering and UE4SS parameter/property marshalling still require
 a real-hunt smoke test; the Windows computer-use native pipe was unavailable.
-The release remains a prerelease and does not replace stable auto-updates.
+The stable launcher release updates the normal feed; the HUD mods remain optional.

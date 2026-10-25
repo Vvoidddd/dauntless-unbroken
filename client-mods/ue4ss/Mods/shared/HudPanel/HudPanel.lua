@@ -3,6 +3,9 @@
 local M = {}
 local TEXT = "/Game/UI/Chat/w_chat_log_label_bpw.w_chat_log_label_bpw_C"
 local PANEL = "/Game/UI/EndOfHunt/StackableProgressBar.StackableProgressBar_C"
+local FONT = "/Game/UI/Globals/Fonts/RobotoCondensed.RobotoCondensed"
+local folder = (package.searchpath("HudPanel", package.path) or "ue4ss/Mods/shared/HudPanel/HudPanel.lua"):match("^(.*[/\\])")
+local textures = {}
 function M.Valid(o)
     local ok, result = pcall(function() return o:IsValid() end)
     return ok and result
@@ -31,6 +34,14 @@ local function show(panel, widget, x, y, width, height)
     widget:SetVisibility(3) -- HitTestInvisible: never capture mouse/gamepad input.
     place(panel, widget, x, y, width, height)
 end
+local function texture(panel, name)
+    if not M.Valid(textures[name]) then
+        local rendering = StaticFindObject("/Script/Engine.Default__KismetRenderingLibrary")
+        textures[name] = rendering:ImportFileAsTexture2D(panel.pc, folder .. name .. ".png")
+    end
+    if not M.Valid(textures[name]) then error("HUD texture unavailable: " .. name) end
+    return textures[name]
+end
 function M.New(pc, tag, anchor, x, y, width, height)
     local panel = {pc = pc, tag = tag, anchor = anchor, x = x, y = y, widgets = {}, labels = {}, bars = {}}
     local ok, err = pcall(function()
@@ -41,8 +52,11 @@ function M.New(pc, tag, anchor, x, y, width, height)
         panel.root = root
         root.ProgressBarComponent:GetParent():SetVisibility(1)
         local image = root.BoostIconBarImage
-        image:SetBrushResourceObject(StaticFindObject("/Engine/EngineResources/WhiteSquareTexture.WhiteSquareTexture"))
-        image:SetColorAndOpacity({R = 0.018, G = 0.018, B = 0.023, A = 0.84})
+        image:SetBrushFromTexture(texture(panel, "panel"), false)
+        image.Brush.DrawAs = 1 -- Box: nine-slice preserves the small rounded corners.
+        image.Brush.Margin = {Left = 0.125, Top = 0.125, Right = 0.125, Bottom = 0.125}
+        image:SetBrush(image.Brush)
+        image:SetColorAndOpacity({R = 1, G = 1, B = 1, A = 1})
         image:SetBrushSize({X = width, Y = height})
         show(panel, root, 0, 0, width, height)
         local slot = image.Slot
@@ -51,16 +65,16 @@ function M.New(pc, tag, anchor, x, y, width, height)
         slot:SetAutoSize(false)
         slot:SetPosition({X = 0, Y = 0})
         slot:SetSize({X = width, Y = height})
-        panel.font = StaticFindObject("/Game/UI/HUD/HealthStamina_bpw.HealthStamina_bpw_C:WidgetTree.HealthValueText")
+        panel.font = load(FONT)
     end)
     if not ok then M.Remove(panel) error(err) end
     return panel
 end
-local function rectangle(panel, x, y, width, height, color)
+local function rectangle(panel, x, y, width, height, color, resource)
     local widget = create(panel, load(PANEL))
     widget.ProgressBarComponent:GetParent():SetVisibility(1)
     local image = widget.BoostIconBarImage
-    image:SetBrushResourceObject(StaticFindObject("/Engine/EngineResources/WhiteSquareTexture.WhiteSquareTexture"))
+    image:SetBrushResourceObject(resource or StaticFindObject("/Engine/EngineResources/WhiteSquareTexture.WhiteSquareTexture"))
     image:SetColorAndOpacity(color)
     image:SetBrushSize({X = width, Y = height})
     show(panel, widget, x, y, width, height)
@@ -71,6 +85,16 @@ local function rectangle(panel, x, y, width, height, color)
     slot:SetPosition({X = 0, Y = 0})
     slot:SetSize({X = width, Y = height})
     return {widget = widget, image = image, slot = slot, width = width, height = height}
+end
+function M.Indicator(panel, id, x, y, size)
+    panel.bars[id] = rectangle(panel, x, y, size, size, {R = 0.6, G = 0.62, B = 0.65, A = 1}, texture(panel, "indicator"))
+end
+function M.Tint(panel, id, color)
+    local image = panel and panel.bars[id]
+    if image and M.Valid(image.widget) and image.color ~= color then
+        image.image:SetColorAndOpacity(color)
+        image.color = color
+    end
 end
 function M.Bar(panel, id, x, y, width, height)
     rectangle(panel, x, y, width, height, {R = 0.16, G = 0.17, B = 0.18, A = 0.9})
@@ -90,18 +114,20 @@ function M.Fill(panel, id, percent, color)
     end
     if color and color ~= bar.color then bar.image:SetColorAndOpacity(color) bar.color = color end
 end
-function M.Label(panel, id, text, size, color, x, y, width)
+function M.Label(panel, id, text, size, color, x, y, width, bold, rightAligned)
     local widget = create(panel, panel.textClass)
     local block = widget.ChatLogLabelTextBlock
-    if M.Valid(panel.font) then
-        block.Font.FontObject = panel.font.Font.FontObject
-        block.Font.TypefaceFontName = panel.font.Font.TypefaceFontName
-    end
+    block.Font.FontObject = panel.font
+    block.Font.TypefaceFontName = FName(bold and "Bold" or "Regular")
     block.Font.Size = size
-    block.Font.OutlineSettings.OutlineSize = 1
+    block.Font.OutlineSettings.OutlineSize = 0
     block.Font.OutlineSettings.OutlineColor = {R = 0, G = 0, B = 0, A = 1}
-    block:SetJustification(0)
+    block:SetJustification(rightAligned and 2 or 0)
+    widget:SetClipping(1) -- ClipToBounds: long anatomy names cannot spill outside the panel.
     show(panel, widget, x, y, width, size * 1.6)
+    -- Refresh the constructed Slate widget explicitly instead of relying on
+    -- direct Font property writes to update its cached text style.
+    block:SetFont(block.Font)
     panel.labels[id] = {widget = widget, block = block}
     M.Set(panel, id, text, color)
 end

@@ -126,22 +126,24 @@ local function removeUI()
 end
 local function makeUI(team)
     removeUI()
-    panel = HUD.New(context.pc, OPACITY, {X = 0, Y = 0.5}, 24, 32, 310, team and 360 or 205)
+    panel = HUD.New(context.pc, OPACITY, {X = 0, Y = 0.54}, 22, 0, 310, team and 336 or 186)
     local function label(id, text, size, color, y, x, width)
         HUD.Label(panel, id, text, size, color, x or 12, y, width or 286)
     end
-    label("core", "0  core damage", 22, white, 7)
-    label("dps", "0  DPS", 21, white, 36)
-    label("part", "0  part damage", 21, {R = 1, G = 0.82, B = 0.3, A = 1}, 65)
-    label("stagger", "0  stagger damage", 21, {R = 0.45, G = 0.7, B = 1, A = 1}, 94)
-    label("wound", "0  wound damage", 21, {R = 1, G = 0.38, B = 0.35, A = 1}, 123)
-    label("total", "Team total  0", 16, purple, 156)
-    label("scope", "Observed this visit · DPS since first hit", 13, muted, 183)
+    local channels = {{"core", "core damage", white}, {"dps", "DPS", white},
+        {"part", "part damage", {R = 1, G = 0.76, B = 0.16, A = 1}},
+        {"stagger", "stagger damage", {R = 0.12, G = 0.65, B = 0.88, A = 1}},
+        {"wound", "wound damage", {R = 0.92, G = 0.06, B = 0.13, A = 1}}}
+    for i, channel in ipairs(channels) do
+        local y = 7 + (i - 1) * 34
+        HUD.Label(panel, channel[1], "0", 23, channel[3], 10, y, 80, true, true)
+        HUD.Label(panel, channel[1] .. "-label", channel[2], 22, white, 108, y, 192)
+    end
     if team then
-        label("team", "TEAM · CORE DAMAGE", 16, purple, 211)
+        label("total", "Team total  0", 17, muted, 182)
         for i = 1, 4 do
-            label("player" .. i, "—", 17, white, 237 + (i - 1) * 27, 12, 142)
-            label("damage" .. i, "", 14, white, 237 + (i - 1) * 27, 166, 132)
+            label("player" .. i, "", 18, white, 211 + (i - 1) * 28, 12, 142)
+            label("damage" .. i, "", 17, white, 211 + (i - 1) * 28, 166, 132)
         end
     end
     uiWorld, showTeam = context.uiKey, team
@@ -161,17 +163,14 @@ local function pulse(now)
     local snapshot, own = Ledger.Snapshot(state), nil
     for _, row in ipairs(snapshot.rows) do if row.id == context.me then own = row break end end
     own = own or {core = 0, part = 0, stagger = 0, wound = 0, dps = 0}
-    set("core", count(own.core) .. "  core damage")
-    set("dps", count(own.dps) .. "  DPS")
-    for _, channel in ipairs({"part", "stagger", "wound"}) do set(channel, count(own[channel]) .. "  " .. channel .. " damage") end
-    set("total", "Team total  " .. count(snapshot.core))
+    for _, channel in ipairs({"core", "dps", "part", "stagger", "wound"}) do set(channel, count(own[channel])) end
     if team then
+        set("total", "Team total  " .. count(snapshot.core))
         for i = 1, 4 do
             local row = snapshot.rows[i]
-            set("player" .. i, row and row.name or "—", row and row.id == context.me)
+            set("player" .. i, row and row.name or "", row and row.id == context.me)
             set("damage" .. i, row and count(row.core) .. "  " .. string.format("%.0f%%", row.share * 100) or "", row and row.id == context.me)
         end
-        set("team", #snapshot.rows > 4 and "TEAM · TOP 4 CORE DAMAGE" or "TEAM · CORE DAMAGE", true)
     end
 end
 

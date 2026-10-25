@@ -238,8 +238,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/DamageMeter/Scripts/main.lua",
-                      "sha256":  "89f720b76f86e512ea89e215875aae447b20cb430594b8555e657b08c576660e",
-                      "size":  8358,
+                      "sha256":  "5578627e9623287216e535da692365e2ae7c90e32a9cb314069d9707b649a876",
+                      "size":  8212,
                       "keep":  false
                   },
                   {
@@ -268,8 +268,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/PartMonitor/Scripts/main.lua",
-                      "sha256":  "48ba63f55b4455a5b5ffb4c576fc6ebf31a250500c28a8fffddd7a9e752b6939",
-                      "size":  8534,
+                      "sha256":  "fbd6c668f93d0962e9b5981190d63b8e2815ee7e4afeb8716b4ed32453003730",
+                      "size":  8194,
                       "keep":  false
                   },
                   {
@@ -286,8 +286,20 @@
                   },
                   {
                       "path":  "ue4ss/Mods/shared/HudPanel/HudPanel.lua",
-                      "sha256":  "c2f0f09fcc423a6645cab35b8068f52290b3db84dc89bb708cf545f5cb8e9efa",
-                      "size":  6230,
+                      "sha256":  "295040d04b3ff7ef82e98631c5d5e0604e264d61a82a4d9b55d5762d67c124c2",
+                      "size":  7564,
+                      "keep":  false
+                  },
+                  {
+                      "path":  "ue4ss/Mods/shared/HudPanel/indicator.png",
+                      "sha256":  "2f33ddfc36decdd281dc7d4334415c6f5a4fb4d92ed9ce73be0e5c50736a3321",
+                      "size":  1686,
+                      "keep":  false
+                  },
+                  {
+                      "path":  "ue4ss/Mods/shared/HudPanel/panel.png",
+                      "sha256":  "b0414b0bd1141916751d03f144637155d87edd427fd5a38e549904e228f02bf6",
+                      "size":  620,
                       "keep":  false
                   },
                   {

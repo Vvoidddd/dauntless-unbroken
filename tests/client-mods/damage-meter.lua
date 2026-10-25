@@ -46,29 +46,40 @@ local archon = object({IsInCity = function() return city end, GetOnlineSessionId
 local function widget(_, _, cls)
     local w = object({removed = false, kind = cls.kind})
     w.SetVisibility = function(self, v) self.visibility = v end
+    w.SetClipping = function(self, v) self.clipping = v end
     w.SetRenderOpacity = function(self, v) self.RenderOpacity = v end
     w.SetPositionInViewport = function(self, p) self.x, self.y = p.X, p.Y end
     w.SetDesiredSizeInViewport = function(self, p) self.width, self.height = p.X, p.Y end
     w.SetAnchorsInViewport = function(self, a) self.anchor = a.Minimum end
     w.SetAlignmentInViewport, w.InvalidateLayoutAndVolatility = noop, noop
-    w.AddToViewport = function(self) self.fontAtConstruct = self.ChatLogLabelTextBlock.Font.Size end
+    w.AddToViewport = function(self)
+        self.fontAtConstruct = self.ChatLogLabelTextBlock.Font.Size
+        self.cachedFont = "ChatBold" -- Changing Font properties alone does not refresh native Slate.
+    end
     w.RemoveFromViewport = function(self) self.removed = true end
     local slot = object({SetAnchors = noop, SetAlignment = noop, SetAutoSize = noop, SetPosition = noop, SetSize = noop})
     w.ProgressBarComponent = object({GetParent = function() return object({SetVisibility = noop}) end})
-    w.BoostIconBarImage = object({Slot = slot, SetBrushResourceObject = noop,
+    w.BoostIconBarImage = object({Slot = slot, Brush = {},
+        SetBrushResourceObject = function(_, resource) w.texture = resource end,
+        SetBrushFromTexture = function(_, resource) w.texture = resource end, SetBrush = noop,
         SetColorAndOpacity = function(_, c) w.fill = c end, SetBrushSize = noop})
-    w.ChatLogLabelTextBlock = object({Font = {OutlineSettings = {}}, SetJustification = noop,
+    w.ChatLogLabelTextBlock = object({Font = {OutlineSettings = {}},
+        SetFont = function(_, font) w.cachedFont, w.fontObject, w.outline = font.TypefaceFontName, font.FontObject, font.OutlineSettings.OutlineSize end,
+        SetJustification = function(_, value) w.justification = value end,
         SetColorAndOpacity = function(_, c) w.color = c.SpecifiedColor end,
         SetText = function(_, text) w.text = text end})
     widgets[#widgets + 1] = w
     return w
 end
 local lib = object({Create = widget})
+local font = object()
+local rendering = object({ImportFileAsTexture2D = function(_, _, file) return object({file = file}) end})
 StaticFindObject = function(path)
     if path == "/Script/Engine.Default__GameplayStatics" then return gs end
     if path == "/Script/Archon.Default__ArchonGameplayStatics" then return archon end
     if path:find("WidgetBlueprintLibrary", 1, true) then return lib end
-    if path:find("HealthValueText", 1, true) then return object({Font = {FontObject = {}, TypefaceFontName = "Regular"}}) end
+    if path:find("KismetRenderingLibrary", 1, true) then return rendering end
+    if path:find("RobotoCondensed", 1, true) then return font end
     return object({kind = path:find("chat_log_label", 1, true) and "label" or "panel"})
 end
 local tracker = object({RenderOpacity = 0.996, removed = false})
@@ -76,6 +87,7 @@ tracker.RemoveFromViewport = function(self) self.removed = true end
 FindAllOf = function(cls) return cls == "ArchonPlayerController" and {pc} or {tracker} end
 LoadAsset = noop
 FText = function(text) return text end
+FName = function(text) return text end
 RegisterHook = function(path, callback) callbacks[path], hookCount = callback, hookCount + 1 end
 package.loaded.FrameTick = {Every = function(_, name, callback) ticks[name] = callback end, Now = function() return now end, Start = noop}
 package.loaded.ModSettings = {Load = noop, Get = function(k, default) if settings[k] == nil then return default end return settings[k] end}
@@ -104,24 +116,33 @@ callback(wrap(component), wrap(array({
     {SourceActor = object({PlayerState = a}), CoreDamage = 50},
 })))
 now = 11; pulse()
-assert(displayed("1,250  core damage") and displayed("Team total  1,650"))
-assert(not displayed("GOLLUM"), "Compact default retains the team total but collapses individual rows")
+assert(displayed("1,250") and displayed("core damage") and displayed("DPS"))
+assert(not displayed("Team total  1,650") and not displayed("GOLLUM"), "Reference compact view has exactly five damage rows")
+local compactLabels = 0
+for _, w in ipairs(widgets) do
+    if not w.removed and w.kind == "label" then
+        compactLabels = compactLabels + 1
+        assert(w.fontObject == font and w.outline == 0)
+        assert(w.cachedFont == (w.justification == 2 and "Bold" or "Regular"))
+    end
+end
+assert(compactLabels == 10, "Each reference row has a separate number and label")
 settings.dm_team = true; pulse()
-assert(displayed("Void") and displayed("GOLLUM"))
+assert(displayed("Void") and displayed("GOLLUM") and displayed("Team total  1,650"))
 for _, w in ipairs(widgets) do
     if not w.removed then
-        assert(w.x >= 24 and w.x + w.width <= 334 and w.visibility == 3 and w.anchor.Y == 0.5)
+        assert(w.x >= 22 and w.x + w.width <= 332 and w.visibility == 3 and w.anchor.Y == 0.54)
         if w.kind == "label" then assert(w.fontAtConstruct ~= nil, "Fonts must be set before constructing Slate widgets") end
     end
 end
 ticks["damage-hook"](); assert(hookCount == 1)
-settings.dm_visible = false; pulse(); assert(not displayed("Team total  1,650"))
-send(a, 500); settings.dm_visible = true; pulse(); assert(displayed("1,750  core damage"))
-owner.foreign = true; send(a, 10000); owner.foreign = false; pulse(); assert(displayed("1,750  core damage"))
-settings.dm_team = false; pulse(); assert(not displayed("TEAM · CORE DAMAGE"))
-city = true; ticks["damage-roster"](); pulse(); assert(not displayed("Observed this visit · DPS since first hit"))
+settings.dm_visible = false; pulse(); assert(not displayed("core damage"))
+send(a, 500); settings.dm_visible = true; pulse(); assert(displayed("1,750"))
+owner.foreign = true; send(a, 10000); owner.foreign = false; pulse(); assert(displayed("1,750"))
+settings.dm_team = false; pulse(); assert(not displayed("Team total  2,150"))
+city = true; ticks["damage-roster"](); pulse(); assert(not displayed("core damage"))
 city, session, worldAddress, now = false, "hunt-b", 124, 0 -- Repeated map name, new world instance.
-ticks["damage-roster"](); pulse(); assert(displayed("0  core damage"))
+ticks["damage-roster"](); pulse(); assert(displayed("0") and displayed("core damage"))
 
 local Status = dofile("client-mods/ue4ss/Mods/PartMonitor/Scripts/PartStatus.lua")
 local function status(hp, max, kind, severed, breakable, actor)
@@ -187,10 +208,9 @@ local function right(text, color)
 end
 local function rightState(name, word, color)
     local label = assert(right(name), name)
-    local state = assert(right(word, color), word)
     for _, w in ipairs(widgets) do
-        if not w.removed and w.RenderOpacity == 0.994 and w.x == label.x + 142 and w.y == label.y + 3 then
-            assert(w.text == word and w.color == color, name .. " state")
+        if not w.removed and w.RenderOpacity == 0.994 and w.x == label.x - 28 and w.y == label.y + 3 then
+            assert(w.kind == "panel" and w.fill == color and w.texture.file:match("indicator[.]png$"), name .. " image indicator")
             return
         end
     end
@@ -199,8 +219,8 @@ end
 local function rightBar(name, width, color)
     local label = assert(right(name))
     for _, w in ipairs(widgets) do
-        if not w.removed and w.RenderOpacity == 0.994 and w.kind == "panel" and w.x == label.x - 22
-            and (w.y == label.y + 31 or w.y == label.y + 23) and w.fill == color then
+        if not w.removed and w.RenderOpacity == 0.994 and w.kind == "panel" and w.x == label.x - 20
+            and w.y == label.y + 37 and w.fill == color then
             assert(w.width == width, name .. " HP bar")
             return
         end
@@ -208,21 +228,19 @@ local function rightBar(name, width, color)
     error("No HP bar for " .. name)
 end
 partsPulse()
-assert(right("PART STATUS") and right("Nearest behemoth · 5 m"))
-assert(right("LOW", Status.colors.low) and right("BROKEN", Status.colors.broken))
-assert(right("OK", Status.colors.intact) and right("?", Status.colors.unknown))
-assert(right("Front Left Wing") and right("DISABLED", Status.colors.unknown))
+assert(right("Head") and right("Front Left Wing"))
+assert(not right("PART STATUS") and not right("BROKEN"), "No headings or state badges in the reference layout")
 assert(not right("Duplicate Head"), "Two shapes sharing one health actor are one part")
-rightState("Head", "OK", Status.colors.intact); rightBar("Head", 230, Status.colors.intact)
-rightState("Front Left Wing", "LOW", Status.colors.low); rightBar("Front Left Wing", 115, Status.colors.low)
+rightState("Head", "OK", Status.colors.intact); rightBar("Head", 164, Status.colors.intact)
+rightState("Front Left Wing", "LOW", Status.colors.low); rightBar("Front Left Wing", 82, Status.colors.low)
 rightState("Tail", "BROKEN", Status.colors.broken); rightBar("Tail", 0, Status.colors.broken)
 rightState("Back Right", "?", Status.colors.unknown); rightBar("Back Right", 0, Status.colors.unknown)
 rightState("Fixed", "N/A", Status.colors.unknown)
-assert(displayed("0  core damage") and not tracker.removed, "Part monitor must preserve the other HUD mods")
-head.current = 50; partsPulse(); rightState("Head", "LOW", Status.colors.low); rightBar("Head", 115, Status.colors.low)
+assert(displayed("core damage") and not tracker.removed, "Part monitor must preserve the other HUD mods")
+head.current = 50; partsPulse(); rightState("Head", "LOW", Status.colors.low); rightBar("Head", 82, Status.colors.low)
 head.PartSevered = true; partsPulse(); rightState("Head", "BROKEN", Status.colors.broken); rightBar("Head", 0, Status.colors.broken)
 head.PartSevered, head.PartType, head.current = false, 0, 100 -- Regrowth restores green; no permanent cached break flag.
-partsPulse(); rightState("Head", "OK", Status.colors.intact); rightBar("Head", 230, Status.colors.intact)
+partsPulse(); rightState("Head", "OK", Status.colors.intact); rightBar("Head", 164, Status.colors.intact)
 armour.CurrentBreakStage, armour.PartType = 1, 0; partsPulse() -- Armour -> normal flesh is not broken flesh.
 rightState("Armour", "OK", Status.colors.intact)
 armour.PartType, armour.breakable = 5, false
@@ -233,12 +251,13 @@ armour.PartBreakData = array({{[desc] = 1}, {}, {[desc] = 7}})
 partsPulse(); rightState("Armour", "DISABLED", Status.colors.unknown) -- Unknown stages must not be skipped/compressed.
 for _, w in ipairs(widgets) do
     if not w.removed and w.RenderOpacity == 0.994 then
-        assert(w.x < 0 and w.x + w.width <= -24 and w.anchor.X == 1 and w.anchor.Y == 0.5)
+        assert(w.x >= -216 and w.x + w.width <= -24 and w.anchor.X == 1 and w.anchor.Y == 0.49)
+        if w.kind == "label" then assert(w.cachedFont == "Regular" and w.outline == 0) end
         assert(w.visibility == 3 or (w.kind == "panel" and w.width == 0 and w.visibility == 1))
     end
 end
-near.distance, other.distance = 5000, 6000; partsPulse(); assert(not right("PART STATUS"), "Leave room for the distant tracker")
-near.distance, other.distance = 500, 1000; partsPulse(); assert(right("PART STATUS"))
-settings.pm_visible = false; partsPulse(); assert(not right("PART STATUS") and displayed("0  core damage"))
-settings.pm_visible, city = true, true; partsPulse(); assert(not right("PART STATUS"))
+near.distance, other.distance = 5000, 6000; partsPulse(); assert(not right("Head"), "Leave room for the distant tracker")
+near.distance, other.distance = 500, 1000; partsPulse(); assert(right("Head"))
+settings.pm_visible = false; partsPulse(); assert(not right("Head") and displayed("core damage"))
+settings.pm_visible, city = true, true; partsPulse(); assert(not right("Head"))
 print("HUD monitors: damage, replicated part states, exact half threshold, regrowth, armour stages, world isolation and both-side layout passed")

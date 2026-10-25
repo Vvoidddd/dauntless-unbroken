@@ -43,3 +43,16 @@ test("the shipped Lua menu uses Client Mods and preserves its settings controls"
   assert.match(navigation[1], /ShowPage\(activeMod\)/);
   assert.doesNotMatch(navigation[1], /BuildUI|DestroyUI/, "moving selection must preserve the menu widgets");
 });
+
+test("the launcher lists both Void HUD mods before the older client mods", () => {
+  const cards = renderer.match(/const MODS:[\s\S]*?\n\];/)?.[0] ?? "";
+  assert.ok(cards.indexOf('name: "mod_dm_name"') >= 0);
+  assert.ok(cards.indexOf('name: "mod_pm_name"') > cards.indexOf('name: "mod_dm_name"'));
+  assert.ok(cards.indexOf('name: "mod_cst_name"') > cards.indexOf('name: "mod_pm_name"'));
+  assert.match(renderer, /m\.name === "mod_dm_name" \|\| m\.name === "mod_pm_name" \? "mod_dm_by"/);
+  for (const lang of LANGUAGES) {
+    assert.ok(STRINGS[lang].mod_dm_name && STRINGS[lang].mod_pm_name && STRINGS[lang].mod_dm_by.includes("Void"));
+  }
+  assert.match(STRINGS.en.mod_dm_text, /separate columns/);
+  assert.match(STRINGS.en.mod_pm_text, /glowing image indicator/);
+});
