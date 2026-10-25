@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "32218c61d988df9faae09ef0b058b4af40248045",
+      "date": "2026-10-25T04:09:57.532Z",
+      "title": "Latest project updates",
+      "body": "• Restore bot claim counters and harden launcher startup recovery\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.32",
       "date": "2026-10-25T03:33:42Z",
       "title": "Launcher 1.0.32 is available",
@@ -173,12 +179,6 @@
       "date": "2026-10-22T23:30:26Z",
       "title": "Launcher 1.0.23 is available",
       "body": "## Launcher 1.0.23 changes\n\n- Clarified the region selector as **Europe (shared fleet)**: both configured European game hosts are part of the same fleet.\n- Simplified Automatic and corrected the region explanation in all nine launcher languages, including obsolete OCE wording.\n- Only enabled regional destinations are shown. Saved disabled Germany/US choices continue to fall back safely to the shared European fleet.\n\nIncludes the registration/account-key backup fixes from 1.0.22. Fully close the game before updating.\n\n---\n\nDauntless Unbroken Launcher 1.0.23 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.23-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.23-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.23-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.23-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.23-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.23-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
-    },
-    {
-      "id": "6e2786dbeef7dc29ecd4bc4311d9bf4a01dcae23",
-      "date": "2026-10-22T23:20:21.051Z",
-      "title": "Latest project updates",
-      "body": "• Clarify launcher shared European fleet labels\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
