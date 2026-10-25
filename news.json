@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "a7962965de2f6da2397bced4df61af62b1742282",
+      "date": "2026-10-25T01:07:37.780Z",
+      "title": "Latest project updates",
+      "body": "• Number public fleet status hosts consecutively\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "1a3afa7a8cbf20dd1db8ab275d223a4f144ff24b",
       "date": "2026-10-24T22:51:30.501Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-22T22:56:37.022Z",
       "title": "Latest project updates",
       "body": "• Clear stale account backup paths during background recovery\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "df0957b4307b49b87e17f18761dd8e1757ad7451",
-      "date": "2026-10-22T22:49:21.286Z",
-      "title": "Latest project updates",
-      "body": "• Fix launcher registration waiting on automatic key backups\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
