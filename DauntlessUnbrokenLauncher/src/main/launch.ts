@@ -71,8 +71,10 @@ export interface LaunchRuntime {
   env: NodeJS.ProcessEnv;
 }
 
-export function launcherRelaunchOptions(platform:NodeJS.Platform=process.platform,appImage=process.env.APPIMAGE,args=process.argv.slice(1)):{args:string[];execPath?:string}{
-  return {args:[...args],...(platform==='linux'&&appImage&&path.posix.isAbsolute(appImage)?{execPath:appImage}:{})};
+export function launcherRelaunchOptions(platform:NodeJS.Platform=process.platform,appImage=process.env.APPIMAGE,args=process.argv.slice(1),executable=process.execPath):{args:string[];execPath?:string}{
+  const execPath=platform==='linux' ? appImage&&path.posix.isAbsolute(appImage)?appImage
+    :path.posix.isAbsolute(executable)&&executable.endsWith('/DauntlessUnbrokenLauncher.bin')?executable.slice(0,-4):undefined :undefined;
+  return {args:[...args],...(execPath?{execPath}:{})};
 }
 
 // Tracks the one game process this launcher started.

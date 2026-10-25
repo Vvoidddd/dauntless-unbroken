@@ -359,12 +359,12 @@ test("HEAD keeps the content-length and sends no body", async () => {
 });
 
 test("responses are streamed, not buffered", async () => {
-  const started = Date.now();
+  const started = performance.now(); // elapsed time must survive VM wall-clock adjustments
   const arrivals: { at: number; text: string }[] = [];
   await new Promise<void>((resolve, reject) => {
     const req = http.request({ host: "127.0.0.1", port: RELAY_PORT, path: "/stream", agent: false });
     req.on("response", (r) => {
-      r.on("data", (c: Buffer) => arrivals.push({ at: Date.now() - started, text: c.toString() }));
+      r.on("data", (c: Buffer) => arrivals.push({ at: performance.now() - started, text: c.toString() }));
       r.on("end", () => resolve());
     });
     req.on("error", reject);

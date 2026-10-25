@@ -177,7 +177,7 @@ function registerProtocolClient(): void {
   if (!app.isPackaged) return; // a dev build must not take over the scheme
   // Squirrel keeps a stub exe one folder up that always starts the newest version on Windows.
   const stub = path.resolve(path.dirname(process.execPath), "..", path.basename(process.execPath));
-  const target = process.platform === "win32" && existsSync(stub) ? stub : process.execPath;
+  const target = process.platform === "win32" && existsSync(stub) ? stub : launcherRelaunchOptions().execPath ?? process.execPath;
   if (!app.setAsDefaultProtocolClient(INVITE_SCHEME, target, [])) log.warn("could not register the invite link handler");
 }
 
@@ -664,13 +664,15 @@ function makePlatform(): Platform {
             }
           }
         : undefined,
-    installUpdate: () => {
+    installUpdate: async () => {
       if (app.isPackaged && process.platform === "win32") {
         quitting = true;
         discordPresence.stop();
         autoUpdater.quitAndInstall();
       } else if (app.isPackaged && process.platform === "linux" && linuxUpdate) {
-        void installLinuxUpdate(linuxUpdate).then(() => { quitting = true; app.quit(); }).catch((e) => log.error(`update: Linux install failed: ${describeError(e)}`));
+        await installLinuxUpdate(linuxUpdate);
+        quitting = true;
+        app.quit();
       }
     },
   };

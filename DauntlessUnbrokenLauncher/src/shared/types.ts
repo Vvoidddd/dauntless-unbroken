@@ -227,7 +227,7 @@ export interface Snapshot {
   game: { running: boolean; relayPort: number | null };
   playtime: Playtime;
   settings: Settings;
-  app: { version: string; packaged: boolean; updateReady: boolean };
+  app: { version: string; packaged: boolean; updateReady: boolean; platform?: NodeJS.Platform };
   status: ServerStatus | null;
   availableHuntRegions?: Array<'main' | 'ger' | 'us'>;
   statusUnsupported: boolean; // the host answers but has no ServerStatus endpoint yet

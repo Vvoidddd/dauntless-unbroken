@@ -8,6 +8,7 @@ import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { execFileSync } from "node:child_process";
+import { constants as fsConstants, promises as fs } from "node:fs";
 import path from "node:path";
 
 // Windows uses Squirrel plus a portable ZIP. Linux builds AppImage, deb, rpm and a portable ZIP.
@@ -41,6 +42,16 @@ const config: ForgeConfig = {
     onlyModules: [],
   },
   hooks: {
+    postPackage: async (_forgeConfig, result) => {
+      if (result.platform !== "linux") return;
+      for (const output of result.outputPaths) {
+        const executable = path.join(output, "DauntlessUnbrokenLauncher");
+        // Fuses are applied during packageAfterCopy, before this final wrapper.
+        await fs.copyFile(executable, executable + ".bin", fsConstants.COPYFILE_EXCL);
+        await fs.copyFile(path.resolve("scripts/linux-launcher.sh"), executable);
+        await fs.chmod(executable, 0o755);
+      }
+    },
     generateAssets: async (forgeConfig, platform, arch) => {
       const resources = [...launcherResources];
       if (platform === "win32") {

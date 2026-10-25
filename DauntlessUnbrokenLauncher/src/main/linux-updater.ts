@@ -1,5 +1,6 @@
 import { app } from "electron";
-import { existsSync, promises as fs } from "node:fs";
+import { constants, existsSync, promises as fs } from "node:fs";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import {launcherRelaunchOptions} from './launch';
@@ -32,21 +33,31 @@ export async function findLinuxUpdate(): Promise<LinuxUpdate | null> {
 
 export async function installLinuxUpdate(update: LinuxUpdate): Promise<"relaunch" | "quit"> {
   const dir = await fs.mkdtemp(path.join(app.getPath("temp"), "dauntless-unbroken-update-"));
-  const ext = update.kind === "deb" ? ".deb" : update.kind === "rpm" ? ".rpm" : ".AppImage";
-  const file = path.join(dir, `DauntlessUnbrokenLauncher-${update.version}${ext}`);
-  const response = await fetch(update.url, { redirect: "follow" });
-  if (!response.ok) throw new Error(`update download failed (${response.status})`);
-  await fs.writeFile(file, Buffer.from(await response.arrayBuffer()));
-  if (update.kind === "appimage") {
-    const target = process.env.APPIMAGE;
-    if (!target) throw new Error("APPIMAGE path is unavailable");
-    const next = `${target}.new`;
-    await fs.copyFile(file, next); await fs.chmod(next, 0o755); await fs.rename(next, target);
-    app.relaunch(launcherRelaunchOptions('linux',target));
-    return "relaunch";
+  let next: string | undefined;
+  try {
+    const ext = update.kind === "deb" ? ".deb" : update.kind === "rpm" ? ".rpm" : ".AppImage";
+    const file = path.join(dir, `DauntlessUnbrokenLauncher-${update.version}${ext}`);
+    const response = await fetch(update.url, { redirect: "follow" });
+    if (!response.ok) throw new Error(`update download failed (${response.status})`);
+    await fs.writeFile(file, Buffer.from(await response.arrayBuffer()));
+    if (update.kind === "appimage") {
+      const target = process.env.APPIMAGE;
+      if (!target) throw new Error("APPIMAGE path is unavailable");
+      next = `${target}.new-${randomUUID()}`;
+      await fs.copyFile(file, next, constants.COPYFILE_EXCL);
+      await fs.chmod(next, 0o755);
+      await fs.rename(next, target);
+      next = undefined;
+      app.relaunch(launcherRelaunchOptions('linux',target));
+      return "relaunch";
+    }
+    const escaped = file.replaceAll('"', '\\"');
+    const command = update.kind === "deb" ? `apt install -y "${escaped}"` : `rpm -U "${escaped}"`;
+    spawn("pkexec", ["sh", "-c", command], { detached: true, stdio: "ignore" }).unref();
+    return "quit";
+  } finally {
+    if (next) await fs.rm(next, { force: true });
+    // Detached package installers still need their downloaded file.
+    if (update.kind === "appimage") await fs.rm(dir, { recursive: true, force: true });
   }
-  const escaped = file.replaceAll('"', '\\"');
-  const command = update.kind === "deb" ? `apt install -y "${escaped}"` : `rpm -U "${escaped}"`;
-  spawn("pkexec", ["sh", "-c", command], { detached: true, stdio: "ignore" }).unref();
-  return "quit";
 }

@@ -25,6 +25,7 @@ test('AppImage recovery and update restarts use the persistent AppImage path and
   const args=['--safe-mode'];assert.deepEqual(launcherRelaunchOptions('linux','/home/deck/Launcher.AppImage',args),{execPath:'/home/deck/Launcher.AppImage',args});
   assert.deepEqual(launcherRelaunchOptions('linux',undefined,args),{args});
   assert.deepEqual(launcherRelaunchOptions('win32','/home/deck/Launcher.AppImage',args),{args});
+  assert.deepEqual(launcherRelaunchOptions('linux',undefined,args,'/opt/unbroken/DauntlessUnbrokenLauncher.bin'),{args,execPath:'/opt/unbroken/DauntlessUnbrokenLauncher'});
 });
 
 function tempDir(): string {

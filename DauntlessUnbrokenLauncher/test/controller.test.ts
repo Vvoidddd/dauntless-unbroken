@@ -194,6 +194,20 @@ test('cleanup maintenance blocks concurrent launcher work and always releases bu
  }finally{release?.();await h.c.shutdown();}
 });
 
+test('update installation shares the busy guard and permits retry after failure',async()=>{
+ let calls=0,release!:()=>void,fail=false;
+ const gate=new Promise<void>(resolve=>{release=resolve;});
+ const h=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{installUpdate:async()=>{calls++;if(fail)throw Error('test update failure');if(calls===1)await gate;}});
+ try{
+  await h.c.init();await h.c.installUpdate();assert.equal(calls,0);
+  h.c.setUpdateReady();const first=h.c.installUpdate();assert.equal(h.c.snapshot().busy,true);
+  await h.c.installUpdate();assert.equal(calls,1);
+  release();await first;assert.equal(h.c.snapshot().busy,false);
+  fail=true;await h.c.installUpdate();assert.equal(calls,2);assert.equal(h.c.snapshot().busy,false);
+  fail=false;await h.c.installUpdate();assert.equal(calls,3);
+ }finally{release?.();await h.c.shutdown();}
+});
+
 test('failed Offline journal recovery keeps online startup usable and still blocks unsafe Offline launch',async()=>{
  let starts=0,recoveries=0;
  const offlineSave:OfflineSaveRuntime={recover:async()=>{recoveries++;throw Error('Invalid Offline restore journal');},exportSave:async()=>({ok:true}),importSave:async()=>({ok:true})};

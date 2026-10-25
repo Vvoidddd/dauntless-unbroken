@@ -1699,6 +1699,8 @@ function renderSettings(): void {
     const troubleshooting = card(
       "settings-section",
       h("h2", { class: "card-title" }, t("set_troubleshooting")),
+      snap.app.platform === 'linux' ? settingsRow('Steam Deck controls',
+        'Add the Linux launcher to Steam as a Non-Steam game and open that shortcut in Gaming Mode. Choose a Gamepad layout in Steam controller settings. Leave forced compatibility off for the launcher; Unbroken starts Proton for the game.') : null,
       snap.revived?.supported?settingsRow('Other launchers',
         snap.revived.detected?'Dauntless Revived files were found. Running both launchers can cause a port conflict.':snap.revived.message||'Check for an old Revived installation.',
         button('Check for Revived',()=>void api.checkRevived(),{fk:'revived-settings-check',disabled:snap.busy||snap.revived.busy}),

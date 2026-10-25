@@ -12,6 +12,19 @@ function executable(file: string): string {
   return file;
 }
 
+test('the game restores the withheld overlay and retains Steam Input/runtime environment',()=>{
+  const home=mkdtempSync(path.join(tmpdir(),'unbroken-overlay-'));
+  try{
+    const proton=executable(path.join(home,'Proton','proton'));
+    const original='/steam/ubuntu12_64/gameoverlayrenderer.so:/other/library.so';
+    const env={HOME:home,PATH:'',DAUNTLESS_UNBROKEN_PROTON:proton,LD_PRELOAD:'/other/library.so',DR_GAME_LD_PRELOAD:original,SteamAppId:'123',SteamGameId:'456',STEAM_GAMEPADUI:'1',SDL_GAMECONTROLLERCONFIG:'mapping',LD_LIBRARY_PATH:'/steam/runtime'};
+    const runtime=detectLinuxRuntime(path.join(home,'data'),env,home)!;
+    assert.equal(runtime.env.LD_PRELOAD,original);assert.equal(runtime.env.DR_GAME_LD_PRELOAD,undefined);
+    for(const name of ['SteamAppId','SteamGameId','STEAM_GAMEPADUI','SDL_GAMECONTROLLERCONFIG','LD_LIBRARY_PATH'] as const)assert.equal(runtime.env[name],env[name]);
+    assert.equal(env.LD_PRELOAD,'/other/library.so','launcher environment must remain filtered');
+  }finally{rmSync(home,{recursive:true,force:true});}
+});
+
 test('Steam Proton directory links are discovered and broken links are skipped',()=>{
   const home=mkdtempSync(path.join(tmpdir(),'unbroken-linked-proton-'));
   try{

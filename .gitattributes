@@ -1,2 +1,3 @@
 DauntlessUnbrokenMetagame/src/vendor/progression_config.json linguist-generated=true
 DauntlessUnbrokenContent/data/*.json linguist-generated=true text eol=lf
+DauntlessUnbrokenLauncher/scripts/linux-launcher.sh text eol=lf

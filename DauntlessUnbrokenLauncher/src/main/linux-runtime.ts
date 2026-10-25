@@ -161,7 +161,15 @@ export function detectLinuxRuntime(
   env: NodeJS.ProcessEnv = process.env,
   home: string = env.HOME ?? os.homedir(),
 ): DetectedLinuxRuntime | null {
-  const runtimeEnv = withXwaylandAuthority(env);
+  const gameEnv = { ...env };
+  // The Linux bootstrap withholds Steam's overlay from Electron, not the game
+  // or Steam Input. Restore it without dropping Steam/controller/runtime vars.
+  if (gameEnv.DR_GAME_LD_PRELOAD !== undefined) {
+    if (gameEnv.DR_GAME_LD_PRELOAD) gameEnv.LD_PRELOAD = gameEnv.DR_GAME_LD_PRELOAD;
+    else delete gameEnv.LD_PRELOAD;
+    delete gameEnv.DR_GAME_LD_PRELOAD;
+  }
+  const runtimeEnv = withXwaylandAuthority(gameEnv);
   const explicitProton = customRuntime(runtimeEnv.DAUNTLESS_UNBROKEN_PROTON, runtimeEnv);
   const explicitWine = customRuntime(runtimeEnv.DAUNTLESS_UNBROKEN_WINE, runtimeEnv);
   const candidate = explicitProton || explicitWine ? undefined : protonCandidates(home)[0];

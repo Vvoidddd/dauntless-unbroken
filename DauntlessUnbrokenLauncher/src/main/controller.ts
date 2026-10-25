@@ -131,7 +131,7 @@ export interface Platform {
 // Starts the launcher-owned local services without exposing their Electron implementation here.
   startOfflineStack?(onPhase: (phase: "starting-metagame" | "starting-deploy") => void,): Promise<OfflineStackSession | null>;
   spawn?: SpawnFn;
-  installUpdate?(): void;
+  installUpdate?(): void | Promise<void>;
 }
 
 export interface OfflineStackSession {
@@ -403,7 +403,7 @@ export class Controller {
       game: { running: this.game.running, relayPort: this.relay?.port ?? null },
       playtime: { ...this.playtime.view(), onlineSeconds: this.serverPlaytime !== null && this.serverPlaytime.sid === sid && this.serverPlaytime.gen === this.statusGen ? this.serverPlaytime.seconds : null },
       settings: { graphics: this.s.graphics, exposure: this.s.exposure, windowed: this.s.windowed, language: this.s.language, gameLanguage: this.s.gameLanguage, streamerMode: this.s.streamerMode, discordPresence: this.s.discordPresence, showConsole: this.s.showConsole, ...(this.s.huntRegion ? {huntRegion:this.s.huntRegion} : {}) },
-      app: { version: this.p.appVersion, packaged: this.p.packaged, updateReady: this.updateReady },
+      app: { version: this.p.appVersion, packaged: this.p.packaged, updateReady: this.updateReady, platform: this.p.hostPlatform ?? process.platform },
       status: this.status,
       availableHuntRegions: this.huntRegions?.gen === this.statusGen ? this.huntRegions.regions : ['main'],
       statusUnsupported: this.statusUnsupported,
@@ -457,8 +457,9 @@ export class Controller {
     this.publish();
   }
 
-  installUpdate(): void {
-    if (this.updateReady && !this.task && !this.game.running) this.p.installUpdate?.();
+  async installUpdate(): Promise<void> {
+    if (!this.updateReady || !this.p.installUpdate) return;
+    await this.maintenance(async () => { await this.p.installUpdate!(); });
   }
 
   setNotice(code: NoticeCode | null): void {
