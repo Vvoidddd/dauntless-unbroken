@@ -1293,7 +1293,7 @@ function renderMods(): void {
         "mods-overview",
         h("h2", { class: "mods-title" }, t("mods_title")),
         h("p", { class: "card-text mods-intro" }, t("mods_intro")),
-        h("div", { class: "mods-grid" }, ...MODS.map((m) => modCard(null, m))),
+        h("div", { class: "mods-grid" }, ...MODS.map((m) => modCard(m.name === "mod_dm_name" ? "mod_dm_by" : null, m))),
       ),
       card("",
         h("h2", { class: "card-title" }, icon("info"), t("mods_notes_title")),

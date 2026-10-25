@@ -23,6 +23,7 @@ const en = {
   mods_title: "Client Mods",
   mods_intro: "A behemoth health bar, a behemoth tracker and an in-game mod menu. The launcher installs them with the game and keeps them up to date, so there is nothing to set up.",
 
+  mod_dm_by: "Made by Void",
   mod_dm_name: "Hunt Damage",
   mod_dm_text: "A left-side panel shows your core, part, stagger and wound damage, combat DPS, and each teammate’s core damage and share. Counts reset for a new hunt.",
   mod_dm_use: "Observed damage since joining: distant hits or lost network events may be missing. Home → Hunt Damage changes visibility and the team breakdown.",
@@ -575,6 +576,7 @@ const fi: Record<StringKey, string> = {
   mods_title: "Asiakasmodit",
   mods_intro: "Behemotin terveyspalkki, behemotin jäljitin ja pelinsisäinen modivalikko. Käynnistin asentaa ne pelin mukana ja pitää ne ajan tasalla.",
 
+  mod_dm_by: "Tekijä: Void",
   mod_dm_name: en.mod_dm_name,
   mod_dm_text: en.mod_dm_text,
   mod_dm_use: en.mod_dm_use,
@@ -1124,6 +1126,7 @@ const es: Record<StringKey, string> = {
   mods_title: "Mods del cliente",
   mods_intro: "Una barra de vida del Behemoth, un rastreador de Behemoths y un menú de mods dentro del juego. El launcher los instala con el juego y los mantiene actualizados.",
 
+  mod_dm_by: "Creado por Void",
   mod_dm_name: en.mod_dm_name,
   mod_dm_text: en.mod_dm_text,
   mod_dm_use: en.mod_dm_use,
