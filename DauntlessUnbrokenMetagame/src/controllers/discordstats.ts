@@ -37,11 +37,13 @@ export async function DiscordKeyStats(stateFile = process.env.DISCORD_KEY_STATE_
     const result = {at:new Date().toISOString(), linkedAccounts, bot:null as ReturnType<typeof SummarizeBotClaims> | null, error:null as string | null};
     if (!stateFile&&!stateUrl) return {...result,error:'Bot claim statistics are not configured.'};
     try {
-        const rows = db.prepare('SELECT invitecode AS inviteCode, usesRemaining, infiniteUses FROM invitecodes').all() as {inviteCode:string,usesRemaining:number,infiniteUses:number}[];
-        const invites=rows.map(row=>({...row,infiniteUses:!!row.infiniteUses}));
+        const invites=()=>{
+            const rows=db.prepare('SELECT invitecode AS inviteCode, usesRemaining, infiniteUses FROM invitecodes').all() as {inviteCode:string,usesRemaining:number,infiniteUses:number}[];
+            return rows.map(row=>({...row,infiniteUses:!!row.infiniteUses}));
+        };
         if(stateFile){
             if ((await stat(stateFile)).size > 5*1024*1024) throw new Error('State too large');
-            result.bot = SummarizeBotClaims(JSON.parse(await readFile(stateFile,'utf8')),invites);
+            result.bot = SummarizeBotClaims(JSON.parse(await readFile(stateFile,'utf8')),invites());
         }else{
             const url=new URL(stateUrl!);
             if(url.protocol!=='http:'||url.hostname!=='127.0.0.1'||url.username||url.password||url.pathname!=='/'||url.search||url.hash)throw Error('Bot monitor must use loopback tunnel');
@@ -50,7 +52,7 @@ export async function DiscordKeyStats(stateFile = process.env.DISCORD_KEY_STATE_
             const reader=response.body.getReader(),chunks:Uint8Array[]=[];let size=0;
             try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>5*1024*1024)throw Error('State too large');chunks.push(value);}}
             finally{await reader.cancel().catch(()=>{});}
-            result.bot=SummarizeBotClaimHashes(JSON.parse(Buffer.concat(chunks).toString('utf8')),invites);
+            result.bot=SummarizeBotClaimHashes(JSON.parse(Buffer.concat(chunks).toString('utf8')),invites());
         }
     } catch { result.error = 'Bot claim statistics are unavailable; no zero counts have been assumed.'; }
     return result;

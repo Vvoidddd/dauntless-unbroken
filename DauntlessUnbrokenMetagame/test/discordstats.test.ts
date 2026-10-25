@@ -41,6 +41,15 @@ test('private bot snapshots join hashed invites, expire, and never require bot c
     const stale=await DiscordKeyStats(undefined,'http://127.0.0.1:61112',async()=>Response.json({...state,at:'2000-01-01T00:00:00Z'}));
     assert.equal(stale.bot,null);assert.ok(stale.error);
 });
+
+test('an invite committed while fetching bot history is not misreported as revoked',async()=>{
+    const code='bot-stats-race';
+    const result=await DiscordKeyStats(undefined,'http://127.0.0.1:61112',async()=>{
+        GetDb().$client.prepare('INSERT INTO invitecodes(invitecode,usesRemaining,infiniteUses) VALUES(?,1,0)').run(code);
+        return Response.json({version:1,at:new Date().toISOString(),claims:[{inviteHash:createHash('sha256').update(code).digest('hex'),pending:false}]});
+    });
+    assert.equal(result.error,null);assert.equal(result.bot?.unused,1);assert.equal(result.bot?.revoked,0);
+});
 test('statistics join real SQLite invite column names and return only counts',async()=>{
     const dir=await mkdtemp(join(tmpdir(),'bot-stats-'));
     try {
