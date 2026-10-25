@@ -1,5 +1,5 @@
 import { logger } from "../logger";
-import { Gameservers, CleanupServer, IsGameserverAlive, StopExpiredHunt } from "./gameservers";
+import { Gameservers, CleanupServer, IsGameserverAlive, StopExpiredHunt, ReapEmptyCities } from "./gameservers";
 import { NativeOccupancy } from './nativeoccupancy';
 import { HuntLifetimeFromEnv } from './huntlifetime';
 const Lifetime=HuntLifetimeFromEnv();
@@ -34,5 +34,6 @@ export async function RunWatchdog(){
         }
     }
     await Promise.all(cleanup);
+    await ReapEmptyCities();
     } finally { running = false; }
 }

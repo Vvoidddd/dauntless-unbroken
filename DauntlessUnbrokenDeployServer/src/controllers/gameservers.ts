@@ -407,6 +407,17 @@ const CityInstances = new CityPool<Gameserver>(
     id => Gameservers.find(s => s.id === id)!
 );
 
+export async function ReapEmptyCities() {
+    if (!CityPoolEnabled() || ShuttingDown) return;
+    await CityInstances.reap(server => {
+        if (!Gameservers.includes(server) || !server.isRamsgate || NativeCityOccupancy(server.processId,server.startTime) !== 0) return false;
+        const child = SpawnedChildren.get(server.id);
+        const stopped = !!child && child.pid === server.processId && child.exitCode === null && !child.killed && child.kill();
+        if (stopped) logger.info({sessionId:server.id,port:server.port}, 'Retired empty Ramsgate');
+        return stopped;
+    });
+}
+
 export async function GetRamsgateConnectionDetails(size = 1, priority = false){
     if (CityPoolEnabled()) {
         const server = await CityInstances.allocate(size, priority);
@@ -701,6 +712,7 @@ export function DescribeGameservers(Servers: Gameserver[] = Gameservers, IsAlive
             id: Server.id,
             port: Server.port,
             kind: Kind,
+            ...(Server.isRamsgate && CityInstances.isRetiring(Server.id) ? {retiring:true} : {}),
             map: MapPath,
             gameMode: GameMode != undefined && GameMode.length > 0 ? GameMode : null,
             behemoth: Server.behemoth != undefined && Server.behemoth.length > 0 && Server.behemoth !== "NO_BEHEMOTH" ? Server.behemoth : null,

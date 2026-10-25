@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {CityPool, City} from '../src/controllers/citypool';
+import {CityPool, City, CITY_RETIRE_GRACE_MS} from '../src/controllers/citypool';
 import {CapacityUnavailable} from '../src/controllers/capacity';
 
 function fixture(caps?:number[]) {
@@ -130,4 +130,45 @@ test('a later cold city uses its own smaller cap before starting',async()=>{
     await assert.rejects(pool.allocate(3),CapacityUnavailable);
     assert.equal(cities.length,1);
     assert.equal((await pool.allocate(2)).id,'2');
+});
+
+test('retirement respects loading leases, excludes endpoints, and serializes with new arrivals',async()=>{
+    const {pool,cities,advance}=fixture();
+    const first=await pool.allocate();first.players=0;
+    const stopped:string[]=[];
+    const reap=()=>pool.reap(city=>{stopped.push(city.id);return true;});
+    await reap();assert.equal(pool.isRetiring(first.id),false,'loading reservation protects an empty city');
+    advance(180001);await reap();
+    assert.equal(pool.isRetiring(first.id),true);
+    cities.push({id:'active',players:1,startedAt:100001});
+    const next=await pool.allocate();assert.notEqual(next.id,first.id);
+    advance(CITY_RETIRE_GRACE_MS-1);await reap();assert.deepEqual(stopped,[]);
+    advance(1);await Promise.all([reap(),pool.allocate()]);
+    assert.deepEqual(stopped,[first.id]);
+    assert.ok(cities.length>=2);
+});
+
+test('an occupied, pending, or unknown city is never stopped; unknown resets the empty interval',async()=>{
+    const {pool,cities,advance}=fixture();
+    await pool.allocate();advance(180001);cities[0].players=0;
+    let stops=0;const reap=()=>pool.reap(()=>{stops++;return true;});
+    await reap();advance(CITY_RETIRE_GRACE_MS-1);
+    cities[0].players=undefined;await reap();
+    advance(2);cities[0].players=0;await reap();assert.equal(stops,0);
+    advance(CITY_RETIRE_GRACE_MS-1);cities[0].players=1;await reap();
+    assert.equal(stops,0);assert.equal(pool.isRetiring(cities[0].id),false);
+    cities[0].players=0;await reap();advance(CITY_RETIRE_GRACE_MS);await reap();
+    assert.equal(stops,1);
+});
+
+test('a retiring city reopens rather than blocking arrivals at the pool cap',async()=>{
+    const {pool,cities,advance}=fixture([20]);
+    await pool.allocate();advance(180001);cities[0].players=0;
+    await pool.reap(()=>false);advance(CITY_RETIRE_GRACE_MS);
+    await pool.reap(()=>false);
+    const reopened=await pool.allocate();
+    assert.equal(reopened.id,cities[0].id);
+    assert.equal(pool.isRetiring(reopened.id),false);
+    cities.splice(0,1);
+    assert.ok(await pool.allocate(20));
 });

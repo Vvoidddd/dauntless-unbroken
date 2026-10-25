@@ -309,6 +309,36 @@ it('a complete snapshot detects a dead native session even when its port was reu
     assert.equal(fresh?.Port, 8791);
 });
 
+it('a retiring city is refused even when another worker snapshot is incomplete', async t => {
+    t.mock.timers.enable({apis: ['setTimeout']});
+    deploy = async () => ready(8777, 'city-retiring');
+    await HandlePlayerMatchmaking('CITY', '', CITY, A, true);await flush();
+    assert.equal((await DecideCandidateStatus(A)).Kind, 'travel');
+    health = async () => json({servers:[{id:'city-retiring',retiring:true}],complete:false});
+    await advance(t, 5000);
+    assert.equal((await DecideCandidateStatus(A)).Kind, 'failed');
+    deploy = async () => ready(8778, 'city-packed');
+    await HandlePlayerMatchmaking('CITY', '', CITY, A, true);await flush();
+    assert.equal((await CheckAndUpdateQueueStatus(A))?.Port,8778);
+    assert.equal(posts.length,2);
+});
+
+it('a healthy city endpoint is repacked after its original three minute travel lease', async t => {
+    t.mock.timers.enable({apis: ['setTimeout']});
+    deploy = async () => ready(8777, 'city-old');
+    health = async () => json({servers:[{id:'city-old'}],complete:true});
+    await HandlePlayerMatchmaking('CITY', '', CITY, A, true);await flush();
+    const initial=await CheckAndUpdateQueueStatus(A);
+    await advance(t,179999);
+    assert.equal((await DecideCandidateStatus(A)).Kind,'travel');
+    await advance(t,1);
+    deploy = async () => ready(8778, 'city-packed');
+    await HandlePlayerMatchmaking('CITY', '', CITY, A, true);await flush();
+    assert.equal((await CheckAndUpdateQueueStatus(A))?.Port,8778);
+    assert.notEqual((await CheckAndUpdateQueueStatus(A))?.CandidateId,initial?.CandidateId);
+    assert.equal(posts.length,2);
+});
+
 it('incomplete or legacy snapshots are unknown, not death, and cannot slide the fallback deadline', async t => {
     t.mock.timers.enable({apis: ['setTimeout']});
     deploy = async () => ready(8790, 'native-unreachable-worker');

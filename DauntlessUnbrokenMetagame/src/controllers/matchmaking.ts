@@ -191,7 +191,7 @@ async function WithDeadline<T>(work: (signal: AbortSignal) => Promise<T>, timeou
     } finally { if (timer) clearTimeout(timer); }
 }
 
-type HealthSnapshot = { startedAt: number, until: number, complete: boolean, sessions: Set<string> };
+type HealthSnapshot = { startedAt: number, until: number, complete: boolean, sessions: Set<string>, retiring: Set<string> };
 let HealthCache: HealthSnapshot | undefined;
 let HealthRequest: Promise<HealthSnapshot> | undefined;
 
@@ -204,6 +204,7 @@ async function AllocationHealth(entry: MatchmakingResult): Promise<boolean | und
             const startedAt = PartyNow();
             let complete = false;
             let sessions = new Set<string>();
+            let retiring = new Set<string>();
             try {
                 const body = await WithDeadline(async signal => {
                     const reply = await fetch(`http://${DEPLOYSERVER_URL}/gameservers`, {signal, redirect: 'error'});
@@ -212,10 +213,11 @@ async function AllocationHealth(entry: MatchmakingResult): Promise<boolean | und
                 }, HEALTH_TIMEOUT_MS);
                 if (Array.isArray(body?.servers) && body.servers.every((server: any) => typeof server?.id === 'string')) {
                     sessions = new Set(body.servers.map((server: any) => server.id));
+                    retiring = new Set(body.servers.filter((server: any) => server.retiring === true).map((server: any) => server.id));
                     complete = body.complete === true;
                 }
             } catch { /* An unavailable worker is unknown, not proof of a dead process. */ }
-            return {startedAt, until: PartyNow() + HEALTH_CACHE_MS, complete, sessions};
+            return {startedAt, until: PartyNow() + HEALTH_CACHE_MS, complete, sessions, retiring};
         })();
         const pending = HealthRequest;
         try { HealthCache = await pending; }
@@ -223,6 +225,7 @@ async function AllocationHealth(entry: MatchmakingResult): Promise<boolean | und
     }
     const snapshot = HealthCache;
     if (!snapshot || snapshot.startedAt < (entry.AllocatedAt ?? 0)) return undefined;
+    if (entry.GameMode === 'CITY' && snapshot.retiring.has(entry.SessionId)) return false;
     if (snapshot.sessions.has(entry.SessionId)) return true;
     return snapshot.complete ? false : undefined;
 }
@@ -252,6 +255,12 @@ function AllocationExpired(entry: MatchmakingResult) {
 
 async function ReadyAllocationUsable(entry: MatchmakingResult) {
     if (entry.Failed) return false;
+    // City returns must obtain a new packed seat after the original travel lease;
+    // a healthy endpoint is not a permanent reservation in that particular town.
+    if (entry.GameMode === 'CITY' && PartyNow() - (entry.AllocatedAt ?? 0) >= 180000) {
+        FailCandidate(entry.CandidateId, 'city travel lease expired');
+        return false;
+    }
     if (entry.PartyCandidate && AllocationExpired(entry)) {
         FailCandidate(entry.CandidateId, 'allocation reuse expired');
         return false;
