@@ -76,6 +76,7 @@ import { SettingsStore, type StoredServer, type StoredSettings } from "./setting
 import { freeBytes, missingVcRuntime } from "./system";
 import { fixedLinkUrl, isAllowedExternalUrl } from "./links";
 import { describeError, log } from "./log";
+import {bounded} from './diagnostics';
 import { DEFAULT_RELAY_PORT, Relay, RelayError } from "./relay";
 import {
   DISK_MARGIN_BYTES,
@@ -311,14 +312,23 @@ export class Controller {
   }
 
   async init(): Promise<void> {
-    if (this.p.offlineSave) await this.withBusy(() => this.p.offlineSave!.recover());
+    if (this.p.offlineSave) await this.withBusy(async()=>{
+      try{await this.p.offlineSave!.recover();}
+      catch(error){
+        log.warn('Offline save recovery unavailable: '+describeError(error));
+      }
+    });
     await this.refreshKeyFlag();
     await this.inspectInstall();
     this.discovering = !!this.p.findExistingGames && this.install.present === 0 && this.install.partFiles === 0;
     this.publish();
     if (this.s.server) void this.connect();
     if (this.discovering) {
-      try { this.detectedDirs = await this.p.findExistingGames!(); }
+      try {
+        const found=await bounded<string[]|null>(this.p.findExistingGames!(),null,10000);
+        if(found===null)log.warn('Game folder discovery unavailable; use Browse');
+        else this.detectedDirs=found;
+      }
       catch { log.warn("Game folder discovery unavailable; use Browse"); }
       finally { this.discovering = false; this.publish(); }
     }

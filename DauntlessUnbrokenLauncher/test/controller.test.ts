@@ -194,6 +194,31 @@ test('cleanup maintenance blocks concurrent launcher work and always releases bu
  }finally{release?.();await h.c.shutdown();}
 });
 
+test('failed Offline journal recovery keeps online startup usable and still blocks unsafe Offline launch',async()=>{
+ let starts=0,recoveries=0;
+ const offlineSave:OfflineSaveRuntime={recover:async()=>{recoveries++;throw Error('Invalid Offline restore journal');},exportSave:async()=>({ok:true}),importSave:async()=>({ok:true})};
+ const h=harness(RELAY_PORT,undefined,undefined,async()=>{starts++;throw Error('Must not start');},undefined,undefined,undefined,offlineSave);
+ try{
+  await h.c.init();assert.equal(h.c.snapshot().busy,false);assert.equal(h.c.snapshot().phase,'join');assert.equal(h.c.offlineStatus().phase,'stopped');
+  assert.deepEqual(await h.c.startOffline(),{ok:false,error:{code:'offline_unavailable'}});assert.equal(starts,0);assert.equal(recoveries,2);
+  meta.opts.validCodes!.add('RECOVERY-ONLINE');await h.c.submitInvite(invite(cert.fingerprint,'RECOVERY-ONLINE'));await h.c.register('RecoveryOnline');await h.c.repair();
+  assert.deepEqual(await h.c.play(),{ok:true});
+ }finally{h.child()?.emit('exit',0);await h.c.shutdown();}
+});
+
+test('a stalled game-folder scan releases Browse after its deadline and ignores a late result',async t=>{
+ let entered!:()=>void,release!: (paths:string[])=>void;
+ const scanning=new Promise<void>(resolve=>{entered=resolve;}),pending=new Promise<string[]>(resolve=>{release=resolve;});
+ const h=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{findExistingGames:()=>{entered();return pending;}});
+ try{
+  t.mock.timers.enable({apis:['setTimeout']});
+  const init=h.c.init();await scanning;assert.equal(h.c.snapshot().install.discovering,true);
+  t.mock.timers.tick(10001);await init;assert.equal(h.c.snapshot().install.discovering,false);
+  assert.deepEqual(await h.c.chooseInstallDir(),{ok:false,error:{code:'cancelled'}});
+  release(['late-game']);await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(h.c.snapshot().install.detectedDirs,[]);
+ }finally{release?.([]);t.mock.timers.reset();await h.c.shutdown();}
+});
+
 test('removing downloaded game files refreshes install state without changing saved account data',async()=>{
  const trash=temp('dr-ctl-trash-');let confirmed=0,moved=0;
  const h=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{

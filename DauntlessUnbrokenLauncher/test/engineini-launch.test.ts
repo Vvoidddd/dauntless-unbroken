@@ -8,10 +8,24 @@ import { applyGameConfig, defaultConfigDir, rewriteEngineIniText, splitLines, sy
 import { settingsPatch } from "../src/main/ipc-validate";
 import { sanitizeSettings } from "../src/main/settings";
 import { EXPOSURE_MODES, type ExposureMode } from "../src/shared/types";
-import { buildLaunchArgs, describeLaunch, FIXED_ARGS, GameProcess, gameLocale, maskArgs, type SpawnFn } from "../src/main/launch";
+import { buildLaunchArgs, describeLaunch, FIXED_ARGS, GameProcess, gameLocale, maskArgs, findRunningClients,launcherRelaunchOptions,type SpawnFn } from "../src/main/launch";
+import type {execFile} from 'node:child_process';
 import { addSecret, redact, setSink, log } from "../src/main/log";
 
 const KEY = "UUK_" + "0123456789abcdef".repeat(3);
+
+test('Linux running-client detection excludes dedicated servers and returns only PIDs',async()=>{
+  const execute=((command:any,args:any,options:any,done:any)=>{
+    assert.equal(command,'pgrep');assert.deepEqual(args,['-af','Dauntless-Win64-Shipping\\.exe']);
+    done(null,'12 wine Dauntless-Win64-Shipping.exe -server -AUTH_PASSWORD=secret\n13 wine Dauntless-Win64-Shipping.exe -AUTH_PASSWORD=other\n14 Dauntless-Win64-Shipping.exe -SERVER\nbad row\n');
+  }) as typeof execFile;
+  assert.deepEqual(await findRunningClients('linux',execute),[13]);
+});
+test('AppImage recovery and update restarts use the persistent AppImage path and keep safe-mode arguments',()=>{
+  const args=['--safe-mode'];assert.deepEqual(launcherRelaunchOptions('linux','/home/deck/Launcher.AppImage',args),{execPath:'/home/deck/Launcher.AppImage',args});
+  assert.deepEqual(launcherRelaunchOptions('linux',undefined,args),{args});
+  assert.deepEqual(launcherRelaunchOptions('win32','/home/deck/Launcher.AppImage',args),{args});
+});
 
 function tempDir(): string {
   return mkdtempSync(path.join(tmpdir(), "dr-launcher-test-"));

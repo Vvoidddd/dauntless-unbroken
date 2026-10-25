@@ -71,6 +71,10 @@ export interface LaunchRuntime {
   env: NodeJS.ProcessEnv;
 }
 
+export function launcherRelaunchOptions(platform:NodeJS.Platform=process.platform,appImage=process.env.APPIMAGE,args=process.argv.slice(1)):{args:string[];execPath?:string}{
+  return {args:[...args],...(platform==='linux'&&appImage&&path.posix.isAbsolute(appImage)?{execPath:appImage}:{})};
+}
+
 // Tracks the one game process this launcher started.
 export class GameProcess {
   private child: ChildProcess | null = null;
@@ -124,30 +128,30 @@ export class GameProcess {
 
 // Lists running Dauntless clients. Game servers (the same exe started with -server, as on the
 // host's own PC) do not count. Only process ids and a yes/no are read back: other processes'
-// command lines contain their keys and never leave PowerShell.
-export function findRunningClients(platform: NodeJS.Platform = process.platform): Promise<number[]> {
+// command lines contain their keys and are never logged or returned to the UI.
+export function findRunningClients(platform: NodeJS.Platform = process.platform,execute:typeof execFile=execFile): Promise<number[]> {
   if (platform === "linux") {
     return new Promise((resolve) => {
-      execFile("pgrep", ["-f", EXE_NAME], { timeout: 10000 }, (err, stdout) => {
+      execute("pgrep", ["-af", EXE_NAME.replace(/\./g,'\\.')], { timeout: 10000 }, (err, stdout) => {
         if (err) return resolve([]);
         resolve(
           stdout
             .split(/\r?\n/)
-            .map((line) => line.trim())
-            .filter((line) => /^\d+$/.test(line))
-            .map(Number),
+            .map((line) => line.match(/^\s*(\d+)\s+(.+)$/))
+            .filter((match) => match && !/(^|\s)-server(\s|$)/i.test(match[2]))
+            .map(match=>Number(match![1])),
         );
       });
     });
   }
   if (platform !== "win32") return Promise.resolve([]);
   return new Promise((resolve) => {
-    execFile("tasklist.exe", ["/FI", `IMAGENAME eq ${EXE_NAME}`, "/FO", "CSV", "/NH"], { windowsHide: true, timeout: 10000 }, (err, stdout) => {
+    execute("tasklist.exe", ["/FI", `IMAGENAME eq ${EXE_NAME}`, "/FO", "CSV", "/NH"], { windowsHide: true, timeout: 10000 }, (err, stdout) => {
       if (err || !stdout.toLowerCase().includes(EXE_NAME.toLowerCase())) return resolve([]);
       const script =
         `Get-CimInstance Win32_Process -Filter "Name='${EXE_NAME}'" | ForEach-Object { ` +
         `if ($_.CommandLine -notmatch '(^|\\s)-server(\\s|$)') { $_.ProcessId } }`;
-      execFile(
+      execute(
         "powershell.exe",
         ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script],
         { windowsHide: true, timeout: 15000 },

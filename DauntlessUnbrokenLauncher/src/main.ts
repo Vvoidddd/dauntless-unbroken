@@ -19,7 +19,7 @@ import started from "electron-squirrel-startup";
 import { updateElectronApp, UpdateSourceType } from "update-electron-app";
 import { Controller, type Platform, type OfflineStackSession } from "./main/controller";
 import { GAME_MANIFEST, GAME_MANIFEST_FINGERPRINT, GAME_MANIFEST_PROBLEM } from "./main/game-manifest";
-import { findRunningClients } from "./main/launch";
+import { findRunningClients,launcherRelaunchOptions } from "./main/launch";
 import { LinuxRuntimeMissingError, prepareLinuxGameLaunch } from "./main/linux-runtime";
 import {
   linuxDependencyInstallPlan,
@@ -147,7 +147,7 @@ async function ensureLinuxSecureStorageDependency(): Promise<boolean> {
     await runLinuxDependencyInstall(plan);
     log.info("Linux secure-storage dependencies installed; restarting launcher");
     process.env.DAUNTLESS_UNBROKEN_STORAGE_BOOTSTRAPPED = "1";
-    app.relaunch();
+    app.relaunch(launcherRelaunchOptions());
     app.exit(0);
     return true;
   } catch (e) {
@@ -242,11 +242,12 @@ function createWindow(): void {
   window.once("closed", () => clearTimeout(showTimer));
   window.webContents.on("render-process-gone", (_event, details) => {
     log.error(`launcher renderer stopped: ${details.reason}`);
-    if (!process.argv.includes("--safe-mode") && !controller?.relayActive && !controller?.offlineGameActive) {
-      app.relaunch({args: [...process.argv.slice(1), "--safe-mode"]});
+    const snapshot=controller?.snapshot(),offline=controller?.offlineStatus().phase;
+    if (!process.argv.includes("--safe-mode") && !snapshot?.busy && !snapshot?.task && !snapshot?.game.running && !controller?.relayActive && (!offline||offline==='stopped'||offline==='error')) {
+      app.relaunch(launcherRelaunchOptions(process.platform,process.env.APPIMAGE,[...process.argv.slice(1), "--safe-mode"]));
       app.exit(0);
     } else {
-      dialog.showErrorBox("Dauntless Unbroken could not open", "The launcher renderer stopped. Reinstall the latest launcher and send the launcher logs to support.");
+      void dialog.showMessageBox({type:'error',title:'Dauntless Unbroken could not open',message:'The launcher interface stopped.',detail:'Automatic restart is paused while work or a game is active. Let current work finish, then close and reopen the launcher. Send launcher logs to support if it happens again.'});
     }
   });
   window.on('unresponsive',()=>log.error('launcher renderer is unresponsive'));
@@ -702,7 +703,6 @@ if (!started) {
         log.info(
           `secure storage backend ${safeStorage.getSelectedStorageBackend()}, encryption ${safeStorage.isEncryptionAvailable() ? "available" : "unavailable"}`,
         );
-        if (await ensureLinuxSecureStorageDependency()) return;
       }
       if (GAME_MANIFEST) log.info(`game manifest ${GAME_MANIFEST.files.length} files, fingerprint ${GAME_MANIFEST_FINGERPRINT}`);
       else log.error(`compiled-in game manifest is not usable: ${GAME_MANIFEST_PROBLEM}`);
@@ -724,6 +724,11 @@ if (!started) {
       registerIpc(controller);
       createWindow();
       mainWindow?.on('focus',()=>void revived?.refresh());
+      if(process.platform==='linux'){
+        let restarting=false;
+        await controller.maintenance(async()=>{restarting=await ensureLinuxSecureStorageDependency();});
+        if(restarting)return;
+      }
       await controller.init();
 
       if (app.isPackaged && (process.platform === "linux" || process.platform === "win32")) {

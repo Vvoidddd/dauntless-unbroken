@@ -58,7 +58,10 @@ function customRuntime(value: string | undefined, env: NodeJS.ProcessEnv): strin
 function directories(parent: string): string[] {
   try {
     return readdirSync(parent, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
+      .filter((entry) => {
+        if(entry.isDirectory())return true;
+        try{return entry.isSymbolicLink()&&statSync(path.join(parent,entry.name)).isDirectory();}catch{return false;}
+      })
       .map((entry) => path.join(parent, entry.name));
   } catch {
     return [];

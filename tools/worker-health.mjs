@@ -1,12 +1,29 @@
 import http from 'node:http';
 import os from 'node:os';
-import { statfs, readFile } from 'node:fs/promises';
+import { statfs, readFile, lstat } from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 const exec = promisify(execFile);
 const cpuTimes = () => os.cpus().reduce((a,c) => ({idle:a.idle+c.times.idle,total:a.total+Object.values(c.times).reduce((x,y)=>x+y,0)}),{idle:0,total:0});
+
+export async function botClaimSnapshot(file){
+  const info=await lstat(file);
+  if(!info.isFile()||info.isSymbolicLink()||info.size>5*1024*1024)throw Error('Bot state unavailable');
+  const state=JSON.parse((await readFile(file,'utf8')).replace(/^\uFEFF/,''));
+  if(state?.version!==1||!state.users||typeof state.users!=='object'||Array.isArray(state.users))throw Error('Invalid bot state');
+  const entries=Object.entries(state.users);
+  if(entries.length>50000)throw Error('Bot state too large');
+  const seen=new Set();
+  const claims=entries.map(([id,entry])=>{
+    if(!/^\d{17,20}$/.test(id)||typeof entry?.code!=='string'||!entry.code||typeof entry.pending!=='boolean'||seen.has(entry.code))throw Error('Invalid bot claim');
+    seen.add(entry.code);
+    return {inviteHash:createHash('sha256').update(entry.code).digest('hex'),pending:entry.pending};
+  });
+  return {version:1,at:new Date().toISOString(),claims};
+}
 
 export function processSample(current, previous, cores) {
   const seconds = previous ? (Date.parse(current.at)-Date.parse(previous.at))/1000 : 0;
@@ -61,6 +78,11 @@ export async function startWorkerHealth({port=61111,root=process.cwd(),allowlist
   const server=http.createServer((req,res)=>{
     res.setHeader('Cache-Control','no-store');
     if(!['127.0.0.1','::1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress) || req.headers['x-forwarded-for'] || req.headers.forwarded){res.writeHead(403).end();return;}
+    if(storageOnly&&req.method==='GET'&&req.url==='/bot-claims'){
+      res.setHeader('Content-Type','application/json');
+      void botClaimSnapshot(resolve(root,'data/key-state.json')).then(value=>res.end(JSON.stringify(value))).catch(()=>res.writeHead(503).end(JSON.stringify({error:'Bot claims unavailable'})));
+      return;
+    }
     if(req.method!=='GET' || req.url!=='/health'){res.writeHead(404).end();return;}
     res.setHeader('Content-Type','application/json');res.end(JSON.stringify(sample));
   });

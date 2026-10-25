@@ -3,7 +3,7 @@ import './authenv';
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { GetDb } from '../src/db';
-import { DiscordKeyStats, SummarizeBotClaims } from '../src/controllers/discordstats';
+import { DiscordKeyStats, SummarizeBotClaims, SummarizeBotClaimHashes } from '../src/controllers/discordstats';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -21,6 +21,25 @@ test('bot statistics distinguish claims, issuance and redemption without exposin
 test('missing bot state remains unavailable while canonical linked-account count stays readable',async()=>{
     const result=await DiscordKeyStats('missing-bot-state-for-test.json');
     assert.equal(result.bot,null);assert.equal(result.linkedAccounts,0);assert.ok(result.error);
+});
+
+test('private bot snapshots join hashed invites, expire, and never require bot credentials',async()=>{
+    const now=Date.now(),hash=(value:string)=>createHash('sha256').update(value).digest('hex');
+    const state={version:1,at:new Date(now).toISOString(),claims:[{inviteHash:hash('secret-invite'),pending:false},{inviteHash:hash('not-issued-yet'),pending:true}]};
+    const rows=[{inviteCode:'secret-invite',usesRemaining:0,infiniteUses:false}];
+    assert.deepEqual(SummarizeBotClaimHashes(state,rows,now),{claims:2,issued:1,unused:0,redeemed:1,pending:1,revoked:0});
+    assert.throws(()=>SummarizeBotClaimHashes(state,rows,now+30001));
+    assert.throws(()=>SummarizeBotClaimHashes({...state,claims:[...state.claims,state.claims[0]]},rows,now));
+    const response=await DiscordKeyStats(undefined,'http://127.0.0.1:61112',async(url,options)=>{
+        assert.equal(String(url),'http://127.0.0.1:61112/bot-claims');assert.equal(options?.headers,undefined);
+        return Response.json(state);
+    });
+    assert.equal(response.error,null);assert.equal(response.bot?.pending,1);
+    for(const url of ['https://example.com','http://localhost:61112','http://127.0.0.1:61112/?key=x']){
+        const failed=await DiscordKeyStats(undefined,url,async()=>{throw Error('Must not fetch');});assert.equal(failed.bot,null);assert.ok(failed.error);
+    }
+    const stale=await DiscordKeyStats(undefined,'http://127.0.0.1:61112',async()=>Response.json({...state,at:'2000-01-01T00:00:00Z'}));
+    assert.equal(stale.bot,null);assert.ok(stale.error);
 });
 test('statistics join real SQLite invite column names and return only counts',async()=>{
     const dir=await mkdtemp(join(tmpdir(),'bot-stats-'));

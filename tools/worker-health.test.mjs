@@ -16,6 +16,20 @@ test('storage monitor reads the watchdog report with Windows UTF-8 BOM',async()=
  finally {await new Promise(resolve=>server.close(resolve));await rm(root,{recursive:true,force:true});}
 });
 
+test('private storage bot snapshot contains hashes and pending flags, never identities or usable invites',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'unbroken-bot-claims-'));await mkdir(join(root,'data'));
+ const file=join(root,'data/key-state.json'),id='12345678901234567',code='DR-private-invite';
+ await writeFile(file,JSON.stringify({version:1,users:{[id]:{code,pending:true}},links:{secret:'do not publish'}}));
+ const server=await startWorkerHealth({root,port:0,storageOnly:true,collect:async()=>({at:new Date().toISOString(),processes:[],receivedBytes:0,sentBytes:0}),fetcher:async()=>Response.json({})});
+ try{
+  const url=`http://127.0.0.1:${server.address().port}/bot-claims`;
+  assert.equal((await fetch(url,{headers:{'x-forwarded-for':'203.0.113.1'}})).status,403);
+  const result=await(await fetch(url)).json();assert.equal(result.claims.length,1);assert.equal(result.claims[0].pending,true);assert.match(result.claims[0].inviteHash,/^[a-f0-9]{64}$/);
+  for(const secret of [id,code,'do not publish'])assert.ok(!JSON.stringify(result).includes(secret));
+  await writeFile(file,'corrupt');assert.equal((await fetch(url)).status,503);
+ }finally{await new Promise(resolve=>server.close(resolve));await rm(root,{recursive:true,force:true});}
+});
+
 test('worker process CPU uses whole-host percentage and excludes reused PIDs',()=>{
   const old={at:'2026-01-01T00:00:00Z',receivedBytes:1000,sentBytes:1000,processes:[{pid:7,startedAt:'old',cpuSeconds:10}]};
   const current={at:'2026-01-01T00:01:00Z',receivedBytes:8500,sentBytes:16000,processes:[{pid:7,startedAt:'old',cpuSeconds:40},{pid:8,startedAt:'new',cpuSeconds:50}]};

@@ -250,7 +250,12 @@ pending and revoked/missing registration invites. The backend's owner-only
 against invite redemption state; counts do not reset when the dashboard restarts.
 Set `DISCORD_KEY_STATE_FILE` in the metagame environment to the bot's `KEY_STATE_FILE`
 and grant the metagame service read access to that state directory/file. Do not give
-the dashboard access to bot credentials. Missing/corrupt state shows unavailable,
+the dashboard access to bot credentials. For the separate UK bot host, set
+`DISCORD_KEY_STATE_URL=http://127.0.0.1:61112` to its existing private monitor tunnel
+instead. The storage monitor reads `data/key-state.json` and exposes only invite
+hashes and pending flags at `/bot-claims`; the backend joins those against its own
+invite records. No bot token, usable invite or Discord identity crosses that route.
+Snapshots expire after 30 seconds. Missing/corrupt state shows unavailable,
 not zero. Bot invites and launcher account keys are distinct; a redeemed invite is
 not automatically a Discord account link. No keys or Discord IDs are included.
 

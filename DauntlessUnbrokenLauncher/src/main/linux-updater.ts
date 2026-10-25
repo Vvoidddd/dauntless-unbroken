@@ -2,6 +2,7 @@ import { app } from "electron";
 import { existsSync, promises as fs } from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import {launcherRelaunchOptions} from './launch';
 
 export type LinuxUpdate = { url: string; kind: "deb" | "rpm" | "appimage"; version: string };
 
@@ -41,7 +42,7 @@ export async function installLinuxUpdate(update: LinuxUpdate): Promise<"relaunch
     if (!target) throw new Error("APPIMAGE path is unavailable");
     const next = `${target}.new`;
     await fs.copyFile(file, next); await fs.chmod(next, 0o755); await fs.rename(next, target);
-    app.relaunch({ execPath: target });
+    app.relaunch(launcherRelaunchOptions('linux',target));
     return "relaunch";
   }
   const escaped = file.replaceAll('"', '\\"');

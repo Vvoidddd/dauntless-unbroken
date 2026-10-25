@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync,symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { detectLinuxRuntime, prepareLinuxGameLaunch } from "../src/main/linux-runtime";
@@ -11,6 +11,17 @@ function executable(file: string): string {
   chmodSync(file, 0o755);
   return file;
 }
+
+test('Steam Proton directory links are discovered and broken links are skipped',()=>{
+  const home=mkdtempSync(path.join(tmpdir(),'unbroken-linked-proton-'));
+  try{
+    const tools=path.join(home,'.local/share/Steam/compatibilitytools.d');mkdirSync(tools,{recursive:true});
+    const target=path.join(home,'external','GE-Proton10');executable(path.join(target,'proton'));
+    const linked=path.join(tools,'GE-Proton10');symlinkSync(target,linked,process.platform==='win32'?'junction':'dir');
+    symlinkSync(path.join(home,'missing'),path.join(tools,'GE-Proton99'),process.platform==='win32'?'junction':'dir');
+    assert.equal(detectLinuxRuntime(path.join(home,'data'),{HOME:home,PATH:''},home)?.command,path.join(linked,'proton'));
+  }finally{rmSync(home,{recursive:true,force:true});}
+});
 
 test('Steam Deck finds Proton in an SD-card library listed by Steam',()=>{
   const home=mkdtempSync(path.join(tmpdir(),'unbroken-deck-library-'));
