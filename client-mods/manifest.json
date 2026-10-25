@@ -231,6 +231,18 @@
                       "keep":  false
                   },
                   {
+                      "path":  "ue4ss/Mods/DamageMeter/Scripts/DamageLedger.lua",
+                      "sha256":  "424d17eb7e96edaa47c3551b90abfe0746c3ab81e1b93a1641a74ab240d1871d",
+                      "size":  2402,
+                      "keep":  false
+                  },
+                  {
+                      "path":  "ue4ss/Mods/DamageMeter/Scripts/main.lua",
+                      "sha256":  "5721f0f8b94b2d596dda5f53149f090511bb45a6ed95a2183aab5840fc6058a5",
+                      "size":  11731,
+                      "keep":  false
+                  },
+                  {
                       "path":  "ue4ss/Mods/Keybinds/Scripts/main.lua",
                       "sha256":  "297dd6f7f560e1cebc15cd4509ad481495d9179f5758a8034be4c417a369803a",
                       "size":  4190,
@@ -244,14 +256,14 @@
                   },
                   {
                       "path":  "ue4ss/Mods/ModMenu/Scripts/main.lua",
-                      "sha256":  "64aabc6bcb82387a0041eaaa8a673f8888253ec7a0b0096584c592b7316ee23c",
-                      "size":  30173,
+                      "sha256":  "99291f9a680e23943fb446fe989668f92ddeb721e8bd56bc6334b6b280efaf6a",
+                      "size":  30416,
                       "keep":  false
                   },
                   {
                       "path":  "ue4ss/Mods/mods.txt",
-                      "sha256":  "07a68e9227db6450c21fb325e66bb1070c080f43479881b8798dfce1e6aec119",
-                      "size":  132,
+                      "sha256":  "50a986c84c2748e3151bcefccd3c798e192d01d76c642bacf7e8061c64e73028",
+                      "size":  148,
                       "keep":  true
                   },
                   {

@@ -182,16 +182,17 @@ test("bundle paths must be plain relative paths with forward slashes", () => {
   assert.throws(() => insideRoot(root, "../b.txt"));
 });
 
-test("upgrading adds CraftStar once, preserving disabled mods and Keybinds order", async () => {
+test("upgrading adds CraftStar and DamageMeter once, preserving disabled mods and Keybinds order", async () => {
   const mods = "ue4ss/Mods/mods.txt";
-  const t = setup({ [mods]: "CraftStar : 1\nBehemothHealthBars : 1\nKeybinds : 1\n" }, [mods], []);
+  const t = setup({ [mods]: "CraftStar : 1\nDamageMeter : 1\nBehemothHealthBars : 1\nKeybinds : 1\n" }, [mods], []);
   try {
     t.put(mods, "BehemothHealthBars : 0\r\nKeybinds : 1\r\n");
     await installClientMods(t.res, t.game);
-    const expected = "CraftStar : 1\r\nBehemothHealthBars : 0\r\nKeybinds : 1\r\n";
+    const expected = "CraftStar : 1\r\nDamageMeter : 1\r\nBehemothHealthBars : 0\r\nKeybinds : 1\r\n";
     assert.equal(readFileSync(t.at(mods), "utf8"), expected);
-    t.put(mods, expected.replace("CraftStar : 1", "CraftStar : 0"));
+    const disabled = expected.replace("CraftStar : 1", "CraftStar : 0").replace("DamageMeter : 1", "DamageMeter : 0");
+    t.put(mods, disabled);
     await installClientMods(t.res, t.game);
-    assert.equal(readFileSync(t.at(mods), "utf8"), expected.replace("CraftStar : 1", "CraftStar : 0"));
+    assert.equal(readFileSync(t.at(mods), "utf8"), disabled);
   } finally { rmSync(t.root, { recursive: true, force: true }); }
 });

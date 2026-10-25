@@ -5,6 +5,12 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
 - **UE4SS 3.0.1** (`dwmapi.dll`, `ue4ss/UE4SS.dll`; MIT, see `ue4ss/LICENSE`): the Lua mod loader.
 - **Behemoth Health Bars**: a fixed HP and shield bar at the bottom of the screen (two bars when two behemoths are up).
 - **Behemoth Tracker**: an arrow and distance to the behemoth in the top right.
+- **Hunt Damage** (`DamageMeter`): a left-side panel with your core, part, stagger and wound damage,
+  DPS since the first observed hit, each teammate's core damage/share, and the team's core total.
+  Totals cover this visit to the hunt and reset for a new session. These are client observations:
+  late joins, distant hits or lost network events can leave damage uncounted. Core damage alone
+  determines DPS and contribution; the four overlapping channels are never added together.
+  Home → Hunt Damage toggles the panel and team breakdown live. It keeps counting while hidden.
 - **Mod Menu**: Home opens it, Up/Down (or PgUp/PgDn) choose, End flips the chosen switch. MODS turns
   whole mods on or off (applied after restarting the game); SETTINGS changes the mods live (shield bar, HP numbers,
   two bars in escalations, tracker at any distance, uncrafted weapon colour). Settings are saved in
@@ -44,3 +50,5 @@ Edit the files here, then rebuild the manifest and commit both:
 `.gitattributes` keeps every file byte-for-byte, so the hashes stay valid on every checkout.
 
 Updates preserve existing mod switches, add newly shipped mods to `mods.txt`, and disable the retired status indicator. CraftStar is added before Keybinds on existing installations; an explicit CraftStar off setting is preserved.
+
+Damage meter regression check (Lua 5.4): `lua tests/client-mods/damage-meter.lua` from the repository root.

@@ -23,6 +23,9 @@ const en = {
   mods_title: "Client Mods",
   mods_intro: "A behemoth health bar, a behemoth tracker and an in-game mod menu. The launcher installs them with the game and keeps them up to date, so there is nothing to set up.",
 
+  mod_dm_name: "Hunt Damage",
+  mod_dm_text: "A left-side panel shows your core, part, stagger and wound damage, combat DPS, and each teammate’s core damage and share. Counts reset for a new hunt.",
+  mod_dm_use: "Observed damage since joining: distant hits or lost network events may be missing. Home → Hunt Damage changes visibility and the team breakdown.",
   mod_cst_name: "Uncrafted Weapons",
   mod_cst_text: "Weapons you have never crafted are marked with >> in the crafting list.",
   mod_cst_use: "Choose red, gold or purple in the in-game Mod Menu.",
@@ -572,6 +575,9 @@ const fi: Record<StringKey, string> = {
   mods_title: "Asiakasmodit",
   mods_intro: "Behemotin terveyspalkki, behemotin jäljitin ja pelinsisäinen modivalikko. Käynnistin asentaa ne pelin mukana ja pitää ne ajan tasalla.",
 
+  mod_dm_name: en.mod_dm_name,
+  mod_dm_text: en.mod_dm_text,
+  mod_dm_use: en.mod_dm_use,
   mod_cst_name: "Valmistamattomat aseet",
   mod_cst_text: "Aseet, joita et ole vielä valmistanut, merkitään >>-merkillä valmistuslistassa.",
   mod_cst_use: "Valitse punainen, kulta tai violetti pelin modivalikossa.",
@@ -1118,6 +1124,9 @@ const es: Record<StringKey, string> = {
   mods_title: "Mods del cliente",
   mods_intro: "Una barra de vida del Behemoth, un rastreador de Behemoths y un menú de mods dentro del juego. El launcher los instala con el juego y los mantiene actualizados.",
 
+  mod_dm_name: en.mod_dm_name,
+  mod_dm_text: en.mod_dm_text,
+  mod_dm_use: en.mod_dm_use,
   mod_cst_name: "Armas sin fabricar",
   mod_cst_text: "Las armas que nunca has fabricado aparecen marcadas con >> en la lista de fabricación.",
   mod_cst_use: "Elige rojo, dorado o morado en el Menú de mods del juego.",
