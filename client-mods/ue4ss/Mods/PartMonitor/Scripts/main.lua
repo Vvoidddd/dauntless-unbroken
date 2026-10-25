@@ -24,10 +24,8 @@ local function property(part, name)
     local ok, value = pcall(function() return part[name] end)
     if ok then return value end
 end
-local function brokenArmour(part)
-    if property(part, "PartType") ~= 5 then return false end
+local function stages(part)
     local stage = property(part, "CurrentBreakStage")
-    if type(stage) ~= "number" or stage < 1 or stage % 1 ~= 0 then return false end
     local descriptions = {}
     local ok = pcall(function()
         part.PartBreakData:ForEach(function(_, value)
@@ -36,9 +34,13 @@ local function brokenArmour(part)
             descriptions[#descriptions + 1] = type(description) == "number" and description or -1
         end)
     end)
-    -- Cooked standard armour: Armored(1) -> Disabled(7). An arbitrary disabled
-    -- part is not evidence of a break; require this known stage lineage.
-    return ok and descriptions[stage] == 1 and descriptions[stage + 1] == 7
+    if not ok then return nil, nil, nil end
+    local function known(index)
+        local value = descriptions[index]
+        return value and value >= 0 and value <= 12 and value or nil
+    end
+    if type(stage) ~= "number" or stage < 0 or stage % 1 ~= 0 then return known(1), nil, nil end
+    return known(1), known(stage + 1), known(stage)
 end
 local function readPart(part)
     local actor = property(part, "MonsterPartActor")
@@ -50,11 +52,15 @@ local function readPart(part)
         local instance = str(part:GetFName()):gsub("_GEN_VARIABLE$", "")
         if not instance:lower():find("monsterpart", 1, true) then name = instance end
     end
+    local initial, description, previous = stages(part)
+    local body = property(part, "BodyPartType")
+    -- Kill/core Body is not breakable anatomy. Some core presets intentionally
+    -- use Normal/Scarred with a 999x health scale, so resistance alone is unsafe.
+    if body == 1 or body == 7 or description == 10 or initial == 10
+        or (body == 0 and name:lower() == "body") then return nil end
     local color, word = Status.State({actor = HUD.Valid(actor), current = ok and hp or nil, max = ok and max or nil,
         kind = property(part, "PartType"), severed = property(part, "PartSevered"), breakable = breakable,
-        brokenArmour = brokenArmour(part)})
-    local body = property(part, "BodyPartType")
-    if (body == 0 or body == 1 or body == 7) and breakable == false and color ~= "broken" then return nil end
+        initial = initial, description = description, previous = previous})
     local fraction = color ~= "unknown" and HUD.Valid(actor) and Status.Fraction(hp, max) or nil
     if color == "broken" then fraction = 0 end
     return {id = objectKey(actor) or objectKey(part), name = Status.Name(name, body), color = color, word = word, fraction = fraction}

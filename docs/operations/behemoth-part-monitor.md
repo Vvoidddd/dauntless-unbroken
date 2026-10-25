@@ -11,7 +11,7 @@ Each actual part has a name, status indicator and HP bar:
 
 - Green / OK: more than 50% part HP.
 - Orange / LOW: 50% or less.
-- Red / BROKEN: replicated sever, Broken or Scarred state. The bar is empty.
+- Red / BROKEN: a confirmed break-stage description or sever. The bar is empty.
 - Gray: fixed/disabled or unavailable data; no invented health percentage.
 
 The monitor reads `UMonsterPartComponent:GetCurrentHealth()/GetMaxHealth()` only
@@ -24,14 +24,21 @@ unconditional replication parameters; the part actor enables replication and
 always relevance. Invalid actor, invalid/nonfinite HP and nonpositive max HP
 produce gray instead of green.
 
-Cooked PartType values are 0 Normal, 1 Armored, 2 Severable, 3 Broken, 4 Scarred,
-5 Disabled, 6 Exposed, 7 None. The blueprint `IsBroken()` only checks Scarred,
-so the monitor explicitly handles 3/4 and PartSevered. A break-stage index alone
-does not imply a break: armour can become normal flesh, and parts can regenerate.
-Disabled is only red when the actual stage array proves the standard Armored
-description (1) → Disabled description (7) transition. Unreadable stage entries
-retain their positions. Generic disabled parts stay gray. Regrowth is polled
-from current state rather than remembered as permanently broken.
+PartType is a resistance enum: Scarred(4) also represents healthy Body and
+Unbreakable descriptions. Classification reads the current PartBreakData entry:
+Broken(3), Scarred(4) and Broken_Regenerating(5) are actual breaks; Body(10) and
+Unbreakable(11) are fixed. A forward Normal/Armored/Severable/Exposed damage-break
+stage followed by Disabled is a confirmed break. Generic Disabled, including the
+initial Disabled stage of quills, stays gray. Missing stage metadata with resistance
+type4 is ambiguous and stays gray. Unreadable entries retain their positions.
+Regrowth is polled from current state rather than remembered as permanently broken.
+
+Kill/Body body-part types and Body descriptions are omitted from the anatomy list.
+Some legacy core Body presets use normal stages with999x health, so filtering only
+the Body description is insufficient. Skarn armour uses type12 and Funguy roots19;
+they remain visible. Static evidence covers32archetypes,45variant assets,
+295component templates,37part presets and24break presets. This is cooked-data
+coverage, not a claim that every hunt was played.
 
 Names come from PartName, a meaningful component name, then the cooked body-part
 enum. The enum has no left/right distinction. Drask's BackLeft/BackRight and
@@ -50,6 +57,9 @@ uses opacity tag 0.994, distinct from damage 0.995, tracker 0.996, menu 0.997 an
 lock-on 0.993. Parts stay in one narrow column; larger anatomies use tighter rows,
 with an explicit overflow count beyond sixteen. Positions are anchored to
 opposite viewport edges and vertically relative to the centre.
+Viewport layers are explicit: backdrop75, tracks76, fills77, text/indicators78.
+Resizing a fill reapplies its position and anchors as well as its canvas size, so
+the gray track cannot obscure it and it remains attached to the right-side panel.
 
 `lua5.4 tests/client-mods/damage-meter.lua` checks the actual shipped adapters and
 shared drawing helpers, including per-part HP bar widths, the exact half-health

@@ -29,8 +29,8 @@ local function create(panel, class)
     widget:SetRenderOpacity(panel.tag)
     return widget
 end
-local function show(panel, widget, x, y, width, height)
-    widget:AddToViewport(75)
+local function show(panel, widget, x, y, width, height, layer)
+    widget:AddToViewport(layer)
     widget:SetVisibility(3) -- HitTestInvisible: never capture mouse/gamepad input.
     place(panel, widget, x, y, width, height)
 end
@@ -52,7 +52,7 @@ function M.New(pc, tag, anchor, x, y, width, height)
         panel.root = root
         -- This blueprint constructs/resets its boost image on AddToViewport.
         -- Style that image afterwards, as the shipped lock-on marker does.
-        show(panel, root, 0, 0, width, height)
+        show(panel, root, 0, 0, width, height, 75)
         root.ProgressBarComponent:GetParent():SetVisibility(1)
         local image = root.BoostIconBarImage
         image:SetBrushFromTexture(texture(panel, "panel"), false)
@@ -74,9 +74,9 @@ function M.New(pc, tag, anchor, x, y, width, height)
     if not ok then M.Remove(panel) error(err) end
     return panel
 end
-local function rectangle(panel, x, y, width, height, color, resource)
+local function rectangle(panel, x, y, width, height, color, resource, layer)
     local widget = create(panel, load(PANEL))
-    show(panel, widget, x, y, width, height)
+    show(panel, widget, x, y, width, height, layer)
     widget.ProgressBarComponent:GetParent():SetVisibility(1)
     local image = widget.BoostIconBarImage
     image:SetBrushResourceObject(resource or StaticFindObject("/Engine/EngineResources/WhiteSquareTexture.WhiteSquareTexture"))
@@ -88,10 +88,10 @@ local function rectangle(panel, x, y, width, height, color, resource)
     slot:SetAutoSize(false)
     slot:SetPosition({X = 0, Y = 0})
     slot:SetSize({X = width, Y = height})
-    return {widget = widget, image = image, slot = slot, width = width, height = height}
+    return {widget = widget, image = image, slot = slot, x = x, y = y, width = width, height = height}
 end
 function M.Indicator(panel, id, x, y, size)
-    panel.bars[id] = rectangle(panel, x, y, size, size, {R = 0.6, G = 0.62, B = 0.65, A = 1}, texture(panel, "indicator"))
+    panel.bars[id] = rectangle(panel, x, y, size, size, {R = 0.6, G = 0.62, B = 0.65, A = 1}, texture(panel, "indicator"), 78)
 end
 function M.Tint(panel, id, color)
     local image = panel and panel.bars[id]
@@ -101,8 +101,8 @@ function M.Tint(panel, id, color)
     end
 end
 function M.Bar(panel, id, x, y, width, height)
-    rectangle(panel, x, y, width, height, {R = 0.16, G = 0.17, B = 0.18, A = 0.9})
-    panel.bars[id] = rectangle(panel, x, y, width, height, {R = 0.6, G = 0.62, B = 0.65, A = 1})
+    rectangle(panel, x, y, width, height, {R = 0.16, G = 0.17, B = 0.18, A = 0.9}, nil, 76)
+    panel.bars[id] = rectangle(panel, x, y, width, height, {R = 0.6, G = 0.62, B = 0.65, A = 1}, nil, 77)
 end
 function M.Fill(panel, id, percent, color)
     local bar = panel and panel.bars[id]
@@ -110,7 +110,7 @@ function M.Fill(panel, id, percent, color)
     percent = type(percent) == "number" and percent == percent and math.max(0, math.min(1, percent)) or 0
     if percent ~= bar.percent then
         local width = bar.width * percent
-        bar.widget:SetDesiredSizeInViewport({X = width, Y = bar.height})
+        place(panel, bar.widget, bar.x, bar.y, width, bar.height)
         bar.image:SetBrushSize({X = width, Y = bar.height})
         bar.slot:SetSize({X = width, Y = bar.height})
         bar.widget:SetVisibility(percent > 0 and 3 or 1)
@@ -128,7 +128,7 @@ function M.Label(panel, id, text, size, color, x, y, width, bold, rightAligned)
     block.Font.OutlineSettings.OutlineColor = {R = 0, G = 0, B = 0, A = 1}
     block:SetJustification(rightAligned and 2 or 0)
     widget:SetClipping(1) -- ClipToBounds: long anatomy names cannot spill outside the panel.
-    show(panel, widget, x, y, width, size * 1.6)
+    show(panel, widget, x, y, width, size * 1.6, 78)
     -- Refresh the constructed Slate widget explicitly instead of relying on
     -- direct Font property writes to update its cached text style.
     block:SetFont(block.Font)

@@ -11,11 +11,26 @@ function M.Fraction(current, max)
     return math.min(1, current / max)
 end
 function M.State(part)
-    -- A stage index is not a break flag: armour can break into healthy flesh,
-    -- and regenerative stage transitions can go backwards.
-    if part.severed == true or part.kind == 3 or part.kind == 4 or part.brokenArmour then return "broken", "BROKEN" end
-    if part.kind == 5 then return "unknown", "DISABLED" end
-    if part.kind == 7 or part.breakable == false then return "unknown", "N/A" end
+    local description = part.description
+    -- Resist type Scarred(4) is also used by healthy Body/Unbreakable stages.
+    -- The break description, not the resistance enum, identifies a real break.
+    if description == 10 or description == 11 or (description == nil and (part.initial == 10 or part.initial == 11)) then
+        return "unknown", "N/A"
+    end
+    if part.severed == true or description == 3 or description == 4 or description == 5 then return "broken", "BROKEN" end
+    if description == 7 then
+        -- Forward damage-break stages: Normal, Armored, Severable, Exposed.
+        -- Disabled->Normal_Backward quills and generic DisablePart are ambiguous.
+        local previous = part.previous
+        if previous == 0 or previous == 1 or previous == 2 or previous == 9 then return "broken", "BROKEN" end
+        return "unknown", "DISABLED"
+    end
+    if description == nil then
+        if part.kind == 3 then return "broken", "BROKEN" end
+        if part.kind == 4 then return "unknown", "?" end
+        if part.kind == 5 then return "unknown", "DISABLED" end
+    end
+    if description == 12 or part.kind == 7 or part.breakable == false then return "unknown", "N/A" end
     if part.breakable ~= true then return "unknown", "?" end
     if not part.actor or not finite(part.current) or not finite(part.max) or part.max <= 0 or part.current < 0 then
         return "unknown", "?"

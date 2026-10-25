@@ -49,10 +49,11 @@ local function widget(_, _, cls)
     w.SetClipping = function(self, v) self.clipping = v end
     w.SetRenderOpacity = function(self, v) self.RenderOpacity = v end
     w.SetPositionInViewport = function(self, p) self.x, self.y = p.X, p.Y end
-    w.SetDesiredSizeInViewport = function(self, p) self.width, self.height = p.X, p.Y end
+    w.SetDesiredSizeInViewport = function(self, p) self.width, self.height, self.anchor = p.X, p.Y, {X = 0, Y = 0} end
     w.SetAnchorsInViewport = function(self, a) self.anchor = a.Minimum end
     w.SetAlignmentInViewport, w.InvalidateLayoutAndVolatility = noop, noop
-    w.AddToViewport = function(self)
+    w.AddToViewport = function(self, z)
+        self.z = z
         self.fontAtConstruct = self.ChatLogLabelTextBlock.Font.Size
         self.cachedFont = "ChatBold" -- Changing Font properties alone does not refresh native Slate.
         if self.kind == "panel" then self.texture, self.fill, self.brushSize = nil, nil, nil end
@@ -164,13 +165,30 @@ assert(status(51, 100, 0, false, true, true) == "intact")
 assert(status(50, 100, 0, false, true, true) == "low")
 assert(status(0, 100, 0, false, true, true) == "low", "Zero HP alone is not a replicated break flag")
 assert(status(nil, nil, 3, false, false, false) == "broken")
-assert(status(100, 100, 4, false, false, true) == "broken")
+assert(status(100, 100, 4, false, false, true) == "unknown", "Scarred resistance alone can be healthy Body or Unbreakable")
 assert(status(nil, nil, 0, true, false, false) == "broken")
 assert(status(100, 100, 5, false, false, true) == "unknown")
 assert(status(100, 100, 0, false, false, true) == "unknown")
 assert(status(0 / 0, 100, 0, false, true, true) == "unknown")
 assert(status(100, 0, 0, false, true, true) == "unknown")
 assert(status(100, 100, 0, false, true, false) == "unknown")
+-- Every unique sequence in the24cooked break presets, plus other break-description rows.
+local resist = {[0]=0,1,2,3,4,3,0,5,0,6,4,4}
+local canBreak = {[0]=true,[1]=true,[2]=true,[6]=true,[8]=true,[9]=true}
+local profiles = {
+    {{0,4},{"intact","broken"}}, {{1,7},{"intact","broken"}},
+    {{0,7},{"intact","broken"}}, {{2,4},{"intact","broken"}},
+    {{2,0,4},{"intact","intact","broken"}}, {{7,8},{"unknown","intact"}},
+    {{10},{"unknown"}}, {{11},{"unknown"}},
+    {{0,5},{"intact","broken"}}, {{6},{"intact"}}, {{9},{"intact"}},
+}
+for _, profile in ipairs(profiles) do
+    for i, description in ipairs(profile[1]) do
+        assert(Status.State({actor=true,current=100,max=100,initial=profile[1][1],description=description,
+            previous=profile[1][i-1],kind=resist[description],breakable=canBreak[description] == true}) == profile[2][i],
+            "Cooked break stage " .. description)
+    end
+end
 assert(Status.Name("FrontLeftWing", 6) == "Front Left Wing")
 assert(Status.Name("BodyBLArmour", 12) == "Body BL Armour")
 assert(Status.Name("None", 6) == "Wing")
@@ -199,6 +217,13 @@ local missing = part("BackRight", 0); missing.MonsterPartActor = {IsValid = func
 local fixed = part("Fixed", 100, 0, false)
 local duplicate = part("DuplicateHead", 100); duplicate.MonsterPartActor = head.MonsterPartActor
 local parts = {head, left, tail, disabled, armour, missing, fixed, duplicate}
+local desc = "PartBreakDescription_81_F02FC7404C14B0C4C604A5B52827B0C9"
+local core = part("Body",100,4,false); core.BodyPartType=7; core.PartBreakData=array({{[desc]=10}})
+local coreNormal = part("CoreNormal",100,0); coreNormal.BodyPartType=7; coreNormal.PartBreakData=array({{[desc]=0},{[desc]=4}})
+local unbreakable = part("UnbreakableCrest",100,4,false); unbreakable.PartBreakData=array({{[desc]=11}})
+local bodyArmour = part("BodyFrontLeftArmour",100,1); bodyArmour.BodyPartType=12; bodyArmour.PartBreakData=array({{[desc]=1},{[desc]=7}})
+local anyLimb = part("AnyLimb",100,4,false); anyLimb.BodyPartType=0; anyLimb.CurrentBreakStage=1; anyLimb.PartBreakData=array({{[desc]=0},{[desc]=4}})
+for _, p in ipairs({core,coreNormal,unbreakable,bodyArmour,anyLimb}) do parts[#parts+1]=p end
 local all = FindAllOf
 FindAllOf = function(cls)
     if cls == "ArchonBehemoth" then return {foreign, other, near} end
@@ -232,8 +257,9 @@ local function rightBar(name, width, color)
     local label = assert(right(name))
     for _, w in ipairs(widgets) do
         if not w.removed and w.RenderOpacity == 0.994 and w.kind == "panel" and w.x == label.x - 20
-            and w.y == label.y + 37 and w.fill == color then
+            and w.z == 77 and w.fill == color then
             assert(w.width == width, name .. " HP bar")
+            assert(w.z == 77 and w.anchor.X == 1 and w.anchor.Y == 0.49, name .. " fill stays above its track and on the right after resizing")
             return
         end
     end
@@ -242,6 +268,10 @@ end
 partsPulse()
 assert(right("Head") and right("Front Left Wing"))
 assert(not right("PART STATUS") and not right("BROKEN"), "No headings or state badges in the reference layout")
+assert(not right("Body") and not right("Core Normal"), "Core Body is not a broken limb, including the999xNormal core preset")
+rightState("Unbreakable Crest", "N/A", Status.colors.unknown)
+rightState("Body Front Left Armour", "OK", Status.colors.intact)
+rightState("Any Limb", "BROKEN", Status.colors.broken)
 assert(not right("Duplicate Head"), "Two shapes sharing one health actor are one part")
 rightState("Head", "OK", Status.colors.intact); rightBar("Head", 164, Status.colors.intact)
 rightState("Front Left Wing", "LOW", Status.colors.low); rightBar("Front Left Wing", 82, Status.colors.low)
@@ -256,11 +286,18 @@ partsPulse(); rightState("Head", "OK", Status.colors.intact); rightBar("Head", 1
 armour.CurrentBreakStage, armour.PartType = 1, 0; partsPulse() -- Armour -> normal flesh is not broken flesh.
 rightState("Armour", "OK", Status.colors.intact)
 armour.PartType, armour.breakable = 5, false
-local desc = "PartBreakDescription_81_F02FC7404C14B0C4C604A5B52827B0C9"
 armour.PartBreakData = array({{[desc] = 1}, {[desc] = 7}})
 partsPulse(); rightState("Armour", "BROKEN", Status.colors.broken); rightBar("Armour", 0, Status.colors.broken)
 armour.PartBreakData = array({{[desc] = 1}, {}, {[desc] = 7}})
 partsPulse(); rightState("Armour", "DISABLED", Status.colors.unknown) -- Unknown stages must not be skipped/compressed.
+armour.PartBreakData = array({{[desc] = 0}, {[desc] = 7}})
+partsPulse(); rightState("Armour", "BROKEN", Status.colors.broken) -- Vents, fragile wings and antlers use Normal->Disabled too.
+disabled.PartBreakData = array({{[desc] = 7}, {[desc] = 8}})
+partsPulse(); rightState("Disabled Armour", "DISABLED", Status.colors.unknown)
+disabled.CurrentBreakStage,disabled.PartType,disabled.breakable=1,0,true
+partsPulse(); rightState("Disabled Armour", "OK", Status.colors.intact); rightBar("Disabled Armour",164,Status.colors.intact)
+disabled.CurrentBreakStage,disabled.PartType,disabled.breakable=0,5,false
+partsPulse(); rightState("Disabled Armour", "DISABLED", Status.colors.unknown)
 for _, w in ipairs(widgets) do
     if not w.removed and w.RenderOpacity == 0.994 then
         assert(w.x >= -216 and w.x + w.width <= -24 and w.anchor.X == 1 and w.anchor.Y == 0.49)

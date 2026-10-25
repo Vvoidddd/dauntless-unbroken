@@ -16,8 +16,9 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
 - **Behemoth Parts** (`PartMonitor`, made by Void): a right-side panel for the nearest living
   Behemoth within 50 m, leaving room for the distant tracker outside combat. Each named part has
   an HP bar and state: green above 50%, orange at 50% or below, red for a confirmed break/sever.
-  Broken bars are empty; missing, fixed or otherwise disabled parts stay gray. Removed armour
-  is red only when its break-stage data confirms the armour-to-disabled transition. Names retain
+  Broken bars are empty; missing, fixed or otherwise disabled parts stay gray. Core Body receivers
+  are excluded. Actual break descriptions distinguish broken anatomy from unbreakable resistance;
+  armour, wings, vents and antlers use their own verified stage transitions. Names retain
   the real left/right part data. The narrow single-column list uses image-based glow indicators
   and thin bars, with tighter rows for larger anatomies; a count identifies overflow
   beyond sixteen. Home → Behemoth Parts hides/shows it live.
