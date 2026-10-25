@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "f6b9e81384211a01d6302d92c2b2ebad6392058d",
+      "date": "2026-10-25T19:35:46.799Z",
+      "title": "Latest project updates",
+      "body": "• Refresh generated Deck guide and normalize bootstrap whitespace\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "d7eea761439cad42c2041128cdb025b72a45d46e",
       "date": "2026-10-25T19:25:02.805Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-23T03:34:15.158Z",
       "title": "Latest project updates",
       "body": "• Report owned fixture process paths when Windows cleanup checks fail\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "463256c02bc5fc3ddde6b52b810a1c2ad6cf496c",
-      "date": "2026-10-23T03:29:38.670Z",
-      "title": "Latest project updates",
-      "body": "• Resolve Windows path aliases before stopping Revived components\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
