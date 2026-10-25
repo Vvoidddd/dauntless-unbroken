@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "d7eea761439cad42c2041128cdb025b72a45d46e",
+      "date": "2026-10-25T19:25:02.805Z",
+      "title": "Latest project updates",
+      "body": "• Release launcher 1.0.34 with Steam Deck startup and update fixes\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "9b5ef5034f6a5f42ef6d2de6c842d2ab3310c761",
       "date": "2026-10-25T18:56:42.492Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-23T03:29:38.670Z",
       "title": "Latest project updates",
       "body": "• Resolve Windows path aliases before stopping Revived components\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "4f4c4e009b2c4eb559948a0c1006b62441e787ca",
-      "date": "2026-10-23T03:15:21.935Z",
-      "title": "Latest project updates",
-      "body": "• Detect and safely remove conflicting Revived launcher installs\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
