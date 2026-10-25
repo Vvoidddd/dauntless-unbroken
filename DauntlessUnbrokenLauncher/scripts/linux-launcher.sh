@@ -8,8 +8,7 @@ if [ "${DR_GAME_LD_PRELOAD+x}" != x ]; then
 fi
 preload=
 old_ifs=$IFS
-IFS=' :	
-'
+IFS=$(printf ' \t\n:')
 set -f
 for library in ${LD_PRELOAD-}; do
     case "$library" in

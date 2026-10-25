@@ -14419,6 +14419,21 @@ Selecting a text field opens an on-screen keyboard; Done saves and B cancels.
 Mouse and touch input remain available. Native operating-system file pickers may
 need the Deck's trackpad or touchscreen. Physical controller layouts can vary.
 
+If the launcher closes immediately in Gaming Mode, install launcher 1.0.34 or
+newer from Desktop Mode. Its Linux entry point keeps Steam's overlay out of
+Electron startup, while preserving the overlay and Steam Input environment for
+the game. Keep the shortcut pointed at the AppImage or
+`DauntlessUnbrokenLauncher`, rather than the internal `.bin` executable.
+
+For missing sticks or buttons, open the same Steam shortcut in Desktop Mode as
+well as Gaming Mode and select a Gamepad controller layout in Steam. Opening the
+AppImage directly outside Steam can use the Deck's desktop button mapping.
+Send a new support report if controls still fail through that shortcut; a
+successful game launch alone does not confirm controller input.
+
+When setting AppImage permissions in a terminal, `chmod +x` needs a space before
+the filename. Type `chmod +x `, drag the AppImage into the terminal, and press Enter.
+
 ## Purchases, queues and support
 
 **Settings → Account → Recent purchases** loads recent recorded purchases for the
