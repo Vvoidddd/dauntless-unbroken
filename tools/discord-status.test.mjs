@@ -102,7 +102,7 @@ test('fleet status projects metrics and public embed never includes host labels,
  await assert.rejects(sampleFleet('https://example.com','test'));
 });
 
-test('five-host fleet is accepted and names remain stable when a host is omitted',async()=>{
+test('fleet display numbers are consecutive while internal host identities stay intact',async()=>{
  const at=new Date().toISOString();
  const rows=[1,2,3,4,5].map(id=>({name:`Server #${id} · private`,at,online:true,cpu:10,ramUsedMB:1024,ramTotalMB:8192,hunts:2}));
  const read=rows=>sampleFleet('http://127.0.0.1:61110','test',async()=>Response.json({fleet:{rows}}));
@@ -112,7 +112,13 @@ test('five-host fleet is accepted and names remain stable when a host is omitted
  assert.ok(body.includes('Server #5 · EU #2'));assert.ok(!body.includes('private'));
  const partial=await read([rows[0],rows[2],rows[4]]);
  assert.deepEqual(partial.rows.map(r=>r.id),[1,3,5]);
- assert.ok(JSON.stringify(payload(null,Date.now(),partial)).includes('Server #3 · US (NA)'));
+ assert.ok(JSON.stringify(payload(null,Date.now(),partial)).includes('Server #2 · US (NA)'));
+ const current=await read([rows[0],rows[1],rows[4]]);
+ const fields=payload(null,Date.now(),current).embeds[0].fields.filter(f=>f.name.startsWith('Server #'));
+ assert.deepEqual(fields.map(f=>f.name),['Server #1 · EU #1','Server #2 · UK · Key bot & backup storage','Server #3 · EU #2']);
+ assert.deepEqual(current.rows.map(r=>r.id),[1,2,5]);
+ assert.match(fields[1].value,/Key distribution · no hunt hosting/);
+ assert.match(fields[2].value,/Hunts: 2/);
 });
 
 test('stale timestamps cannot claim healthy hosts or complete hunt totals',async()=>{

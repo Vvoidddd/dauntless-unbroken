@@ -27,8 +27,8 @@ export function payload(sample, now = Date.now(), fleet = null) {
     {name:'⚔️ Active hunts',value:Number.isInteger(fleet?.hunts)?String(fleet.hunts):fleet?`${fleet.knownHunts} reported · partial`:'Unknown',inline:true}
   ];
   const names={1:'EU #1',2:'UK · Key bot & backup storage',3:'US (NA)',4:'Germany',5:'EU #2'};
-  for(const r of fleet?.rows ?? []){
-    const name=`Server #${r.id} · ${names[r.id] ?? 'Worker'}`;
+  for(const [index,r] of (fleet?.rows ?? []).entries()){
+    const name=`Server #${index+1} · ${names[r.id] ?? 'Worker'}`;
     const age=Number.isFinite(r.at)?`Host sample <t:${Math.floor(r.at/1000)}:R>`:'No host sample';
     const c=r.capacity;
     const admission=!c?'Unknown':c.draining===true?'Draining · new hunts paused':c.blocked===true?'Waiting for CPU headroom':c.limit!==null&&c.running+c.pending>=c.limit?'Hunt limit reached':c.blocked===false?(c.draining===false?'Below CPU/count limits':'CPU/count headroom · drain state unknown'):'CPU status unknown';
