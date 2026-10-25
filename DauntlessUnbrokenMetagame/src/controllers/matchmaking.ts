@@ -1069,6 +1069,8 @@ function RejoinPartyCandidate(TheParty: Party, Candidate: PartyCandidate, Player
     LeaveWaitingQueues(PlayerId, "their party's candidate takes them");
 
     StoreEntry(PlayerId, {
+        GameMode: Candidate.GameMode,
+        Region: Candidate.Region,
         Ready: Ready,
         CandidateId: Candidate.CandidateId,
         HuntId: Candidate.HuntId,

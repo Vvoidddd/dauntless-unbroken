@@ -418,6 +418,31 @@ it('a rejected party restoration preserves the current usable city candidate', a
     assert.equal(posts.length, 2);
 });
 
+for (const reason of ['retiring', 'expired'] as const) it(`a restored party city retains CITY guards when ${reason}`, async t => {
+    t.mock.timers.enable({apis:['setTimeout']});
+    deploy=async body=>body.GameMode==='CITY'?ready(8777,'party-city'):ready(8776,'dojo');
+    health=async()=>json({servers:[{id:'party-city'},{id:'dojo'}],complete:true});
+    await formParty();await HandlePlayerMatchmaking('ISLAND','',HUNT,A);
+    assert.equal((await DecideCandidateStatus(A)).Kind,'travel');
+    assert.equal((await DecideCandidateStatus(B)).Kind,'travel');
+    await HandlePlayerMatchmaking('CITY','',CITY,A);
+    const original=await CheckAndUpdateQueueStatus(B);assert.ok(original);
+    assert.equal((await DecideCandidateStatus(A)).Kind,'travel');
+    assert.equal((await DecideCandidateStatus(B)).Kind,'travel');
+    await advance(t,61000);await PollParty(B);
+    assert.equal(GetPartyOf(B)?.LastCandidate?.CandidateId,original.CandidateId);
+    await HandlePlayerMatchmaking('SHARED','','',B,true);await flush();
+    assert.ok(JoinPartyCandidateById(B,original.CandidateId));
+    const restored=await CheckAndUpdateQueueStatus(B);
+    assert.equal(restored?.GameMode,'CITY');
+    assert.equal(restored?.Region,GetPartyOf(B)?.LastCandidate?.Region);
+    if(reason==='retiring'){
+        health=async()=>json({servers:[{id:'party-city',retiring:true},{id:'dojo'}],complete:false});
+        await advance(t,5000);
+    }else await advance(t,119000);
+    assert.equal((await DecideCandidateStatus(B)).Kind,'failed');
+});
+
 for (const kind of ['private', 'direct', 'party'] as const) {
     it(`a ${kind} capacity retry cannot revive an attempt after its renewed idle lease`, async t => {
         t.mock.timers.enable({apis: ['setTimeout']});

@@ -25,6 +25,7 @@ the existing CityPool queue/reservations and SpawnedChildren map, initialize the
 new retirement map, update the scheduled watchdog and status description, and
 provide rollback. Replacing whole modules would lose those ownership records.
 
-Checks: allocator suite (121 tests) and backend suite (898 tests), including
+Checks: allocator suite (121 tests) and backend suite (900 tests), including
 concurrent packing, whole-party reservations, retirement/reopen, stale telemetry,
-final occupancy/PID revalidation, cached endpoint refusal, and normal hunt reuse.
+final occupancy/PID revalidation, cached endpoint refusal, restored party CITY
+identity, and normal hunt reuse.
