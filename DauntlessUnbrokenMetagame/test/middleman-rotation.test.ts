@@ -7,7 +7,7 @@ import { GetDb } from "../src/db";
 import { inventory } from "../src/db/schema";
 import { CreateStorePurchase, GrantKind, ListStoreOffers, MiddlemanWindowStart, RedeemStorePurchase, SelectWeeklyMiddlemanOffers } from "../src/controllers/freestore";
 import { MakePlayer, StackQuantity } from "./helpers";
-import {ShopLayout} from '../src/controllers/shoplayout';
+import {RECRUIT_DYE_SKU,ShopLayout} from '../src/controllers/shoplayout';
 import {WeeklyStoreWindow} from '../src/controllers/storeclock';
 import {WithEnv} from './appenv';
 import StoreCatalog from '../src/vendor/store_catalog.json';
@@ -42,6 +42,10 @@ describe("Middleman weekly Aetherdust offers", () => {
             const cells=SelectWeeklyMiddlemanOffers(at);
             assert.ok(shop.length>0 && cells.length>0);
             for(const offer of [...shop,...cells]){
+                if(offer.id===RECRUIT_DYE_SKU){
+                    assert.equal(offer.availableFrom,null);assert.equal(offer.availableTo,null);
+                    continue;
+                }
                 assert.equal(offer.availableFrom,new Date(window.start).toISOString());
                 assert.equal(offer.availableTo,new Date(window.end).toISOString());
             }

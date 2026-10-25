@@ -5,8 +5,14 @@ import {resolveInside, type GameManifest} from './manifest';
 // Remove only game content named by the compiled manifest. Keep Archon/Saved,
 // unrelated files in shared install folders, launcher profiles and account backups.
 export async function gameRemovalTargets(root:string,manifest:GameManifest,protectedPaths:string[]):Promise<string[]> {
-  const base=path.resolve(root);
-  if(base===path.parse(base).root)throw Error('Refusing a filesystem root');
+  const resolved=path.resolve(root);
+  if(resolved===path.parse(resolved).root)throw Error('Refusing a filesystem root');
+  const rootStat=await fs.lstat(resolved).catch((error:NodeJS.ErrnoException)=>{if(error.code==='ENOENT')return null;throw error;});
+  if(!rootStat)return [];
+  if(rootStat.isSymbolicLink())throw Error('Refusing linked game content');
+  // Windows TEMP may use an 8.3 parent alias; canonicalize the selected root
+  // before comparing its children, while still refusing linked content targets.
+  const base=await fs.realpath(resolved);
   const names=new Set(manifest.files.map(file=>{
     resolveInside(base,file.path);
     const parts=file.path.split('/');

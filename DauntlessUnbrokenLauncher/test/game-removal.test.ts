@@ -35,3 +35,10 @@ test('cancel, linked targets, protected paths and targets changed during confirm
   await assert.rejects(removeGameFiles(h.root,manifest,[],async()=>true,trash),/linked/);
   assert.equal(moved,0);assert.equal(await fs.readFile(path.join(h.profile,'account.key'),'utf8'),'keep');
 });
+test('a canonical parent alias is accepted while a linked game root is refused',async t=>{
+  const h=await fixture(t),alias=path.join(h.base,'parent-alias');
+  await fs.symlink(h.base,alias,process.platform==='win32'?'junction':'dir');
+  assert.deepEqual(await gameRemovalTargets(path.join(alias,'game'),manifest,[h.profile]),await gameRemovalTargets(h.root,manifest,[h.profile]));
+  const linkedRoot=path.join(h.base,'linked-game');await fs.symlink(h.root,linkedRoot,process.platform==='win32'?'junction':'dir');
+  await assert.rejects(gameRemovalTargets(linkedRoot,manifest,[]),/linked/);
+});
