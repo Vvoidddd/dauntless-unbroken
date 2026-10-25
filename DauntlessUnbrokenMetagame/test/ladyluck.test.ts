@@ -2,10 +2,11 @@ import { RemoveTestDb } from "./setup";
 import "./authenv";
 import { after, before, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { Call, StartApp, StopApp } from "./appclient";
 import { GetDb } from "../src/db";
-import { inventory } from "../src/db/schema";
+import { inventory, storepurchases } from "../src/db/schema";
 import { CreateStorePurchase, GetStoreOffer, GrantKind, ListStoreOffers, RedeemStorePurchase } from "../src/controllers/freestore";
 import { MakePlayer, StackQuantity } from "./helpers";
 import { StoreImageRateLimit } from "../src/middleware/RateLimits";
@@ -51,13 +52,31 @@ describe("Lady Luck Trials store", () => {
         const A = await MakePlayer();
         const Offers = ListStoreOffers(A.UserId, "ladyluckstore");
 
-        assert.equal(Offers.length, 58);
+        assert.equal(Offers.length, 53);
         assert.ok(Offers.every((Offer) => !Object.prototype.hasOwnProperty.call(Offer, "prices")));
         assert.ok(Offers.every((Offer) => Number.isInteger(Offer.steelMarksPrice) !== Number.isInteger(Offer.gildedMarksPrice)));
         assert.equal(GetStoreOffer(A.UserId, "ladyluck_weapon_strikers_normal").gildedMarksPrice, 500);
         assert.equal(GetStoreOffer(A.UserId, "ladyluck_cb_passive_trials_02").steelMarksPrice, 250);
         assert.equal(GetStoreOffer(A.UserId, "ladyluck_weapon_strikers_prestige").gildedMarksPrice, 1000);
         assert.throws(() => CreateStorePurchase(A.UserId, "marksgilded", "ladyluck_weapon_strikers_prestige"), {Status: 409});
+    });
+
+    it("does not list, sell or redeem removed golden crown and armour offers", async () => {
+        const A = await MakePlayer();
+        Credit(A.CharacterId, "CURRENCY_MARKS_GILDED", 10000);
+        const Offers = ListStoreOffers(A.UserId, "ladyluckstore");
+        for(const Sku of ["ladyluck_headbling_prestige", ...["helm", "chest", "arms", "legs"].map(Slot => `ladyluck_armor_${Slot}_prestige`)]){
+            assert.ok(!Offers.some(Offer => Offer.id === Sku));
+            assert.throws(() => GetStoreOffer(A.UserId, Sku), {Status: 404});
+            assert.throws(() => CreateStorePurchase(A.UserId, "marksgilded", Sku), {Status: 404});
+            const Token = CreateStorePurchase(A.UserId, "marksgilded", "ladyluck_weapon_strikers_normal").purchaseToken;
+            GetDb().update(storepurchases).set({skuId: Sku}).where(eq(storepurchases.tokenHash, createHash("sha256").update(Token).digest("hex"))).run();
+            assert.throws(() => RedeemStorePurchase(A.UserId, "marksgilded", Token), {Status: 409});
+        }
+        assert.equal(StackQuantity(A.CharacterId, "CURRENCY_MARKS_GILDED"), 10000);
+        assert.equal(ReadInstanced(A.CharacterId).length, 0);
+        assert.ok(Offers.some(Offer => Offer.id === "ladyluck_headbling_normal"));
+        assert.ok(Offers.some(Offer => Offer.id === "ladyluck_armor_chest"));
     });
 
     it("uses captured instanced-vs-stacked grant kinds instead of guessing from prefixes", () => {
@@ -139,7 +158,7 @@ describe("Lady Luck Trials store", () => {
 
         const Listed = await Call("GET", "/product/skus/public?requiredTags=ladyluckstore", {as: A.UserId});
         assert.equal(Listed.status, 200);
-        assert.equal(Listed.json.length, 58);
+        assert.equal(Listed.json.length, 53);
         // Every offer points at its 1.4.4 icon on this server, and the icon is served without a login
         for(const Offer of Listed.json){
             assert.match(Offer.images.standard, /^http:\/\/[^/]+\/store-images\/[a-z0-9_]+\.png$/, Offer.id);
