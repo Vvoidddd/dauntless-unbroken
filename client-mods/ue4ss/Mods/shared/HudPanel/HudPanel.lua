@@ -57,7 +57,9 @@ function M.New(pc, tag, anchor, x, y, width, height)
         image.Brush.Margin = {Left = 0.125, Top = 0.125, Right = 0.125, Bottom = 0.125}
         image:SetBrush(image.Brush)
         image:SetColorAndOpacity({R = 1, G = 1, B = 1, A = 1})
-        image:SetBrushSize({X = width, Y = height})
+        -- Nine-slice border thickness follows the source brush size. The canvas
+        -- slot below stretches the panel; keep its 64px artwork size unchanged.
+        image:SetBrushSize({X = 64, Y = 64})
         show(panel, root, 0, 0, width, height)
         local slot = image.Slot
         slot:SetAnchors({Minimum = {X = 0, Y = 0}, Maximum = {X = 0, Y = 0}})

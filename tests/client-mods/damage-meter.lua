@@ -62,7 +62,7 @@ local function widget(_, _, cls)
     w.BoostIconBarImage = object({Slot = slot, Brush = {},
         SetBrushResourceObject = function(_, resource) w.texture = resource end,
         SetBrushFromTexture = function(_, resource) w.texture = resource end, SetBrush = noop,
-        SetColorAndOpacity = function(_, c) w.fill = c end, SetBrushSize = noop})
+        SetColorAndOpacity = function(_, c) w.fill = c end, SetBrushSize = function(_, size) w.brushSize = size end})
     w.ChatLogLabelTextBlock = object({Font = {OutlineSettings = {}},
         SetFont = function(_, font) w.cachedFont, w.fontObject, w.outline = font.TypefaceFontName, font.FontObject, font.OutlineSettings.OutlineSize end,
         SetJustification = function(_, value) w.justification = value end,
@@ -127,6 +127,11 @@ for _, w in ipairs(widgets) do
     end
 end
 assert(compactLabels == 10, "Each reference row has a separate number and label")
+for _, w in ipairs(widgets) do
+    if not w.removed and w.texture and w.texture.file and w.texture.file:match("panel[.]png$") then
+        assert(w.brushSize.X == 64 and w.brushSize.Y == 64, "Stretch canvas geometry, not the nine-slice artwork margins")
+    end
+end
 settings.dm_team = true; pulse()
 assert(displayed("Void") and displayed("GOLLUM") and displayed("Team total  1,650"))
 for _, w in ipairs(widgets) do
