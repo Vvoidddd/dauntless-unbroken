@@ -74,6 +74,7 @@ const api = {
   getBranding: (): Promise<Branding> => ipcRenderer.invoke(IPC.getBranding),
   openExternal: (target: ExternalTarget): Promise<ActionResult> => ipcRenderer.invoke(IPC.openExternal, String(target)),
   openGameFolder: (): Promise<void> => ipcRenderer.invoke(IPC.openGameFolder),
+  removeGame: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.removeGame),
   logout: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.logout),
   installUpdate: (): Promise<void> => ipcRenderer.invoke(IPC.installUpdate),
   dismissNotice: (): Promise<void> => ipcRenderer.invoke(IPC.dismissNotice),

@@ -70,6 +70,7 @@ import { applyGameConfig } from "./engineini";
 import { locateExistingGame } from "./game-folder";
 import { buildLaunchArgs, describeLaunch, GameProcess, gameLocale, type LaunchRuntime, type SpawnFn } from "./launch";
 import { createRelayOwnerCheck } from "./relay-owner";
+import {removeGameFiles} from './game-removal';
 import { backupFileText, backupServer, saveDesktopKey, desktopKeyPath, keyBackupId, matchesKeyBackup, KeyStore, KeyStoreError, serverId, type Encryptor, type KeySlot } from "./keystore";
 import { SettingsStore, type StoredServer, type StoredSettings } from "./settings";
 import { freeBytes, missingVcRuntime } from "./system";
@@ -117,6 +118,8 @@ export interface Platform {
   chooseOpenFile(): Promise<string | null>;
   openExternal(url: string): Promise<void>;
   openPath(dir: string): Promise<void>;
+  confirmRemoveGame?(targets:string[]):Promise<boolean>;
+  trashPath?(target:string):Promise<void>;
   emitSnapshot(s: Snapshot): void;
   emitProgress(p: TaskProgress): void;
   emitOfflineStatus(s: OfflineStatus): void;
@@ -221,6 +224,7 @@ export class Controller {
   private branding: Branding | null = null;
   private art = new Map<string, { file: string; type: string }>();
   private relay: Relay | null = null;
+  private relayStopTask:Promise<void>=Promise.resolve();
   private phase: Phase = "loading";
   private offline: OfflineStatus = { phase: "stopped" };
 
@@ -1313,6 +1317,25 @@ export class Controller {
     if (existsSync(dir)) await this.p.openPath(dir);
   }
 
+  async removeGame():Promise<ActionResult>{
+    if(this.discovering)return err('busy');
+    let removed=false;
+    const result=await this.maintenance(async()=>{
+      if(!this.p.manifest||!this.p.confirmRemoveGame||!this.p.trashPath)throw Error('Game removal unavailable');
+      if((await this.p.findRunningClients()).length)throw Error('Close all running game clients before removing files');
+      try{
+        removed=await removeGameFiles(this.installDir,this.p.manifest,
+          [this.p.userDataDir,this.p.resourcesDir,...(this.p.documentsDir?[path.join(this.p.documentsDir,'Dauntless Unbroken','Account Keys')]:[])],
+          async targets=>{
+            if(!await this.p.confirmRemoveGame!(targets))return false;
+            await this.settings.update(s=>{s.verifiedDir=null;});
+            return true;
+          },target=>this.p.trashPath!(target));
+      }finally{await this.inspectInstall();}
+    });
+    return result.ok&&!removed?err('cancelled'):result;
+  }
+
   // ------------------------------------------------------------------ install / repair
 
   dismissDetectedGames(): void {
@@ -1987,9 +2010,12 @@ export class Controller {
     const relay = this.relay;
     this.relay = null;
     if (relay) {
-      await relay.stop().catch(() => undefined);
-      log.info(`relay stopped (${relay.requests} requests, ${relay.upgrades} upgrades, ${relay.failures} failures)`);
+      this.relayStopTask=this.relayStopTask.then(async()=>{
+        await relay.stop().catch(() => undefined);
+        log.info(`relay stopped (${relay.requests} requests, ${relay.upgrades} upgrades, ${relay.failures} failures)`);
+      });
     }
+    await this.relayStopTask;
   }
 
   // ------------------------------------------------------------------ settings / links

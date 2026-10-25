@@ -54,6 +54,7 @@ const state = {
   purchaseHistoryBusy: false,
   purchaseHistoryNote: "",
   diagnosticsNote: "",
+  gameRemovalNote: "",
   diagnosticsUploading: false,
   revivedResultDismissed:false,
   offlineSaveNote: null as string | null, // the last backup or restore that worked, shown under the row
@@ -1570,7 +1571,7 @@ function renderSettings(): void {
   const container = $("#view-settings");
   const snap = state.snap;
   if (!snap) return;
-  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, state.purchaseHistory, state.purchaseHistoryFor, state.purchaseHistoryBusy, state.purchaseHistoryNote, state.diagnosticsNote, snap.revived, state.revivedResultDismissed, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
+  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, state.purchaseHistory, state.purchaseHistoryFor, state.purchaseHistoryBusy, state.purchaseHistoryNote, state.diagnosticsNote, state.gameRemovalNote, snap.revived, state.revivedResultDismissed, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
   renderRegion(container, sig, () => {
     const busy = snap.busy || snap.task !== null || snap.game.running;
 
@@ -1619,6 +1620,15 @@ function renderSettings(): void {
         button(t("set_open_folder"), () => void api.openGameFolder(), { fk: "set-open" }),
       ),
       settingsRow(t("set_repair"), t("set_repair_text"), button(t("set_repair_button"), () => void api.repair(), { icon: "refresh", fk: "set-repair", disabled: busy || !snap.server || !snap.account.hasKey })),
+      settingsRow('Remove downloaded game files',state.gameRemovalNote||'Move game files to the Recycle Bin / Trash. Keep the launcher, accounts, keys and saves.',
+        button('Remove game files',async()=>{
+          state.gameRemovalNote='Checking game files...';renderSettings();
+          try{
+            const result=await api.removeGame();
+            state.gameRemovalNote=result.ok?'Game files moved to the Recycle Bin / Trash. Empty it to free disk space.':result.error.code==='cancelled'?'Removal cancelled.':'Files could not all be removed. Close the game, check folder permissions and try again. No permanent deletion was attempted.';
+          }catch{state.gameRemovalNote='Removal failed. Open the game folder to check the remaining files.';}
+          renderSettings();
+        },{fk:'remove-game',disabled:busy||snap.game.running||snap.task!==null})),
     );
 
     const graphics = card(

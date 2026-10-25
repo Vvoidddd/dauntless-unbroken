@@ -519,6 +519,7 @@ function registerIpc(c: Controller): void {
     return t === null ? { ok: false, error: { code: "unknown" } } : c.openExternal(t);
   });
   handle(IPC.openGameFolder, () => c.openGameFolder());
+  handle(IPC.removeGame, () => c.removeGame());
   handle(IPC.logout, () => c.logout());
   handle(IPC.switchAccount, (_e, id) => c.switchAccount(id));
   handle(IPC.removeSavedAccount, (_e, id) => c.removeSavedAccount(id));
@@ -573,6 +574,17 @@ function makePlatform(): Platform {
     },
     resourcesDir: resourcesDir(),
     defaultInstallDir,
+    trashPath: target=>shell.trashItem(target),
+    confirmRemoveGame: async targets=>{
+      if(!mainWindow)return false;
+      const answer=await dialog.showMessageBox(mainWindow,{
+        type:'warning',title:'Remove downloaded game files?',
+        message:'Move the downloaded game files to the Recycle Bin / Trash?',
+        detail:'The launcher, saved accounts, account-key backups and Archon/Saved are kept. Online progression stays on the server. Empty the Recycle Bin / Trash afterwards to free disk space.\n\nLocations:\n'+targets.join('\n'),
+        buttons:['Cancel','Remove game files'],defaultId:0,cancelId:0,noLink:true,
+      });
+      return answer.response===1;
+    },
     hostPlatform: process.platform,
     appVersion: app.getVersion(),
     packaged: app.isPackaged,

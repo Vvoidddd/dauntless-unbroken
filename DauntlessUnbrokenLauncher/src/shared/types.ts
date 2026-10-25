@@ -331,6 +331,7 @@ export const IPC = {
   getBranding: "dr:get-branding",
   openExternal: "dr:open-external",
   openGameFolder: "dr:open-game-folder",
+  removeGame: "dr:remove-game",
   logout: "dr:logout",
   installUpdate: "dr:install-update",
   windowMinimize: "dr:window-minimize",

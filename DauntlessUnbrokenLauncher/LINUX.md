@@ -77,6 +77,40 @@ nix-shell -p appimage-run --run 'appimage-run ./DauntlessUnbrokenLauncher-*-linu
 
 The default game folder on Linux is `~/Games/DauntlessUnbroken`. You can choose another absolute Linux path or point the launcher at an existing Dauntless 1.4.4 folder.
 
+### Steam Deck: launcher closes or the Windows launcher cannot connect
+
+Run the **Linux launcher natively**. Proton/Wine runs the Windows game underneath it;
+do not enable Steam compatibility mode for the Linux launcher itself. The Windows
+launcher uses a Windows process-ownership check for its local relay. A log containing
+`local connection rejected: game process ownership could not be verified` means that
+connection was rejected locally, before reaching the server. Factory-resetting the
+Deck or registering another account is not a recovery step for that error.
+
+For an AppImage that closes immediately, first close any other launcher and run it
+from Konsole in Desktop Mode. For the reported 1.0.31 download:
+
+```bash
+chmod +x ./DauntlessUnbrokenLauncher-1.0.31-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-1.0.31-linux-x86_64.AppImage --appimage-extract-and-run --safe-mode
+```
+
+Extraction avoids the AppImage mount requirement; `--safe-mode` turns off launcher
+hardware acceleration. These are troubleshooting options, not a confirmed fix for
+every startup failure. Keep Chromium's sandbox enabled. If it still closes, send
+the terminal error to support; launcher-upload logs cannot capture failures that
+happen before the launcher starts. The Linux portable ZIP is another option that
+does not mount an AppImage. Import the existing PC account backup to use the same
+Slayer and progression.
+
+### Remove game files without resetting the Deck
+
+In launcher 1.0.32 and later, Settings → Game → **Remove game files** moves downloaded game content into the
+Recycle Bin / Trash after confirmation. Empty it afterwards to reclaim disk space.
+The launcher, account keys, account-key backups, online progression and
+`Archon/Saved` are kept. Close the game first. A failure leaves remaining files in
+place; there is no fallback to permanent deletion. Portable/custom launcher files
+can be removed separately after closing the launcher; a factory reset is unnecessary.
+
 ## Proton and Wine
 
 The launcher creates its own compatibility prefix inside its application data directory and automatically sets the native `dxgi` override required by the Dauntless Unbroken DLLs.

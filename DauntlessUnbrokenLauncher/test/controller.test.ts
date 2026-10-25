@@ -21,6 +21,7 @@ import { formatInvite } from "../src/shared/invite";
 import { setSink } from "../src/main/log";
 import { KeyStore,backupFileText,serverId } from "../src/main/keystore";
 import { SettingsStore } from "../src/main/settings";
+import {Relay} from '../src/main/relay';
 import { extractAccountKey } from '../src/shared/username';
 import { PortableOfflineSave, OFFLINE_KEY_SLOT } from "../src/main/offline-save";
 import { offlineLayout } from "../src/main/offline-layout";
@@ -191,6 +192,43 @@ test('cleanup maintenance blocks concurrent launcher work and always releases bu
   release();assert.deepEqual(await work,{ok:true});assert.equal(h.c.snapshot().busy,false);
   assert.equal((await h.c.maintenance(async()=>{throw Error('Test-only failure');})).ok,false);assert.equal(h.c.snapshot().busy,false);
  }finally{release?.();await h.c.shutdown();}
+});
+
+test('removing downloaded game files refreshes install state without changing saved account data',async()=>{
+ const trash=temp('dr-ctl-trash-');let confirmed=0,moved=0;
+ const h=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{
+  confirmRemoveGame:async targets=>{confirmed++;assert.ok(targets.length>0);return true;},
+  trashPath:async target=>{await fs.rename(target,path.join(trash,String(moved++)+'-'+path.basename(target)));},
+ });
+ try{
+  for(const file of files){const target=path.join(h.installDir,file.path);await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,file.data);}
+  await h.c.init();
+  await fs.writeFile(path.join(h.userData,'account-fixture.key'),'keep');
+  assert.deepEqual(await h.c.removeGame(),{ok:true});
+  assert.equal(confirmed,1);assert.ok(moved>0);
+  assert.equal(h.c.snapshot().install.installed,false);assert.equal(h.c.snapshot().install.verified,false);
+  assert.equal(await fs.readFile(path.join(h.userData,'account-fixture.key'),'utf8'),'keep');
+  assert.equal(h.c.snapshot().busy,false);
+ }finally{await h.c.shutdown();}
+});
+
+test('relaunch and shutdown wait for the previous game relay to finish closing',async t=>{
+ const h=harness(await availablePort());let release!:()=>void,entered!:()=>void,reached!:()=>void,restarting=false,restartedRelay=false;
+ const gate=new Promise<void>(resolve=>{release=resolve;}),stopping=new Promise<void>(resolve=>{entered=resolve;});
+ const restartReached=new Promise<void>(resolve=>{reached=resolve;});
+ const original=Relay.prototype.stop;
+ const start=Relay.prototype.start,stop=(h.c as any).stopRelay;
+ t.mock.method(h.c as any,'stopRelay',function(this:Controller){const result=stop.call(this);if(restarting)reached();return result;});
+ t.mock.method(Relay.prototype,'start',function(this:Relay){if(restarting)restartedRelay=true;return start.call(this);});
+ t.mock.method(Relay.prototype,'stop',async function(this:Relay){entered();await gate;return original.call(this);});
+ try{
+  await h.c.init();meta.opts.validCodes!.add('RELAY-RESTART');
+  await h.c.submitInvite(invite(cert.fingerprint,'RELAY-RESTART'));await h.c.register('RelayRestart');await h.c.repair();
+  assert.deepEqual(await h.c.play(),{ok:true});h.child()!.emit('exit',0);await stopping;
+  restarting=true;const restart=h.c.play();await restartReached;
+  await new Promise(resolve=>setImmediate(resolve));assert.equal(restartedRelay,false);
+  release();assert.deepEqual(await restart,{ok:true});
+ }finally{release?.();h.child()?.emit('exit',0);await h.c.shutdown();}
 });
 
 test('a pending support upload stays bound to its original server credential after leaving the server',async t=>{
