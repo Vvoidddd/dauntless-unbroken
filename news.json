@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "0172c87778871633c69257ee69e0c9a1fca49f6d",
+      "date": "2026-10-25T22:15:01.107Z",
+      "title": "Latest project updates",
+      "body": "• Keep large damage totals and long part names inside compact HUD columns\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "91c1009bbbf3d2e78a8cddcf61025c95ad7c3c1a",
       "date": "2026-10-25T22:11:41.069Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-23T05:53:58Z",
       "title": "Launcher 1.0.28 is available",
       "body": "Dauntless Unbroken Launcher 1.0.28 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.28-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.28-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.28-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.28-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.28-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.28-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
-    },
-    {
-      "id": "12889a765245a2a564101f1ca077e01bf25a21c2",
-      "date": "2026-10-23T05:44:03.657Z",
-      "title": "Latest project updates",
-      "body": "• Protect character appearance while inventory finishes loading\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
