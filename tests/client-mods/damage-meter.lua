@@ -143,6 +143,7 @@ settings.dm_team = false; pulse(); assert(not displayed("Team total  2,150"))
 city = true; ticks["damage-roster"](); pulse(); assert(not displayed("core damage"))
 city, session, worldAddress, now = false, "hunt-b", 124, 0 -- Repeated map name, new world instance.
 ticks["damage-roster"](); pulse(); assert(displayed("0") and displayed("core damage"))
+send(a, 1234567); pulse(); assert(displayed("1.2M"), "Large totals stay readable inside the value column")
 
 local Status = dofile("client-mods/ue4ss/Mods/PartMonitor/Scripts/PartStatus.lua")
 local function status(hp, max, kind, severed, breakable, actor)

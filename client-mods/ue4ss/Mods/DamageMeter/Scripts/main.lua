@@ -136,8 +136,8 @@ local function makeUI(team)
         {"wound", "wound damage", {R = 0.92, G = 0.06, B = 0.13, A = 1}}}
     for i, channel in ipairs(channels) do
         local y = 7 + (i - 1) * 34
-        HUD.Label(panel, channel[1], "0", 23, channel[3], 10, y, 80, true, true)
-        HUD.Label(panel, channel[1] .. "-label", channel[2], 22, white, 108, y, 192)
+        HUD.Label(panel, channel[1], "0", 22, channel[3], 8, y, 104, true, true)
+        HUD.Label(panel, channel[1] .. "-label", channel[2], 20, white, 124, y, 178)
     end
     if team then
         label("total", "Team total  0", 17, muted, 182)
@@ -152,6 +152,8 @@ local function set(id, text, own)
     HUD.Set(panel, id, text, own ~= nil and (own and purple or white) or nil)
 end
 local function count(n)
+    if n >= 1e9 then return string.format("%.1fB", n / 1e9) end
+    if n >= 1e6 then return string.format("%.1fM", n / 1e6) end
     local s = tostring(math.floor(n + 0.5))
     return s:reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
 end

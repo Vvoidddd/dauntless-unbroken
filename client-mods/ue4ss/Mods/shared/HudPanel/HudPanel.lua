@@ -128,12 +128,17 @@ function M.Label(panel, id, text, size, color, x, y, width, bold, rightAligned)
     -- Refresh the constructed Slate widget explicitly instead of relying on
     -- direct Font property writes to update its cached text style.
     block:SetFont(block.Font)
-    panel.labels[id] = {widget = widget, block = block}
+    panel.labels[id] = {widget = widget, block = block, size = size}
     M.Set(panel, id, text, color)
 end
-function M.Set(panel, id, text, color)
+function M.Set(panel, id, text, color, size)
     local label = panel and panel.labels[id]
     if not label or not M.Valid(label.block) then return end
+    if size and size ~= label.size then
+        label.block.Font.Size = size
+        label.block:SetFont(label.block.Font)
+        label.size = size
+    end
     if label.text ~= text then
         label.block:SetText(FText(text))
         label.widget:InvalidateLayoutAndVolatility()

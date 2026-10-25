@@ -131,7 +131,7 @@ local function render()
         panel = HUD.New(selected.pc, TAG, {X = 1, Y = 0.49}, -24 - width, 0, width, height)
         for i = 1, count do
             local y = 4 + (i - 1) * rowHeight
-            local size = rowHeight >= 40 and 22 or 17
+            local size = rowHeight >= 40 and 18 or 15
             HUD.Indicator(panel, "dot" .. i, 8, y + 3, 22)
             HUD.Label(panel, "name" .. i, "", size, white, 36, y, 148)
             HUD.Bar(panel, "hp" .. i, 16, y + rowHeight - 13, 164, rowHeight >= 40 and 8 or 4)
@@ -142,7 +142,8 @@ local function render()
     for i = 1, count do
         local row = rows[i]
         HUD.Tint(panel, "dot" .. i, Status.colors[row.color])
-        HUD.Set(panel, "name" .. i, row.name)
+        local size = rowHeight >= 40 and 18 or 15
+        HUD.Set(panel, "name" .. i, row.name, nil, math.max(11, math.floor(size * math.min(1, 14 / #row.name))))
         HUD.Fill(panel, "hp" .. i, row.fraction, Status.colors[row.color])
     end
 end

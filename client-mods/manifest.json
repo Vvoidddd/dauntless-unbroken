@@ -238,8 +238,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/DamageMeter/Scripts/main.lua",
-                      "sha256":  "5578627e9623287216e535da692365e2ae7c90e32a9cb314069d9707b649a876",
-                      "size":  8212,
+                      "sha256":  "9a69c2da2ce101c92e4edb8026571e2faf9488f46dbc20d863562e0319335a1b",
+                      "size":  8340,
                       "keep":  false
                   },
                   {
@@ -268,8 +268,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/PartMonitor/Scripts/main.lua",
-                      "sha256":  "fbd6c668f93d0962e9b5981190d63b8e2815ee7e4afeb8716b4ed32453003730",
-                      "size":  8194,
+                      "sha256":  "161c82a6c6427c61beeae720f935efa36a7a4f89582f11be52f32d45ed1175ba",
+                      "size":  8311,
                       "keep":  false
                   },
                   {
@@ -286,8 +286,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/shared/HudPanel/HudPanel.lua",
-                      "sha256":  "295040d04b3ff7ef82e98631c5d5e0604e264d61a82a4d9b55d5762d67c124c2",
-                      "size":  7564,
+                      "sha256":  "e5357be7898d87b3eca35a1273327b3199b8c1da2661171f1c200bf323abd4f4",
+                      "size":  7740,
                       "keep":  false
                   },
                   {
