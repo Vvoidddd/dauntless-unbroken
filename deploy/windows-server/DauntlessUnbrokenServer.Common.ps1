@@ -18,7 +18,7 @@ $script:DRPinned = @{
     # Server DLL is pinned separately; launcher/friend-kit clients keep their stable DLL.
     Dlls            = [ordered]@{
         'dxgi.dll'                    = 'f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c'
-        'DauntlessUnbroken.dll' = '06b4c3640f95c8371b960286a890091984490ba3a4bf5a464c5e33c88e976aa0'
+        'DauntlessUnbroken.dll' = '4b5a2c90cb21c39007f2c5bc0f9861773524125526112bddaf850189e69b8ec5'
     }
     # Node.js LTS: the version the fork is developed and tested on. better-sqlite3 is a native
     # module built for this Node major version. SHA-256 from nodejs.org/dist/v24.21.0/SHASUMS256.txt;

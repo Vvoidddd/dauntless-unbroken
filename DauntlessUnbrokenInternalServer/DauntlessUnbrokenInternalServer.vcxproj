@@ -156,6 +156,8 @@
     <ClInclude Include="FallRecoveryPolicy.h" />
     <ClInclude Include="EscalationSelectionPolicy.h" />
     <ClInclude Include="EscalationSelectionGuard.h" />
+    <ClInclude Include="PangarProcDamagePolicy.h" />
+    <ClInclude Include="PangarProcDamage.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

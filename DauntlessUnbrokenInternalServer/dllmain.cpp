@@ -42,6 +42,7 @@
 #include "SDK/GameplayAbilities_parameters.hpp"
 #include "SDK/Archon_parameters.hpp"
 #include "EscalationSelectionGuard.h"
+#include "PangarProcDamage.h"
 #include "SDK/lantern_equipped_ab_parameters.hpp"
 
 using namespace SDK;
@@ -499,6 +500,8 @@ void GameEngineTickHook(UGameEngine* GameEngine, float DeltaTime, char CanRender
 
     TrialsSchedule::Tick();
     CellFusionTime::Tick();
+
+    if (Globals::AmServer) PangarProcDamage::Tick();
 
     // Recover on the authoritative game thread before replicating this frame.
     FallRecovery::Tick(Globals::Listening ? Networking::NetDriver : nullptr, DeltaTime);
