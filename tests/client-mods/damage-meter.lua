@@ -55,6 +55,7 @@ local function widget(_, _, cls)
     w.AddToViewport = function(self)
         self.fontAtConstruct = self.ChatLogLabelTextBlock.Font.Size
         self.cachedFont = "ChatBold" -- Changing Font properties alone does not refresh native Slate.
+        if self.kind == "panel" then self.texture, self.fill, self.brushSize = nil, nil, nil end
     end
     w.RemoveFromViewport = function(self) self.removed = true end
     local slot = object({SetAnchors = noop, SetAlignment = noop, SetAutoSize = noop, SetPosition = noop, SetSize = noop})
@@ -65,6 +66,7 @@ local function widget(_, _, cls)
         SetColorAndOpacity = function(_, c) w.fill = c end, SetBrushSize = function(_, size) w.brushSize = size end})
     w.ChatLogLabelTextBlock = object({Font = {OutlineSettings = {}},
         SetFont = function(_, font) w.cachedFont, w.fontObject, w.outline = font.TypefaceFontName, font.FontObject, font.OutlineSettings.OutlineSize end,
+        SetShadowOffset = noop, SetShadowColorAndOpacity = noop,
         SetJustification = function(_, value) w.justification = value end,
         SetColorAndOpacity = function(_, c) w.color = c.SpecifiedColor end,
         SetText = function(_, text) w.text = text end})
@@ -124,14 +126,18 @@ for _, w in ipairs(widgets) do
         compactLabels = compactLabels + 1
         assert(w.fontObject == font and w.outline == 0)
         assert(w.cachedFont == (w.justification == 2 and "Bold" or "Regular"))
+        if w.text == "1,250" then assert(w.color.R == 0.96, "Number formatting cannot pass gsub's count as an own-player colour flag") end
     end
 end
 assert(compactLabels == 10, "Each reference row has a separate number and label")
+local panelTextures = 0
 for _, w in ipairs(widgets) do
     if not w.removed and w.texture and w.texture.file and w.texture.file:match("panel[.]png$") then
+        panelTextures = panelTextures + 1
         assert(w.brushSize.X == 64 and w.brushSize.Y == 64, "Stretch canvas geometry, not the nine-slice artwork margins")
     end
 end
+assert(panelTextures == 1, "The constructed backdrop must retain its texture, not reset to the white template")
 settings.dm_team = true; pulse()
 assert(displayed("Void") and displayed("GOLLUM") and displayed("Team total  1,650"))
 for _, w in ipairs(widgets) do

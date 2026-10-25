@@ -50,17 +50,19 @@ function M.New(pc, tag, anchor, x, y, width, height)
         panel.textClass = load(TEXT)
         local root = create(panel, load(PANEL))
         panel.root = root
+        -- This blueprint constructs/resets its boost image on AddToViewport.
+        -- Style that image afterwards, as the shipped lock-on marker does.
+        show(panel, root, 0, 0, width, height)
         root.ProgressBarComponent:GetParent():SetVisibility(1)
         local image = root.BoostIconBarImage
         image:SetBrushFromTexture(texture(panel, "panel"), false)
         image.Brush.DrawAs = 1 -- Box: nine-slice preserves the small rounded corners.
         image.Brush.Margin = {Left = 0.125, Top = 0.125, Right = 0.125, Bottom = 0.125}
-        image:SetBrush(image.Brush)
+        image:SetBrushResourceObject(texture(panel, "panel"))
         image:SetColorAndOpacity({R = 1, G = 1, B = 1, A = 1})
         -- Nine-slice border thickness follows the source brush size. The canvas
         -- slot below stretches the panel; keep its 64px artwork size unchanged.
         image:SetBrushSize({X = 64, Y = 64})
-        show(panel, root, 0, 0, width, height)
         local slot = image.Slot
         slot:SetAnchors({Minimum = {X = 0, Y = 0}, Maximum = {X = 0, Y = 0}})
         slot:SetAlignment({X = 0, Y = 0})
@@ -74,12 +76,12 @@ function M.New(pc, tag, anchor, x, y, width, height)
 end
 local function rectangle(panel, x, y, width, height, color, resource)
     local widget = create(panel, load(PANEL))
+    show(panel, widget, x, y, width, height)
     widget.ProgressBarComponent:GetParent():SetVisibility(1)
     local image = widget.BoostIconBarImage
     image:SetBrushResourceObject(resource or StaticFindObject("/Engine/EngineResources/WhiteSquareTexture.WhiteSquareTexture"))
     image:SetColorAndOpacity(color)
     image:SetBrushSize({X = width, Y = height})
-    show(panel, widget, x, y, width, height)
     local slot = image.Slot
     slot:SetAnchors({Minimum = {X = 0, Y = 0}, Maximum = {X = 0, Y = 0}})
     slot:SetAlignment({X = 0, Y = 0})
@@ -130,6 +132,8 @@ function M.Label(panel, id, text, size, color, x, y, width, bold, rightAligned)
     -- Refresh the constructed Slate widget explicitly instead of relying on
     -- direct Font property writes to update its cached text style.
     block:SetFont(block.Font)
+    block:SetShadowOffset({X = 0, Y = 1})
+    block:SetShadowColorAndOpacity({R = 0, G = 0, B = 0, A = 0.85})
     panel.labels[id] = {widget = widget, block = block, size = size}
     M.Set(panel, id, text, color)
 end

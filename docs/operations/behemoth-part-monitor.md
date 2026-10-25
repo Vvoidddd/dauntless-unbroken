@@ -58,3 +58,18 @@ armour lineage, same-map travel, ownership cleanup and input transparency.
 Native in-game rendering and UE4SS parameter/property marshalling still require
 a real-hunt smoke test; the Windows computer-use native pipe was unavailable.
 The stable launcher release updates the normal feed; the HUD mods remain optional.
+
+## 1.0.36 rendering correction
+
+The real 1.0.35 screenshot showed white backdrops and square status indicators.
+The cooked `StackableProgressBar` Construct event calls
+`BoostIconBarImage.SetBrush(BoostIcon.Brush)`, replacing a brush assigned before
+AddToViewport. Configure this Image only after viewport construction, following
+the existing LockOn.MakeImage path. The health-bar mod's before-construction rule
+applies to ProgressBar.WidgetStyle, not this Image. The HUD regression now resets
+Image resource/tint/size during construction and requires the final textures to survive.
+
+Lua `string.gsub` returns both text and replacement count. The formatter must
+return only the text: forwarding both results as the final argument to `set()`
+passed even zero as its truthy own-player colour flag, making damage values purple.
+Numeric values retain their channel colours; only the team table highlights the local player.

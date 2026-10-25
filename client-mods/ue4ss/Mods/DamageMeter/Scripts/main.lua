@@ -155,7 +155,9 @@ local function count(n)
     if n >= 1e9 then return string.format("%.1fB", n / 1e9) end
     if n >= 1e6 then return string.format("%.1fM", n / 1e6) end
     local s = tostring(math.floor(n + 0.5))
-    return s:reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
+    -- gsub also returns its replacement count; never leak that as set()'s
+    -- optional own-player flag (even zero is truthy in Lua).
+    return (s:reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""))
 end
 local function pulse(now)
     if not context or not hooked or not Settings.Get("dm_visible", true) then removeUI() return end
