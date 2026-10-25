@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "91c1009bbbf3d2e78a8cddcf61025c95ad7c3c1a",
+      "date": "2026-10-25T22:11:41.069Z",
+      "title": "Latest project updates",
+      "body": "• Match Void HUD styling and release launcher 1.0.35 to everyone\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "724b0778ac79ca4501417c143b96bd2a816bbe78",
       "date": "2026-10-25T21:35:09.473Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-23T05:44:03.657Z",
       "title": "Latest project updates",
       "body": "• Protect character appearance while inventory finishes loading\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "19ee0ce5dd323fed193bfdc2e52fff11b26f273d",
-      "date": "2026-10-23T05:00:05.486Z",
-      "title": "Latest project updates",
-      "body": "• Complete Slayer Link activation, shared progress and reward collection\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
