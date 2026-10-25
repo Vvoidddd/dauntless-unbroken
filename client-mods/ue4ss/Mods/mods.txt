@@ -2,6 +2,7 @@ BehemothHealthBars : 1
 ModMenu : 1
 BehemothTracker : 1
 DamageMeter : 1
+PartMonitor : 1
 CraftStar : 1
 LockOn : 1
 

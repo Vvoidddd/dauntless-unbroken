@@ -7,10 +7,18 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
 - **Behemoth Tracker**: an arrow and distance to the behemoth in the top right.
 - **Hunt Damage** (`DamageMeter`): a left-side panel with your core, part, stagger and wound damage,
   DPS since the first observed hit, each teammate's core damage/share, and the team's core total.
+  The compact view keeps the team total visible; individual team rows are collapsed by default.
   Totals cover this visit to the hunt and reset for a new session. These are client observations:
   late joins, distant hits or lost network events can leave damage uncounted. Core damage alone
   determines DPS and contribution; the four overlapping channels are never added together.
   Home → Hunt Damage toggles the panel and team breakdown live. It keeps counting while hidden.
+- **Behemoth Parts** (`PartMonitor`, made by Void): a right-side panel for the nearest living
+  Behemoth within 50 m, leaving room for the distant tracker outside combat. Each named part has
+  an HP bar and state: green above 50%, orange at 50% or below, red for a confirmed break/sever.
+  Broken bars are empty; missing, fixed or otherwise disabled parts stay gray. Removed armour
+  is red only when its break-stage data confirms the armour-to-disabled transition. Names retain
+  the real left/right part data. More than six rows use two columns; a count identifies overflow
+  beyond sixteen. Home → Behemoth Parts hides/shows it live.
 - **Mod Menu**: Home opens it, Up/Down (or PgUp/PgDn) choose, End flips the chosen switch. MODS turns
   whole mods on or off (applied after restarting the game); SETTINGS changes the mods live (shield bar, HP numbers,
   two bars in escalations, tracker at any distance, uncrafted weapon colour). Settings are saved in
@@ -51,4 +59,4 @@ Edit the files here, then rebuild the manifest and commit both:
 
 Updates preserve existing mod switches, add newly shipped mods to `mods.txt`, and disable the retired status indicator. CraftStar is added before Keybinds on existing installations; an explicit CraftStar off setting is preserved.
 
-Damage meter regression check (Lua 5.4): `lua tests/client-mods/damage-meter.lua` from the repository root.
+HUD monitor regression check (Lua 5.4): `lua tests/client-mods/damage-meter.lua` from the repository root.

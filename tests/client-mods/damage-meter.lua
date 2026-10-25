@@ -49,12 +49,16 @@ local function widget(_, _, cls)
     w.SetRenderOpacity = function(self, v) self.RenderOpacity = v end
     w.SetPositionInViewport = function(self, p) self.x, self.y = p.X, p.Y end
     w.SetDesiredSizeInViewport = function(self, p) self.width, self.height = p.X, p.Y end
-    w.SetAnchorsInViewport, w.SetAlignmentInViewport, w.AddToViewport, w.InvalidateLayoutAndVolatility = noop, noop, noop, noop
+    w.SetAnchorsInViewport = function(self, a) self.anchor = a.Minimum end
+    w.SetAlignmentInViewport, w.InvalidateLayoutAndVolatility = noop, noop
+    w.AddToViewport = function(self) self.fontAtConstruct = self.ChatLogLabelTextBlock.Font.Size end
     w.RemoveFromViewport = function(self) self.removed = true end
     local slot = object({SetAnchors = noop, SetAlignment = noop, SetAutoSize = noop, SetPosition = noop, SetSize = noop})
     w.ProgressBarComponent = object({GetParent = function() return object({SetVisibility = noop}) end})
-    w.BoostIconBarImage = object({Slot = slot, SetBrushResourceObject = noop, SetColorAndOpacity = noop, SetBrushSize = noop})
-    w.ChatLogLabelTextBlock = object({Font = {OutlineSettings = {}}, SetJustification = noop, SetColorAndOpacity = noop,
+    w.BoostIconBarImage = object({Slot = slot, SetBrushResourceObject = noop,
+        SetColorAndOpacity = function(_, c) w.fill = c end, SetBrushSize = noop})
+    w.ChatLogLabelTextBlock = object({Font = {OutlineSettings = {}}, SetJustification = noop,
+        SetColorAndOpacity = function(_, c) w.color = c.SpecifiedColor end,
         SetText = function(_, text) w.text = text end})
     widgets[#widgets + 1] = w
     return w
@@ -76,6 +80,7 @@ RegisterHook = function(path, callback) callbacks[path], hookCount = callback, h
 package.loaded.FrameTick = {Every = function(_, name, callback) ticks[name] = callback end, Now = function() return now end, Start = noop}
 package.loaded.ModSettings = {Load = noop, Get = function(k, default) if settings[k] == nil then return default end return settings[k] end}
 package.loaded.DamageLedger = Ledger
+package.loaded.HudPanel = dofile("client-mods/ue4ss/Mods/shared/HudPanel/HudPanel.lua")
 dofile(dir .. "main.lua")
 assert(not tracker.removed, "Damage meter cleanup must preserve the Behemoth Tracker")
 local owner = object({IsA = function() return true end})
@@ -100,14 +105,140 @@ callback(wrap(component), wrap(array({
 })))
 now = 11; pulse()
 assert(displayed("1,250  core damage") and displayed("Team total  1,650"))
+assert(not displayed("GOLLUM"), "Compact default retains the team total but collapses individual rows")
+settings.dm_team = true; pulse()
 assert(displayed("Void") and displayed("GOLLUM"))
-for _, w in ipairs(widgets) do if not w.removed then assert(w.x >= 28 and w.x + w.width <= 366 and w.visibility == 3) end end
+for _, w in ipairs(widgets) do
+    if not w.removed then
+        assert(w.x >= 24 and w.x + w.width <= 334 and w.visibility == 3 and w.anchor.Y == 0.5)
+        if w.kind == "label" then assert(w.fontAtConstruct ~= nil, "Fonts must be set before constructing Slate widgets") end
+    end
+end
 ticks["damage-hook"](); assert(hookCount == 1)
-settings.dm_visible = false; pulse(); assert(not displayed("HUNT DAMAGE"))
+settings.dm_visible = false; pulse(); assert(not displayed("Team total  1,650"))
 send(a, 500); settings.dm_visible = true; pulse(); assert(displayed("1,750  core damage"))
 owner.foreign = true; send(a, 10000); owner.foreign = false; pulse(); assert(displayed("1,750  core damage"))
 settings.dm_team = false; pulse(); assert(not displayed("TEAM · CORE DAMAGE"))
-city = true; ticks["damage-roster"](); pulse(); assert(not displayed("HUNT DAMAGE"))
+city = true; ticks["damage-roster"](); pulse(); assert(not displayed("Observed this visit · DPS since first hit"))
 city, session, worldAddress, now = false, "hunt-b", 124, 0 -- Repeated map name, new world instance.
 ticks["damage-roster"](); pulse(); assert(displayed("0  core damage"))
-print("Damage meter: channel separation, single counting hook, world/roster isolation, reset and HUD checks passed")
+
+local Status = dofile("client-mods/ue4ss/Mods/PartMonitor/Scripts/PartStatus.lua")
+local function status(hp, max, kind, severed, breakable, actor)
+    return Status.State({current = hp, max = max, kind = kind, severed = severed, breakable = breakable, actor = actor})
+end
+assert(status(51, 100, 0, false, true, true) == "intact")
+assert(status(50, 100, 0, false, true, true) == "low")
+assert(status(0, 100, 0, false, true, true) == "low", "Zero HP alone is not a replicated break flag")
+assert(status(nil, nil, 3, false, false, false) == "broken")
+assert(status(100, 100, 4, false, false, true) == "broken")
+assert(status(nil, nil, 0, true, false, false) == "broken")
+assert(status(100, 100, 5, false, false, true) == "unknown")
+assert(status(100, 100, 0, false, false, true) == "unknown")
+assert(status(0 / 0, 100, 0, false, true, true) == "unknown")
+assert(status(100, 0, 0, false, true, true) == "unknown")
+assert(status(100, 100, 0, false, true, false) == "unknown")
+assert(Status.Name("FrontLeftWing", 6) == "Front Left Wing")
+assert(Status.Name("BodyBLArmour", 12) == "Body BL Armour")
+assert(Status.Name("None", 6) == "Wing")
+pc.Pawn = object()
+local function boss(name, distance, foreign)
+    return object({GetFullName = function() return name end, GetAddress = function() return distance + 500 end, distance = distance,
+        GetCurrentHealth = function() return 1000 end, GetDistanceTo = function(self) return self.distance end, foreign = foreign})
+end
+local near, other, foreign = boss("near", 500, false), boss("other", 1000, false), boss("foreign", 1, true)
+local function part(name, hp, kind, canBreak)
+    local actor = object({GetFullName = function() return "Health " .. name end, GetAddress = function() return #name * 10 end})
+    local p = object({PartName = name, PartType = kind or 0, PartSevered = false, BodyPartType = 9, current = hp, max = 100,
+        MonsterPartActor = actor, CurrentBreakStage = 0, PartBreakData = array({}), breakable = canBreak ~= false})
+    p.GetOwner = function() return near end
+    p.GetFName = function() return name end
+    p.GetCurrentHealth = function(self) return self.current end
+    p.GetMaxHealth = function(self) return self.max end
+    p.CanBeBroken = function(self) return self.breakable end
+    p.GetFullName = function() return "Part " .. name end
+    p.GetAddress = function() return #name * 100 end
+    return p
+end
+local head, left, tail = part("Head", 100), part("FrontLeftWing", 50), part("Tail", 100, 3)
+local disabled, armour = part("DisabledArmour", 100, 5, false), part("Armour", 100, 1)
+local missing = part("BackRight", 0); missing.MonsterPartActor = {IsValid = function() return false end}
+local fixed = part("Fixed", 100, 0, false)
+local duplicate = part("DuplicateHead", 100); duplicate.MonsterPartActor = head.MonsterPartActor
+local parts = {head, left, tail, disabled, armour, missing, fixed, duplicate}
+local all = FindAllOf
+FindAllOf = function(cls)
+    if cls == "ArchonBehemoth" then return {foreign, other, near} end
+    if cls == "monsterpart_bpc_C" then return parts end
+    if cls == "w_chat_log_label_bpw_C" or cls == "StackableProgressBar_C" then
+        local result = {tracker}
+        for _, w in ipairs(widgets) do if not w.removed then result[#result + 1] = w end end
+        return result
+    end
+    return all(cls)
+end
+package.loaded.PartStatus = Status
+dofile("client-mods/ue4ss/Mods/PartMonitor/Scripts/main.lua")
+local function partsPulse() ticks["parts-scan"]() end
+local function right(text, color)
+    for _, w in ipairs(widgets) do
+        if not w.removed and w.RenderOpacity == 0.994 and w.text == text and (not color or w.color == color) then return w end
+    end
+end
+local function rightState(name, word, color)
+    local label = assert(right(name), name)
+    local state = assert(right(word, color), word)
+    for _, w in ipairs(widgets) do
+        if not w.removed and w.RenderOpacity == 0.994 and w.x == label.x + 142 and w.y == label.y + 3 then
+            assert(w.text == word and w.color == color, name .. " state")
+            return
+        end
+    end
+    error("No state for " .. name)
+end
+local function rightBar(name, width, color)
+    local label = assert(right(name))
+    for _, w in ipairs(widgets) do
+        if not w.removed and w.RenderOpacity == 0.994 and w.kind == "panel" and w.x == label.x - 22
+            and (w.y == label.y + 31 or w.y == label.y + 23) and w.fill == color then
+            assert(w.width == width, name .. " HP bar")
+            return
+        end
+    end
+    error("No HP bar for " .. name)
+end
+partsPulse()
+assert(right("PART STATUS") and right("Nearest behemoth · 5 m"))
+assert(right("LOW", Status.colors.low) and right("BROKEN", Status.colors.broken))
+assert(right("OK", Status.colors.intact) and right("?", Status.colors.unknown))
+assert(right("Front Left Wing") and right("DISABLED", Status.colors.unknown))
+assert(not right("Duplicate Head"), "Two shapes sharing one health actor are one part")
+rightState("Head", "OK", Status.colors.intact); rightBar("Head", 230, Status.colors.intact)
+rightState("Front Left Wing", "LOW", Status.colors.low); rightBar("Front Left Wing", 115, Status.colors.low)
+rightState("Tail", "BROKEN", Status.colors.broken); rightBar("Tail", 0, Status.colors.broken)
+rightState("Back Right", "?", Status.colors.unknown); rightBar("Back Right", 0, Status.colors.unknown)
+rightState("Fixed", "N/A", Status.colors.unknown)
+assert(displayed("0  core damage") and not tracker.removed, "Part monitor must preserve the other HUD mods")
+head.current = 50; partsPulse(); rightState("Head", "LOW", Status.colors.low); rightBar("Head", 115, Status.colors.low)
+head.PartSevered = true; partsPulse(); rightState("Head", "BROKEN", Status.colors.broken); rightBar("Head", 0, Status.colors.broken)
+head.PartSevered, head.PartType, head.current = false, 0, 100 -- Regrowth restores green; no permanent cached break flag.
+partsPulse(); rightState("Head", "OK", Status.colors.intact); rightBar("Head", 230, Status.colors.intact)
+armour.CurrentBreakStage, armour.PartType = 1, 0; partsPulse() -- Armour -> normal flesh is not broken flesh.
+rightState("Armour", "OK", Status.colors.intact)
+armour.PartType, armour.breakable = 5, false
+local desc = "PartBreakDescription_81_F02FC7404C14B0C4C604A5B52827B0C9"
+armour.PartBreakData = array({{[desc] = 1}, {[desc] = 7}})
+partsPulse(); rightState("Armour", "BROKEN", Status.colors.broken); rightBar("Armour", 0, Status.colors.broken)
+armour.PartBreakData = array({{[desc] = 1}, {}, {[desc] = 7}})
+partsPulse(); rightState("Armour", "DISABLED", Status.colors.unknown) -- Unknown stages must not be skipped/compressed.
+for _, w in ipairs(widgets) do
+    if not w.removed and w.RenderOpacity == 0.994 then
+        assert(w.x < 0 and w.x + w.width <= -24 and w.anchor.X == 1 and w.anchor.Y == 0.5)
+        assert(w.visibility == 3 or (w.kind == "panel" and w.width == 0 and w.visibility == 1))
+    end
+end
+near.distance, other.distance = 5000, 6000; partsPulse(); assert(not right("PART STATUS"), "Leave room for the distant tracker")
+near.distance, other.distance = 500, 1000; partsPulse(); assert(right("PART STATUS"))
+settings.pm_visible = false; partsPulse(); assert(not right("PART STATUS") and displayed("0  core damage"))
+settings.pm_visible, city = true, true; partsPulse(); assert(not right("PART STATUS"))
+print("HUD monitors: damage, replicated part states, exact half threshold, regrowth, armour stages, world isolation and both-side layout passed")

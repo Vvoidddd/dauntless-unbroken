@@ -32,7 +32,7 @@ local HIDDEN = {
 }
 -- Friendlier names for known mods (anything else shows its folder name).
 local DISPLAY = {BehemothHealthBars = "Behemoth Health Bars", BehemothTracker = "Behemoth Tracker",
-                  CraftStar = "Uncrafted Weapons", LockOn = "Lock-on", DamageMeter = "Hunt Damage"}
+                  CraftStar = "Uncrafted Weapons", LockOn = "Lock-on", DamageMeter = "Hunt Damage", PartMonitor = "Behemoth Parts"}
 
 -- The SETTINGS section. Keys and defaults must match the mods that read them.
 local SETTINGS = {
@@ -41,7 +41,8 @@ local SETTINGS = {
     {key = "bhb_dual",   label = "Health bars: two bars in escalations", default = true},
     {key = "trk_always", label = "Tracker: show at any distance", default = false},
     {key = "dm_visible", label = "Damage meter: show panel", default = true},
-    {key = "dm_team", label = "Damage meter: team breakdown", default = true},
+    {key = "dm_team", label = "Damage meter: team breakdown", default = false},
+    {key = "pm_visible", label = "Part monitor: show panel", default = true},
     -- choice setting: End cycles through the choices; stored as their number (1, 2, 3)
     {key = "cst_color", label = "Uncrafted weapons: name colour", default = 2, choices = {
         {name = "Red", color = {R = 1.00, G = 0.25, B = 0.25, A = 1}},
@@ -164,7 +165,7 @@ end
 
 local SETTING_OWNER = {bhb_shield = "BehemothHealthBars", bhb_text = "BehemothHealthBars",
     bhb_dual = "BehemothHealthBars", trk_always = "BehemothTracker", cst_color = "CraftStar", lock_rebind = "LockOn",
-    dm_visible = "DamageMeter", dm_team = "DamageMeter"}
+    dm_visible = "DamageMeter", dm_team = "DamageMeter", pm_visible = "PartMonitor"}
 
 local function BuildItems()
     items = {}
