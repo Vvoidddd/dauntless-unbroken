@@ -49,6 +49,9 @@ They only change what you see on your own screen. The game works without them.
 Both install only files whose SHA-256 matches `manifest.json`, and check them again after copying.
 `ue4ss/UE4SS-settings.ini` preserves existing preferences, except that Lua hot reload and automatic script reload are forced off to prevent live Lua-state teardown crashes. **Ctrl+R safely refreshes the mod menu and settings; restart the game to apply whole-mod on/off changes.** Existing `mods.txt` switches are kept; new bundled mods are added and retired mods are disabled. Mods are Windows only: under Wine/Proton UE4SS is not loaded.
 
+Both installers also migrate `bUseUObjectArrayCache = false` into kept INIs, matching the shipped
+configuration and UE4SS's documented startup-crash workaround. Comments and unrelated settings stay intact.
+
 The launcher puts deleted files back before the next launch. To turn a mod off, use the Mod Menu or
 set it to 0 in `ue4ss/Mods/mods.txt` (that file is kept).
 

@@ -2,7 +2,7 @@
 // client-mods/ folder, shipped as the launcher resource "client-mods" (forge.config.ts extraResource).
 // Installed next to the game exe on install, repair and before every launch, the same way as the
 // pinned DLLs: every file must match client-mods/manifest.json before it is copied and after.
-// Files marked "keep" preserve player choices; the two unsafe Lua reload flags are forced off.
+// Files marked "keep" preserve choices; unsafe Lua reload and object-array cache settings are forced off.
 // Mod on/off choices survive. Failures never block the game:
 // the caller logs them and launches anyway. Files that earlier versions installed and that the
 // bundle dropped since (manifest "remove") are deleted, with any folder they leave empty, and mods
@@ -181,11 +181,12 @@ export async function installClientMods(resourcesDir: string, installDir: string
 }
 
 // Existing INIs are kept, so safety defaults must also migrate old installations.
-// Only these two keys in [General] change; other sections and player preferences survive.
+// Match the shipped startup-safety defaults; other sections and preferences survive.
 export function safeUe4ssSettings(text: string): string {
   const eol = text.includes("\r\n") ? "\r\n" : "\n";
   const lines = text.split(/\r?\n/);
-  const missing = new Set(["EnableHotReloadSystem", "EnableAutoReloadingLuaMods"]);
+  const defaults: Record<string, string> = { EnableHotReloadSystem: "0", EnableAutoReloadingLuaMods: "0", bUseUObjectArrayCache: "false" };
+  const missing = new Set(Object.keys(defaults));
   let general = false;
   let insertAt = -1;
   for (let i = 0; i < lines.length; i++) {
@@ -199,17 +200,17 @@ export function safeUe4ssSettings(text: string): string {
     const equals = lines[i].indexOf("=");
     if (equals < 0) continue;
     const key = lines[i].slice(0, equals).trim().toLowerCase();
-    const name = ["EnableHotReloadSystem", "EnableAutoReloadingLuaMods"].find(k => k.toLowerCase() === key);
+    const name = Object.keys(defaults).find(k => k.toLowerCase() === key);
     if (!name) continue;
     missing.delete(name);
     const value = lines[i].slice(equals + 1);
     const comment = value.search(/[;#]/);
-    if (value.slice(0, comment < 0 ? undefined : comment).trim() !== "0") {
-      lines[i] = lines[i].slice(0, equals + 1) + " 0" + (comment < 0 ? "" : " " + value.slice(comment));
+    if (value.slice(0, comment < 0 ? undefined : comment).trim() !== defaults[name]) {
+      lines[i] = lines[i].slice(0, equals + 1) + " " + defaults[name] + (comment < 0 ? "" : " " + value.slice(comment));
     }
   }
   if (insertAt < 0) { insertAt = lines.length; lines.push("[General]"); ++insertAt; }
-  lines.splice(insertAt, 0, ...[...missing].map(key => `${key} = 0`));
+  lines.splice(insertAt, 0, ...[...missing].map(key => `${key} = ${defaults[key]}`));
   return lines.join(eol);
 }
 

@@ -12,14 +12,15 @@ const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 const reloadSettingsCases = [
   {
     before: "; preferences\r\n[General]\r\nEnableHotReloadSystem = 1 ; unsafe\r\nEnableAutoReloadingLuaMods = 1\r\nHotReloadKey = F6\r\nUseCache = 0\r\n[Other]\r\nEnableHotReloadSystem = 1\r\n",
-    after: "; preferences\r\n[General]\r\nEnableHotReloadSystem = 0 ; unsafe\r\nEnableAutoReloadingLuaMods = 0\r\nHotReloadKey = F6\r\nUseCache = 0\r\n[Other]\r\nEnableHotReloadSystem = 1\r\n",
+    after: "; preferences\r\n[General]\r\nbUseUObjectArrayCache = false\r\nEnableHotReloadSystem = 0 ; unsafe\r\nEnableAutoReloadingLuaMods = 0\r\nHotReloadKey = F6\r\nUseCache = 0\r\n[Other]\r\nEnableHotReloadSystem = 1\r\n",
   },
-  { before: "[general]\nenablehotreloadsystem=1\nEnableHotReloadSystem=1 # duplicate\n", after: "[general]\nEnableAutoReloadingLuaMods = 0\nenablehotreloadsystem= 0\nEnableHotReloadSystem= 0 # duplicate\n" },
-  { before: "[Other]\nUseCache = 0", after: "[Other]\nUseCache = 0\n[General]\nEnableHotReloadSystem = 0\nEnableAutoReloadingLuaMods = 0" },
-  { before: "[General]\nEnableHotReloadSystem = 0\nEnableAutoReloadingLuaMods = 0\n", after: "[General]\nEnableHotReloadSystem = 0\nEnableAutoReloadingLuaMods = 0\n" },
+  { before: "[general]\nenablehotreloadsystem=1\nEnableHotReloadSystem=1 # duplicate\n", after: "[general]\nEnableAutoReloadingLuaMods = 0\nbUseUObjectArrayCache = false\nenablehotreloadsystem= 0\nEnableHotReloadSystem= 0 # duplicate\n" },
+  { before: "[Other]\nUseCache = 0", after: "[Other]\nUseCache = 0\n[General]\nEnableHotReloadSystem = 0\nEnableAutoReloadingLuaMods = 0\nbUseUObjectArrayCache = false" },
+  { before: "[General]\nEnableHotReloadSystem = 0\nEnableAutoReloadingLuaMods = 0\nbUseUObjectArrayCache = false\n", after: "[General]\nEnableHotReloadSystem = 0\nEnableAutoReloadingLuaMods = 0\nbUseUObjectArrayCache = false\n" },
+  { before: "[General]\nbUseUObjectArrayCache=true ; old install\nBUSEUOBJECTARRAYCACHE=1 # duplicate\nGraphicsAPI=dx11\n[Other]\nbUseUObjectArrayCache=true\n", after: "[General]\nEnableHotReloadSystem = 0\nEnableAutoReloadingLuaMods = 0\nbUseUObjectArrayCache= false ; old install\nBUSEUOBJECTARRAYCACHE= false # duplicate\nGraphicsAPI=dx11\n[Other]\nbUseUObjectArrayCache=true\n" },
 ];
 
-test("existing UE4SS preferences migrate only unsafe reload flags, including duplicates and missing keys", () => {
+test("existing UE4SS preferences migrate reload and startup-cache safety defaults, including duplicates and missing keys", () => {
   for (const { before, after } of reloadSettingsCases) {
     assert.equal(safeUe4ssSettings(before), after);
     assert.equal(safeUe4ssSettings(after), after, "migration must be idempotent");

@@ -37,12 +37,12 @@ function Ok($text) { Write-Host "   OK  $text" -ForegroundColor Green }
 function Fail($text) { Write-Host "   !!  $text" -ForegroundColor Red; exit 1 }
 function Hash($path) { (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash }
 
-# Keep preferences, but never tear down live Lua states through Ctrl+R or file auto-reload.
+# Keep preferences; disable live Lua teardown and the startup-sensitive object-array cache.
 function Safe-Ue4ssSettings([string]$Text) {
   $eol = if ($Text.Contains("`r`n")) { "`r`n" } else { "`n" }
   $lines = New-Object 'System.Collections.Generic.List[string]'
   $lines.AddRange([string[]]($Text -split '\r?\n'))
-  $missing = [ordered]@{ EnableHotReloadSystem = $true; EnableAutoReloadingLuaMods = $true }
+  $missing = [ordered]@{ EnableHotReloadSystem = '0'; EnableAutoReloadingLuaMods = '0'; bUseUObjectArrayCache = 'false' }
   $general = $false; $insertAt = -1
   for ($i = 0; $i -lt $lines.Count; $i++) {
     if ($lines[$i] -match '^\s*\[([^\]]+)\]') {
@@ -54,16 +54,17 @@ function Safe-Ue4ssSettings([string]$Text) {
     $equals = $lines[$i].IndexOf('=')
     if ($equals -lt 0) { continue }
     $key = $lines[$i].Substring(0, $equals).Trim()
-    if ($key -notin 'EnableHotReloadSystem', 'EnableAutoReloadingLuaMods') { continue }
+    if ($key -notin 'EnableHotReloadSystem', 'EnableAutoReloadingLuaMods', 'bUseUObjectArrayCache') { continue }
+    $desired = if ($key -ieq 'bUseUObjectArrayCache') { 'false' } else { '0' }
     $missing.Remove($key)
     $value = $lines[$i].Substring($equals + 1)
     $comment = [regex]::Match($value, '[;#].*').Value
-    if (($value -replace '[;#].*$', '').Trim() -ne '0') {
-      $lines[$i] = $lines[$i].Substring(0, $equals + 1) + ' 0' + $(if ($comment) { ' ' + $comment } else { '' })
+    if (($value -replace '[;#].*$', '').Trim() -ne $desired) {
+      $lines[$i] = $lines[$i].Substring(0, $equals + 1) + ' ' + $desired + $(if ($comment) { ' ' + $comment } else { '' })
     }
   }
   if ($insertAt -lt 0) { $insertAt = $lines.Count + 1; $lines.Add('[General]') }
-  $lines.InsertRange($insertAt, [string[]]@($missing.Keys | ForEach-Object { "$_ = 0" }))
+  $lines.InsertRange($insertAt, [string[]]@($missing.Keys | ForEach-Object { "$_ = $($missing[$_])" }))
   return $lines -join $eol
 }
 
