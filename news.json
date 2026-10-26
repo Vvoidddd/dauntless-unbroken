@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "8f6a86469ab7665b141d7d2b27695ec0408d2ab2",
+      "date": "2026-10-26T02:18:56.126Z",
+      "title": "Latest project updates",
+      "body": "• Unwrap returned component entries before part validation\n• Stop unused HUD animations and repeated missing-class lookups\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "40082682eae9db3cb7c6c0836fb2d313d5b95332",
       "date": "2026-10-26T01:40:39.244Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T03:13:32.723Z",
       "title": "Latest project updates",
       "body": "• Add safe game removal and wait for relay shutdown before relaunch\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "a7962965de2f6da2397bced4df61af62b1742282",
-      "date": "2026-10-25T01:07:37.780Z",
-      "title": "Latest project updates",
-      "body": "• Number public fleet status hosts consecutively\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
