@@ -108,6 +108,15 @@ discoveries, and controller/world replacement. The part adapter test rejects any
 search. These are native-call budget checks, not an FPS benchmark; an in-game comparison is
 still required to confirm the performance improvement on the affected PC.
 
+The first local candidate exposed a binding difference: native reflected
+`K2_GetComponentsByClass` returns a plain Lua table, while array properties use
+UE4SS TArray userdata with `ForEach`/`value:get()`. Treating the return like a property
+caused `main.lua:151: attempt to call a nil value (method 'ForEach')` in the live log and
+hid the panel. The corrected adapter uses `pairs` directly, and the engine stand-in now
+returns a plain table so this regression fails the normal HUD check. Public publication
+of that initial candidate was cancelled. Successful layout creation logs one Panel ready
+line per rebuild, without per-frame logging, to make native support verification possible.
+
 ## 1.0.36 rendering correction
 
 The real 1.0.35 screenshot showed white backdrops and square status indicators.

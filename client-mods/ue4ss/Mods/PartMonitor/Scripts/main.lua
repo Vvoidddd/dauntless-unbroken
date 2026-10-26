@@ -148,15 +148,17 @@ local function scan()
     for _, group in ipairs(groups) do
         -- Ask only the selected boss for its components, never scan every part
         -- in the world's UObject array (including pooled/old-round objects).
-        group.actor:K2_GetComponentsByClass(partClass):ForEach(function(_, value)
-            local part = value:get()
-            if not HUD.Valid(part) or objectKey(part:GetOwner()) ~= group.id then return end
-            local read, row = pcall(readPart, part, group.actor)
-            if read and row and row.id and not group.seen[row.id] then
-                group.seen[row.id]=true;group.rows[#group.rows+1]=row
+        -- Reflected function return arrays are plain Lua tables, unlike
+        -- property TArrays, whose elements are unwrapped with value:get().
+        for _, part in pairs(group.actor:K2_GetComponentsByClass(partClass)) do
+            if HUD.Valid(part) and objectKey(part:GetOwner()) == group.id then
+                local read, row = pcall(readPart, part, group.actor)
+                if read and row and row.id and not group.seen[row.id] then
+                    group.seen[row.id]=true;group.rows[#group.rows+1]=row
+                end
+                if not read then logOnce("part", row) end
             end
-            if not read then logOnce("part", row) end
-        end)
+        end
     end
     local titles = {}
     for i, group in ipairs(groups) do
@@ -225,6 +227,7 @@ local function render()
             cursor=cursor+math.max(1,view.count)*rowHeight
         end
         layoutKey=key
+        print("[PartMonitor] Panel ready: " .. #views .. " Behemoth group(s), " .. totalRows .. " row(s)")
     end
     for g,view in ipairs(views) do
         for i=1,view.count do

@@ -208,7 +208,7 @@ local function boss(name, distance, foreign)
         K2_GetComponentsByClass = function(self)
             local owned = {}
             for _, p in ipairs(parts or {}) do if p:GetOwner() == self then owned[#owned+1] = p end end
-            return array(owned)
+            return owned -- Native reflected function returns a plain table, not a property TArray.
         end,
         IsA = function(self, cls) return self.scissors == true and cls == scissorsClass end,
         IsAetherCharged = function(self) if self.aetherReadFails then error("Unreadable aether state") end return self.aetherFallback end})
