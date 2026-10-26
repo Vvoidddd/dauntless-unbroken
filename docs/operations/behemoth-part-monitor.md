@@ -109,11 +109,16 @@ search. These are native-call budget checks, not an FPS benchmark; an in-game co
 still required to confirm the performance improvement on the affected PC.
 
 The first local candidate exposed a binding difference: native reflected
-`K2_GetComponentsByClass` returns a plain Lua table, while array properties use
-UE4SS TArray userdata with `ForEach`/`value:get()`. Treating the return like a property
+`K2_GetComponentsByClass` returns a plain Lua table of RemoteUnrealParam entries, while
+array properties use UE4SS TArray userdata with `ForEach`. Treating the return like a property
 caused `main.lua:151: attempt to call a nil value (method 'ForEach')` in the live log and
-hid the panel. The corrected adapter uses `pairs` directly, and the engine stand-in now
-returns a plain table so this regression fails the normal HUD check. Public publication
+hid the panel. Iterating the outer table alone produced the unavailable-data placeholder:
+each entry still needs `value:get()` before object validation. The corrected adapter uses
+`pairs` plus entry unwrapping, accepting raw objects as a fallback, and the engine stand-in
+now covers both forms. The conversion is confirmed in the pinned
+[UE4SS 3.0.1 array/object pushers](https://github.com/UE4SS-RE/RE-UE4SS/blob/v3.0.1/UE4SS/src/LuaType/LuaUObject.cpp):
+`GetNonTrivialLocal` arrays iterate elements using `GetParam`, which constructs a RemoteUnrealParam
+for UObject entries. Public publication
 of that initial candidate was cancelled. Successful layout creation logs one Panel ready
 line per rebuild, without per-frame logging, to make native support verification possible.
 

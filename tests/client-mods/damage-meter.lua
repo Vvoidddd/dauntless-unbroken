@@ -207,13 +207,16 @@ local function boss(name, distance, foreign)
         GetCurrentHealth = function(self) return self.hp or 1000 end, GetDistanceTo = function(self) return self.distance end, foreign = foreign,
         K2_GetComponentsByClass = function(self)
             local owned = {}
-            for _, p in ipairs(parts or {}) do if p:GetOwner() == self then owned[#owned+1] = p end end
-            return owned -- Native reflected function returns a plain table, not a property TArray.
+            for _, p in ipairs(parts or {}) do
+                if p:GetOwner() == self then owned[#owned+1] = self.rawComponents and p or wrap(p) end
+            end
+            return owned -- Plain return table; UObject entries are RemoteUnrealParam wrappers.
         end,
         IsA = function(self, cls) return self.scissors == true and cls == scissorsClass end,
         IsAetherCharged = function(self) if self.aetherReadFails then error("Unreadable aether state") end return self.aetherFallback end})
 end
 local near, other, foreign = boss("near", 500, false), boss("other", 1000, false), boss("foreign", 1, true)
+other.rawComponents = true -- Also exercise bindings that expose raw objects.
 local function part(name, hp, kind, canBreak, partOwner)
     local actor = object({GetFullName = function() return "Health " .. name end, GetAddress = function() return #name * 10 end})
     local p = object({PartName = name, PartType = kind or 0, PartSevered = false, BodyPartType = 9, current = hp, max = 100,

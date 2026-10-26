@@ -148,9 +148,11 @@ local function scan()
     for _, group in ipairs(groups) do
         -- Ask only the selected boss for its components, never scan every part
         -- in the world's UObject array (including pooled/old-round objects).
-        -- Reflected function return arrays are plain Lua tables, unlike
-        -- property TArrays, whose elements are unwrapped with value:get().
-        for _, part in pairs(group.actor:K2_GetComponentsByClass(partClass)) do
+        -- Reflected return arrays are Lua tables of RemoteUnrealParam entries
+        -- in UE4SS 3.0.1; accept raw objects too, as the damage adapter does.
+        for _, value in pairs(group.actor:K2_GetComponentsByClass(partClass)) do
+            local unwrapped, part = pcall(function() return value:get() end)
+            if not unwrapped then part = value end
             if HUD.Valid(part) and objectKey(part:GetOwner()) == group.id then
                 local read, row = pcall(readPart, part, group.actor)
                 if read and row and row.id and not group.seen[row.id] then
