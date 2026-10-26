@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "40082682eae9db3cb7c6c0836fb2d313d5b95332",
+      "date": "2026-10-26T01:40:39.244Z",
+      "title": "Latest project updates",
+      "body": "• Handle native component lookup return tables in part monitor\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "ea956b955581ccc11fa1a0172ad925f6926a43d2",
       "date": "2026-10-26T01:27:03.521Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T01:07:37.780Z",
       "title": "Latest project updates",
       "body": "• Number public fleet status hosts consecutively\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "1a3afa7a8cbf20dd1db8ab275d223a4f144ff24b",
-      "date": "2026-10-24T22:51:30.501Z",
-      "title": "Latest project updates",
-      "body": "• Recover missing Slayer Link reward pools without resetting progress\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
