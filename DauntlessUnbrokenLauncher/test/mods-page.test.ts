@@ -55,4 +55,6 @@ test("the launcher lists both Void HUD mods before the older client mods", () =>
   }
   assert.match(STRINGS.en.mod_dm_text, /separate columns/);
   assert.match(STRINGS.en.mod_pm_text, /glowing image indicator/);
+  assert.match(STRINGS.en.mod_pm_text, /separate named sections with every part/);
+  assert.match(STRINGS.en.mod_pm_text, /Wounds turn the remaining HP bar red/);
 });

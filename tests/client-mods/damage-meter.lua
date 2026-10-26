@@ -75,14 +75,19 @@ local function widget(_, _, cls)
     return w
 end
 local lib = object({Create = widget})
-local font = object()
+local font, scissorsClass = object(), object()
+local viewport={X=1920,Y=1080}
+local viewportScale=1
+local layoutLibrary=object({GetViewportSize=function()return viewport end,GetViewportScale=function()return viewportScale end})
 local rendering = object({ImportFileAsTexture2D = function(_, _, file) return object({file = file}) end})
 StaticFindObject = function(path)
     if path == "/Script/Engine.Default__GameplayStatics" then return gs end
     if path == "/Script/Archon.Default__ArchonGameplayStatics" then return archon end
     if path:find("WidgetBlueprintLibrary", 1, true) then return lib end
+    if path:find("WidgetLayoutLibrary", 1, true) then return layoutLibrary end
     if path:find("KismetRenderingLibrary", 1, true) then return rendering end
     if path:find("RobotoCondensed", 1, true) then return font end
+    if path:find("/scissors_archetype_bp.", 1, true) then return scissorsClass end
     return object({kind = path:find("chat_log_label", 1, true) and "label" or "panel"})
 end
 local tracker = object({RenderOpacity = 0.996, removed = false})
@@ -194,15 +199,19 @@ assert(Status.Name("BodyBLArmour", 12) == "Body BL Armour")
 assert(Status.Name("None", 6) == "Wing")
 pc.Pawn = object()
 local function boss(name, distance, foreign)
-    return object({GetFullName = function() return name end, GetAddress = function() return distance + 500 end, distance = distance,
-        GetCurrentHealth = function() return 1000 end, GetDistanceTo = function(self) return self.distance end, foreign = foreign})
+    local marker=object({title=name=="near" and "Kharabak" or "Shrike"})
+    marker.GetBehemothName=function(self)return {ToString=function()return self.title end}end
+    return object({GetFullName = function() return name end, GetAddress = function() return distance + 500 end, distance = distance, BehemothMessageMarker=marker,
+        GetCurrentHealth = function(self) return self.hp or 1000 end, GetDistanceTo = function(self) return self.distance end, foreign = foreign,
+        IsA = function(self, cls) return self.scissors == true and cls == scissorsClass end,
+        IsAetherCharged = function(self) if self.aetherReadFails then error("Unreadable aether state") end return self.aetherFallback end})
 end
 local near, other, foreign = boss("near", 500, false), boss("other", 1000, false), boss("foreign", 1, true)
-local function part(name, hp, kind, canBreak)
+local function part(name, hp, kind, canBreak, partOwner)
     local actor = object({GetFullName = function() return "Health " .. name end, GetAddress = function() return #name * 10 end})
     local p = object({PartName = name, PartType = kind or 0, PartSevered = false, BodyPartType = 9, current = hp, max = 100,
         MonsterPartActor = actor, CurrentBreakStage = 0, PartBreakData = array({}), breakable = canBreak ~= false})
-    p.GetOwner = function() return near end
+    p.GetOwner = function() return partOwner or near end
     p.GetFName = function() return name end
     p.GetCurrentHealth = function(self) return self.current end
     p.GetMaxHealth = function(self) return self.max end
@@ -217,6 +226,7 @@ local missing = part("BackRight", 0); missing.MonsterPartActor = {IsValid = func
 local fixed = part("Fixed", 100, 0, false)
 local duplicate = part("DuplicateHead", 100); duplicate.MonsterPartActor = head.MonsterPartActor
 local parts = {head, left, tail, disabled, armour, missing, fixed, duplicate}
+local currentBosses = {foreign, other, near}
 local desc = "PartBreakDescription_81_F02FC7404C14B0C4C604A5B52827B0C9"
 local core = part("Body",100,4,false); core.BodyPartType=7; core.PartBreakData=array({{[desc]=10}})
 local coreNormal = part("CoreNormal",100,0); coreNormal.BodyPartType=7; coreNormal.PartBreakData=array({{[desc]=0},{[desc]=4}})
@@ -226,7 +236,7 @@ local anyLimb = part("AnyLimb",100,4,false); anyLimb.BodyPartType=0; anyLimb.Cur
 for _, p in ipairs({core,coreNormal,unbreakable,bodyArmour,anyLimb}) do parts[#parts+1]=p end
 local all = FindAllOf
 FindAllOf = function(cls)
-    if cls == "ArchonBehemoth" then return {foreign, other, near} end
+    if cls == "ArchonBehemoth" then return currentBosses end
     if cls == "monsterpart_bpc_C" then return parts end
     if cls == "w_chat_log_label_bpw_C" or cls == "StackableProgressBar_C" then
         local result = {tracker}
@@ -243,8 +253,18 @@ local function right(text, color)
         if not w.removed and w.RenderOpacity == 0.994 and w.text == text and (not color or w.color == color) then return w end
     end
 end
-local function rightState(name, word, color)
-    local label = assert(right(name), name)
+local function sectionLabel(title, text)
+    local heading=assert(right(title), title)
+    local bottom=math.huge
+    for _, w in ipairs(widgets) do
+        if not w.removed and w.RenderOpacity==0.994 and w.cachedFont=="Bold" and w.y>heading.y then bottom=math.min(bottom,w.y) end
+    end
+    for _, w in ipairs(widgets) do
+        if not w.removed and w.RenderOpacity==0.994 and w.text==text and w.y>heading.y and w.y<bottom then return w end
+    end
+end
+local function rightState(name, word, color, title)
+    local label = assert(title and sectionLabel(title,name) or right(name), name)
     for _, w in ipairs(widgets) do
         if not w.removed and w.RenderOpacity == 0.994 and w.x == label.x - 28 and w.y == label.y + 3 then
             assert(w.kind == "panel" and w.fill == color and w.texture.file:match("indicator[.]png$"), name .. " image indicator")
@@ -253,17 +273,18 @@ local function rightState(name, word, color)
     end
     error("No state for " .. name)
 end
-local function rightBar(name, width, color)
-    local label = assert(right(name))
+local function rightBar(name, width, color, title)
+    local label = assert(title and sectionLabel(title,name) or right(name))
+    local bar, gap
     for _, w in ipairs(widgets) do
         if not w.removed and w.RenderOpacity == 0.994 and w.kind == "panel" and w.x == label.x - 20
-            and w.z == 77 and w.fill == color then
-            assert(w.width == width, name .. " HP bar")
-            assert(w.z == 77 and w.anchor.X == 1 and w.anchor.Y == 0.49, name .. " fill stays above its track and on the right after resizing")
-            return
+            and w.z == 77 and w.y >= label.y and w.y - label.y <= 50 and (not gap or w.y-label.y<gap) then
+            bar, gap = w, w.y-label.y
         end
     end
-    error("No HP bar for " .. name)
+    assert(bar,"No HP bar for " .. name)
+    assert(bar.width == width and bar.fill == color, name .. " HP bar")
+    assert(bar.anchor.X == 1 and bar.anchor.Y == 0.49, name .. " fill stays on the right after resizing")
 end
 partsPulse()
 assert(right("Head") and right("Front Left Wing"))
@@ -273,16 +294,16 @@ rightState("Unbreakable Crest", "N/A", Status.colors.unknown)
 rightState("Body Front Left Armour", "OK", Status.colors.intact)
 rightState("Any Limb", "BROKEN", Status.colors.broken)
 assert(not right("Duplicate Head"), "Two shapes sharing one health actor are one part")
-rightState("Head", "OK", Status.colors.intact); rightBar("Head", 164, Status.colors.intact)
-rightState("Front Left Wing", "LOW", Status.colors.low); rightBar("Front Left Wing", 82, Status.colors.low)
+rightState("Head", "OK", Status.colors.intact); rightBar("Head", 212, Status.colors.intact)
+rightState("Front Left Wing", "LOW", Status.colors.low); rightBar("Front Left Wing", 106, Status.colors.low)
 rightState("Tail", "BROKEN", Status.colors.broken); rightBar("Tail", 0, Status.colors.broken)
 rightState("Back Right", "?", Status.colors.unknown); rightBar("Back Right", 0, Status.colors.unknown)
 rightState("Fixed", "N/A", Status.colors.unknown)
 assert(displayed("core damage") and not tracker.removed, "Part monitor must preserve the other HUD mods")
-head.current = 50; partsPulse(); rightState("Head", "LOW", Status.colors.low); rightBar("Head", 82, Status.colors.low)
+head.current = 50; partsPulse(); rightState("Head", "LOW", Status.colors.low); rightBar("Head", 106, Status.colors.low)
 head.PartSevered = true; partsPulse(); rightState("Head", "BROKEN", Status.colors.broken); rightBar("Head", 0, Status.colors.broken)
 head.PartSevered, head.PartType, head.current = false, 0, 100 -- Regrowth restores green; no permanent cached break flag.
-partsPulse(); rightState("Head", "OK", Status.colors.intact); rightBar("Head", 164, Status.colors.intact)
+partsPulse(); rightState("Head", "OK", Status.colors.intact); rightBar("Head", 212, Status.colors.intact)
 armour.CurrentBreakStage, armour.PartType = 1, 0; partsPulse() -- Armour -> normal flesh is not broken flesh.
 rightState("Armour", "OK", Status.colors.intact)
 armour.PartType, armour.breakable = 5, false
@@ -295,17 +316,101 @@ partsPulse(); rightState("Armour", "BROKEN", Status.colors.broken) -- Vents, fra
 disabled.PartBreakData = array({{[desc] = 7}, {[desc] = 8}})
 partsPulse(); rightState("Disabled Armour", "DISABLED", Status.colors.unknown)
 disabled.CurrentBreakStage,disabled.PartType,disabled.breakable=1,0,true
-partsPulse(); rightState("Disabled Armour", "OK", Status.colors.intact); rightBar("Disabled Armour",164,Status.colors.intact)
+partsPulse(); rightState("Disabled Armour", "OK", Status.colors.intact); rightBar("Disabled Armour",212,Status.colors.intact)
 disabled.CurrentBreakStage,disabled.PartType,disabled.breakable=0,5,false
 partsPulse(); rightState("Disabled Armour", "DISABLED", Status.colors.unknown)
+-- Kharabak forces and heals its temporary wings through the same Disabled stage.
+-- Real owned wing references + class + replicated aether state distinguish that from damage.
+local rightWing=part("FrontRightWing",100,5,false)
+rightWing.PartBreakData=array({{[desc]=0},{[desc]=7}});rightWing.CurrentBreakStage=1
+parts[#parts+1]=rightWing
+left.PartBreakData=array({{[desc]=0},{[desc]=7}});left.CurrentBreakStage,left.PartType,left.breakable,left.current=1,5,false,100
+near.scissors,near.AetherCharged,near.FrontLeftWing,near.FrontRightWing=true,false,left,rightWing
+partsPulse()
+rightState("Front Left Wing (inactive)","INACTIVE",Status.colors.unknown)
+rightBar("Front Left Wing (inactive)",0,Status.colors.unknown)
+rightState("Front Right Wing (inactive)","INACTIVE",Status.colors.unknown)
+near.AetherCharged=true
+partsPulse();rightState("Front Left Wing","BROKEN",Status.colors.broken);rightBar("Front Left Wing",0,Status.colors.broken)
+left.CurrentBreakStage,left.PartType,left.breakable,left.current=0,0,true,75
+partsPulse();rightState("Front Left Wing","OK",Status.colors.intact);rightBar("Front Left Wing",159,Status.colors.intact)
+left.current=50;partsPulse();rightState("Front Left Wing","LOW",Status.colors.low);rightBar("Front Left Wing",106,Status.colors.low)
+near.AetherCharged=nil;near.aetherFallback=false
+partsPulse();rightState("Front Right Wing (inactive)","INACTIVE",Status.colors.unknown)
+near.aetherReadFails=true
+partsPulse();rightState("Front Right Wing","?",Status.colors.unknown)
+near.scissors=false;near.aetherReadFails=false;near.AetherCharged=false
+partsPulse();rightState("Front Right Wing","BROKEN",Status.colors.broken) -- Other Behemoth wings keep ordinary break semantics.
+-- Wounds tint only a live health fill; zero expose HP is not a wound flag.
+head.current,head.PartType,head.ExposedPartType,head.CurrentExposeHealth=75,0,7,0
+partsPulse();rightBar("Head",159,Status.colors.intact);rightState("Head","OK",Status.colors.intact)
+head.ExposedPartType=6
+partsPulse();rightBar("Head",159,Status.colors.broken);rightState("Head","OK",Status.colors.intact)
+head.ExposedPartType=7
+partsPulse();rightBar("Head",159,Status.colors.intact)
+head.current,head.ExposedPartType=50,6
+partsPulse();rightBar("Head",106,Status.colors.broken);rightState("Head","LOW",Status.colors.low)
+head.PartType,head.current=3,100
+partsPulse();rightBar("Head",0,Status.colors.broken);rightState("Head","BROKEN",Status.colors.broken)
+head.PartType,head.current,head.ExposedPartType=0,100,7
+local otherHead=part("Head",25,0,true,other);otherHead.ExposedPartType=6;parts[#parts+1]=otherHead
+partsPulse()
+assert(right("Kharabak") and right("Shrike"))
+rightBar("Head",212,Status.colors.intact,"Kharabak")
+rightBar("Head",53,Status.colors.broken,"Shrike");rightState("Head","LOW",Status.colors.low,"Shrike")
+local firstHeading,secondHeading=right("Kharabak"),right("Shrike")
+assert(firstHeading.y<secondHeading.y)
+near.distance,other.distance=3000,100
+partsPulse();assert(right("Kharabak")==firstHeading and right("Shrike")==secondHeading,"Movement must not reorder groups or rebuild unchanged widgets")
+other.BehemothMessageMarker.title="Kharabak"
+partsPulse();assert(right("Kharabak 1") and right("Kharabak 2"))
+rightBar("Head",212,Status.colors.intact,"Kharabak 1");rightBar("Head",53,Status.colors.broken,"Kharabak 2")
+other.BehemothMessageMarker.title="Shrike";partsPulse()
+local oldOtherHead=sectionLabel("Shrike","Head")
+other.hp=0;partsPulse();assert(not right("Shrike") and oldOtherHead.removed,"Dead boss widgets must all be removed")
+other.hp,other.bHidden=1000,true;partsPulse();assert(not right("Shrike"),"Hidden pooled bosses must not leave stale encounter groups")
+other.bHidden=false;partsPulse();assert(right("Shrike"))
+-- Full anatomy lists, no16-row cutoff or pages, with non-overlapping row geometry.
+local savedParts,savedBosses=parts,currentBosses
+parts={};viewport.Y=1440
+for i=1,20 do parts[#parts+1]=part("Segment"..i,100,0,true,near);parts[#parts+1]=part("Segment"..i,50,0,true,other) end
+partsPulse()
+local labels,dividers=0,0
+for _, w in ipairs(widgets) do
+    if not w.removed and w.RenderOpacity==0.994 then
+        if w.kind=="label" and w.text:match("^Segment") then
+            labels=labels+1
+            local fill
+            for _, candidate in ipairs(widgets) do
+                if not candidate.removed and candidate.RenderOpacity==0.994 and candidate.z==77 and candidate.x==w.x-20
+                    and candidate.y>w.y and (not fill or candidate.y<fill.y) then fill=candidate end
+            end
+            assert(fill and fill.y-w.y>=w.ChatLogLabelTextBlock.Font.Size*4/3+1,"Text and HP bars cannot overlap")
+        end
+        if w.kind=="panel" and w.height==1 and w.z==76 then dividers=dividers+1 end
+    end
+end
+assert(labels==40 and dividers==1,"Both full lists and exactly one divider must be visible")
+rightBar("Segment20",212,Status.colors.intact,"Kharabak");rightBar("Segment20",106,Status.colors.low,"Shrike")
+local widgetCount=#widgets
+for i=1,20 do near.distance=500+i;other.distance=1000-i;partsPulse() end
+assert(#widgets==widgetCount,"Repeated movement scans must reuse the current groups, not stack widgets")
+near.hp,other.hp=0,0;partsPulse()
+for _, w in ipairs(widgets) do assert(w.removed or w.RenderOpacity~=0.994,"Empty round must clear every part widget") end
+local nextBoss=boss("next-round",500,false);nextBoss.BehemothMessageMarker.title="Embermane"
+currentBosses={foreign,near,other,nextBoss};parts={part("Head",90,0,true,nextBoss)}
+partsPulse();assert(right("Embermane") and not right("Kharabak") and not right("Shrike"))
+rightBar("Head",212*0.9,Status.colors.intact,"Embermane")
+parts,currentBosses=savedParts,savedBosses;near.hp,other.hp=1000,1000;near.distance,other.distance=500,1000;viewport.Y=1080
+partsPulse()
 for _, w in ipairs(widgets) do
     if not w.removed and w.RenderOpacity == 0.994 then
-        assert(w.x >= -216 and w.x + w.width <= -24 and w.anchor.X == 1 and w.anchor.Y == 0.49)
-        if w.kind == "label" then assert(w.cachedFont == "Regular" and w.outline == 0) end
+        assert(w.x >= -484 and w.x + w.width <= -24 and w.anchor.X == 1 and w.anchor.Y == 0.49)
+        if w.kind == "label" then assert((w.cachedFont == "Regular" or w.text == "Kharabak" or w.text == "Shrike") and w.outline == 0) end
         assert(w.visibility == 3 or (w.kind == "panel" and w.width == 0 and w.visibility == 1))
     end
 end
-near.distance, other.distance = 5000, 6000; partsPulse(); assert(not right("Head"), "Leave room for the distant tracker")
+near.distance, other.distance = 8000, 9000; partsPulse(); assert(not right("Head"), "Leave room for the distant tracker")
 near.distance, other.distance = 500, 1000; partsPulse(); assert(right("Head"))
 settings.pm_visible = false; partsPulse(); assert(not right("Head") and displayed("core damage"))
 settings.pm_visible, city = true, true; partsPulse(); assert(not right("Head"))

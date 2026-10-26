@@ -1,10 +1,11 @@
 # Behemoth part monitor
 
-Launcher `1.0.35` ships the optional Windows PartMonitor and a compact
+Launcher `1.0.38` ships the optional Windows PartMonitor and a compact
 left-side damage summary. Both mod cards credit Void and appear first on Client Mods.
 The default left panel has five aligned value/label rows; the optional team view
-adds the team core total and individual rows. The right panel shows the closest living Behemoth within 50 m, with
-small distance hysteresis to avoid switching constantly between two targets.
+adds the team core total and individual rows. The right panel shows up to two living Behemoths within 50 m,
+each under its localized marker name, separated by a divider. Retained targets have a 70 m exit
+range; their order stays stable when they move.
 Outside that range it leaves the existing distant tracker unobstructed.
 
 Each actual part has a name, status indicator and HP bar:
@@ -13,6 +14,11 @@ Each actual part has a name, status indicator and HP bar:
 - Orange / LOW: 50% or less.
 - Red / BROKEN: a confirmed break-stage description or sever. The bar is empty.
 - Gray: fixed/disabled or unavailable data; no invented health percentage.
+
+Wounds change only a nonempty HP fill to red, leaving the indicator's HP/break colour intact.
+The replicated `ExposedPartType == 6` is the wound flag; `IsExposed()` merely checks expose HP
+and can misclassify an uninitialized zero. Polling the replicated flag restores the ordinary
+fill after expiry. No local wound timer or wound-HP estimate is used.
 
 The monitor reads `UMonsterPartComponent:GetCurrentHealth()/GetMaxHealth()` only
 when its replicated MonsterPartActor is valid. It does not use expose/wound HP
@@ -32,6 +38,14 @@ stage followed by Disabled is a confirmed break. Generic Disabled, including the
 initial Disabled stage of quills, stays gray. Missing stage metadata with resistance
 type4 is ambiguous and stays gray. Unreadable entries retain their positions.
 Regrowth is polled from current state rather than remembered as permanently broken.
+
+Kharabak's FrontLeftWing/FrontRightWing are temporary Aether pools. Cooked Scissors state events
+force their Normal→Disabled transition both on damage and when Aether mode ends; stage changes
+also heal their raw HP to max. Positive raw HP therefore cannot distinguish a break from an
+inactive wing. Only actual Scissors subclasses and their exact wing component references use
+the owner's replicated `AetherCharged` flag (native `IsAetherCharged()` fallback): Disabled plus
+false is inactive gray, true is broken, unreadable is unknown gray. Active Normal wings use
+actual current/max HP. Other Behemoths retain the generic break policy.
 
 Kill/Body body-part types and Body descriptions are omitted from the anatomy list.
 Some legacy core Body presets use normal stages with999x health, so filtering only
@@ -54,8 +68,8 @@ textures provide a nine-slice rounded translucent panel and glow indicators, imp
 using KismetRenderingLibrary.ImportFileAsTexture2D. No font glyph is used as a dot.
 Every widget is hit-test-invisible and text clips to its assigned bounds. The right monitor
 uses opacity tag 0.994, distinct from damage 0.995, tracker 0.996, menu 0.997 and
-lock-on 0.993. Parts stay in one narrow column; larger anatomies use tighter rows,
-with an explicit overflow count beyond sixteen. Positions are anchored to
+lock-on 0.993. All parts stay visible in one column, without pagination or truncation;
+larger anatomies use tighter rows and move upward/left beside the native danger HUD. Positions are anchored to
 opposite viewport edges and vertically relative to the centre.
 Viewport layers are explicit: backdrop75, tracks76, fills77, text/indicators78.
 Resizing a fill reapplies its position and anchors as well as its canvas size, so
@@ -65,6 +79,9 @@ the gray track cannot obscure it and it remains attached to the right-side panel
 shared drawing helpers, including per-part HP bar widths, the exact half-health
 boundary, false breakability, missing actors, duplicate shapes, regeneration,
 armour lineage, same-map travel, ownership cleanup and input transparency.
+It also checks independent dual groups, same-species headings, wounded fill versus dot colour,
+inactive/active Aether wings, all forty synthetic part rows, movement without new widgets,
+dead/hidden pooled actors, and replacement on the next Escalation round.
 Native in-game rendering and UE4SS parameter/property marshalling still require
 a real-hunt smoke test; the Windows computer-use native pipe was unavailable.
 The stable launcher release updates the normal feed; the HUD mods remain optional.

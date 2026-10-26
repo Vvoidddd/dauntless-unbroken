@@ -10,12 +10,23 @@ function M.Fraction(current, max)
     if not finite(current) or not finite(max) or max <= 0 or current < 0 then return nil end
     return math.min(1, current / max)
 end
+function M.BarColor(state, fraction, wounded)
+    if wounded and fraction and fraction > 0 and state ~= "broken" and state ~= "unknown" then return M.colors.broken end
+    return M.colors[state]
+end
 function M.State(part)
     local description = part.description
     -- Resist type Scarred(4) is also used by healthy Body/Unbreakable stages.
     -- The break description, not the resistance enum, identifies a real break.
     if description == 10 or description == 11 or (description == nil and (part.initial == 10 or part.initial == 11)) then
         return "unknown", "N/A"
+    end
+    -- Kharabak also disables its temporary aether wings through boss state
+    -- changes, and stage changes heal them. Full raw HP is not proof of activity.
+    if part.aetherWing and (description == 7 or part.kind == 5) then
+        if part.aetherCharged == false then return "unknown", "INACTIVE" end
+        if part.aetherCharged ~= true then return "unknown", "?" end
+        return "broken", "BROKEN"
     end
     if part.severed == true or description == 3 or description == 4 or description == 5 then return "broken", "BROKEN" end
     if description == 7 then

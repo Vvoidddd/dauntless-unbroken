@@ -4,9 +4,10 @@ local Settings = require("ModSettings")
 local HUD = require("HudPanel")
 local Status = require("PartStatus")
 local TAG = 0.994 -- Unique: damage .995, tracker .996, menu .997, lock-on .993.
-local panel, layoutKey, selected, rows = nil, nil, nil, {}
-local targetDistance = 0
+local panel, layoutKey, groups, uiPc, uiWorld = nil, nil, {}, nil, nil
 local errors = {}
+local scissorsClass
+local SCISSORS = "/Game/Monsters/moonface/scissors/scissors_archetype_bp.scissors_archetype_bp_C"
 local function logOnce(key, message)
     if not errors[key] then errors[key] = true print("[PartMonitor] " .. tostring(message)) end
 end
@@ -42,7 +43,22 @@ local function stages(part)
     if type(stage) ~= "number" or stage < 0 or stage % 1 ~= 0 then return known(1), nil, nil end
     return known(1), known(stage + 1), known(stage)
 end
-local function readPart(part)
+local function wingPhase(part, owner)
+    if not HUD.Valid(scissorsClass) then scissorsClass = StaticFindObject(SCISSORS) end
+    if not HUD.Valid(scissorsClass) then return false, nil end
+    local ok, matches = pcall(function() return owner:IsA(scissorsClass) end)
+    if not ok or not matches then return false, nil end
+    local key = objectKey(part)
+    if not key then return false, nil end
+    if key ~= objectKey(property(owner, "FrontLeftWing")) and key ~= objectKey(property(owner, "FrontRightWing")) then return false, nil end
+    local charged = property(owner, "AetherCharged")
+    if type(charged) ~= "boolean" then
+        local read, value = pcall(function() return owner:IsAetherCharged() end)
+        if read and type(value) == "boolean" then charged = value else charged = nil end
+    end
+    return true, charged
+end
+local function readPart(part, owner)
     local actor = property(part, "MonsterPartActor")
     local ok, hp, max = pcall(function() return part:GetCurrentHealth(), part:GetMaxHealth() end)
     local canRead, breakable = pcall(function() return part:CanBeBroken() end)
@@ -58,106 +74,180 @@ local function readPart(part)
     -- use Normal/Scarred with a 999x health scale, so resistance alone is unsafe.
     if body == 1 or body == 7 or description == 10 or initial == 10
         or (body == 0 and name:lower() == "body") then return nil end
+    local aetherWing, aetherCharged = wingPhase(part, owner)
     local color, word = Status.State({actor = HUD.Valid(actor), current = ok and hp or nil, max = ok and max or nil,
         kind = property(part, "PartType"), severed = property(part, "PartSevered"), breakable = breakable,
-        initial = initial, description = description, previous = previous})
+        initial = initial, description = description, previous = previous, aetherWing = aetherWing, aetherCharged = aetherCharged})
+    if aetherWing then
+        logOnce("wing:" .. tostring(objectKey(part)) .. ":" .. tostring(description) .. ":" .. tostring(aetherCharged),
+            name .. " aether=" .. tostring(aetherCharged) .. " stage=" .. tostring(description) .. " hp=" .. tostring(hp) .. "/" .. tostring(max) .. " state=" .. word)
+    end
     local fraction = color ~= "unknown" and HUD.Valid(actor) and Status.Fraction(hp, max) or nil
     if color == "broken" then fraction = 0 end
-    return {id = objectKey(actor) or objectKey(part), name = Status.Name(name, body), color = color, word = word, fraction = fraction}
+    return {id = objectKey(actor) or objectKey(part), name = Status.Name(name, body), color = color, word = word,
+        fraction = fraction, wounded = property(part, "ExposedPartType") == 6}
 end
 local function removeUI()
     HUD.Remove(panel)
     panel, layoutKey = nil, nil
 end
+local function displayName(behemoth)
+    local marker = property(behemoth, "BehemothMessageMarker")
+    if not HUD.Valid(marker) then
+        local cls = StaticFindObject("/Script/Archon.BehemothMessageMarkerComponent")
+        if HUD.Valid(cls) then
+            local ok, component = pcall(function() return behemoth:GetComponentByClass(cls) end)
+            if ok then marker = component end
+        end
+    end
+    if HUD.Valid(marker) then
+        local ok, text = pcall(function() return str(marker:GetBehemothName()) end)
+        if ok then return (text:gsub("[%z\1-\31\127]", "")) end
+    end
+    return ""
+end
 local function scan()
-    rows = {}
-    if not Settings.Get("pm_visible", true) then selected = nil return end
+    local previous = groups
+    groups, uiPc, uiWorld = {}, nil, nil
+    if not Settings.Get("pm_visible", true) then return end
     local gs = StaticFindObject("/Script/Engine.Default__GameplayStatics")
     local archon = StaticFindObject("/Script/Archon.Default__ArchonGameplayStatics")
-    if not HUD.Valid(gs) or not HUD.Valid(archon) then selected = nil return end
+    if not HUD.Valid(gs) or not HUD.Valid(archon) then return end
     local pc
     for _, candidate in ipairs(FindAllOf("ArchonPlayerController") or {}) do
         local ok, isLocal = pcall(function() return candidate:IsLocalController() end)
         if ok and isLocal and HUD.Valid(candidate) then pc = candidate break end
     end
-    if not pc or not HUD.Valid(pc.Pawn) or archon:IsInCity(pc) then selected = nil return end
+    if not pc or not HUD.Valid(pc.Pawn) or archon:IsInCity(pc) then return end
     local world = objectKey(gs:GetGameState(pc))
-    if not world then selected = nil return end
-    local nearest, best, previous = nil, math.huge, nil
+    if not world then return end
+    uiPc, uiWorld = pc, world
+    local tracked = {}
+    for _, old in ipairs(previous) do if old.world == world then tracked[old.id] = true end end
+    local candidates, byId = {}, {}
     for _, behemoth in ipairs(FindAllOf("ArchonBehemoth") or {}) do
-        if HUD.Valid(behemoth) then
+        if HUD.Valid(behemoth) and property(behemoth, "bHidden") ~= true then
             local ok, hp, distance = pcall(function() return behemoth:GetCurrentHealth(), behemoth:GetDistanceTo(pc.Pawn) end)
-            if ok and type(hp) == "number" and hp > 0 and type(distance) == "number" and distance >= 0 and distance < math.huge
-                and objectKey(gs:GetGameState(behemoth)) == world then
-                if selected and objectKey(behemoth) == selected.id then previous = {actor = behemoth, distance = distance} end
-                if distance < best then nearest, best = behemoth, distance end
+            local key = objectKey(behemoth)
+            if ok and key and type(hp) == "number" and hp > 0 and type(distance) == "number" and distance >= 0
+                and distance < (tracked[key] and 7000 or 5000) and objectKey(gs:GetGameState(behemoth)) == world then
+                local group = {actor=behemoth,id=key,world=world,distance=distance,name=displayName(behemoth),rows={},seen={}}
+                candidates[#candidates+1], byId[key] = group, group
             end
         end
     end
-    -- Small distance changes between two nearby Behemoths must not flicker the list.
-    if previous and previous.distance < 5000 and previous.distance <= best * 1.1 then nearest, best = previous.actor, previous.distance end
-    -- The distant tracker uses this screen region outside combat range.
-    if not nearest or best >= 5000 then selected = nil return end
-    selected = {actor = nearest, id = objectKey(nearest), pc = pc, world = world}
-    targetDistance = best / 100
-    local seen = {}
+    table.sort(candidates,function(a,b) return a.distance<b.distance or (a.distance==b.distance and a.id<b.id) end)
+    local chosen = {}
+    -- Preserve encounter order while bosses move; a small exit-range margin prevents edge flicker.
+    for _, old in ipairs(previous) do
+        if old.world == world and byId[old.id] and #groups < 2 then
+            groups[#groups+1]=byId[old.id];chosen[old.id]=true
+        end
+    end
+    -- ponytail: two nearby encounter groups; extend the selector if a mode gains three active bosses.
+    for _, group in ipairs(candidates) do
+        if #groups < 2 and not chosen[group.id] then groups[#groups+1]=group;chosen[group.id]=true end
+    end
+    local owners = {}
+    for _, group in ipairs(groups) do owners[group.id]=group end
     for _, part in ipairs(FindAllOf("monsterpart_bpc_C") or {}) do
         if HUD.Valid(part) then
             local ok, owner = pcall(function() return part:GetOwner() end)
-            if ok and objectKey(owner) == selected.id then
-                local read, row = pcall(readPart, part)
-                if read and row and row.id and not seen[row.id] then seen[row.id] = true rows[#rows + 1] = row end
+            local group = ok and owners[objectKey(owner)] or nil
+            if group then
+                local read, row = pcall(readPart, part, owner)
+                if read and row and row.id and not group.seen[row.id] then
+                    group.seen[row.id]=true;group.rows[#group.rows+1]=row
+                end
                 if not read then logOnce("part", row) end
             end
         end
     end
-    table.sort(rows, function(a, b) return a.name < b.name or (a.name == b.name and a.id < b.id) end)
-    local names = {}
-    for _, row in ipairs(rows) do names[row.name] = (names[row.name] or 0) + 1 end
-    local index = {}
-    for _, row in ipairs(rows) do
-        local name = row.name
-        index[name] = (index[name] or 0) + 1
-        if names[name] > 1 then row.name = name .. " " .. index[name] end
+    local titles = {}
+    for i, group in ipairs(groups) do
+        if group.name == "" then group.name = "Behemoth " .. i end
+        titles[group.name]=(titles[group.name] or 0)+1
+        table.sort(group.rows,function(a,b) return a.name<b.name or (a.name==b.name and a.id<b.id) end)
+        local names, index = {}, {}
+        for _, row in ipairs(group.rows) do names[row.name]=(names[row.name] or 0)+1 end
+        for _, row in ipairs(group.rows) do
+            local name=row.name
+            index[name]=(index[name] or 0)+1
+            if names[name]>1 then row.name=name.." "..index[name] end
+        end
     end
+    for i, group in ipairs(groups) do group.title=group.name .. (titles[group.name]>1 and " "..i or "") end
 end
 local white = {R = 0.96, G = 0.95, B = 1, A = 1}
 local muted = {R = 0.66, G = 0.68, B = 0.76, A = 1}
 local function render()
-    if not selected or #rows == 0 or not Settings.Get("pm_visible", true) then removeUI() return end
-    -- ponytail: at most 16 rows; show an explicit overflow count, add paging if a new boss needs it.
-    local count = math.min(16, #rows)
-    -- Keep the reference's narrow, single-column silhouette. Dense anatomies
-    -- tighten vertically instead of expanding across the hunt view.
-    local rowHeight = math.min(50, math.floor(416 / count))
-    local width, height = 192, 8 + count * rowHeight + (#rows > count and 20 or 0)
-    local key = selected.id .. ":" .. selected.world .. ":" .. tostring(count)
-    if layoutKey ~= key or not panel or not HUD.Valid(panel.root) then
-        removeUI()
-        panel = HUD.New(selected.pc, TAG, {X = 1, Y = 0.49}, -24 - width, 0, width, height)
-        for i = 1, count do
-            local y = 4 + (i - 1) * rowHeight
-            local size = rowHeight >= 40 and 18 or 15
-            HUD.Indicator(panel, "dot" .. i, 8, y + 3, 22)
-            HUD.Label(panel, "name" .. i, "", size, white, 36, y, 148)
-            HUD.Bar(panel, "hp" .. i, 16, y + rowHeight - 13, 164, rowHeight >= 40 and 8 or 4)
-        end
-        if #rows > count then HUD.Label(panel, "overflow", "+" .. (#rows - count) .. " parts", 14, muted, 16, 6 + count * rowHeight, 164) end
-        layoutKey = key
+    if #groups == 0 or not uiPc or not Settings.Get("pm_visible", true) then removeUI() return end
+    local views, totalRows, keyParts = {}, 0, {uiWorld}
+    for _, group in ipairs(groups) do
+        local first, count, title = 1, #group.rows, group.title
+        views[#views+1]={group=group,first=first,count=count,title=title}
+        totalRows=totalRows+math.max(1,count)
+        keyParts[#keyParts+1]=group.id..":"..title..":"..count
+        for i=first,first+count-1 do keyParts[#keyParts+1]=group.rows[i].id..":"..group.rows[i].name end
     end
-    for i = 1, count do
-        local row = rows[i]
-        HUD.Tint(panel, "dot" .. i, Status.colors[row.color])
-        local size = rowHeight >= 40 and 18 or 15
-        HUD.Set(panel, "name" .. i, row.name, nil, math.max(11, math.floor(size * math.min(1, 14 / #row.name))))
-        HUD.Fill(panel, "hp" .. i, row.fraction, Status.colors[row.color])
+    local width = 240
+    local overhead = 8 + #views*30 + (#views-1)*14
+    local logicalHeight = 1080
+    pcall(function()
+        local lib = StaticFindObject("/Script/UMG.Default__WidgetLayoutLibrary")
+        local viewport, scale = lib:GetViewportSize(uiPc), lib:GetViewportScale(uiPc)
+        if type(viewport.Y)=="number" and viewport.Y>0 and type(scale)=="number" and scale>0 then logicalHeight=viewport.Y/scale end
+    end)
+    local rowHeight = math.min(50, math.max(28, math.floor((496-overhead)/totalRows)))
+    local height = overhead + totalRows*rowHeight
+    local yOffset = math.min(0, math.max(12,logicalHeight-height-16)-logicalHeight*0.49)
+    -- A full tall list moves beside the native danger/Behemoth HUD instead of covering it.
+    local xOffset = -24-width-(yOffset<0 and 220 or 0)
+    keyParts[#keyParts+1]=tostring(logicalHeight)..":"..xOffset..":"..yOffset
+    local key = table.concat(keyParts,"|")
+    local size = rowHeight>=40 and 18 or (rowHeight>=30 and 15 or 12)
+    local dotSize = rowHeight>=40 and 22 or (rowHeight>=30 and 16 or 14)
+    local barY = rowHeight>=40 and rowHeight-13 or rowHeight-7
+    local barHeight = rowHeight>=40 and 8 or 3
+    if layoutKey~=key or not panel or not HUD.Valid(panel.root) then
+        removeUI()
+        panel=HUD.New(uiPc,TAG,{X=1,Y=0.49},xOffset,yOffset,width,height)
+        local cursor=4
+        for g,view in ipairs(views) do
+            if g>1 then HUD.Rule(panel,12,cursor+6,width-24);cursor=cursor+14 end
+            HUD.Label(panel,"heading"..g,view.title,math.max(11,math.floor(18*math.min(1,20/#view.title))),white,12,cursor,width-24,true)
+            cursor=cursor+30
+            if view.count==0 then
+                HUD.Label(panel,"waiting"..g,"Part data unavailable",14,muted,12,cursor,width-24)
+            end
+            for i=1,view.count do
+                local y=cursor+(i-1)*rowHeight
+                local prefix=g..":"..i
+                HUD.Indicator(panel,prefix.."dot",8,y+3,dotSize)
+                HUD.Label(panel,prefix.."name","",size,white,36,y,width-44)
+                HUD.Bar(panel,prefix.."hp",16,y+barY,width-28,barHeight)
+            end
+            cursor=cursor+math.max(1,view.count)*rowHeight
+        end
+        layoutKey=key
+    end
+    for g,view in ipairs(views) do
+        for i=1,view.count do
+            local row=view.group.rows[view.first+i-1]
+            local prefix=g..":"..i
+            local label=row.name..(row.word=="INACTIVE" and " (inactive)" or "")
+            HUD.Tint(panel,prefix.."dot",Status.colors[row.color])
+            HUD.Set(panel,prefix.."name",label,nil,math.max(11,math.floor(size*math.min(1,18/#label))))
+            HUD.Fill(panel,prefix.."hp",row.fraction,Status.BarColor(row.color,row.fraction,row.wounded))
+        end
     end
 end
+
 HUD.Cleanup(TAG)
 FrameTick.Every(1, "parts-settings", Settings.Load)
 FrameTick.Every(0.25, "parts-scan", function()
     local ok, err = pcall(scan)
-    if not ok then rows, selected = {}, nil logOnce("scan", err) end
+    if not ok then groups, uiPc, uiWorld = {}, nil, nil logOnce("scan", err) end
     render()
 end)
 FrameTick.Start(print, "PartMonitor")

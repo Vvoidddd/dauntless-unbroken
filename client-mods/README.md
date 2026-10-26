@@ -13,15 +13,18 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
   late joins, distant hits or lost network events can leave damage uncounted. Core damage alone
   determines DPS and contribution; the four overlapping channels are never added together.
   Home → Hunt Damage toggles the panel and team breakdown live. It keeps counting while hidden.
-- **Behemoth Parts** (`PartMonitor`, made by Void): a right-side panel for the nearest living
-  Behemoth within 50 m, leaving room for the distant tracker outside combat. Each named part has
+- **Behemoth Parts** (`PartMonitor`, made by Void): a right-side panel for up to two living
+  Behemoths within 50 m, with separate localized headings and a divider. Each named part has
   an HP bar and state: green above 50%, orange at 50% or below, red for a confirmed break/sever.
   Broken bars are empty; missing, fixed or otherwise disabled parts stay gray. Core Body receivers
   are excluded. Actual break descriptions distinguish broken anatomy from unbreakable resistance;
   armour, wings, vents and antlers use their own verified stage transitions. Names retain
   the real left/right part data. The narrow single-column list uses image-based glow indicators
-  and thin bars, with tighter rows for larger anatomies; a count identifies overflow
-  beyond sixteen. Home → Behemoth Parts hides/shows it live.
+  and thin bars. Every part remains listed, with tighter rows and upward/leftward placement for
+  larger encounters. Wounds turn only the remaining HP fill red until they expire; a true break
+  has a red dot and empty bar. Kharabak's temporary Aether wings show inactive gray outside their
+  active phase instead of falsely reporting a break. Groups retain their order as bosses move,
+  and old rows clear after death, travel or an Escalation round. Home → Behemoth Parts toggles it live.
 - **Mod Menu**: Home opens it, Up/Down (or PgUp/PgDn) choose, End flips the chosen switch. MODS turns
   whole mods on or off (applied after restarting the game); SETTINGS changes the mods live (shield bar, HP numbers,
   two bars in escalations, tracker at any distance, uncrafted weapon colour). Settings are saved in

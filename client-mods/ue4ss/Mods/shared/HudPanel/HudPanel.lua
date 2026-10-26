@@ -104,6 +104,9 @@ function M.Bar(panel, id, x, y, width, height)
     rectangle(panel, x, y, width, height, {R = 0.16, G = 0.17, B = 0.18, A = 0.9}, nil, 76)
     panel.bars[id] = rectangle(panel, x, y, width, height, {R = 0.6, G = 0.62, B = 0.65, A = 1}, nil, 77)
 end
+function M.Rule(panel, x, y, width)
+    rectangle(panel, x, y, width, 1, {R = 0.45, G = 0.47, B = 0.5, A = 0.6}, nil, 76)
+end
 function M.Fill(panel, id, percent, color)
     local bar = panel and panel.bars[id]
     if not bar or not M.Valid(bar.widget) then return end
