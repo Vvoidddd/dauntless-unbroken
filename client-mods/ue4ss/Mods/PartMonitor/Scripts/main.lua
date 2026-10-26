@@ -13,9 +13,7 @@ local function logOnce(key, message)
     if not errors[key] then errors[key] = true print("[PartMonitor] " .. tostring(message)) end
 end
 local function objectKey(o)
-    if not HUD.Valid(o) then return nil end
-    local ok, name = pcall(function() return o:GetFullName() .. ":" .. tostring(o:GetAddress()) end)
-    return ok and name or nil
+    return FrameTick.ObjectKey(o)
 end
 local function str(value)
     if type(value) == "string" then return value end
@@ -254,7 +252,7 @@ end
 
 HUD.Cleanup(TAG)
 FrameTick.Every(1, "parts-settings", Settings.Load)
-FrameTick.Every(0.25, "parts-scan", function()
+FrameTick.Every(0.5, "parts-scan", function()
     local ok, err = pcall(scan)
     if not ok then groups, uiPc, uiWorld = {}, nil, nil logOnce("scan", err) end
     render()

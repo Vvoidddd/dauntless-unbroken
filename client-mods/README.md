@@ -51,6 +51,10 @@ at their existing cadence; travel/restarts discard discovery caches. Turning Beh
 off stops its discovery and removes its widgets. Whole mods can be disabled under Home → MODS,
 then applied by restarting the game.
 
+Shared object guards reject missing classes, and internal identity/ownership matching avoids
+native full-name/path traversal. Part updates run twice per second; input keeps its normal
+cadence. This reduces part polling work without removing wound, break or dual-target displays.
+
 ## How they get installed
 
 - **Launcher**: on install, repair and before every launch (`DauntlessUnbrokenLauncher/src/main/client-mods.ts`).

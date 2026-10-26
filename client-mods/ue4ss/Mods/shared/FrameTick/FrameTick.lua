@@ -38,7 +38,39 @@ local errOnce = {}
 local function valid(o)
     if not o then return false end
     local ok, v = pcall(function() return o:IsValid() end)
-    return ok and v
+    if not ok or v ~= true then return false end
+    -- A non-null wrapper can survive an actor/header transition with no class.
+    -- Native GetFullName dereferences that class; pcall cannot catch its AV.
+    local hasClass, cls = pcall(function() return o:GetClass() end)
+    if not hasClass or not cls then return false end
+    local classOK, classLive = pcall(function() return cls:IsValid() end)
+    return classOK and classLive == true
+end
+M.Valid = valid
+
+function M.ObjectKey(o)
+    if not valid(o) then return nil end
+    local ok, key = pcall(function()
+        local name = o:GetFName()
+        if type(name) ~= "string" then name = name:ToString() end
+        return tostring(o:GetAddress()) .. ":" .. name
+    end)
+    return ok and key or nil
+end
+
+-- Match owned components/attribute sets without GetFullName/GetPathName walking
+-- an unchecked owner chain in native code. Bound cycles and reject dead outers.
+function M.OwnedBy(o, ownerKey)
+    if not ownerKey then return false end
+    for _ = 1, 16 do
+        local key = M.ObjectKey(o)
+        if not key then return false end
+        if key == ownerKey then return true end
+        local ok, outer = pcall(function() return o:GetOuter() end)
+        if not ok then return false end
+        o = outer
+    end
+    return false
 end
 
 -- Real time in seconds (same clock for every tick), or nil.

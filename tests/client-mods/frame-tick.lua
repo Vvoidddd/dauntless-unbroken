@@ -1,7 +1,16 @@
 -- Native-call budget, not an FPS benchmark. Run from the repository root.
+local nextAddress = 0
 local function object(value)
     value = value or {}
     value.IsValid = function(self) return not self.invalid end
+    value.GetClass = function(self)
+        if self.classless then return nil end
+        return {IsValid = function() return true end}
+    end
+    nextAddress=nextAddress+1
+    local address=nextAddress
+    value.GetAddress=value.GetAddress or function() return address end
+    value.GetFName=value.GetFName or function() return "object" end
     return value
 end
 local now, address, scans, hooks = 0, 100, {}, {}
@@ -21,6 +30,26 @@ FindAllOf = function(class)
 end
 RegisterHook = function(path, callback) hooks[path] = callback end
 local tick = dofile("client-mods/ue4ss/Mods/shared/FrameTick/FrameTick.lua")
+local namesRead = 0
+local damaged = object({classless=true, GetFullName=function() namesRead=namesRead+1;error("Native class-name dereference must never run") end})
+assert(not tick.Valid(damaged) and tick.ObjectKey(damaged)==nil and namesRead==0,
+    "A non-null object with a missing class must be rejected before native name lookup")
+damaged.classless=false
+damaged.GetFName=function() return "live" end
+local liveKey=tick.ObjectKey(damaged)
+assert(liveKey and liveKey:match(":live$") and namesRead==0)
+damaged.GetFName=function() return "replacement" end
+assert(tick.ObjectKey(damaged)~=liveKey, "Reused addresses with a new object name must not retain old state")
+damaged.invalid=true
+assert(tick.ObjectKey(damaged)==nil and namesRead==0, "Destroyed objects must not be named")
+local owner=object({GetFName=function() return "owner" end})
+local child=object({GetOuter=function() return owner end})
+local nested=object({GetOuter=function() return child end})
+assert(tick.OwnedBy(nested,tick.ObjectKey(owner)), "Nested attribute-set ownership must match without path strings")
+owner.classless=true
+assert(not tick.OwnedBy(nested,"old-owner"), "Broken outer chains must be rejected")
+local cycle=object();cycle.GetOuter=function() return cycle end
+assert(not tick.OwnedBy(cycle,"different-owner"), "Outer cycles must terminate")
 assert(#tick.Objects("ArchonBehemoth") == 0, "No discovery outside a live compass frame")
 assert(tick.PlayerController() == pc and tick.PlayerController() == pc)
 assert(scans.ArchonPlayerController == 1, "Startup controller lookup is reused")
@@ -66,9 +95,11 @@ assert(tick.PlayerController() == pc, "Controller replacement is observed withou
 hooks["/Script/Engine.PlayerController:ClientRestart"]()
 assert(tick.PlayerController() == pc and scans.ArchonPlayerController == controllerScans + 1,
     "Restart clears the startup fallback controller")
-for _, mod in ipairs({"LockOn", "BehemothTracker", "ModMenu", "BehemothHealthBars", "DamageMeter", "PartMonitor"}) do
+for _, mod in ipairs({"LockOn", "BehemothTracker", "ModMenu", "BehemothHealthBars", "DamageMeter", "PartMonitor", "CraftStar"}) do
     local file = assert(io.open("client-mods/ue4ss/Mods/" .. mod .. "/Scripts/main.lua", "rb"))
     local code = file:read("*a"); file:close()
     assert(not code:find('FindAllOf("ArchonPlayerController")', 1, true), mod .. " must use the shared local controller")
+    assert(not code:find(':GetFullName()', 1, true), mod .. " must use the guarded name helper")
+    assert(not code:find(':GetPathName()', 1, true), mod .. " must not traverse a native owner path")
 end
 print("FrameTick: 1200 input frames, <=10 boss discoveries in 10s, live HP and travel invalidation passed")

@@ -24,9 +24,18 @@ assert(Ledger.Snapshot(state).core == 0 and Ledger.Snapshot(state).rows[1].share
 
 -- Exercise the shipped hook, roster, world boundaries, live settings and HUD with a tiny engine stand-in.
 local noop = function() end
+local nextAddress = 0
 local function object(data)
     data = data or {}
-    data.IsValid = function() return true end
+    data.IsValid = function(self) return not self.invalid end
+    data.GetClass = data.GetClass or function(self)
+        if self.classless then return nil end
+        return {IsValid=function() return true end}
+    end
+    nextAddress=nextAddress+1
+    local address=nextAddress
+    data.GetAddress=data.GetAddress or function() return address end
+    data.GetFName=data.GetFName or function(self) return self.GetFullName and self:GetFullName() or "object" end
     return data
 end
 local function wrap(value) return {get = function() return value end} end
@@ -101,8 +110,9 @@ LoadAsset = noop
 FText = function(text) return text end
 FName = function(text) return text end
 RegisterHook = function(path, callback) callbacks[path], hookCount = callback, hookCount + 1 end
+local guardedTick = dofile("client-mods/ue4ss/Mods/shared/FrameTick/FrameTick.lua")
 package.loaded.FrameTick = {Every = function(_, name, callback) ticks[name] = callback end, Now = function() return now end, Start = noop,
-    PlayerController = function() return pc end, Objects = function(cls) return FindAllOf(cls) end}
+    PlayerController = function() return pc end, Objects = function(cls) return FindAllOf(cls) end, Valid=guardedTick.Valid, ObjectKey=guardedTick.ObjectKey}
 package.loaded.ModSettings = {Load = noop, Get = function(k, default) if settings[k] == nil then return default end return settings[k] end}
 package.loaded.DamageLedger = Ledger
 package.loaded.HudPanel = dofile("client-mods/ue4ss/Mods/shared/HudPanel/HudPanel.lua")
@@ -240,7 +250,9 @@ local missing = part("BackRight", 0); missing.MonsterPartActor = {IsValid = func
 local fixed = part("Fixed", 100, 0, false)
 local duplicate = part("DuplicateHead", 100); duplicate.MonsterPartActor = head.MonsterPartActor
 parts = {head, left, tail, disabled, armour, missing, fixed, duplicate}
-local currentBosses = {foreign, other, near}
+local badHeader = boss("classless", 1, false);badHeader.classless=true
+badHeader.GetFullName=function() error("Unsafe native name lookup reached") end
+local currentBosses = {badHeader, foreign, other, near}
 local desc = "PartBreakDescription_81_F02FC7404C14B0C4C604A5B52827B0C9"
 local core = part("Body",100,4,false); core.BodyPartType=7; core.PartBreakData=array({{[desc]=10}})
 local coreNormal = part("CoreNormal",100,0); coreNormal.BodyPartType=7; coreNormal.PartBreakData=array({{[desc]=0},{[desc]=4}})

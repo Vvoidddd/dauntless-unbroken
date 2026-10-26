@@ -14,17 +14,14 @@ local function logOnce(key, message)
     if not logged[key] then logged[key] = true print("[DamageMeter] " .. message) end
 end
 local function valid(o)
-    local ok, result = pcall(function() return o:IsValid() end)
-    return ok and result
+    return FrameTick.Valid(o)
 end
 local function unwrap(o)
     local ok, result = pcall(function() return o:get() end)
     return ok and result or o
 end
 local function key(o)
-    if not valid(o) then return nil end
-    local ok, name = pcall(function() return o:GetFullName() end)
-    return ok and name or nil
+    return FrameTick.ObjectKey(o)
 end
 local function worldKey(o)
     local name = key(o)

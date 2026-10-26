@@ -98,9 +98,7 @@ local function log(m) print("[BHB] " .. tostring(m)) end
 local function logOnce(k, m) if not errLogged[k] then errLogged[k] = true log(m) end end
 
 local function valid(o)
-    if not o then return false end
-    local ok, v = pcall(function() return o:IsValid() end)
-    return ok and v
+    return FrameTick.Valid(o)
 end
 
 -- ---------------------------------------------------------------- brushes / skin
@@ -562,9 +560,6 @@ local function ComputePct(hp, maxhp)
     return hp / maxhp
 end
 
-local function PathOf(fullName)
-    return fullName and fullName:match("^%S+%s+(.+)$")
-end
 
 -- The behemoth's ArchonHealthAttributeSet is one of its subobjects, so its path starts
 -- with the behemoth's path followed by a dot.
@@ -572,20 +567,16 @@ local function AttrSetFor(key)
     local a = attrCache[key]
     if valid(a) then return a end
     attrCache[key] = nil
-    local path = PathOf(key)
-    if not path then return nil end
     local list = FrameTick.Objects("ArchonHealthAttributeSet")
     if not list then return nil end
     for _, s in ipairs(list) do
-        local okN, n = pcall(function() return s:GetFullName() end)
-        local sp = okN and PathOf(n)
-        if sp and sp:sub(1, #path + 1) == path .. "." then
+        if FrameTick.OwnedBy(s, key) then
             attrCache[key] = s
-            log("attribute set for behemoth: " .. sp)
+            log("attribute set for behemoth: " .. key)
             return s
         end
     end
-    logOnce("noattr" .. key, "no ArchonHealthAttributeSet found under " .. path)
+    logOnce("noattr" .. key, "no ArchonHealthAttributeSet found for " .. key)
     return nil
 end
 
@@ -690,8 +681,8 @@ local function UpdateSets()
         for _, b in ipairs(list) do
             if valid(b) then
                 local ok, hp, maxhp = pcall(function() return b:GetCurrentHealth(), b:GetMaxHealth() end)
-                local okN, key = pcall(function() return b:GetFullName() end)
-                if ok and okN and hp and maxhp and maxhp > 0 then
+                local key = FrameTick.ObjectKey(b)
+                if ok and key and hp and maxhp and maxhp > 0 then
                     local d = {key = key, hp = hp, maxhp = maxhp}
                     seen[key] = d
                     if hp > 0 then alive[#alive + 1] = d end

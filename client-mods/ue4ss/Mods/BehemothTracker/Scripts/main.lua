@@ -74,14 +74,9 @@ local function log(m) print("[TRK] " .. tostring(m)) end
 local function logOnce(k, m) if not errLogged[k] then errLogged[k] = true log(m) end end
 
 local function valid(o)
-    if not o then return false end
-    local ok, v = pcall(function() return o:IsValid() end)
-    return ok and v
+    return FrameTick.Valid(o)
 end
 
-local function PathOf(fullName)
-    return fullName and fullName:match("^%S+%s+(.+)$")
-end
 
 local function GetPC()
     return FrameTick.PlayerController()
@@ -358,15 +353,11 @@ local function MarkerCompFor(key)
     local c = markerCompCache[key]
     if valid(c) then return c end
     markerCompCache[key] = nil
-    local path = PathOf(key)
-    if not path then return nil end
     for _, cls in ipairs({"behemoth_marker_bpc_C", "BehemothMarkerComponent"}) do
         local list = FindAllOf(cls)
         if list then
             for _, o in ipairs(list) do
-                local okN, n = pcall(function() return o:GetFullName() end)
-                local op = okN and PathOf(n)
-                if op and op:sub(1, #path + 1) == path .. "." then
+                if FrameTick.OwnedBy(o, key) then
                     markerCompCache[key] = o
                     return o
                 end
@@ -383,9 +374,9 @@ local function PickTarget()
     if list then
         for _, b in ipairs(list) do
             if valid(b) then
-                local okN, key = pcall(function() return b:GetFullName() end)
+                local key = FrameTick.ObjectKey(b)
                 local okH, hp = pcall(function() return b:GetCurrentHealth() end)
-                if okN and key then
+                if key then
                     seen[key] = b
                     first = first or {key = key, obj = b}
                     if okH and type(hp) == "number" then

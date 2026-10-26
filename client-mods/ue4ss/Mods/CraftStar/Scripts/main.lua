@@ -17,6 +17,7 @@ print("[CST] CraftStar loading...")
 local MARK = ">> "
 -- Name colour, chosen in the Mod Menu (SETTINGS, "cst_color": 1 red, 2 gold, 3 purple).
 local ModSettings = require("ModSettings")
+local FrameTick = require("FrameTick")
 local COLORS = {
     {R = 1.00, G = 0.25, B = 0.25, A = 1},   -- red
     {R = 1.00, G = 0.78, B = 0.20, A = 1},   -- gold
@@ -35,9 +36,7 @@ local logged = {}
 local function logOnce(k, m) if not logged[k] then logged[k] = true log(m) end end
 
 local function valid(o)
-    if not o then return false end
-    local ok, v = pcall(function() return o:IsValid() end)
-    return ok and v
+    return FrameTick.Valid(o)
 end
 
 local function Str(v)
@@ -89,8 +88,7 @@ local function SetText(tb, s)
 end
 
 local function Key(o)
-    local ok, n = pcall(function() return o:GetFullName() end)
-    return ok and n or ""
+    return FrameTick.ObjectKey(o) or ""
 end
 
 local original = {}   -- weapon-name text block -> its colour before we changed it

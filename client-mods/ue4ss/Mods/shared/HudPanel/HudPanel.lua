@@ -1,14 +1,14 @@
 -- Shared native HUD surfaces used by the damage and part monitors. Every caller
 -- owns its widgets and a distinct opacity tag; no input or game state is changed.
 local M = {}
+local FrameTick = require("FrameTick")
 local TEXT = "/Game/UI/Chat/w_chat_log_label_bpw.w_chat_log_label_bpw_C"
 local PANEL = "/Game/UI/EndOfHunt/StackableProgressBar.StackableProgressBar_C"
 local FONT = "/Game/UI/Globals/Fonts/RobotoCondensed.RobotoCondensed"
 local folder = (package.searchpath("HudPanel", package.path) or "ue4ss/Mods/shared/HudPanel/HudPanel.lua"):match("^(.*[/\\])")
 local textures = {}
 function M.Valid(o)
-    local ok, result = pcall(function() return o:IsValid() end)
-    return ok and result
+    return FrameTick.Valid(o)
 end
 local function load(path)
     local cls = StaticFindObject(path)

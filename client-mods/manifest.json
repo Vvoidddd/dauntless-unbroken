@@ -214,20 +214,20 @@
                   },
                   {
                       "path":  "ue4ss/Mods/BehemothHealthBars/Scripts/main.lua",
-                      "sha256":  "78254944aad7acabf8fe3fab97863543ece15838832904bb90875bed97b813b8",
-                      "size":  34511,
+                      "sha256":  "b6c556e8caa24e4954a636d3b400a65ea5b0cbaddb8c294bb4701ca1117934ca",
+                      "size":  34120,
                       "keep":  false
                   },
                   {
                       "path":  "ue4ss/Mods/BehemothTracker/Scripts/main.lua",
-                      "sha256":  "4c844877f257bd5a213b7305ffe140aa65d009123594770fbc74045aef453d64",
-                      "size":  21677,
+                      "sha256":  "3d5f0a8d80f2c8ee2209b5b2d8c29937f08164394ad953f3f52292f9df063ba2",
+                      "size":  21264,
                       "keep":  false
                   },
                   {
                       "path":  "ue4ss/Mods/CraftStar/Scripts/main.lua",
-                      "sha256":  "ec65075464d4c3ee6987dde94be452e2431e50bc0de6addf29fa626be7e591bd",
-                      "size":  8548,
+                      "sha256":  "b9c5e101ed2482d8436472fa8af60a421732ed0f4537a9305abfd7a49687eaff",
+                      "size":  8454,
                       "keep":  false
                   },
                   {
@@ -238,8 +238,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/DamageMeter/Scripts/main.lua",
-                      "sha256":  "36c8edbf7ce2f869290db7a462bf2bdeaf15cc03117ce82ed37de130ea7901de",
-                      "size":  8249,
+                      "sha256":  "eda980b5e44eecc3273b27bc4d900f4ed1fb02e006ce9de1e38bd379fd68b45b",
+                      "size":  8088,
                       "keep":  false
                   },
                   {
@@ -250,14 +250,14 @@
                   },
                   {
                       "path":  "ue4ss/Mods/LockOn/Scripts/main.lua",
-                      "sha256":  "eb1063f3802c6d9a5f9520d2eaee928b548dc1343c979f41f6c4d5aa541dfef2",
-                      "size":  38789,
+                      "sha256":  "216dcb139b5bd91c497b8c506bb5392ec6c32f444b5f2bf8b20e1d7c397de8c7",
+                      "size":  38689,
                       "keep":  false
                   },
                   {
                       "path":  "ue4ss/Mods/ModMenu/Scripts/main.lua",
-                      "sha256":  "5d59334751747621143eea22e9e37344ed777f79d862bf09acf4cad15a74f6ff",
-                      "size":  30459,
+                      "sha256":  "9c01317bb76f2a8327cde313286ff762853b4d4e93bf5a808cde4642f74627c6",
+                      "size":  30375,
                       "keep":  false
                   },
                   {
@@ -268,8 +268,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/PartMonitor/Scripts/main.lua",
-                      "sha256":  "93bae5f7092ab13ae1070c2e8b60e694534616e366b8835a59391895f2363b25",
-                      "size":  13894,
+                      "sha256":  "cafb3071725b0fb3c3e92f0dc81233c54830f8297f84c2f4631fb83975d14858",
+                      "size":  13752,
                       "keep":  false
                   },
                   {
@@ -280,14 +280,14 @@
                   },
                   {
                       "path":  "ue4ss/Mods/shared/FrameTick/FrameTick.lua",
-                      "sha256":  "7d5609bbb59de589533c1a11f0f0018bcea78364964e147a19e3384b5f205306",
-                      "size":  6185,
+                      "sha256":  "95e2270be48b618c66693d8ed7e3d12eca8780a50681afd798c350a212357596",
+                      "size":  7460,
                       "keep":  false
                   },
                   {
                       "path":  "ue4ss/Mods/shared/HudPanel/HudPanel.lua",
-                      "sha256":  "527cacd8afb3489c46117b10dd8369aa348a82b558fa2b096978b2f21a977171",
-                      "size":  8569,
+                      "sha256":  "4d91fc3aeef43a425000d23a12097ad2f1bb1e680a90fa61d9a9ec75b45be3d4",
+                      "size":  8549,
                       "keep":  false
                   },
                   {

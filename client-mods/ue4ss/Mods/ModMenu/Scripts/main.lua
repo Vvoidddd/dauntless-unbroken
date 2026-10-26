@@ -99,9 +99,7 @@ local GS = nil
 local function log(m) print("[MM] " .. tostring(m)) end
 
 local function valid(o)
-    if not o then return false end
-    local ok, v = pcall(function() return o:IsValid() end)
-    return ok and v
+    return FrameTick.Valid(o)
 end
 
 -- ---------------------------------------------------------------- mods.txt

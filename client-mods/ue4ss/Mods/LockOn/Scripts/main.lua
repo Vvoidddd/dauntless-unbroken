@@ -69,9 +69,7 @@ local function log(m) print("[LOCK] " .. tostring(m)) end
 local function logOnce(k, m) if not errLogged[k] then errLogged[k] = true log(m) end end
 
 local function valid(o)
-    if not o then return false end
-    local ok, v = pcall(function() return o:IsValid() end)
-    return ok and v
+    return FrameTick.Valid(o)
 end
 
 local function GetPC()
@@ -122,7 +120,7 @@ end
 -- Picks a body bone once per behemoth and logs the skeleton, so the choice can be tuned.
 local function ChooseBone(b, mesh)
     local key = "?"
-    pcall(function() key = b:GetFullName() end)
+    key = FrameTick.ObjectKey(b) or "?"
     if boneFor[key] ~= nil then return boneFor[key] end
     local names = {}
     local okN, n = pcall(function() return mesh:GetNumBones() end)
@@ -417,7 +415,7 @@ local function Toggle()
         lastT = nil
         TakeOver(PC)
         local name = "?"
-        pcall(function() name = b:GetFullName() end)
+        name = FrameTick.ObjectKey(b) or "?"
         log("locked on " .. name)
     else
         log("nothing to lock on (no behemoth in view within " .. MAX_LOCK_M .. " m)")
