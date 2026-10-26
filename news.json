@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "c388ace362f790e65b6c06f2f1453130e86f3335",
+      "date": "2026-10-26T00:44:34.434Z",
+      "title": "Latest project updates",
+      "body": "• Show full dual-Behemoth part groups with wound and Aether wing states\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.37",
       "date": "2026-10-25T23:44:40Z",
       "title": "Launcher 1.0.37 is available",
@@ -173,12 +179,6 @@
       "date": "2026-10-24T21:58:05.516Z",
       "title": "Latest project updates",
       "body": "• Record rollout validation and existing local chat check failures\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "5a79a0f0a8a7e24a4fd630363813532055da513c",
-      "date": "2026-10-24T21:53:08.574Z",
-      "title": "Latest project updates",
-      "body": "• Report drained workers accurately in fleet status\n• Prevent Escalation amp selection replays and reward counter drift\n• Validate separate client and server native artifact pins\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
