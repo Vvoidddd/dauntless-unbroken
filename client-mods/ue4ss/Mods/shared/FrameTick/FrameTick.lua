@@ -29,6 +29,9 @@ local hooked = false
 local restartHooked = false
 local lastT = nil
 local GS = nil
+local context, objectWorld = nil, nil
+local objects = {}
+local bootstrapPC, bootstrapAt = nil, -1e9
 local logf = print
 local errOnce = {}
 
@@ -46,16 +49,53 @@ function M.Now(ctx)
     return nil
 end
 
+-- The driving compass already belongs to the local player. Do not walk the
+-- entire UObject array every frame just to poll two lock-on keys.
+function M.PlayerController()
+    if valid(context) then
+        local ok, pc = pcall(function() return context:GetOwningPlayer() end)
+        if ok and valid(pc) then return pc end
+        return nil
+    end
+    if valid(bootstrapPC) then return bootstrapPC end
+    local now = os.clock()
+    if now - bootstrapAt < 1 then return nil end
+    bootstrapAt = now
+    -- Startup/reload callbacks can run before the first compass Tick.
+    for _, pc in ipairs(FindAllOf("ArchonPlayerController") or {}) do
+        local ok, localPlayer = pcall(function() return pc:IsLocalController() end)
+        if ok and localPlayer and valid(pc) then bootstrapPC = pc return pc end
+    end
+end
+
+-- Discovery is slow; health, movement and input still update at caller cadence.
+-- Each Lua mod owns this cache. Callers must validate objects before use.
+function M.Objects(class)
+    if not lastT or not valid(context) then return {} end
+    local ok, world = pcall(function() return GS:GetGameState(context) end)
+    if not ok or not valid(world) then objects, objectWorld = {}, nil return {} end
+    local address = world:GetAddress()
+    if address ~= objectWorld then objects, objectWorld = {}, address end
+    local entry = objects[class]
+    if not entry or lastT < entry.at or lastT - entry.at >= 1 then
+        entry = {at = lastT, list = FindAllOf(class) or {}}
+        objects[class] = entry
+    end
+    return entry.list
+end
+
 local function OnFrame(self)
     local ctx = nil
     pcall(function() ctx = self:get() end)
     local t = M.Now(ctx)
     if not t then return end
     if t == lastT then return end      -- several compass widgets tick the same frame
+    context = ctx
     -- The engine's real-time clock restarts at 0 in every new world (map change, raid start).
     -- Without this, every ticker waited until the new clock passed its old "last run" time, so
     -- the mods stalled after a map change until Ctrl+R. Clock went backwards -> run everything now.
     if lastT and t < lastT - 0.5 then
+        objects = {}
         for _, tk in ipairs(tickers) do tk.last = -1e9 end
         logf(string.format("FrameTick: new map (clock %.1f -> %.1f), timers reset", lastT, t))
     end
@@ -102,7 +142,10 @@ function M.Start(logFunction, modName)
     end
     if not restartHooked then
         local ok, err = pcall(function()
-            RegisterHook(RESTART_FN, function() pcall(TryHook) end)
+            RegisterHook(RESTART_FN, function()
+                context, objectWorld, bootstrapPC, bootstrapAt, objects = nil, nil, nil, -1e9, {}
+                pcall(TryHook)
+            end)
         end)
         restartHooked = ok
         if not ok then logf("FrameTick: ClientRestart hook failed: " .. tostring(err)) end

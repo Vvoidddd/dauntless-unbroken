@@ -86,6 +86,28 @@ Native in-game rendering and UE4SS parameter/property marshalling still require
 a real-hunt smoke test; the Windows computer-use native pipe was unavailable.
 The stable launcher release updates the normal feed; the HUD mods remain optional.
 
+## 1.0.39 game-thread discovery correction
+
+The former lock-on key poll called `FindAllOf("ArchonPlayerController")` every frame even
+while unlocked; the tracker repeated boss/controller discovery every 60 ms. PartMonitor also
+walked all `monsterpart_bpc_C` objects every 250 ms, including pooled and old-round components.
+These calls ran on the game thread. They are a credible source of the reported Gnasher low FPS,
+but no native frame-time profile has established how much of Nyxxie's slowdown they caused.
+
+FrameTick now reads the driving compass's native `GetOwningPlayer()` and bounds shared-class
+discovery to once per second per Lua state. Only startup/reload before a compass exists uses
+a bounded controller fallback. PartMonitor enumerates the chosen actor's
+`K2_GetComponentsByClass(/Script/Archon.MonsterPartComponent)` instead of scanning globally.
+HP/wound updates remain at 250 ms and tracker/input keep their original cadence. New game-state,
+clock reset and ClientRestart invalidate discovery; stale/invalid objects are still checked by
+each caller. This does not re-enable UE4SS's startup-unsafe UObject-array cache.
+
+`tests/client-mods/frame-tick.lua`, also run by the existing HUD regression entry point, checks
+1,200 simulated input frames, at most ten boss discoveries in ten seconds, live health between
+discoveries, and controller/world replacement. The part adapter test rejects any global part
+search. These are native-call budget checks, not an FPS benchmark; an in-game comparison is
+still required to confirm the performance improvement on the affected PC.
+
 ## 1.0.36 rendering correction
 
 The real 1.0.35 screenshot showed white backdrops and square status indicators.

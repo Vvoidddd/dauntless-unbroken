@@ -113,11 +113,7 @@ local function scan()
     local gs = StaticFindObject("/Script/Engine.Default__GameplayStatics")
     local archon = StaticFindObject("/Script/Archon.Default__ArchonGameplayStatics")
     if not HUD.Valid(gs) or not HUD.Valid(archon) then return end
-    local pc
-    for _, candidate in ipairs(FindAllOf("ArchonPlayerController") or {}) do
-        local ok, isLocal = pcall(function() return candidate:IsLocalController() end)
-        if ok and isLocal and HUD.Valid(candidate) then pc = candidate break end
-    end
+    local pc = FrameTick.PlayerController()
     if not pc or not HUD.Valid(pc.Pawn) or archon:IsInCity(pc) then return end
     local world = objectKey(gs:GetGameState(pc))
     if not world then return end
@@ -125,7 +121,7 @@ local function scan()
     local tracked = {}
     for _, old in ipairs(previous) do if old.world == world then tracked[old.id] = true end end
     local candidates, byId = {}, {}
-    for _, behemoth in ipairs(FindAllOf("ArchonBehemoth") or {}) do
+    for _, behemoth in ipairs(FrameTick.Objects("ArchonBehemoth")) do
         if HUD.Valid(behemoth) and property(behemoth, "bHidden") ~= true then
             local ok, hp, distance = pcall(function() return behemoth:GetCurrentHealth(), behemoth:GetDistanceTo(pc.Pawn) end)
             local key = objectKey(behemoth)
@@ -148,20 +144,19 @@ local function scan()
     for _, group in ipairs(candidates) do
         if #groups < 2 and not chosen[group.id] then groups[#groups+1]=group;chosen[group.id]=true end
     end
-    local owners = {}
-    for _, group in ipairs(groups) do owners[group.id]=group end
-    for _, part in ipairs(FindAllOf("monsterpart_bpc_C") or {}) do
-        if HUD.Valid(part) then
-            local ok, owner = pcall(function() return part:GetOwner() end)
-            local group = ok and owners[objectKey(owner)] or nil
-            if group then
-                local read, row = pcall(readPart, part, owner)
-                if read and row and row.id and not group.seen[row.id] then
-                    group.seen[row.id]=true;group.rows[#group.rows+1]=row
-                end
-                if not read then logOnce("part", row) end
+    local partClass = StaticFindObject("/Script/Archon.MonsterPartComponent")
+    for _, group in ipairs(groups) do
+        -- Ask only the selected boss for its components, never scan every part
+        -- in the world's UObject array (including pooled/old-round objects).
+        group.actor:K2_GetComponentsByClass(partClass):ForEach(function(_, value)
+            local part = value:get()
+            if not HUD.Valid(part) or objectKey(part:GetOwner()) ~= group.id then return end
+            local read, row = pcall(readPart, part, group.actor)
+            if read and row and row.id and not group.seen[row.id] then
+                group.seen[row.id]=true;group.rows[#group.rows+1]=row
             end
-        end
+            if not read then logOnce("part", row) end
+        end)
     end
     local titles = {}
     for i, group in ipairs(groups) do

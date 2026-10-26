@@ -84,10 +84,7 @@ local function PathOf(fullName)
 end
 
 local function GetPC()
-    local list = FindAllOf("ArchonPlayerController")
-    local PC = list and list[1]
-    if valid(PC) then return PC end
-    return nil
+    return FrameTick.PlayerController()
 end
 
 local function FindOrLoad(path)
@@ -381,7 +378,7 @@ end
 
 -- Target = the behemoth whose health changed most recently, else the first one found.
 local function PickTarget()
-    local list = FindAllOf("ArchonBehemoth")
+    local list = FrameTick.Objects("ArchonBehemoth")
     local seen, first = {}, nil
     if list then
         for _, b in ipairs(list) do

@@ -50,11 +50,7 @@ local function refresh()
     local gs = StaticFindObject("/Script/Engine.Default__GameplayStatics")
     local archon = StaticFindObject("/Script/Archon.Default__ArchonGameplayStatics")
     if not valid(gs) or not valid(archon) then return end
-    local pc
-    for _, controller in ipairs(FindAllOf("ArchonPlayerController") or {}) do
-        local ok, localPlayer = pcall(function() return controller:IsLocalController() end)
-        if ok and localPlayer and valid(controller) then pc = controller break end
-    end
+    local pc = FrameTick.PlayerController()
     if not pc then return end
     local ok, city = pcall(function() return archon:IsInCity(pc) end)
     if not ok or city then return end

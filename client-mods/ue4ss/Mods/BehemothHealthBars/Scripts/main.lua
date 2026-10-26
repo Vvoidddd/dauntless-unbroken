@@ -486,8 +486,7 @@ local function CreateBar()
     DestroyAll()
 
     local ok, err = pcall(function()
-        local PCList = FindAllOf("ArchonPlayerController")
-        local PC = PCList and PCList[1]
+        local PC = FrameTick.PlayerController()
         if not valid(PC) then log("no PC") return end
         local cls = StaticFindObject(PATH)
         if not valid(cls) then
@@ -575,7 +574,7 @@ local function AttrSetFor(key)
     attrCache[key] = nil
     local path = PathOf(key)
     if not path then return nil end
-    local list = FindAllOf("ArchonHealthAttributeSet")
+    local list = FrameTick.Objects("ArchonHealthAttributeSet")
     if not list then return nil end
     for _, s in ipairs(list) do
         local okN, n = pcall(function() return s:GetFullName() end)
@@ -685,7 +684,7 @@ end
 
 local function UpdateSets()
     -- every behemoth with readable health; the living ones separately
-    local list = FindAllOf("ArchonBehemoth")
+    local list = FrameTick.Objects("ArchonBehemoth")
     local seen, alive = {}, {}
     if list then
         for _, b in ipairs(list) do

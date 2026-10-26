@@ -97,7 +97,8 @@ LoadAsset = noop
 FText = function(text) return text end
 FName = function(text) return text end
 RegisterHook = function(path, callback) callbacks[path], hookCount = callback, hookCount + 1 end
-package.loaded.FrameTick = {Every = function(_, name, callback) ticks[name] = callback end, Now = function() return now end, Start = noop}
+package.loaded.FrameTick = {Every = function(_, name, callback) ticks[name] = callback end, Now = function() return now end, Start = noop,
+    PlayerController = function() return pc end, Objects = function(cls) return FindAllOf(cls) end}
 package.loaded.ModSettings = {Load = noop, Get = function(k, default) if settings[k] == nil then return default end return settings[k] end}
 package.loaded.DamageLedger = Ledger
 package.loaded.HudPanel = dofile("client-mods/ue4ss/Mods/shared/HudPanel/HudPanel.lua")
@@ -198,11 +199,17 @@ assert(Status.Name("FrontLeftWing", 6) == "Front Left Wing")
 assert(Status.Name("BodyBLArmour", 12) == "Body BL Armour")
 assert(Status.Name("None", 6) == "Wing")
 pc.Pawn = object()
+local parts
 local function boss(name, distance, foreign)
     local marker=object({title=name=="near" and "Kharabak" or "Shrike"})
     marker.GetBehemothName=function(self)return {ToString=function()return self.title end}end
     return object({GetFullName = function() return name end, GetAddress = function() return distance + 500 end, distance = distance, BehemothMessageMarker=marker,
         GetCurrentHealth = function(self) return self.hp or 1000 end, GetDistanceTo = function(self) return self.distance end, foreign = foreign,
+        K2_GetComponentsByClass = function(self)
+            local owned = {}
+            for _, p in ipairs(parts or {}) do if p:GetOwner() == self then owned[#owned+1] = p end end
+            return array(owned)
+        end,
         IsA = function(self, cls) return self.scissors == true and cls == scissorsClass end,
         IsAetherCharged = function(self) if self.aetherReadFails then error("Unreadable aether state") end return self.aetherFallback end})
 end
@@ -225,7 +232,7 @@ local disabled, armour = part("DisabledArmour", 100, 5, false), part("Armour", 1
 local missing = part("BackRight", 0); missing.MonsterPartActor = {IsValid = function() return false end}
 local fixed = part("Fixed", 100, 0, false)
 local duplicate = part("DuplicateHead", 100); duplicate.MonsterPartActor = head.MonsterPartActor
-local parts = {head, left, tail, disabled, armour, missing, fixed, duplicate}
+parts = {head, left, tail, disabled, armour, missing, fixed, duplicate}
 local currentBosses = {foreign, other, near}
 local desc = "PartBreakDescription_81_F02FC7404C14B0C4C604A5B52827B0C9"
 local core = part("Body",100,4,false); core.BodyPartType=7; core.PartBreakData=array({{[desc]=10}})
@@ -237,7 +244,7 @@ for _, p in ipairs({core,coreNormal,unbreakable,bodyArmour,anyLimb}) do parts[#p
 local all = FindAllOf
 FindAllOf = function(cls)
     if cls == "ArchonBehemoth" then return currentBosses end
-    if cls == "monsterpart_bpc_C" then return parts end
+    if cls == "monsterpart_bpc_C" then error("Part updates must not scan the global UObject array") end
     if cls == "w_chat_log_label_bpw_C" or cls == "StackableProgressBar_C" then
         local result = {tracker}
         for _, w in ipairs(widgets) do if not w.removed then result[#result + 1] = w end end
@@ -415,3 +422,4 @@ near.distance, other.distance = 500, 1000; partsPulse(); assert(right("Head"))
 settings.pm_visible = false; partsPulse(); assert(not right("Head") and displayed("core damage"))
 settings.pm_visible, city = true, true; partsPulse(); assert(not right("Head"))
 print("HUD monitors: damage, replicated part states, exact half threshold, regrowth, armour stages, world isolation and both-side layout passed")
+dofile("tests/client-mods/frame-tick.lua")

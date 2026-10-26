@@ -44,6 +44,13 @@ Optional client-side mods, installed automatically next to the game exe (`Archon
 
 They only change what you see on your own screen. The game works without them.
 
+Object discovery is separate from HUD refresh: shared FrameTick reuses boss/attribute-set
+lookups for one second and gets the local player from the compass owner. PartMonitor asks only
+the selected bosses for their components. Live HP, wounds, movement and lock-on input continue
+at their existing cadence; travel/restarts discard discovery caches. Turning Behemoth Parts
+off stops its discovery and removes its widgets. Whole mods can be disabled under Home → MODS,
+then applied by restarting the game.
+
 ## How they get installed
 
 - **Launcher**: on install, repair and before every launch (`DauntlessUnbrokenLauncher/src/main/client-mods.ts`).

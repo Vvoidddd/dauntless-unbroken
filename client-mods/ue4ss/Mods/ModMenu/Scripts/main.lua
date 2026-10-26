@@ -181,10 +181,7 @@ end
 -- ---------------------------------------------------------------- widget helpers
 
 local function GetPC()
-    local list = FindAllOf("ArchonPlayerController")
-    local PC = list and list[1]
-    if valid(PC) then return PC end
-    return nil
+    return FrameTick.PlayerController()
 end
 
 local function FindOrLoad(path, asset)

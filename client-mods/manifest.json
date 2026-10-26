@@ -214,14 +214,14 @@
                   },
                   {
                       "path":  "ue4ss/Mods/BehemothHealthBars/Scripts/main.lua",
-                      "sha256":  "20bb8d111b3c56543d4f45469e399df07f29c6b8af094cdbe33c7ef4ef6ab73c",
-                      "size":  34546,
+                      "sha256":  "78254944aad7acabf8fe3fab97863543ece15838832904bb90875bed97b813b8",
+                      "size":  34511,
                       "keep":  false
                   },
                   {
                       "path":  "ue4ss/Mods/BehemothTracker/Scripts/main.lua",
-                      "sha256":  "cc9ff0a36c1eaa17d46b57b6fbb6e21d372037f49357fbc2dc6ae1bd5114d7c3",
-                      "size":  21765,
+                      "sha256":  "4c844877f257bd5a213b7305ffe140aa65d009123594770fbc74045aef453d64",
+                      "size":  21677,
                       "keep":  false
                   },
                   {
@@ -238,8 +238,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/DamageMeter/Scripts/main.lua",
-                      "sha256":  "6fac03a95f0cad5cebcc0bbd1dfc272b55fa49113f50699cb81f64455cdce15b",
-                      "size":  8479,
+                      "sha256":  "36c8edbf7ce2f869290db7a462bf2bdeaf15cc03117ce82ed37de130ea7901de",
+                      "size":  8249,
                       "keep":  false
                   },
                   {
@@ -250,14 +250,14 @@
                   },
                   {
                       "path":  "ue4ss/Mods/LockOn/Scripts/main.lua",
-                      "sha256":  "02575e0d8dccbd1fe5121d68aa1636c4065f523e7691645462b28679ba5411e6",
-                      "size":  38885,
+                      "sha256":  "eb1063f3802c6d9a5f9520d2eaee928b548dc1343c979f41f6c4d5aa541dfef2",
+                      "size":  38789,
                       "keep":  false
                   },
                   {
                       "path":  "ue4ss/Mods/ModMenu/Scripts/main.lua",
-                      "sha256":  "e932f634be9f84ef6f002ee240191266d79e8d70e7d32eede9c02677d545a922",
-                      "size":  30555,
+                      "sha256":  "5d59334751747621143eea22e9e37344ed777f79d862bf09acf4cad15a74f6ff",
+                      "size":  30459,
                       "keep":  false
                   },
                   {
@@ -268,8 +268,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/PartMonitor/Scripts/main.lua",
-                      "sha256":  "6039fdbad02960569e3878a225b3cb690984807181992c7940c91b320d9a5831",
-                      "size":  13179,
+                      "sha256":  "2f9174446aa99c3be3498678db31cead266d4d73c6c225f9c02c8c258297b1e7",
+                      "size":  13064,
                       "keep":  false
                   },
                   {
@@ -280,8 +280,8 @@
                   },
                   {
                       "path":  "ue4ss/Mods/shared/FrameTick/FrameTick.lua",
-                      "sha256":  "a06109ff9f7748e30b89b06e94197468b3aff9e25cf4cf48c1c40c33d0c85c76",
-                      "size":  4359,
+                      "sha256":  "7d5609bbb59de589533c1a11f0f0018bcea78364964e147a19e3384b5f205306",
+                      "size":  6185,
                       "keep":  false
                   },
                   {
