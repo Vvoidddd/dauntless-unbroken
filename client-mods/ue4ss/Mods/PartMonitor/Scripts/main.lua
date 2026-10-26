@@ -7,6 +7,7 @@ local TAG = 0.994 -- Unique: damage .995, tracker .996, menu .997, lock-on .993.
 local panel, layoutKey, groups, uiPc, uiWorld = nil, nil, {}, nil, nil
 local errors = {}
 local scissorsClass
+local ownerKinds, classificationWorld = {}, nil
 local SCISSORS = "/Game/Monsters/moonface/scissors/scissors_archetype_bp.scissors_archetype_bp_C"
 local function logOnce(key, message)
     if not errors[key] then errors[key] = true print("[PartMonitor] " .. tostring(message)) end
@@ -44,10 +45,17 @@ local function stages(part)
     return known(1), known(stage + 1), known(stage)
 end
 local function wingPhase(part, owner)
-    if not HUD.Valid(scissorsClass) then scissorsClass = StaticFindObject(SCISSORS) end
-    if not HUD.Valid(scissorsClass) then return false, nil end
-    local ok, matches = pcall(function() return owner:IsA(scissorsClass) end)
-    if not ok or not matches then return false, nil end
+    local ownerKey = objectKey(owner)
+    local matches = ownerKinds[ownerKey]
+    if matches == nil then
+        -- An actor's class cannot change. Cache misses too: Gnasher encounters
+        -- need no Kharabak lookup per part. A later boss has its own cache key.
+        if not HUD.Valid(scissorsClass) then scissorsClass = StaticFindObject(SCISSORS) end
+        local ok, result = pcall(function() return HUD.Valid(scissorsClass) and owner:IsA(scissorsClass) end)
+        matches = ok and result == true
+        ownerKinds[ownerKey] = matches
+    end
+    if not matches then return false, nil end
     local key = objectKey(part)
     if not key then return false, nil end
     if key ~= objectKey(property(owner, "FrontLeftWing")) and key ~= objectKey(property(owner, "FrontRightWing")) then return false, nil end
@@ -117,6 +125,7 @@ local function scan()
     if not pc or not HUD.Valid(pc.Pawn) or archon:IsInCity(pc) then return end
     local world = objectKey(gs:GetGameState(pc))
     if not world then return end
+    if classificationWorld ~= world then ownerKinds, classificationWorld = {}, world end
     uiPc, uiWorld = pc, world
     local tracked = {}
     for _, old in ipairs(previous) do if old.world == world then tracked[old.id] = true end end

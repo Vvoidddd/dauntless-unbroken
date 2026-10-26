@@ -45,6 +45,7 @@ local gs = object({GetGameState = function(_, ctx) return ctx.foreign and player
 local archon = object({IsInCity = function() return city end, GetOnlineSessionId = function() return session end})
 local function widget(_, _, cls)
     local w = object({removed = false, kind = cls.kind})
+    w.StopAllAnimations = function(self) self.animating = false end
     w.SetVisibility = function(self, v) self.visibility = v end
     w.SetClipping = function(self, v) self.clipping = v end
     w.SetRenderOpacity = function(self, v) self.RenderOpacity = v end
@@ -54,6 +55,8 @@ local function widget(_, _, cls)
     w.SetAlignmentInViewport, w.InvalidateLayoutAndVolatility = noop, noop
     w.AddToViewport = function(self, z)
         self.z = z
+        assert(self.TickFrequency == 0, "Static HUD must disable Blueprint ticking before Construct")
+        self.animating = true
         self.fontAtConstruct = self.ChatLogLabelTextBlock.Font.Size
         self.cachedFont = "ChatBold" -- Changing Font properties alone does not refresh native Slate.
         if self.kind == "panel" then self.texture, self.fill, self.brushSize = nil, nil, nil end
@@ -76,6 +79,7 @@ local function widget(_, _, cls)
 end
 local lib = object({Create = widget})
 local font, scissorsClass = object(), object()
+local scissorsMissing, scissorsLookups = true, 0
 local viewport={X=1920,Y=1080}
 local viewportScale=1
 local layoutLibrary=object({GetViewportSize=function()return viewport end,GetViewportScale=function()return viewportScale end})
@@ -87,7 +91,7 @@ StaticFindObject = function(path)
     if path:find("WidgetLayoutLibrary", 1, true) then return layoutLibrary end
     if path:find("KismetRenderingLibrary", 1, true) then return rendering end
     if path:find("RobotoCondensed", 1, true) then return font end
-    if path:find("/scissors_archetype_bp.", 1, true) then return scissorsClass end
+    if path:find("/scissors_archetype_bp.", 1, true) then scissorsLookups=scissorsLookups+1; if not scissorsMissing then return scissorsClass end return nil end
     return object({kind = path:find("chat_log_label", 1, true) and "label" or "panel"})
 end
 local tracker = object({RenderOpacity = 0.996, removed = false})
@@ -203,7 +207,7 @@ local parts
 local function boss(name, distance, foreign)
     local marker=object({title=name=="near" and "Kharabak" or "Shrike"})
     marker.GetBehemothName=function(self)return {ToString=function()return self.title end}end
-    return object({GetFullName = function() return name end, GetAddress = function() return distance + 500 end, distance = distance, BehemothMessageMarker=marker,
+    return object({GetFullName = function(self) return (self.scissors and "Scissors " or "Behemoth ") .. name end, GetAddress = function() return distance + 500 end, distance = distance, BehemothMessageMarker=marker,
         GetCurrentHealth = function(self) return self.hp or 1000 end, GetDistanceTo = function(self) return self.distance end, foreign = foreign,
         K2_GetComponentsByClass = function(self)
             local owned = {}
@@ -305,6 +309,9 @@ rightState("Body Front Left Armour", "OK", Status.colors.intact)
 rightState("Any Limb", "BROKEN", Status.colors.broken)
 assert(not right("Duplicate Head"), "Two shapes sharing one health actor are one part")
 rightState("Head", "OK", Status.colors.intact); rightBar("Head", 212, Status.colors.intact)
+local missingLookups=scissorsLookups
+for i=1,20 do partsPulse() end
+assert(scissorsLookups==missingLookups, "An unloaded Kharabak class must not be searched again for each Gnasher part/poll")
 rightState("Front Left Wing", "LOW", Status.colors.low); rightBar("Front Left Wing", 106, Status.colors.low)
 rightState("Tail", "BROKEN", Status.colors.broken); rightBar("Tail", 0, Status.colors.broken)
 rightState("Back Right", "?", Status.colors.unknown); rightBar("Back Right", 0, Status.colors.unknown)
@@ -335,6 +342,7 @@ local rightWing=part("FrontRightWing",100,5,false)
 rightWing.PartBreakData=array({{[desc]=0},{[desc]=7}});rightWing.CurrentBreakStage=1
 parts[#parts+1]=rightWing
 left.PartBreakData=array({{[desc]=0},{[desc]=7}});left.CurrentBreakStage,left.PartType,left.breakable,left.current=1,5,false,100
+scissorsMissing=false -- The Kharabak class loads when this different boss/class enters.
 near.scissors,near.AetherCharged,near.FrontLeftWing,near.FrontRightWing=true,false,left,rightWing
 partsPulse()
 rightState("Front Left Wing (inactive)","INACTIVE",Status.colors.unknown)
@@ -363,6 +371,7 @@ partsPulse();rightBar("Head",106,Status.colors.broken);rightState("Head","LOW",S
 head.PartType,head.current=3,100
 partsPulse();rightBar("Head",0,Status.colors.broken);rightState("Head","BROKEN",Status.colors.broken)
 head.PartType,head.current,head.ExposedPartType=0,100,7
+worldAddress=worldAddress+1 -- Fresh dual encounter after the simulated actor-class replacements.
 local otherHead=part("Head",25,0,true,other);otherHead.ExposedPartType=6;parts[#parts+1]=otherHead
 partsPulse()
 assert(right("Kharabak") and right("Shrike"))
@@ -425,4 +434,7 @@ near.distance, other.distance = 500, 1000; partsPulse(); assert(right("Head"))
 settings.pm_visible = false; partsPulse(); assert(not right("Head") and displayed("core damage"))
 settings.pm_visible, city = true, true; partsPulse(); assert(not right("Head"))
 print("HUD monitors: damage, replicated part states, exact half threshold, regrowth, armour stages, world isolation and both-side layout passed")
+for _, w in ipairs(widgets) do
+    assert(w.TickFrequency==0 and not w.animating, "Every static HUD surface must stop inherited animation/tick work")
+end
 dofile("tests/client-mods/frame-tick.lua")

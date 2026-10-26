@@ -26,11 +26,13 @@ local function create(panel, class)
     local widget = panel.lib:Create(panel.pc, class, panel.pc)
     if not M.Valid(widget) then error("Could not create HUD widget") end
     panel.widgets[#panel.widgets + 1] = widget
+    widget.TickFrequency = 0 -- Never: these surfaces are updated explicitly, not by Blueprint ticks.
     widget:SetRenderOpacity(panel.tag)
     return widget
 end
 local function show(panel, widget, x, y, width, height, layer)
     widget:AddToViewport(layer)
+    widget:StopAllAnimations() -- The borrowed progress-bar Construct starts a lerp animation.
     widget:SetVisibility(3) -- HitTestInvisible: never capture mouse/gamepad input.
     place(panel, widget, x, y, width, height)
 end

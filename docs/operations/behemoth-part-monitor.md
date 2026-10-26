@@ -122,6 +122,20 @@ for UObject entries. Public publication
 of that initial candidate was cancelled. Successful layout creation logs one Panel ready
 line per rebuild, without per-frame logging, to make native support verification possible.
 
+Native retesting restored real part rows but brought the low FPS back, so the first discovery
+changes alone are not a verified performance fix. The next local candidate disables
+`UUserWidget.TickFrequency` (Never/0) before constructing the static HUD surfaces and stops
+inherited animations after Construct. The borrowed StackableProgressBar Construct starts a
+PercentLerpAnim; these panels manage their images and text explicitly and do not use it.
+Scissors classification, including a missing class, is cached per immutable actor identity
+and cleared for a new world, avoiding a Kharabak-class lookup for every Gnasher part/poll.
+The regression covers missing-class negative caching, class replacement, and disabled ticks/
+stopped animations on every damage/part surface. The local timing probe was removed before
+publication. Native logs confirm two Behemoth groups with12actualpartrows, and the user
+confirmed that bars work and FPS stays smooth with the static-widget/negative-cache fix.
+This is a successful native retest, not a numerical FPS benchmark or proof of which individual
+change contributed most.
+
 ## 1.0.36 rendering correction
 
 The real 1.0.35 screenshot showed white backdrops and square status indicators.
