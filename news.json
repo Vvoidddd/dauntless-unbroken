@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "launcher-v1.0.38",
+      "date": "2026-10-26T00:53:50Z",
+      "title": "Launcher 1.0.38 is available",
+      "body": "## Launcher 1.0.38 changes\n\n- Behemoth Parts now shows two nearby Behemoths in separate named sections, with a divider and every part listed. Larger encounters use tighter spacing and move the panel beside the native HUD.\n- Wounded parts show a red remaining-HP bar until the wound expires. The status dot still reflects part health; broken parts have a red dot and an empty bar.\n- Corrected Kharabak's temporary Aether-wing states: inactive wings no longer appear broken merely because their stage is Disabled. Active wings use their real part HP.\n- Part groups stay stable as Behemoths move and clear after death, travel and Escalation rounds, preventing old names and bars from stacking.\n- Client Mods describes the updated Behemoth Parts controls and continues to credit Void.\n\nThese optional Windows HUD mods update on the next game launch after updating the launcher. Home → Behemoth Parts shows or hides the tracker. Existing settings are preserved.\n\nValidation: Lua adapter regressions cover independent dual targets, wound expiry, Aether phases, full lists and round cleanup; launcher typechecking and Client Mods tests pass. Native in-game visual confirmation is still pending. The separate Kharabak bright-light issue remains under investigation.\n\n\n---\n\nDauntless Unbroken Launcher 1.0.38 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.38-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.38-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.38-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.38-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.38-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.38-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
+    },
+    {
       "id": "c388ace362f790e65b6c06f2f1453130e86f3335",
       "date": "2026-10-26T00:44:34.434Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-24T22:16:55.490Z",
       "title": "Latest project updates",
       "body": "• Keep the free Recruit dye quest bundle permanently available\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "22e5acbf3a0e98b9491e6b510d026e9f6d0ed819",
-      "date": "2026-10-24T21:58:05.516Z",
-      "title": "Latest project updates",
-      "body": "• Record rollout validation and existing local chat check failures\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
