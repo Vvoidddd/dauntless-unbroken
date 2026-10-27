@@ -2,6 +2,7 @@
 -- owns its widgets and a distinct opacity tag; no input or game state is changed.
 local M = {}
 local FrameTick = require("FrameTick")
+local Settings = require("ModSettings")
 local TEXT = "/Game/UI/Chat/w_chat_log_label_bpw.w_chat_log_label_bpw_C"
 local PANEL = "/Game/UI/EndOfHunt/StackableProgressBar.StackableProgressBar_C"
 local FONT = "/Game/UI/Globals/Fonts/RobotoCondensed.RobotoCondensed"
@@ -44,7 +45,34 @@ local function texture(panel, name)
     if not M.Valid(textures[name]) then error("HUD texture unavailable: " .. name) end
     return textures[name]
 end
-function M.New(pc, tag, anchor, x, y, width, height)
+-- Offsets are logical pixels; clamp the complete panel to the current viewport.
+function M.Layout(pc, prefix, anchor, x, y, width, height)
+    local function choice(key, default)
+        local n = Settings.GetNum(prefix .. key, default)
+        return type(n) == "number" and n == n and math.max(1, math.min(5, math.floor(n))) or default
+    end
+    x = x + (choice("_x", 1) - 1) * (anchor.X == 1 and -100 or 100)
+    y = y - (choice("_y", 1) - 1) * 100
+    local ok, viewport, scale = pcall(function()
+        local lib = StaticFindObject("/Script/UMG.Default__WidgetLayoutLibrary")
+        return lib:GetViewportSize(pc), lib:GetViewportScale(pc)
+    end)
+    if ok and scale > 0 and viewport.X > 0 and viewport.Y > 0 then
+        local w, h = viewport.X / scale, viewport.Y / scale
+        x = math.max(8 - w * anchor.X, math.min(x, math.max(8, w - width - 8) - w * anchor.X))
+        y = math.max(8 - h * anchor.Y, math.min(y, math.max(8, h - height - 8) - h * anchor.Y))
+    end
+    local alpha = (choice("_background", 3) - 1) / 4
+    return x, y, alpha, x .. ":" .. y .. ":" .. alpha
+end
+function M.InHunt(pc)
+    local ok, hunt = pcall(function()
+        local archon = StaticFindObject("/Script/Archon.Default__ArchonGameplayStatics")
+        return M.Valid(archon) and archon:IsInIsland(pc) and not archon:IsInCity(pc) and not archon:IsInTrainingGround(pc)
+    end)
+    return ok and hunt == true
+end
+function M.New(pc, tag, anchor, x, y, width, height, backgroundAlpha)
     local panel = {pc = pc, tag = tag, anchor = anchor, x = x, y = y, widgets = {}, labels = {}, bars = {}}
     local ok, err = pcall(function()
         panel.lib = StaticFindObject("/Script/UMG.Default__WidgetBlueprintLibrary")
@@ -61,7 +89,7 @@ function M.New(pc, tag, anchor, x, y, width, height)
         image.Brush.DrawAs = 1 -- Box: nine-slice preserves the small rounded corners.
         image.Brush.Margin = {Left = 0.125, Top = 0.125, Right = 0.125, Bottom = 0.125}
         image:SetBrushResourceObject(texture(panel, "panel"))
-        image:SetColorAndOpacity({R = 1, G = 1, B = 1, A = 1})
+        image:SetColorAndOpacity({R = 1, G = 1, B = 1, A = backgroundAlpha or 1})
         -- Nine-slice border thickness follows the source brush size. The canvas
         -- slot below stretches the panel; keep its 64px artwork size unchanged.
         image:SetBrushSize({X = 64, Y = 64})

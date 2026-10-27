@@ -53,3 +53,13 @@ off and their source is excluded from the installation manifest, so a fresh
 installation or in-game toggle cannot restore them. Source remains for tests.
 This applies only after updating and fully restarting the game; running clients
 cannot be changed remotely. The guarded candidate is not claimed crash-free.
+
+## Unpublished layout candidate
+
+The repair branch adds saved horizontal/vertical offsets and 0–100% background
+opacity controls for each overlay. The part list defaults farther left to clear
+tonics; viewport bounds constrain movement. Both overlays now require island-hunt
+context, excluding Ramsgate, training grounds, loading and unavailable state.
+Mock regressions exercise those transitions, movement and transparent backgrounds.
+This candidate remains withdrawn and needs native crash/performance and visual
+testing before any re-enable; these controls are not part of the 1.0.40 withdrawal.

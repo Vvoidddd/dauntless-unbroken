@@ -53,6 +53,16 @@ local SETTINGS = {
 }
 
 local MENU_X, MENU_Y = 48, 100
+for _, mod in ipairs({{key="dm",name="Damage meter",direction="right"},{key="pm",name="Part monitor",direction="left"}}) do
+    local offsets, backgrounds = {}, {}
+    for i=1,5 do
+        offsets[i]={name=tostring((i-1)*100).." px"}
+        backgrounds[i]={name=i==1 and "Transparent" or tostring((i-1)*25).."%"}
+    end
+    SETTINGS[#SETTINGS+1]={key=mod.key.."_x",label=mod.name..": move "..mod.direction,default=1,choices=offsets}
+    SETTINGS[#SETTINGS+1]={key=mod.key.."_y",label=mod.name..": move up",default=1,choices=offsets}
+    SETTINGS[#SETTINGS+1]={key=mod.key.."_background",label=mod.name..": background opacity",default=3,choices=backgrounds}
+end
 local PANEL_W = 820
 local PAD_X = 24
 local TITLE_SIZE = 28
@@ -163,7 +173,9 @@ end
 
 local SETTING_OWNER = {bhb_shield = "BehemothHealthBars", bhb_text = "BehemothHealthBars",
     bhb_dual = "BehemothHealthBars", trk_always = "BehemothTracker", cst_color = "CraftStar", lock_rebind = "LockOn",
-    dm_visible = "DamageMeter", dm_team = "DamageMeter", pm_visible = "PartMonitor"}
+    dm_visible = "DamageMeter", dm_team = "DamageMeter", pm_visible = "PartMonitor",
+    dm_x="DamageMeter",dm_y="DamageMeter",dm_background="DamageMeter",
+    pm_x="PartMonitor",pm_y="PartMonitor",pm_background="PartMonitor"}
 
 local function BuildItems()
     items = {}

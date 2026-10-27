@@ -8,6 +8,7 @@ local HOOK = "/Script/Archon.ArchonCombatTextComponent:MulticastSendMultitypeCom
 local HUD = require("HudPanel")
 local OPACITY = 0.995 -- Distinct from Tracker (0.996), ModMenu (0.997) and LockOn (0.993).
 local panel, roster = nil, {}
+local appearance
 local hooked, context, uiWorld, showTeam = false, nil, nil, nil
 local logged = {}
 local function logOnce(key, message)
@@ -48,7 +49,7 @@ local function refresh()
     local archon = StaticFindObject("/Script/Archon.Default__ArchonGameplayStatics")
     if not valid(gs) or not valid(archon) then return end
     local pc = FrameTick.PlayerController()
-    if not pc then return end
+    if not pc or not HUD.InHunt(pc) then return end
     local ok, city = pcall(function() return archon:IsInCity(pc) end)
     if not ok or city then return end
     local game = gs:GetGameState(pc)
@@ -117,9 +118,10 @@ local function removeUI()
     HUD.Remove(panel)
     panel, uiWorld, showTeam = nil, nil, nil
 end
-local function makeUI(team)
+local function makeUI(team, x, y, alpha, layout)
     removeUI()
-    panel = HUD.New(context.pc, OPACITY, {X = 0, Y = 0.54}, 22, 0, 310, team and 336 or 186)
+    panel = HUD.New(context.pc, OPACITY, {X = 0, Y = 0.54}, x, y, 310, team and 336 or 186, alpha)
+    appearance = layout
     local function label(id, text, size, color, y, x, width)
         HUD.Label(panel, id, text, size, color, x or 12, y, width or 286)
     end
@@ -153,10 +155,11 @@ local function count(n)
     return (s:reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""))
 end
 local function pulse(now)
-    if not context or not hooked or not Settings.Get("dm_visible", true) then removeUI() return end
+    if not context or not hooked or not Settings.Get("dm_visible", true) or not HUD.InHunt(context.pc) then removeUI() return end
     Ledger.Advance(state, context.session, now)
     local team = Settings.Get("dm_team", false)
-    if uiWorld ~= context.uiKey or showTeam ~= team or not panel or not valid(panel.root) then makeUI(team) end
+    local x, y, alpha, layout = HUD.Layout(context.pc, "dm", {X=0,Y=0.54}, 22, 0, 310, team and 336 or 186)
+    if uiWorld ~= context.uiKey or showTeam ~= team or appearance ~= layout or not panel or not valid(panel.root) then makeUI(team, x, y, alpha, layout) end
     local snapshot, own = Ledger.Snapshot(state), nil
     for _, row in ipairs(snapshot.rows) do if row.id == context.me then own = row break end end
     own = own or {core = 0, part = 0, stagger = 0, wound = 0, dps = 0}

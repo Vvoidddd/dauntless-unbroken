@@ -43,6 +43,7 @@ local function array(values)
     return {ForEach = function(_, fn) for i, v in ipairs(values) do if fn(i, wrap(v)) then break end end end}
 end
 local now, city, session, worldName, worldAddress = 10, false, "hunt-a", "world-a", 123
+local island, training = true, false
 local settings, ticks, widgets, callbacks, hookCount = {}, {}, {}, {}, 0
 local function player(name)
     return object({GetPlayerName = function() return name end, GetFullName = function() return "PlayerState " .. name end})
@@ -51,7 +52,8 @@ local a, b = player("Void"), player("GOLLUM")
 local game = object({PlayerArray = array({a, b}), GetFullName = function() return worldName end, GetAddress = function() return worldAddress end})
 local pc = object({PlayerState = a, IsLocalController = function() return true end})
 local gs = object({GetGameState = function(_, ctx) return ctx.foreign and player("wrong-world") or game end})
-local archon = object({IsInCity = function() return city end, GetOnlineSessionId = function() return session end})
+local archon = object({IsInCity = function() return city end, IsInIsland=function()return island end,
+    IsInTrainingGround=function()return training end, GetOnlineSessionId = function() return session end})
 local function widget(_, _, cls)
     local w = object({removed = false, kind = cls.kind})
     w.StopAllAnimations = function(self) self.animating = false end
@@ -113,7 +115,8 @@ RegisterHook = function(path, callback) callbacks[path], hookCount = callback, h
 local guardedTick = dofile("client-mods/ue4ss/Mods/shared/FrameTick/FrameTick.lua")
 package.loaded.FrameTick = {Every = function(_, name, callback) ticks[name] = callback end, Now = function() return now end, Start = noop,
     PlayerController = function() return pc end, Objects = function(cls) return FindAllOf(cls) end, Valid=guardedTick.Valid, ObjectKey=guardedTick.ObjectKey}
-package.loaded.ModSettings = {Load = noop, Get = function(k, default) if settings[k] == nil then return default end return settings[k] end}
+package.loaded.ModSettings = {Load = noop, Get = function(k, default) if settings[k] == nil then return default end return settings[k] end,
+    GetNum=function(k,default)if settings[k]==nil then return default end return settings[k] end}
 package.loaded.DamageLedger = Ledger
 package.loaded.HudPanel = dofile("client-mods/ue4ss/Mods/shared/HudPanel/HudPanel.lua")
 dofile(dir .. "main.lua")
@@ -445,7 +448,29 @@ near.distance, other.distance = 8000, 9000; partsPulse(); assert(not right("Head
 near.distance, other.distance = 500, 1000; partsPulse(); assert(right("Head"))
 settings.pm_visible = false; partsPulse(); assert(not right("Head") and displayed("core damage"))
 settings.pm_visible, city = true, true; partsPulse(); assert(not right("Head"))
-print("HUD monitors: damage, replicated part states, exact half threshold, regrowth, armour stages, world isolation and both-side layout passed")
+city=false
+for _, outside in ipairs({"city","training","loading"}) do
+    city,training,island=outside=="city",outside=="training",outside~="loading"
+    ticks["damage-roster"]();pulse();partsPulse()
+    assert(not displayed("core damage") and not right("Head"),outside.." must hide both panels")
+end
+city,training,island=false,false,true
+settings.dm_x,settings.dm_y,settings.dm_background=3,2,1
+settings.pm_x,settings.pm_y,settings.pm_background=3,2,1
+ticks["damage-roster"]();pulse();partsPulse()
+assert(displayed("core damage") and right("Head"))
+for _,w in ipairs(widgets) do
+    if not w.removed and w.z==75 then
+        assert(w.fill.A==0,"Transparent background must preserve labels and bars")
+        if w.RenderOpacity==0.995 then assert(w.x==222 and w.y==-100) end
+        if w.RenderOpacity==0.994 then assert(w.x==-684 and w.y<=-100) end
+    end
+end
+local hud=package.loaded.HudPanel
+settings.dm_x,settings.dm_y,settings.dm_background=999,999,999
+local x,y,alpha=hud.Layout(pc,"dm",{X=0,Y=0},1900,1000,310,186)
+assert(x==1602 and y==600 and alpha==1,"Offsets and settings must clamp to the viewport and supported choices")
+print("HUD monitors: damage, parts, travel, hunt-only visibility, transparent backgrounds and bounded movement passed")
 for _, w in ipairs(widgets) do
     assert(w.TickFrequency==0 and not w.animating, "Every static HUD surface must stop inherited animation/tick work")
 end

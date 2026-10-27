@@ -120,7 +120,7 @@ local function scan()
     local archon = StaticFindObject("/Script/Archon.Default__ArchonGameplayStatics")
     if not HUD.Valid(gs) or not HUD.Valid(archon) then return end
     local pc = FrameTick.PlayerController()
-    if not pc or not HUD.Valid(pc.Pawn) or archon:IsInCity(pc) then return end
+    if not pc or not HUD.Valid(pc.Pawn) or not HUD.InHunt(pc) then return end
     local world = objectKey(gs:GetGameState(pc))
     if not world then return end
     if classificationWorld ~= world then ownerKinds, classificationWorld = {}, world end
@@ -187,7 +187,7 @@ end
 local white = {R = 0.96, G = 0.95, B = 1, A = 1}
 local muted = {R = 0.66, G = 0.68, B = 0.76, A = 1}
 local function render()
-    if #groups == 0 or not uiPc or not Settings.Get("pm_visible", true) then removeUI() return end
+    if #groups == 0 or not uiPc or not Settings.Get("pm_visible", true) or not HUD.InHunt(uiPc) then removeUI() return end
     local views, totalRows, keyParts = {}, 0, {uiWorld}
     for _, group in ipairs(groups) do
         local first, count, title = 1, #group.rows, group.title
@@ -208,8 +208,10 @@ local function render()
     local height = overhead + totalRows*rowHeight
     local yOffset = math.min(0, math.max(12,logicalHeight-height-16)-logicalHeight*0.49)
     -- A full tall list moves beside the native danger/Behemoth HUD instead of covering it.
-    local xOffset = -24-width-(yOffset<0 and 220 or 0)
-    keyParts[#keyParts+1]=tostring(logicalHeight)..":"..xOffset..":"..yOffset
+    local xOffset = -24-width-220 -- Stay beside the native HUD, clear of the tonic slots.
+    local alpha, appearance
+    xOffset, yOffset, alpha, appearance = HUD.Layout(uiPc,"pm",{X=1,Y=0.49},xOffset,yOffset,width,height)
+    keyParts[#keyParts+1]=tostring(logicalHeight)..":"..appearance
     local key = table.concat(keyParts,"|")
     local size = rowHeight>=40 and 18 or (rowHeight>=30 and 15 or 12)
     local dotSize = rowHeight>=40 and 22 or (rowHeight>=30 and 16 or 14)
@@ -217,7 +219,7 @@ local function render()
     local barHeight = rowHeight>=40 and 8 or 3
     if layoutKey~=key or not panel or not HUD.Valid(panel.root) then
         removeUI()
-        panel=HUD.New(uiPc,TAG,{X=1,Y=0.49},xOffset,yOffset,width,height)
+        panel=HUD.New(uiPc,TAG,{X=1,Y=0.49},xOffset,yOffset,width,height,alpha)
         local cursor=4
         for g,view in ipairs(views) do
             if g>1 then HUD.Rule(panel,12,cursor+6,width-24);cursor=cursor+14 end
