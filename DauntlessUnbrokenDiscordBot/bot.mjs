@@ -36,14 +36,21 @@ const rest = new REST({version: '10'}).setToken(token);
 const appInfo = await rest.get('/oauth2/applications/@me');
 console.log('Discord application authenticated');
 const memberIntentEnabled = !!(appInfo.flags & ((1 << 14) | (1 << 15)));
-const client = new Client({intents: [GatewayIntentBits.Guilds, ...(memberIntentEnabled ? [GatewayIntentBits.GuildMembers] : [])]});
+const presenceIntentEnabled = memberIntentEnabled && !!(appInfo.flags & ((1 << 12) | (1 << 13)));
+const client = new Client({intents: [GatewayIntentBits.Guilds, ...(memberIntentEnabled ? [GatewayIntentBits.GuildMembers] : []), ...(presenceIntentEnabled ? [GatewayIntentBits.GuildPresences] : [])]});
 setInterval(() => { if (client.isReady()) lastReady = Date.now(); }, 15000).unref();
-const counters=await createCounters(client,process.env.COUNTER_STATE_FILE || join(dirname(stateFile),'counters.json'));
+const counters=await createCounters(client,process.env.COUNTER_STATE_FILE || join(dirname(stateFile),'counters.json'),presenceIntentEnabled);
+if(!presenceIntentEnabled) console.error('Counter presence unavailable: enable Presence Intent in Discord Developer Portal. Member counts and key commands remain online.');
 if (!memberIntentEnabled) {
   console.error('Counter unavailable: enable Server Members Intent in Discord Developer Portal. Key commands remain online.');
+}
+if (!memberIntentEnabled || !presenceIntentEnabled) {
   setInterval(async()=>{
-    try {const app=await rest.get('/oauth2/applications/@me');if(app.flags & ((1<<14)|(1<<15))) {await client.destroy();process.exit(0);}}
-    catch {console.error('Could not recheck Server Members Intent');}
+    try {
+      const app=await rest.get('/oauth2/applications/@me');
+      const members=!!(app.flags & ((1<<14)|(1<<15))),presences=members && !!(app.flags & ((1<<12)|(1<<13)));
+      if(members!==memberIntentEnabled || presences!==presenceIntentEnabled) {await client.destroy();process.exit(0);}
+    } catch {console.error('Could not recheck counter intents');}
   },60000).unref();
 }
 
@@ -61,6 +68,7 @@ const active = new Set();
 setInterval(()=>void moderation.poll(client).catch(()=>console.error('Discord moderation sync unavailable; pending changes are saved.')),15000).unref();
 client.on(Events.GuildMemberAdd,member=>counters.schedule(member.guild));
 client.on(Events.GuildMemberRemove,member=>counters.schedule(member.guild));
+client.on(Events.PresenceUpdate,(_,presence)=>{if(presence?.guild)counters.schedule(presence.guild);});
 setInterval(()=>{if(memberIntentEnabled) for(const guild of client.guilds.cache.values()) counters.schedule(guild);},300000).unref();
 const cooldown = new Map();
 setInterval(() => { const now = Date.now(); for (const [id, until] of cooldown) if (until <= now) cooldown.delete(id); }, 60000).unref();

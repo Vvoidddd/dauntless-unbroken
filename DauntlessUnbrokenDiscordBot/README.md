@@ -1,5 +1,14 @@
 # Discord key distribution
 
+The member counter uses three locked voice channels under `───📊 Discord Statistics 📊───`:
+`»»—Dauntless Unbroken—««`, `🟢online ⛔busy 🌙idle`, and `🌐total 👤members 🤖bots`.
+Existing counter channel IDs are reused. Statuses count human members visible to the bot;
+offline/invisible members are excluded from the status row, but remain in member totals.
+Enable **Server Members Intent** and **Presence Intent** in the Discord Developer Portal.
+The bot detects newly enabled intents and reconnects automatically; missing Presence Intent
+shows dashes rather than fabricated zeroes and does not stop key distribution. Updates are
+batched every five minutes to limit voice-channel renames.
+
 Run alongside the metagame with Node 22.12 or later. Copy `.env.example` to `.env`, set the Discord bot token and a metagame admin key, then run `npm ci` and `npm start`. Keep `.env` and the state directory private and outside Git. Back up the state with the game database; a corrupt state file stops issuance rather than starting over.
 
 The bot registers `/key claim` and `/key status` without replacing its other commands. Invite the bot with the `bot` and `applications.commands` scopes. It needs no message-content intent. Commands work in the server and in bot DMs. Codes are sent only by DM; command acknowledgements are private.

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {Counters,COUNTER_OWNER,memberCounts} from './counter.mjs';
+import {Counters,COUNTER_OWNER,COUNTER_CATEGORY,memberCounts,counterNames,presenceCounts} from './counter.mjs';
 import {ChannelType,PermissionsBitField,PermissionFlagsBits} from 'discord.js';
 function fixture() {
   let edits=0,creates=0,saves=0;
@@ -19,8 +19,8 @@ function fixture() {
 }
 test('counter counts bots separately and creates exactly three locked channels once',async()=>{
   const f=fixture();await f.service.configure(f.interaction);
-  assert.equal(f.creates,3);assert.equal(f.category.name,'📊 Live Counter');
-  assert.deepEqual([...f.channels.values()].filter(c=>c.type===ChannelType.GuildVoice).map(c=>c.name),['Bots : 1','Users : 1','Total : 2']);
+  assert.equal(f.creates,3);assert.equal(f.category.name,COUNTER_CATEGORY);
+  assert.deepEqual([...f.channels.values()].filter(c=>c.type===ChannelType.GuildVoice).map(c=>c.name),['»»—Dauntless Unbroken—««','🟢—  ⛔—  🌙—','🌐2  👤1  🤖1']);
   const edits=f.edits;await f.service.configure(f.interaction); assert.equal(f.creates,3);assert.equal(f.edits,edits);
   for(const c of f.channels.values()) if(c.type===ChannelType.GuildVoice) assert.ok(c.permissionOverwrites.cache.get(f.guild.id).deny.has(PermissionFlagsBits.Connect|PermissionFlagsBits.Speak));
 });
@@ -28,8 +28,27 @@ test('reuses existing channel and persists restart configuration; updates change
   const f=fixture();f.channels.set('old',f.channel('old','Bots : 0'));await f.service.configure(f.interaction);assert.equal(f.creates,2);
   const restarted=new Counters({user:{id:'bot'}},structuredClone(f.state),async()=>{});
   const edits=f.edits;await restarted.refresh(f.guild);assert.equal(f.edits,edits);
-  f.members.set('c',{user:{bot:false}});f.guild.memberCount=3;await restarted.refresh(f.guild);assert.equal(f.edits,edits+2);
+  f.members.set('c',{user:{bot:false}});f.guild.memberCount=3;await restarted.refresh(f.guild);assert.equal(f.edits,edits+1);
   assert.deepEqual(memberCounts(f.members),{Bots:1,Users:2,Total:3});
+});
+
+test('presence rows count visible human statuses and migrate existing IDs without duplicates',async()=>{
+  const f=fixture();
+  for(const [id,name] of [['bots','Bots : 1'],['users','Users : 1'],['total','Total : 2']])f.channels.set(id,f.channel(id,name));
+  f.state.guilds[f.guild.id]={categoryId:f.category.id,channels:{Bots:'bots',Users:'users',Total:'total'}};
+  f.service.presences=true;
+  f.members.get('a').presence={status:'online'};
+  f.members.get('b').presence={status:'dnd'}; // Bots are not Slayers.
+  await f.service.refresh(f.guild);
+  assert.equal(f.creates,0);
+  assert.equal(f.channels.get('users').name,'🟢1  ⛔0  🌙0');
+  f.members.get('a').presence.status='idle';await f.service.refresh(f.guild);
+  assert.equal(f.channels.get('users').name,'🟢0  ⛔0  🌙1');
+  f.members.get('a').presence.status='dnd';await f.service.refresh(f.guild);
+  assert.equal(f.channels.get('users').name,'🟢0  ⛔1  🌙0');
+  delete f.members.get('a').presence;
+  assert.deepEqual(presenceCounts(f.members),{online:0,dnd:0,idle:0});
+  assert.equal(counterNames({Bots:3,Users:6150,Total:6153},null).Total,'🌐6153  👤6150  🤖3');
 });
 test('non-owner, wrong category and missing Manage Channels are refused ephemerally',async()=>{
   for(const mode of ['owner','category','permission']) {
