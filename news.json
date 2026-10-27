@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "43cc14fe05d533087aa019d873821146c53bc7d3",
+      "date": "2026-10-27T06:32:32.912Z",
+      "title": "Latest project updates",
+      "body": "• Restyle Discord counters and add live member presence row\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.40",
       "date": "2026-10-27T04:36:14Z",
       "title": "Launcher 1.0.40 is available",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T04:12:16.154Z",
       "title": "Latest project updates",
       "body": "• Read invite state after the bot snapshot arrives\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "32218c61d988df9faae09ef0b058b4af40248045",
-      "date": "2026-10-25T04:09:57.532Z",
-      "title": "Latest project updates",
-      "body": "• Restore bot claim counters and harden launcher startup recovery\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
