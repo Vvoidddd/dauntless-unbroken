@@ -231,18 +231,6 @@
                       "keep":  false
                   },
                   {
-                      "path":  "ue4ss/Mods/DamageMeter/Scripts/DamageLedger.lua",
-                      "sha256":  "424d17eb7e96edaa47c3551b90abfe0746c3ab81e1b93a1641a74ab240d1871d",
-                      "size":  2402,
-                      "keep":  false
-                  },
-                  {
-                      "path":  "ue4ss/Mods/DamageMeter/Scripts/main.lua",
-                      "sha256":  "eda980b5e44eecc3273b27bc4d900f4ed1fb02e006ce9de1e38bd379fd68b45b",
-                      "size":  8088,
-                      "keep":  false
-                  },
-                  {
                       "path":  "ue4ss/Mods/Keybinds/Scripts/main.lua",
                       "sha256":  "297dd6f7f560e1cebc15cd4509ad481495d9179f5758a8034be4c417a369803a",
                       "size":  4190,
@@ -262,21 +250,9 @@
                   },
                   {
                       "path":  "ue4ss/Mods/mods.txt",
-                      "sha256":  "3da05eef3c965add839bfc32d1abe6338487a798e0cbc8f14c05b94c985e6df4",
+                      "sha256":  "eede5bce404f3d4d0e37b2fab2ebe205617b620cb8647b0cfd64840f11ba477b",
                       "size":  164,
                       "keep":  true
-                  },
-                  {
-                      "path":  "ue4ss/Mods/PartMonitor/Scripts/main.lua",
-                      "sha256":  "cafb3071725b0fb3c3e92f0dc81233c54830f8297f84c2f4631fb83975d14858",
-                      "size":  13752,
-                      "keep":  false
-                  },
-                  {
-                      "path":  "ue4ss/Mods/PartMonitor/Scripts/PartStatus.lua",
-                      "sha256":  "935f813bf4035d40b4e456a0e9a68f9a2aa1804ce55a7ba8e33335dc4ed28a35",
-                      "size":  3188,
-                      "keep":  false
                   },
                   {
                       "path":  "ue4ss/Mods/shared/FrameTick/FrameTick.lua",
@@ -332,9 +308,15 @@
                    "ue4ss/Mods/ZFXStatus/zfx_logo.png",
                    "ue4ss/Mods/shared/FrameTick/hb_BehemothHealthBars.txt",
                    "ue4ss/Mods/shared/FrameTick/hb_BehemothTracker.txt",
-                   "ue4ss/Mods/shared/FrameTick/hb_ModMenu.txt"
+                   "ue4ss/Mods/shared/FrameTick/hb_ModMenu.txt",
+                   "ue4ss/Mods/DamageMeter/Scripts/main.lua",
+                   "ue4ss/Mods/DamageMeter/Scripts/DamageLedger.lua",
+                   "ue4ss/Mods/PartMonitor/Scripts/main.lua",
+                   "ue4ss/Mods/PartMonitor/Scripts/PartStatus.lua"
                ],
     "disable":  [
-                    "ZFXStatus"
+                    "ZFXStatus",
+                    "DamageMeter",
+                    "PartMonitor"
                 ]
 }

@@ -19,16 +19,22 @@ $remove = @(
   'ue4ss/Mods/ZFXStatus/zfx_logo.png',
   'ue4ss/Mods/shared/FrameTick/hb_BehemothHealthBars.txt',
   'ue4ss/Mods/shared/FrameTick/hb_BehemothTracker.txt',
-  'ue4ss/Mods/shared/FrameTick/hb_ModMenu.txt'
+  'ue4ss/Mods/shared/FrameTick/hb_ModMenu.txt',
+  'ue4ss/Mods/DamageMeter/Scripts/main.lua',
+  'ue4ss/Mods/DamageMeter/Scripts/DamageLedger.lua',
+  'ue4ss/Mods/PartMonitor/Scripts/main.lua',
+  'ue4ss/Mods/PartMonitor/Scripts/PartStatus.lua'
 )
 
 # Mods switched off in every player's kept mods.txt ("Name : 1" -> "Name : 0"; no other line is
 # touched), so a removed mod stays off even where its files could not be deleted.
-$disable = @('ZFXStatus')
+$disable = @('ZFXStatus', 'DamageMeter', 'PartMonitor')
 
 $files = Get-ChildItem -LiteralPath $root -Recurse -File | Where-Object { $skip -notcontains $_.Name } |
   Sort-Object FullName | ForEach-Object {
     $rel = $_.FullName.Substring($root.Length + 1).Replace('\', '/')
+    # Withdraw the two HUD mods while investigating native crashes; retain source for tests.
+    if ($remove -contains $rel) { return }
     [ordered]@{
       path   = $rel
       sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLower()

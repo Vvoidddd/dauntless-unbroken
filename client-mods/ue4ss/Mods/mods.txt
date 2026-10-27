@@ -1,8 +1,8 @@
 BehemothHealthBars : 1
 ModMenu : 1
 BehemothTracker : 1
-DamageMeter : 1
-PartMonitor : 1
+DamageMeter : 0
+PartMonitor : 0
 CraftStar : 1
 LockOn : 1
 

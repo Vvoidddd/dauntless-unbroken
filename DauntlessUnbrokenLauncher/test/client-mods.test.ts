@@ -9,6 +9,29 @@ import { disableModLines, insideRoot, installClientMods, safeRelative, safeUe4ss
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 
+test("release withdraws both HUD mods from fresh and previously enabled installations", async () => {
+  const manifest = JSON.parse(readFileSync(path.resolve(__dirname, "../../../client-mods/manifest.json"), "utf8"));
+  const withdrawn = ["DamageMeter", "PartMonitor"];
+  for (const name of withdrawn) {
+    assert.ok(manifest.disable.includes(name));
+    assert.ok(!manifest.files.some((f: { path: string }) => f.path.startsWith(`ue4ss/Mods/${name}/`)));
+    assert.ok(manifest.remove.includes(`ue4ss/Mods/${name}/Scripts/main.lua`));
+  }
+  const mods = "ue4ss/Mods/mods.txt";
+  const t = setup({ [mods]: "DamageMeter : 0\nPartMonitor : 0\nOther : 1\n" }, [mods], manifest.remove, manifest.disable);
+  try {
+    for (const previous of [false, true]) {
+      if (previous) {
+        t.put(mods, "DamageMeter : 1\nPartMonitor : 1\nOther : 1\n");
+        for (const file of manifest.remove) t.put(file, "old script");
+      }
+      await installClientMods(t.res, t.game);
+      assert.equal(readFileSync(t.at(mods), "utf8"), "DamageMeter : 0\nPartMonitor : 0\nOther : 1\n");
+      for (const file of manifest.remove) assert.equal(existsSync(t.at(file)), false);
+    }
+  } finally { rmSync(t.root, { recursive: true, force: true }); }
+});
+
 const reloadSettingsCases = [
   {
     before: "; preferences\r\n[General]\r\nEnableHotReloadSystem = 1 ; unsafe\r\nEnableAutoReloadingLuaMods = 1\r\nHotReloadKey = F6\r\nUseCache = 0\r\n[Other]\r\nEnableHotReloadSystem = 1\r\n",

@@ -21,15 +21,15 @@ const en = {
   mods_subtitle: "Extra in-game HUD features.",
 
   mods_title: "Client Mods",
-  mods_intro: "Hunt Damage, Behemoth Parts, health bars, a tracker and an in-game mod menu. The launcher installs and updates these Windows client mods with the game.",
+  mods_intro: "Health bars, a tracker and an in-game mod menu. Hunt Damage and Behemoth Parts are temporarily withdrawn while crashes are investigated. Update and fully restart the game to remove them.",
 
   mod_dm_by: "Made by Void",
   mod_dm_name: "Hunt Damage",
   mod_dm_text: "Your core damage, DPS, part damage, stagger damage and wound damage in a compact left-side panel with a rounded translucent background. Regular labels and coloured values stay aligned in separate columns.",
-  mod_dm_use: "Made by Void. Home → Hunt Damage controls visibility and the optional team breakdown. Totals cover observed damage since joining; distant or lost events may be missing.",
+  mod_dm_use: "Made by Void. Temporarily withdrawn during crash investigation; this launcher disables and removes its scripts before game start.",
   mod_pm_name: "Behemoth Parts",
   mod_pm_text: "Two nearby Behemoths get separate named sections with every part, a glowing image indicator and an HP bar. Wounds turn the remaining HP bar red; a broken part has a red indicator and an empty bar.",
-  mod_pm_use: "Made by Void. Home → Behemoth Parts toggles the full lists. Green means above half HP, orange means half or less, and gray means inactive or unavailable. Groups stay stable as Behemoths move and clear between rounds.",
+  mod_pm_use: "Made by Void. Temporarily withdrawn during crash investigation; this launcher disables and removes its scripts before game start.",
   mod_cst_name: "Uncrafted Weapons",
   mod_cst_text: "Weapons you have never crafted are marked with >> in the crafting list.",
   mod_cst_use: "Choose red, gold or purple in the in-game Mod Menu.",

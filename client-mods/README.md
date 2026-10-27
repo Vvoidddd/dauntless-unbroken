@@ -1,5 +1,10 @@
 # Client mods (UE4SS)
 
+Hunt Damage and Behemoth Parts are temporarily withdrawn pending native crash investigation.
+The launcher disables both in existing installations and removes their scripts before the next
+game start. Their source remains here for investigation and tests; they are excluded from the manifest.
+Fully exit and restart the game after updating. Older launchers and already-running games are unaffected.
+
 Optional client-side mods, installed automatically next to the game exe (`Archon/Binaries/Win64`):
 
 - **UE4SS 3.0.1** (`dwmapi.dll`, `ue4ss/UE4SS.dll`; MIT, see `ue4ss/LICENSE`): the Lua mod loader.

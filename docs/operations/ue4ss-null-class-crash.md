@@ -38,3 +38,18 @@ their launcher version and hardware/performance details remain unverified.
 
 Private evidence is retained under `C:/dr/nyxxie-crash-20261025`, outside the repository.
 Do not commit raw dumps, account credentials or full player diagnostics.
+
+## Withdrawal in launcher 1.0.40
+
+Nyxxie's full Escalation completed without a crash with the two HUD mods and the
+local diagnostic probe off. This supports containment, but does not prove which
+component caused the crash. A later report from Xaichan reads address `0xffffffff`
+and starts in DauntlessUnbroken rather than UE4SS; its text stack alone cannot
+establish the same cause. Menu use reportedly increases the frequency.
+
+The release manifest now disables DamageMeter and PartMonitor in kept mods.txt
+and removes their four scripts from existing game installations. Both default
+off and their source is excluded from the installation manifest, so a fresh
+installation or in-game toggle cannot restore them. Source remains for tests.
+This applies only after updating and fully restarting the game; running clients
+cannot be changed remotely. The guarded candidate is not claimed crash-free.
