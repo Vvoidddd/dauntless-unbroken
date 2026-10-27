@@ -4,7 +4,9 @@
 #include <unordered_map>
 #include <vector>
 
+#ifndef NO_PLATINUM_PRICE_TEST
 #include "SDK.hpp"
+#endif
 
 // Offers with no Platinum price (the Middleman's weekly Aetherdust cells) reach the 1.4.4 client
 // with PlatPrice -1, and three widgets still show a Platinum option for them: "-1" on the cell in
@@ -19,30 +21,39 @@ struct FSeen {
     SDK::UObject* Object;
     int32_t Index;
     EKind Kind;
+    SDK::FName Name;
 };
 
-inline std::unordered_map<SDK::UClass*, EKind> Kinds;
+struct FCachedKind { int32_t Index; SDK::FName Name; EKind Kind; };
+inline std::unordered_map<SDK::UClass*, FCachedKind> Kinds;
+inline std::unordered_map<SDK::UClass*, std::unordered_map<std::string, int32_t>> Offsets;
 inline std::vector<FSeen> Seen;
 inline std::chrono::steady_clock::time_point NextCheck{};
 
 inline EKind KindOf(SDK::UClass* Class) {
+    if (!Class) return EKind::None;
     auto It = Kinds.find(Class);
-    if (It != Kinds.end())
-        return It->second;
+    if (It != Kinds.end()) {
+        if (It->second.Index == Class->Index && It->second.Name == Class->Name)
+            return It->second.Kind;
+        // A Blueprint class can be collected and its address reused after travel.
+        // Never apply the previous class's member offsets to the replacement.
+        Offsets.erase(Class);
+        Kinds.erase(It);
+    }
 
     const std::string Name = Class->GetName();
     const EKind Kind = Name == "w_popup_purchase_confirm_C" ? EKind::Popup
         : Name == "w_catalog_GridCellItem_C" ? EKind::GridItem
         : Name == "w_CellItem_tooltip_bpw_C" ? EKind::Tooltip
         : EKind::None;
-    Kinds.emplace(Class, Kind);
+    Kinds.emplace(Class, FCachedKind{Class->Index, Class->Name, Kind});
     return Kind;
 }
 
 // A blueprint variable's offset by name (cached per class), or -1.
-inline std::unordered_map<SDK::UClass*, std::unordered_map<std::string, int32_t>> Offsets;
-
 inline int32_t OffsetOf(SDK::UClass* Class, const char* Name) {
+    if (KindOf(Class) == EKind::None) return -1;
     auto& ForClass = Offsets[Class];
     auto It = ForClass.find(Name);
     if (It != ForClass.end())
@@ -158,16 +169,21 @@ inline void Apply(const FSeen& Entry) {
 
 // Call after every client ProcessEvent.
 inline void OnProcessEvent(SDK::UObject* Object) {
+    // Apply dispatches reflected widget events back through this hook. Do not
+    // let those nested calls append/erase Seen while the outer call iterates it.
+    static thread_local bool Updating = false;
+    if (Updating) return;
+    struct Guard { bool& Value; Guard(bool& V) : Value(V) { Value = true; } ~Guard() { Value = false; } } Guard(Updating);
     if (Object && !Object->IsDefaultObject()) {
         const EKind Kind = KindOf(Object->Class);
         if (Kind != EKind::None) {
             bool Known = false;
             for (const FSeen& Entry : Seen)
-                Known = Known || Entry.Object == Object;
+                Known = Known || (Entry.Object == Object && Entry.Index == Object->Index && Entry.Name == Object->Name);
             if (!Known) {
                 if (Seen.size() >= 128)
                     Seen.erase(Seen.begin());
-                Seen.push_back({ Object, Object->Index, Kind });
+                Seen.push_back({ Object, Object->Index, Kind, Object->Name });
             }
         }
     }
@@ -178,7 +194,10 @@ inline void OnProcessEvent(SDK::UObject* Object) {
     NextCheck = Now + std::chrono::milliseconds(200);
 
     // Drop widgets whose slot no longer holds them (destroyed), then re-apply to the rest.
-    std::erase_if(Seen, [](const FSeen& Entry) { return SDK::UObject::GObjects->GetByIndex(Entry.Index) != Entry.Object; });
+    std::erase_if(Seen, [](const FSeen& Entry) {
+        return SDK::UObject::GObjects->GetByIndex(Entry.Index) != Entry.Object
+            || Entry.Object->Name != Entry.Name || KindOf(Entry.Object->Class) != Entry.Kind;
+    });
     for (const FSeen& Entry : Seen)
         Apply(Entry);
 }

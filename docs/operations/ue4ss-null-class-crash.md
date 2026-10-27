@@ -63,3 +63,32 @@ context, excluding Ramsgate, training grounds, loading and unavailable state.
 Mock regressions exercise those transitions, movement and transparent backgrounds.
 This candidate remains withdrawn and needs native crash/performance and visual
 testing before any re-enable; these controls are not part of the 1.0.40 withdrawal.
+
+## Native shop investigation (October 27)
+
+The older October 23 report is a game-thread hang after 5,039 seconds at
+`NoPlatinumPrice::KindOf` / `OnProcessEvent`. Disassembly maps its recorded RVA
+`b300` to the unordered-map bucket traversal, not `Class->GetName()`. There is
+no minidump for that hang, so map corruption or an off-thread writer is not proven.
+
+Code inspection establishes an independent re-entry defect: `Apply` dispatches
+widget `ProcessEvent` calls, which return to `OnProcessEvent` and can append/erase
+`Seen` before the throttle check while the outer loop holds vector iterators.
+The candidate adds a scoped thread-local re-entry guard, rejects null classes,
+and invalidates cached kinds/property offsets when the class index/name changes.
+Tracked widgets also retain their name to reject address reuse with a new name.
+These identity checks are not serial-number-aware weak references and do not
+establish general safety for every stale native pointer.
+
+`tests/no-platinum-reentry.cpp` runs the actual helper with a minimal SDK stand-in:
+nested widget events cannot mutate the active list, the guard releases afterward,
+destroyed/replaced tracked widgets are removed, and class-name reuse clears cached
+offsets. The Windows Release x64 DLL also builds successfully. This candidate is
+not installed or released; native menu/travel testing remains necessary.
+
+The October 20 local `0xffffffff` report resolves in UE4SS property lookup, and
+the October 12 report resolves in the old native `VendorTabs::Show`. Thus the
+short error address by itself does not identify a shared crash cause. Neither
+local dump can substitute for Xaichan's missing crash dump. The exact Lua script
+behind Nyxxie's name-lookup crashes remains unknown because its compact dump
+does not contain the relevant Lua heap/object memory.
