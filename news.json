@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "7aabcd362ef89d6a4bf04be1388b92a4cb7003b6",
+      "date": "2026-10-28T04:49:50.187Z",
+      "title": "Latest project updates",
+      "body": "• Keep Steam Deck keyring selection consistent across launcher sessions\n• Release launcher 1.0.41 with Steam Deck account-storage improvements\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "59c9ab4f1c9c71af61adc2021d420e95c1d71425",
       "date": "2026-10-28T04:32:03.871Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T05:42:17.368Z",
       "title": "Latest project updates",
       "body": "• Preserve city identity when restoring party travel\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "00edeecead966a857a6f68e58855b9303d0006b9",
-      "date": "2026-10-25T05:30:04.420Z",
-      "title": "Latest project updates",
-      "body": "• Pack Ramsgate arrivals and retire empty cities safely\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
