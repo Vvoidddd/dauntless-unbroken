@@ -121,7 +121,7 @@ if (Test-Path -LiteralPath $P.News) { Copy-Item -LiteralPath $P.News -Destinatio
 # 3. Retention.
 # Do not discard the last complete recovery point after an incomplete backup.
 if ($skipped.Count) {
-    Log 'backup incomplete: previous backups retained'
+    Log "backup incomplete: previous backups retained; unreadable files: $($skipped -join ', ')"
     exit 1
 }
 if (-not (Test-Path -LiteralPath (Join-Path $dest 'dauntless-unbroken.db'))) {
