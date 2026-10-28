@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "launcher-v1.0.42",
+      "date": "2026-10-28T22:22:20Z",
+      "title": "Launcher 1.0.42 is available",
+      "body": "Dauntless Unbroken Launcher 1.0.42 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.42-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.42-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.42-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.42-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.42-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.42-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
+    },
+    {
       "id": "2bd67f812f2e40b3af4cb1bc0adbac10856be535",
       "date": "2026-10-28T22:14:49.026Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T19:45:21Z",
       "title": "Launcher 1.0.34 is available",
       "body": "## Launcher 1.0.34 changes\n\n- Fixed native Linux launcher startup when Steam's overlay crashes Electron during Gaming Mode startup. The launcher isolates the overlay before Electron loads and restores the original environment for the game.\n- Fixed overlapping Linux update installations. Updates share the existing busy guard; AppImage replacement uses a unique temporary file and keeps the original intact if staging fails.\n- Fixed Linux portable relaunch and account-link protocol registration to use the launcher bootstrap.\n- Added Steam Deck control setup in Settings → Launcher. Add the native launcher as a non-Steam game, leave forced compatibility off for the launcher, and select a Gamepad layout for that shortcut.\n\nWindows and Linux automated tests and packaged Linux startup checks passed. Physical Steam Deck controller input still needs player confirmation.\n\n\n---\n\nDauntless Unbroken Launcher 1.0.34 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.34-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.34-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.34-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.34-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.34-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.34-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
-    },
-    {
-      "id": "f6b9e81384211a01d6302d92c2b2ebad6392058d",
-      "date": "2026-10-25T19:35:46.799Z",
-      "title": "Latest project updates",
-      "body": "• Refresh generated Deck guide and normalize bootstrap whitespace\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
