@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "2bd67f812f2e40b3af4cb1bc0adbac10856be535",
+      "date": "2026-10-28T22:14:49.026Z",
+      "title": "Latest project updates",
+      "body": "• Apply native DXGI override to direct Wine game launches\n• Correct Trials crown, dye and lantern inventory kinds\n• Release launcher 1.0.42 with shared Wine proxy startup\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "launcher-v1.0.41",
       "date": "2026-10-28T05:03:31Z",
       "title": "Launcher 1.0.41 is available",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T19:35:46.799Z",
       "title": "Latest project updates",
       "body": "• Refresh generated Deck guide and normalize bootstrap whitespace\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "d7eea761439cad42c2041128cdb025b72a45d46e",
-      "date": "2026-10-25T19:25:02.805Z",
-      "title": "Latest project updates",
-      "body": "• Release launcher 1.0.34 with Steam Deck startup and update fixes\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
