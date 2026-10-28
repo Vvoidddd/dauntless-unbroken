@@ -26,7 +26,8 @@ function RunCopy([string]$exe,[string[]]$arguments,[int]$timeoutSeconds){
 }
 try {
     $knownHosts = Join-Path $Root 'data/tunnels/realm-known-hosts'
-    $result = RunCopy (Get-Command ssh.exe).Source @('-n','-o','BatchMode=yes','-o','IdentitiesOnly=yes','-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3','-o','StrictHostKeyChecking=yes','-o',"UserKnownHostsFile=$knownHosts",'-o','ConnectTimeout=15','-i',$IdentityFile,"Administrator@$SourceHost",'snapshot-info') 30
+    # The source hashes the full snapshot before replying; large compressed DBs need more than 30s.
+    $result = RunCopy (Get-Command ssh.exe).Source @('-n','-o','BatchMode=yes','-o','IdentitiesOnly=yes','-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3','-o','StrictHostKeyChecking=yes','-o',"UserKnownHostsFile=$knownHosts",'-o','ConnectTimeout=15','-i',$IdentityFile,"Administrator@$SourceHost",'snapshot-info') 180
     $info = ($result -join "`n") | ConvertFrom-Json
     $expectedPrefix=$SourceRoot.Replace('\','/').TrimEnd('/')+'/backups/'
     if ($info.hash -notmatch '^[A-Fa-f0-9]{64}$' -or !$info.path.StartsWith($expectedPrefix,[StringComparison]::OrdinalIgnoreCase) -or $info.path -notmatch '/backups/\d{4}-\d{2}-\d{2}_\d{6}/dauntless-unbroken\.db$') { throw 'Invalid source backup metadata' }
