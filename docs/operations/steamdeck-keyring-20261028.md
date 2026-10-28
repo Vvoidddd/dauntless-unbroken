@@ -22,7 +22,11 @@ storage; no plaintext fallback is enabled.
 
 The registration and saved-account pages now offer an in-launcher multiline paste
 alternative to the native file picker. It uses the existing bounded backup parser,
-server fingerprint checks and account verification. Controller polling drops to
+server fingerprint checks and account verification. An explicit Import from
+clipboard action reads text in the main process and sends it directly to the same
+validator, returning only the action result to the renderer. It avoids the custom
+controller keyboard's read-only draft field and does not enable browser clipboard
+permissions. Controller polling drops to
 the inactive cadence when the launcher loses focus. This is not proof that the
 reported game FPS problem is fixed.
 

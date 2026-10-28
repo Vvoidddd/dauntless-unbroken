@@ -307,6 +307,7 @@ export const IPC = {
   switchAccount: "dr:switch-account",
   removeSavedAccount: "dr:remove-saved-account",
   importKeyFile: "dr:import-key-file",
+  importKeyClipboard: "dr:import-key-clipboard",
   saveKeyBackup: "dr:save-key-backup",
   locateKeyBackup: "dr:locate-key-backup",
   dismissBackupOffer: "dr:dismiss-backup-offer",

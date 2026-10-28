@@ -4,7 +4,7 @@
 // (every request is made here, in the main process, and only to the host from the invite). It can
 // only call the small typed API in preload.ts, and every argument is checked again here.
 
-import { app, autoUpdater, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, protocol, safeStorage, screen, session, shell, type IpcMainInvokeEvent } from "electron";
+import { app, autoUpdater, BrowserWindow, clipboard, dialog, ipcMain, Menu, nativeTheme, protocol, safeStorage, screen, session, shell, type IpcMainInvokeEvent } from "electron";
 import path from "node:path";
 import {diagnosticBundle} from "./main/diagnostics";
 import { freemem } from "node:os";
@@ -483,6 +483,8 @@ function registerIpc(c: Controller): void {
     return s === null ? { ok: false, error: { code: "key_invalid" } } : c.useExistingKey(s);
   });
   handle(IPC.importKeyFile, () => c.importKeyFile());
+  // Explicit import action: parse/verify in the main process; never expose clipboard keys to the renderer.
+  handle(IPC.importKeyClipboard, () => c.useExistingKey(clipboard.readText()));
   handle(IPC.saveKeyBackup, () => c.saveKeyBackup());
   handle(IPC.locateKeyBackup, () => c.locateKeyBackup());
   handle(IPC.dismissBackupOffer, () => c.dismissBackupOffer());

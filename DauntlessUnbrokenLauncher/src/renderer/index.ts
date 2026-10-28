@@ -2167,7 +2167,7 @@ function renderModal(): void {
     case "paste_backup": {
       title = "Import account backup";
       const input=h('textarea',{class:'input backup-paste',rows:'5',maxlength:'8192',autocomplete:'off',spellcheck:'false','aria-label':'Account key backup','data-fk':'paste-backup-text'});
-      text=[h('p',{class:'modal-text'},t('backup_paste_help')),input];
+      text=[h('p',{class:'modal-text'},t('backup_paste_help')+' Copy the text inside your backup file, then choose Import from clipboard.'),button('Import from clipboard',()=>{void api.importKeyClipboard().then(async result=>{await report(result);if(result.ok)closeModal();});},{icon:'key',fk:'backup-clipboard-import'}),input];
       confirmLabel=t('reg_key_use');
       onConfirm=async()=>{const value=input.value;input.value='';const result=await api.useExistingKey(value);await report(result);return null;};
       break;

@@ -38,6 +38,7 @@ const api = {
   register: (username: string): Promise<RegisterOutcome> => ipcRenderer.invoke(IPC.register, String(username)),
   useExistingKey: (text: string): Promise<ActionResult> => ipcRenderer.invoke(IPC.useExistingKey, String(text)),
   importKeyFile: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.importKeyFile),
+  importKeyClipboard: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.importKeyClipboard),
   switchAccount: (id: string): Promise<ActionResult> => ipcRenderer.invoke(IPC.switchAccount, String(id)),
   removeSavedAccount: (id: string): Promise<ActionResult> => ipcRenderer.invoke(IPC.removeSavedAccount, String(id)),
   saveKeyBackup: (): Promise<ActionResult> => ipcRenderer.invoke(IPC.saveKeyBackup),
