@@ -1,9 +1,26 @@
 import { execFile } from "node:child_process";
-import { accessSync, constants as fsConstants, existsSync, statSync,readFileSync } from "node:fs";
+import { accessSync, constants as fsConstants, existsSync, statSync,readFileSync,mkdirSync,writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
 export type LinuxDependencyKind = "runtime" | "secure-storage";
+const SECURE_STORES: Record<string,string> = {gnome_libsecret:'gnome-libsecret',kwallet:'kwallet',kwallet5:'kwallet5',kwallet6:'kwallet6'};
+export function linuxStorageSwitch(backend: string): string | null { return Object.hasOwn(SECURE_STORES,backend) ? SECURE_STORES[backend] : null; }
+export function readLinuxStoragePreference(file: string): string | null {
+  try { const saved=JSON.parse(readFileSync(file,'utf8'));return saved.version===1 && typeof saved.backend==='string' ? linuxStorageSwitch(saved.backend) : null; } catch { return null; }
+}
+export function rememberLinuxStoragePreference(file: string, backend: string): void {
+  if(!linuxStorageSwitch(backend))return;
+  mkdirSync(path.dirname(file),{recursive:true});
+  writeFileSync(file,JSON.stringify({version:1,backend}),{mode:0o600});
+}
+
+// Gaming Mode identifies as Gamescope rather than KDE. Use the installed wallet
+// on SteamOS in both modes so the same encrypted account keys remain readable.
+export function steamOsPasswordStore(osRelease: string, wallet6: boolean, wallet5: boolean): "kwallet6" | "kwallet5" | null {
+  if (!/^ID=["']?steamos["']?\s*$/mi.test(osRelease)) return null;
+  return wallet6 ? "kwallet6" : wallet5 ? "kwallet5" : null;
+}
 
 export interface LinuxDependencyInstallPlan {
   name: string;
@@ -118,7 +135,7 @@ export function runLinuxDependencyInstall(
 export function repairLinuxDesktopEnvironment(
   env: NodeJS.ProcessEnv = process.env,
   uid: number | null = typeof process.getuid === "function" ? process.getuid() : null,
-): { forceGnomeLibsecret: boolean } {
+): { forceGnomeLibsecret: boolean; passwordStore?: "kwallet6" | "kwallet5" } {
   if (process.platform !== "linux") return { forceGnomeLibsecret: false };
   const runtimeDir = env.XDG_RUNTIME_DIR || (uid === null ? "" : `/run/user/${uid}`);
   if (!env.XDG_RUNTIME_DIR && runtimeDir && existsSync(runtimeDir)) env.XDG_RUNTIME_DIR = runtimeDir;
@@ -129,5 +146,10 @@ export function repairLinuxDesktopEnvironment(
   const desktop = `${env.XDG_CURRENT_DESKTOP ?? ""} ${env.DESKTOP_SESSION ?? ""}`.toLowerCase();
   const gnomeFamily = /(gnome|ubuntu|cinnamon|mate|xfce)/.test(desktop);
   const keyringSocket = runtimeDir ? path.join(runtimeDir, "keyring", "control") : "";
-  return { forceGnomeLibsecret: gnomeFamily || (keyringSocket !== "" && existsSync(keyringSocket)) };
+  let osRelease = "";
+  try { osRelease = readFileSync('/etc/os-release','utf8'); } catch { /* Other Linux desktops keep automatic selection. */ }
+  const passwordStore = steamOsPasswordStore(osRelease,
+    ['/usr/bin/kwalletd6','/usr/lib/kwalletd6','/usr/libexec/kwalletd6'].some(existsSync),
+    ['/usr/bin/kwalletd5','/usr/lib/kwalletd5','/usr/libexec/kwalletd5'].some(existsSync));
+  return { forceGnomeLibsecret: gnomeFamily || (keyringSocket !== "" && existsSync(keyringSocket)), ...(passwordStore ? {passwordStore} : {}) };
 }

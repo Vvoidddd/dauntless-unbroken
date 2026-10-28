@@ -409,7 +409,7 @@ const en = {
   err_key_invalid: "That doesn't look like an account key.",
   err_account_banned: "You are banned from this server. Contact support to appeal.",
   err_key_rejected: "The server did not accept your saved account key. Did you replace it with a Discord registration code? Restore your original launcher key below. Discord linking does not change it. If that still fails, report this exact message to support.",
-  err_key_storage_unavailable: "The operating system couldn't store your key securely. Try again, or restart the PC.",
+  err_key_storage_unavailable: "Your system's secure key storage is unavailable or locked. On Steam Deck, open the AppImage in Desktop Mode and unlock KDE Wallet, then retry. Keep using your existing account key.",
   err_no_content_server: "The host hasn't switched on game downloads yet.",
   err_manifest_mismatch: "The server offers different game files than this launcher expects, so nothing was downloaded. Tell the host.",
   err_manifest_unavailable: "The list of game files isn't available. Try again later.",

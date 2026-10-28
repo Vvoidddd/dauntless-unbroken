@@ -26,6 +26,7 @@ type Modal =
   | { kind: "cert_changed"; link: string; name: string; host: string; oldFp: string | null; newFp: string }
   | { kind: "logout" }
   | { kind: "add_account" }
+  | { kind: "paste_backup" }
   | { kind: "remove_account"; id: string; username: string }
   | { kind: "leave" }
   | { kind: "remove_server"; id: string; name: string }
@@ -600,6 +601,7 @@ function playRegister(snap: Snapshot): HTMLElement[] {
     card("card-accent",
       h("h3", {class:"card-title"}, t("reg_have_key")),
       button(t("reg_key_file"), () => void api.importKeyFile(), {cls:"btn-primary",icon:"folder",fk:"key-file",disabled:snap.busy}),
+      linkButton(t('backup_paste_toggle'),()=>showModal({kind:'paste_backup'}),{fk:'register-backup-paste',disabled:snap.busy}),
       h("p", {class:"small-print"}, t("reg_key_note")),
       linkButton(state.keyFormOpen ? t("reg_have_key_hide") : t("reg_key_label"), () => {
         state.keyFormOpen = !state.keyFormOpen;
@@ -1564,6 +1566,7 @@ function savedAccountsCard(snap: Snapshot): HTMLElement | null {
     )),
     h("div", {class: "card-row"},
       button("Import account backup…", () => void api.importKeyFile(), {icon: "folder", fk: "account-import", disabled: locked}),
+      linkButton(t('backup_paste_toggle'),()=>showModal({kind:'paste_backup'}),{fk:'account-backup-paste',disabled:locked}),
       button("Add account key…", () => showModal({kind: "add_account"}), {icon: "key", fk: "account-add", disabled: locked}))
   );
 }
@@ -1702,7 +1705,7 @@ function renderSettings(): void {
       "settings-section",
       h("h2", { class: "card-title" }, t("set_troubleshooting")),
       snap.app.platform === 'linux' ? settingsRow('Steam Deck controls',
-        'Add the Linux launcher to Steam as a Non-Steam game and open that shortcut in Gaming Mode. Choose a Gamepad layout in Steam controller settings. Leave forced compatibility off for the launcher; Unbroken starts Proton for the game.') : null,
+        'Open the updated AppImage in Desktop Mode first and unlock KDE Wallet. Add that same AppImage to Steam as a Non-Steam game, replacing any shortcut to an older copy. Choose a Gamepad layout and leave forced compatibility off for the launcher; Unbroken starts Proton for the game. If the file picker does not accept input, use Paste account backup instead.') : null,
       snap.revived?.supported?settingsRow('Other launchers',
         snap.revived.detected?'Dauntless Revived files were found. Running both launchers can cause a port conflict.':snap.revived.message||'Check for an old Revived installation.',
         button('Check for Revived',()=>void api.checkRevived(),{fk:'revived-settings-check',disabled:snap.busy||snap.revived.busy}),
@@ -2161,6 +2164,14 @@ function renderModal(): void {
         return null;
       };
       break;
+    case "paste_backup": {
+      title = "Import account backup";
+      const input=h('textarea',{class:'input backup-paste',rows:'5',maxlength:'8192',autocomplete:'off',spellcheck:'false','aria-label':'Account key backup','data-fk':'paste-backup-text'});
+      text=[h('p',{class:'modal-text'},t('backup_paste_help')),input];
+      confirmLabel=t('reg_key_use');
+      onConfirm=async()=>{const value=input.value;input.value='';const result=await api.useExistingKey(value);await report(result);return null;};
+      break;
+    }
     case "add_account": {
       title = "Add an existing account";
       const input = h("input", {class: "input", id: "saved-account-key", type: "password", autocomplete: "off", spellcheck: "false", maxlength: 8192, "data-fk": "saved-account-key"});
@@ -2245,7 +2256,7 @@ function renderModal(): void {
   root.replaceChildren(dialog);
   root.hidden = false;
   // Destructive or risky choices never get the default focus.
-  (m.kind === "logout" || m.kind === "cert_changed" || m.kind === "remove_server" || m.kind === "remove_account" ? cancel : m.kind === "add_account" ? dialog.querySelector<HTMLInputElement>("input")! : confirm).focus();
+  (m.kind === "logout" || m.kind === "cert_changed" || m.kind === "remove_server" || m.kind === "remove_account" ? cancel : m.kind === "add_account" ? dialog.querySelector<HTMLInputElement>("input")! : m.kind==='paste_backup' ? dialog.querySelector<HTMLTextAreaElement>('textarea')! : confirm).focus();
 }
 
 // The server switcher closes on a click anywhere else, and on Escape.

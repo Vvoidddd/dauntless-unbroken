@@ -23,6 +23,7 @@ import { findRunningClients,launcherRelaunchOptions } from "./main/launch";
 import { LinuxRuntimeMissingError, prepareLinuxGameLaunch } from "./main/linux-runtime";
 import {
   linuxDependencyInstallPlan,
+  linuxStorageSwitch, readLinuxStoragePreference, rememberLinuxStoragePreference,
   repairLinuxDesktopEnvironment,
   runLinuxDependencyInstall,
 } from "./main/linux-dependencies";
@@ -47,12 +48,15 @@ if (started) app.quit();
 // Repair a stripped desktop environment (for example when launched by a helper) before Chromium
 // chooses its Linux password-store backend. GNOME-family desktops use Secret Service/libsecret.
 const linuxDesktop = repairLinuxDesktopEnvironment();
+const storagePreferenceFile = process.platform === 'linux' ? path.join(app.getPath('userData'),'linux-keyring.json') : '';
+let rememberedPasswordStore = storagePreferenceFile ? readLinuxStoragePreference(storagePreferenceFile) : null;
+const passwordStore = storagePreferenceFile ? rememberedPasswordStore ?? (linuxDesktop.forceGnomeLibsecret ? 'gnome-libsecret' : linuxDesktop.passwordStore) : undefined;
 if (
   process.platform === "linux" &&
-  linuxDesktop.forceGnomeLibsecret &&
+  passwordStore &&
   !process.argv.some((arg) => arg.startsWith("--password-store="))
 ) {
-  app.commandLine.appendSwitch("password-store", "gnome-libsecret");
+  app.commandLine.appendSwitch("password-store", passwordStore);
 }
 
 // Every renderer runs in the Chromium sandbox, whatever a window's own options say.
@@ -129,7 +133,7 @@ async function startLocalOfflineStack(onPhase: (phase: "starting-metagame" | "st
 }
 
 async function ensureLinuxSecureStorageDependency(): Promise<boolean> {
-  if (process.platform !== "linux" || safeStorage.isEncryptionAvailable()) return false;
+  if (process.platform !== "linux" || secureStorageReady()) return false;
   const backend = safeStorage.getSelectedStorageBackend();
   log.warn(`secure storage unavailable (backend ${backend})`);
   if (
@@ -544,6 +548,9 @@ function registerIpc(c: Controller): void {
 
 // ------------------------------------------------------------------ platform for the controller
 
+function secureStorageReady(): boolean {
+  return safeStorage.isEncryptionAvailable() && (process.platform !== 'linux' || linuxStorageSwitch(safeStorage.getSelectedStorageBackend()) !== null);
+}
 function makePlatform(): Platform {
   const send = (channel: string, payload: Snapshot | TaskProgress | OfflineStatus) => {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
@@ -554,7 +561,7 @@ function makePlatform(): Platform {
   const relayPort = relayPortOverride(process.env.DAUNTLESS_UNBROKEN_RELAY_PORT);
   if (relayPort !== undefined) log.warn(`relay port overridden to ${relayPort}`);
   const encryptor: Encryptor = {
-    isAvailable: () => safeStorage.isEncryptionAvailable(),
+    isAvailable: secureStorageReady,
     encrypt: plain => safeStorage.encryptString(plain),
     decrypt: data => safeStorage.decryptString(data),
   };
@@ -635,6 +642,10 @@ function makePlatform(): Platform {
       await shell.openPath(dir);
     },
     emitSnapshot: (s) => {
+      if(storagePreferenceFile && s.account.hasKey && secureStorageReady()) {
+        const backend=safeStorage.getSelectedStorageBackend(),selected=linuxStorageSwitch(backend);
+        if(selected!==rememberedPasswordStore)try {rememberLinuxStoragePreference(storagePreferenceFile,backend);rememberedPasswordStore=selected;}catch{log.warn('Secure storage backend preference could not be saved');}
+      }
       send(IPC.snapshot, withRevived(s));
       discordPresence.update(discordActivity(s, controller?.offlineStatus() ?? { phase: "stopped" }, presenceStarted));
     },
@@ -703,7 +714,7 @@ if (!started) {
       localStack = makeLauncherLocalStack();
       if (process.platform === "linux") {
         log.info(
-          `secure storage backend ${safeStorage.getSelectedStorageBackend()}, encryption ${safeStorage.isEncryptionAvailable() ? "available" : "unavailable"}`,
+          `secure storage backend ${safeStorage.getSelectedStorageBackend()}, encryption ${secureStorageReady() ? "available" : "unavailable"}`,
         );
       }
       if (GAME_MANIFEST) log.info(`game manifest ${GAME_MANIFEST.files.length} files, fingerprint ${GAME_MANIFEST_FINGERPRINT}`);

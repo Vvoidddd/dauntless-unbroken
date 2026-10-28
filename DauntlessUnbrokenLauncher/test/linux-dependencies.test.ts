@@ -3,7 +3,31 @@ import assert from "node:assert/strict";
 import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { linuxDependencyInstallPlan } from "../src/main/linux-dependencies";
+import { linuxDependencyInstallPlan, steamOsPasswordStore,linuxStorageSwitch,readLinuxStoragePreference,rememberLinuxStoragePreference } from "../src/main/linux-dependencies";
+
+test('Linux keeps its working desktop backend across sessions and never selects basic storage',()=>{
+  const root=mkdtempSync(path.join(tmpdir(),'unbroken-keyring-')),file=path.join(root,'linux-keyring.json');
+  try {
+    assert.equal(readLinuxStoragePreference(file),null);
+    for(const backend of ['gnome_libsecret','kwallet5','kwallet6']){
+      rememberLinuxStoragePreference(file,backend);
+      assert.equal(readLinuxStoragePreference(file),linuxStorageSwitch(backend));
+    }
+    for(const backend of ['basic_text','basic','unknown','__proto__']){
+      assert.equal(linuxStorageSwitch(backend),null);
+      writeFileSync(file,JSON.stringify({version:1,backend}));assert.equal(readLinuxStoragePreference(file),null);
+    }
+    writeFileSync(file,'broken JSON');assert.equal(readLinuxStoragePreference(file),null);
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+
+test('SteamOS chooses the installed KDE wallet consistently across desktop and Gamescope sessions',()=>{
+  assert.equal(steamOsPasswordStore('ID=steamos\n',true,true),'kwallet6');
+  assert.equal(steamOsPasswordStore('ID="steamos"\n',false,true),'kwallet5');
+  assert.equal(steamOsPasswordStore('ID=steamos\n',false,false),null);
+  assert.equal(steamOsPasswordStore('ID=ubuntu\n',true,true),null);
+  assert.equal(steamOsPasswordStore('ID=arch\nID_LIKE=steamos\n',true,true),null);
+});
 
 function executable(file: string): string {
   mkdirSync(path.dirname(file), { recursive: true });

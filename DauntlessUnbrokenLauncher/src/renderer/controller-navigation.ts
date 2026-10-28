@@ -114,7 +114,7 @@ export function installControllerNavigation(){
   }
   for(const index of inputs.keys())if(!connected.some(p=>p.index===index))inputs.delete(index);
   if(!connected.length)pointer();
-  timer=window.setTimeout(poll,connected.length&&document.visibilityState==='visible'?16:250);
+  timer=window.setTimeout(poll,connected.length&&document.visibilityState==='visible'&&document.hasFocus()?16:250);
  }
  document.addEventListener('pointermove',pointer);document.addEventListener('pointerdown',pointer);
  poll();
