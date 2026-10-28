@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { accessSync, constants as fsConstants, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { LaunchRuntime } from "./launch";
+import { gameDllOverrides, type LaunchRuntime } from "./launch";
 import { linuxDependencyInstallPlan, runLinuxDependencyInstall } from "./linux-dependencies";
 import { describeError, log } from "./log";
 
@@ -128,16 +128,6 @@ function steamRootFor(proton: string): string | null {
   return null;
 }
 
-function dllOverrides(existing: string | undefined): string {
-  const parts = (existing ?? "")
-    .split(";")
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .filter((part) => !/^dxgi=/i.test(part));
-  parts.push("dxgi=n,b");
-  return parts.join(";");
-}
-
 function withXwaylandAuthority(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   if (env.XAUTHORITY || env.XDG_SESSION_TYPE?.toLowerCase() !== "wayland" || !env.XDG_RUNTIME_DIR) return env;
 
@@ -189,7 +179,7 @@ export function detectLinuxRuntime(
         ...(steamRoot ? { STEAM_COMPAT_CLIENT_INSTALL_PATH: steamRoot } : {}),
         STEAM_COMPAT_APP_ID: "0",
         PROTON_LOG: "0",
-        WINEDLLOVERRIDES: dllOverrides(runtimeEnv.WINEDLLOVERRIDES),
+        WINEDLLOVERRIDES: gameDllOverrides(runtimeEnv.WINEDLLOVERRIDES),
       },
     };
   }
@@ -212,7 +202,7 @@ export function detectLinuxRuntime(
       ...runtimeEnv,
       WINEPREFIX: prefixDir,
       WINEDEBUG: runtimeEnv.WINEDEBUG ?? "-all",
-      WINEDLLOVERRIDES: dllOverrides(runtimeEnv.WINEDLLOVERRIDES),
+      WINEDLLOVERRIDES: gameDllOverrides(runtimeEnv.WINEDLLOVERRIDES),
     },
   };
 }

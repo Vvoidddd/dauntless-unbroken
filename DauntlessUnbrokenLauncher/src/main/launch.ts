@@ -71,6 +71,19 @@ export interface LaunchRuntime {
   env: NodeJS.ProcessEnv;
 }
 
+// Also needed when the Windows launcher itself runs under Wine/Proton.
+// Native Windows ignores this variable. Preserve overrides for other DLLs.
+export function gameDllOverrides(existing: string | undefined): string {
+  const parts = (existing ?? "").split(";").map(part => part.trim()).filter(Boolean).flatMap(part => {
+    const equal = part.indexOf("=");
+    if (equal < 0) return [part];
+    const names = part.slice(0, equal).split(",").map(name => name.trim())
+      .filter(name => !/^\*?dxgi(?:\.dll)?$/i.test(name));
+    return names.length ? [`${names.join(",")}${part.slice(equal)}`] : [];
+  });
+  return [...parts, "dxgi=n,b"].join(";");
+}
+
 export function launcherRelaunchOptions(platform:NodeJS.Platform=process.platform,appImage=process.env.APPIMAGE,args=process.argv.slice(1),executable=process.execPath):{args:string[];execPath?:string}{
   const execPath=platform==='linux' ? appImage&&path.posix.isAbsolute(appImage)?appImage
     :path.posix.isAbsolute(executable)&&executable.endsWith('/DauntlessUnbrokenLauncher.bin')?executable.slice(0,-4):undefined :undefined;
@@ -102,13 +115,15 @@ export class GameProcess {
     const exe = path.join(win64Dir, EXE_NAME);
     const command = runtime?.command ?? exe;
     const launchArgs = runtime ? [...runtime.argsPrefix, exe, ...args] : args;
+    const env = { ...(runtime?.env ?? process.env), ...extraEnv };
+    env.WINEDLLOVERRIDES = gameDllOverrides(env.WINEDLLOVERRIDES);
     return new Promise((resolve, reject) => {
       const child = this.spawnFn(command, launchArgs, {
         cwd: win64Dir,
         stdio: "ignore",
         windowsHide: false,
         detached: false,
-        env: extraEnv ? { ...(runtime?.env ?? process.env), ...extraEnv } : runtime?.env ?? process.env,
+        env,
       });
       let started = false;
       child.once("spawn", () => {
