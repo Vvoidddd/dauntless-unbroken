@@ -10910,7 +10910,7 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/
     <p class="eyebrow">DAUNTLESS UNBROKEN / DOCUMENTATION</p>
     <h1>Back to<br><em>the hunt.</em></h1>
     <p class="hero-lead">Get the launcher, bring your game files, and make your way into Unbroken. Start with the essentials. The detail is here when you need it.</p>
-    <div class="actions"><a class="button button-primary" href="https://github.com/Vvoidddd/dauntless-unbroken/releases/latest">Download launcher <span aria-hidden="true">↗</span></a><a class="text-link" href="https://vvoidddd.github.io/dauntless-unbroken/setup/">Read the setup guide <span aria-hidden="true">→</span></a></div>
+    <div class="actions"><a class="button button-primary" href="https://vvoidddd.github.io/dauntless-unbroken/download/">Download launcher <span aria-hidden="true">↗</span></a><a class="text-link" href="https://vvoidddd.github.io/dauntless-unbroken/setup/">Read the setup guide <span aria-hidden="true">→</span></a></div>
     <p class="compatibility">Dauntless 1.4.4 <span>·</span> Windows &amp; Linux <span>·</span> Online &amp; offline</p>
   </div>
   <aside class="quick-start" aria-label="Getting started">
@@ -10955,6 +10955,51 @@ Game restrictions commit before Discord synchronization. Discord changes remain 
 In the private dashboard, open **Players** to select an account, link or unlink a verified Discord identity, revoke or replace login keys, revoke an unused Discord invite, or ban/unban Discord and game together. Provide an audit reason. Key revocation removes login and recovery credentials and invalidates existing sessions; it preserves characters, inventory and progression. Replacement keys must be shared privately with the verified owner. **Access** can generate a single-use invite for a specific Discord user ID.
 
 All operator APIs require the owner key on the private backend connection; public gateway requests and ordinary player keys are refused. Keep the dashboard accessible only through the private localhost SSH tunnel. Never share owner keys, bot tokens or player login keys in public channels.
+
+================================================================================
+URL: https://vvoidddd.github.io/dauntless-unbroken/download/
+================================================================================
+
+# Download Dauntless Unbroken
+
+<p id="download-platform" role="status">Choose your operating system below.</p>
+<a id="recommended-download" class="button button-primary" hidden></a>
+
+## Windows
+
+[Download the Windows installer](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest/download/DauntlessUnbrokenLauncher-Setup.exe)
+
+Run the installer, then open Dauntless Unbroken Launcher.
+
+## Linux
+
+**Use the native Linux launcher, directly from your applications menu.**
+
+Setup detects your distribution, version and CPU architecture. Pop!_OS, Ubuntu,
+Mint and Debian receive the DEB package; Fedora and compatible systems receive
+RPM. Steam Deck, Arch and other compatible distributions receive an AppImage
+with an application shortcut. SteamOS's read-only system is left untouched.
+
+Open Terminal, paste this command, and press Enter. Enter your system password
+if the native package installer asks. No package selection is needed.
+
+```sh
+( setup=$(mktemp) && trap 'rm -f "$setup"' EXIT &&
+  curl -fL --proto '=https' https://vvoidddd.github.io/dauntless-unbroken/assets/install-launcher.py -o "$setup" &&
+  python3 "$setup" )
+```
+
+Setup verifies the release package's size and SHA-256 before installation. It
+does not change your accounts, keys, saves or downloaded game files. Import your
+existing Unbroken account backup in the native launcher.
+
+Requires Python 3, curl and x86_64 Linux. NixOS needs its [appimage-run setup](https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html#nixos).
+
+[Download Linux setup](https://vvoidddd.github.io/dauntless-unbroken/assets/install-launcher.py) ·
+[Advanced Linux instructions](https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html) ·
+[All packages and release notes](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest)
+
+<script type="module" src="https://vvoidddd.github.io/dauntless-unbroken/assets/download-platform.js"></script>
 
 ================================================================================
 URL: https://vvoidddd.github.io/dauntless-unbroken/reference/audit-2026-10-20.html
@@ -11341,10 +11386,10 @@ Use the Dauntless Unbroken launcher with an Unbroken realm invite and your perso
 
 ## 1. Install the launcher
 
-Download the latest release from [GitHub](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest).
+Open the [download page](https://vvoidddd.github.io/dauntless-unbroken/download/), which detects Windows or Linux.
 
 - **Windows:** run `DauntlessUnbrokenLauncher-Setup.exe`, or use the portable ZIP.
-- **Linux:** choose an AppImage, DEB, RPM or portable package and follow the [Linux guide](https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html).
+- **Linux:** run automatic setup from the download page. It checks your distro and installs the matching native package and application shortcut.
 
 Keep the launcher open while playing: it carries the game's backend and chat traffic over the realm's encrypted connection.
 
@@ -13693,6 +13738,11 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html
 ================================================================================
 
 # Linux launcher
+
+**Automatic setup:** open the [download page](https://vvoidddd.github.io/dauntless-unbroken/download/)
+and run Linux setup. It detects your distro and version, verifies and installs
+the matching native package, and creates an application-menu entry. The manual
+package instructions below remain available for advanced setups.
 
 **Steam Deck:** use the [Steam Deck setup and PC account-transfer guide](steam-deck.html).
 

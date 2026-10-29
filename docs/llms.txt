@@ -62,6 +62,7 @@
 - [License](https://vvoidddd.github.io/dauntless-unbroken/legal.html): Dauntless Unbroken licensing and software notices.
 - [Community features](https://vvoidddd.github.io/dauntless-unbroken/launcher/community-features.html): Lock-on controls, DualSense reconnection, and playtime milestones.
 - [Discord access and moderation](https://vvoidddd.github.io/dauntless-unbroken/operations/discord-access.html): Account-bound invites, game and Discord bans, and manual access administration.
+- [Download launcher](https://vvoidddd.github.io/dauntless-unbroken/download/): Get the native Windows or Linux launcher. Linux setup selects the package for your distribution.
 - [Edge case audit · 20 October 2026](https://vvoidddd.github.io/dauntless-unbroken/reference/audit-2026-10-20.html): Confirmed transaction, admission, key-storage and migration fixes, database validation, and remaining dependency limitations.
 - [Feature integrations](https://vvoidddd.github.io/dauntless-unbroken/findings/feature-integrations.html): Progression, shop, social and world-lifecycle systems in Unbroken.
 - [Fleet admission and database storage](https://vvoidddd.github.io/dauntless-unbroken/operations/fleet-admission-backups.html): Two EU game hosts, UK key distribution and verified database copies.
