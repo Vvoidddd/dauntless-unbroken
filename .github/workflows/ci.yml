@@ -464,6 +464,12 @@ jobs:
       - name: Item catalogue parser checks
         run: python3 tools/test-build-admin-catalog.py
 
+      - name: Automatic launcher setup checks
+        run: |
+          python3 tools/test-launcher-installer.py
+          node --test tools/ci/download-platform.test.mjs
+
+
 
       - name: Generated files are current (docs/roadmap.md, docs/llms.txt, docs/llms-full.txt)
         run: |
@@ -486,7 +492,7 @@ jobs:
       - name: The built site has its main pages
         run: |
           for page in index.html fi/index.html setup/index.html setup/linux.html setup/windows-server.html setup/linux-server.html setup/openbsd-server.html fi/setup/index.html fi/setup/linux.html fi/setup/linux-server.html fi/setup/openbsd-server.html roadmap.html 404.html \
-                      server.html reference/index.html legal.html llms.txt llms-full.txt sitemap.xml search.json assets/unbroken-docs.css assets/unbroken-docs.js; do
+                      server.html reference/index.html legal.html llms.txt llms-full.txt sitemap.xml search.json assets/unbroken-docs.css assets/unbroken-docs.js download/index.html assets/install-launcher.py assets/download-platform.js; do
             test -s "_site/$page" || { echo "::error::_site/$page is missing"; exit 1; }
           done
           echo "site built: $(find _site -type f | wc -l) files"

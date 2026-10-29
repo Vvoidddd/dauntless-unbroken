@@ -12,10 +12,10 @@ Use the Dauntless Unbroken launcher with an Unbroken realm invite and your perso
 
 ## 1. Install the launcher
 
-Download the latest release from [GitHub](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest).
+Open the [download page]({{ '/download/' | relative_url }}), which detects Windows or Linux.
 
 - **Windows:** run `DauntlessUnbrokenLauncher-Setup.exe`, or use the portable ZIP.
-- **Linux:** choose an AppImage, DEB, RPM or portable package and follow the [Linux guide]({{ '/setup/linux.html' | relative_url }}).
+- **Linux:** run automatic setup from the download page. It checks your distro and installs the matching native package and application shortcut.
 
 Keep the launcher open while playing: it carries the game's backend and chat traffic over the realm's encrypted connection.
 

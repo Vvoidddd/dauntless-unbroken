@@ -11,7 +11,7 @@ ref: index
     <p class="eyebrow">DAUNTLESS UNBROKEN / DOCUMENTATION</p>
     <h1>Back to<br><em>the hunt.</em></h1>
     <p class="hero-lead">Get the launcher, bring your game files, and make your way into Unbroken. Start with the essentials. The detail is here when you need it.</p>
-    <div class="actions"><a class="button button-primary" href="https://github.com/Vvoidddd/dauntless-unbroken/releases/latest">Download launcher <span aria-hidden="true">↗</span></a><a class="text-link" href="{{ '/setup/' | relative_url }}">Read the setup guide <span aria-hidden="true">→</span></a></div>
+    <div class="actions"><a class="button button-primary" href="{{ '/download/' | relative_url }}">Download launcher <span aria-hidden="true">↗</span></a><a class="text-link" href="{{ '/setup/' | relative_url }}">Read the setup guide <span aria-hidden="true">→</span></a></div>
     <p class="compatibility">Dauntless 1.4.4 <span>·</span> Windows &amp; Linux <span>·</span> Online &amp; offline</p>
   </div>
   <aside class="quick-start" aria-label="Getting started">

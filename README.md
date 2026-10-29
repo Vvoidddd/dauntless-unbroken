@@ -4,7 +4,7 @@
 
 A fresh community realm for **Dauntless 1.4.4**, with a purple launcher, persistent progression and on-demand hunt servers.
 
-[**Download the launcher**](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest) · [**Documentation**](https://vvoidddd.github.io/dauntless-unbroken/) · [**Build status**](https://github.com/Vvoidddd/dauntless-unbroken/actions)
+[**Download the launcher**](https://vvoidddd.github.io/dauntless-unbroken/download/) · [**Documentation**](https://vvoidddd.github.io/dauntless-unbroken/) · [**Build status**](https://github.com/Vvoidddd/dauntless-unbroken/actions)
 
 [![Join our Discord](https://img.shields.io/badge/Join_our_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/bVkP8PffND)
 

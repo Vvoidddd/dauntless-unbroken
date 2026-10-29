@@ -11,6 +11,11 @@ ref: setup/linux
 {% assign trouble_page = site.pages | where: "path", "setup/troubleshooting.md" | first %}
 
 # Linux launcher
+
+**Automatic setup:** open the [download page]({{ '/download/' | relative_url }})
+and run Linux setup. It detects your distro and version, verifies and installs
+the matching native package, and creates an application-menu entry. The manual
+package instructions below remain available for advanced setups.
 {: .no_toc }
 
 **Steam Deck:** use the [Steam Deck setup and PC account-transfer guide](steam-deck.html).
