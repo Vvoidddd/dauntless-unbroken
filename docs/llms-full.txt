@@ -14449,12 +14449,20 @@ open launcher **Settings → Account → Save a backup of your key**. Transfer t
 file privately to your Steam Deck's Desktop or Downloads folder.
 
 On the Deck, choose **Import account backup…** on the launcher's first screen.
-Select the file. The backup includes the server address and original certificate,
+Select the file from the in-launcher list of small text files in Desktop,
+Downloads or Documents. The import stays in the same window in Gaming Mode;
+you can also paste the backup or import it from the clipboard. The backup includes the server address and original certificate,
 so a complete backup does not need another Join invite. The same import button
 also remains visible on the registration screen. Check your Slayer name before playing.
 
 If you have only the raw `UUK_…` account key, select your server with its original
-Join invite, then open the **Account key** field and paste the key. Do not press Register.
+Join invite, then open **Account key** and paste the key. Do not press Register.
+
+If KDE Wallet is unavailable, select **Sign in until launcher closes** before
+importing. This explicitly keeps the validated key in memory for this launcher
+session, without saving a new key or replacing a saved account. Keep your backup:
+after closing the launcher you must import it again. Leave the checkbox off for
+normal encrypted storage when your wallet is available.
 
 Online progression stays on the shared server. An account-key backup signs into
 that progression; it is not an offline save export. Offline saves remain separate.
@@ -14486,8 +14494,10 @@ Use Steam Input's gamepad layout for gameplay. The launcher also accepts a stand
 controller on Windows and Linux: D-pad or left stick moves focus, A selects, B
 goes back, and LB/RB moves through controls. Right stick or triggers scrolls.
 Selecting a text field opens an on-screen keyboard; Done saves and B cancels.
-Mouse and touch input remain available. Native operating-system file pickers may
-need the Deck's trackpad or touchscreen. Physical controller layouts can vary.
+Mouse and touch input remain available. Account backup import uses an in-launcher
+file list. **Browse another folder (Desktop Mode)** opens the optional system
+picker; in Gaming Mode, put the backup in Downloads or paste it instead.
+Physical controller layouts can vary.
 
 If the launcher closes immediately in Gaming Mode, install launcher 1.0.34 or
 newer from Desktop Mode. Its Linux entry point keeps Steam's overlay out of
