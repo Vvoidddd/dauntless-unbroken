@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "4b9fcbd8eca5f6539d73997bc9a3d632463e5da4",
+      "date": "2026-10-30T20:20:41.558Z",
+      "title": "Latest project updates",
+      "body": "• Limit EU1 game processes to a shared Windows CPU budget\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "5c3107b9906995f586bd7e5f321a7b4c844d7ea2",
       "date": "2026-10-30T18:14:42.550Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T21:35:09.473Z",
       "title": "Latest project updates",
       "body": "• Preview compact damage and Behemoth part health panels\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "d69283f1d11a2b73e488f86fc609bf159062b174",
-      "date": "2026-10-25T20:54:46.873Z",
-      "title": "Latest project updates",
-      "body": "• Credit Void on the Hunt Damage mod card\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
