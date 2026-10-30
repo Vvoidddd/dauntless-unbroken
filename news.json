@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "5168ee7c8ab7ec4208d6f056c2fb44979293474f",
+      "date": "2026-10-30T23:02:43.905Z",
+      "title": "Latest project updates",
+      "body": "• Refresh generated Steam Deck setup documentation\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "28b14eb67ab9cbe2b528495e60dbc00398f2296b",
       "date": "2026-10-30T23:00:19.049Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T22:15:01.107Z",
       "title": "Latest project updates",
       "body": "• Keep large damage totals and long part names inside compact HUD columns\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "91c1009bbbf3d2e78a8cddcf61025c95ad7c3c1a",
-      "date": "2026-10-25T22:11:41.069Z",
-      "title": "Latest project updates",
-      "body": "• Match Void HUD styling and release launcher 1.0.35 to everyone\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
