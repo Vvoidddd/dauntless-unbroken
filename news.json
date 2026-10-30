@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "7b6ee65ab3e8138960893b67cdd7ab2595277cfa",
+      "date": "2026-10-30T05:05:59.133Z",
+      "title": "Latest project updates",
+      "body": "• Document download recovery after CDN domain expiry\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "262b958f3cadcb2f3e45f19e9958c62c409f1637",
       "date": "2026-10-29T06:54:25.218Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T20:41:50.585Z",
       "title": "Latest project updates",
       "body": "• Preview an optional hunt and team damage HUD\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "449149bdaf9b81b3165d110118504e3e1d45cc5d",
-      "date": "2026-10-25T20:12:46.703Z",
-      "title": "Latest project updates",
-      "body": "• Remove golden Champion crown and armour from Lady Luck shop\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
