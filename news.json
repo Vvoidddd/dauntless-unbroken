@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "5c3107b9906995f586bd7e5f321a7b4c844d7ea2",
+      "date": "2026-10-30T18:14:42.550Z",
+      "title": "Latest project updates",
+      "body": "• Restore R2 download guidance for voidvault domain\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "7b6ee65ab3e8138960893b67cdd7ab2595277cfa",
       "date": "2026-10-30T05:05:59.133Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T20:54:46.873Z",
       "title": "Latest project updates",
       "body": "• Credit Void on the Hunt Damage mod card\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "0a8950c0b04be03aea57e06e0638456e3662cf7a",
-      "date": "2026-10-25T20:41:50.585Z",
-      "title": "Latest project updates",
-      "body": "• Preview an optional hunt and team damage HUD\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
