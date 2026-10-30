@@ -43,7 +43,7 @@ Use a short source path such as `C:\dr\dauntless-unbroken`. Keep the deployed in
 4. With `CONTENT_DOWNLOAD_BASE_URL` configured, game files download directly over HTTPS from the R2 catalog. The CDN receives no account key.
 5. During play, the game uses a relay bound to the player's own `127.0.0.1`. That relay carries backend and chat traffic through the pinned gateway.
 
-Game downloads currently use the authenticated content service after the previous CDN hostname stopped resolving to its download service. See [R2 downloads]({{ '/r2-downloads.html' | relative_url }}) before configuring a replacement CDN.
+Game downloads use `downloads.voidvault.xyz` on Cloudflare R2. The authenticated content service remains available as an operator-selected fallback. See [R2 downloads]({{ '/r2-downloads.html' | relative_url }}) for verification and rollback.
 
 ## Network boundaries
 

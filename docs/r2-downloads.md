@@ -7,11 +7,15 @@ ref: r2-downloads
 
 # Player downloads from R2
 
-Game downloads currently use the authenticated game-server content route. On October 30, 2026,
+Game downloads use `https://downloads.voidvault.xyz/dauntless-1.4.4/` on Cloudflare R2.
+On October 30, 2026,
 `downloads.epcr.lol` resolved through `ns1.dns-expired.com` / `ns2.dns-expired.com` to
 `2.57.91.92`, and HTTPS failed before any file could download. The content service's
 `CONTENT_DOWNLOAD_BASE_URL` was cleared to restore downloads for existing public launchers.
-The domain needs renewal/repair or replacement before R2 routing can be restored.
+R2 routing was then restored through `downloads.voidvault.xyz` after its DNS delegation
+and HTTPS certificate became valid. All 410 objects matched manifest sizes; a complete
+small-file SHA-256 check, a PAK range request, and the launcher's partial-file resume passed.
+Only the content service restarted; the game and account services stayed running.
 
 Players with a failed CDN job should fully close and reopen the launcher, then retry.
 Keep the game folder: completed files remain verified and partial files can resume.
@@ -31,12 +35,12 @@ Upload only the files listed in `DauntlessUnbrokenContent/data/dauntless-1.4.4.j
 After the custom domain serves the verified files over HTTPS, set the content service environment:
 
 ```dotenv
-CONTENT_DOWNLOAD_BASE_URL=https://downloads.example.com/dauntless-1.4.4/
+CONTENT_DOWNLOAD_BASE_URL=https://downloads.voidvault.xyz/dauntless-1.4.4/
 ```
 
 Restart only the content service. Launcher 0.1.26 and newer read this optional field from the host manifest and fetch game files directly from the CDN. Older launchers continue using the existing authenticated VPS file routes. Remove the variable and restart content to route new download jobs back through the VPS.
 
-Use an owner-controlled, working hostname in place of the example. Before switching it on,
+For another deployment, use its owner's working hostname. Before switching it on,
 check normal HTTPS validation, a complete small file against the compiled SHA-256, and a
 `206 Partial Content` range from a PAK. For the October 30 recovery, all 410 local files
 matched manifest sizes; a full `dbgcore.dll` hash, a 1 MiB range of
