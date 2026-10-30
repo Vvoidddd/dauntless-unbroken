@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "launcher-v1.0.43",
+      "date": "2026-10-30T23:11:38Z",
+      "title": "Launcher 1.0.43 is available",
+      "body": "## Launcher 1.0.43 changes\n\n- Linux account-backup import now opens inside the launcher. Choose a small `.txt` backup from Desktop, Downloads or Documents, or paste/import it from the clipboard. The external file dialog remains an optional Desktop Mode choice.\n- Added **Sign in until launcher closes** for Linux users whose desktop wallet is unavailable in Gaming Mode. It validates the account and keeps the key in memory without replacing saved keys or creating automatic backup copies. Keep your existing backup and import it again after closing the launcher.\n- Controller A now toggles checkboxes instead of opening the text keyboard. The import window scrolls to fit Steam Deck screens and keeps import errors visible for retry.\n- Updated Steam Deck help: launch the same native AppImage through a Steam Non-Steam shortcut in both modes, use a Gamepad layout, and leave forced compatibility off for the launcher itself.\n\nValidation: 417 launcher tests passed on Windows (3 platform-specific skips), 27 focused tests passed on native Linux, and the import/controller interaction passed at 1280×800. Physical Steam Deck gameplay still needs player confirmation. This update does not claim to fix the separate Windows-launcher-through-Wine relay connection issue.\n\nDauntless Unbroken Launcher 1.0.43 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.43-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.43-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.43-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.43-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.43-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.43-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
+    },
+    {
       "id": "5168ee7c8ab7ec4208d6f056c2fb44979293474f",
       "date": "2026-10-30T23:02:43.905Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-10-25T22:23:25.716Z",
       "title": "Latest project updates",
       "body": "• Preserve HUD corner radius when stretching rounded panels\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "0172c87778871633c69257ee69e0c9a1fca49f6d",
-      "date": "2026-10-25T22:15:01.107Z",
-      "title": "Latest project updates",
-      "body": "• Keep large damage totals and long part names inside compact HUD columns\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
