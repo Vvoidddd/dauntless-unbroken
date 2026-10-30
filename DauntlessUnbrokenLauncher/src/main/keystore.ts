@@ -54,6 +54,8 @@ export class KeyStore {
   private pending: Promise<void> = Promise.resolve();
   private recoveryPending: Promise<void> = Promise.resolve();
   private recoveryQueued = new Map<string,string>();
+  // Explicit temporary sign-in; null masks an old disk key after session logout.
+  private sessions = new Map<string,StoredKey|null>();
   constructor(private readonly dir: string, private readonly crypto: Encryptor, private readonly recoveryDir?: string) {}
 
   private update<T>(work: () => Promise<T>): Promise<T> {
@@ -72,6 +74,7 @@ export class KeyStore {
   }
 
   private async read(slot: KeySlot): Promise<StoredKey | null> {
+    if (this.sessions.has(this.id(slot))) return this.sessions.get(this.id(slot)) ?? null;
     let data: Buffer;
     let recovery = false;
     try {
@@ -115,6 +118,23 @@ export class KeyStore {
     return this.update(() => this.write(slot, key));
   }
 
+  async saveSession(slot: KeySlot, key: string): Promise<void> {
+    return this.update(async () => {
+      if (!isPlausibleAccountKey(key) || (slot.mode === 'public' && !isValidFingerprint(slot.fp))) throw new KeyStoreError('invalid');
+      addSecret(key);
+      this.sessions.set(this.id(slot), {key, fp:slot.mode === 'public' ? slot.fp : null});
+    });
+  }
+
+  isSession(slot: KeySlot): boolean {
+    const stored=this.sessions.get(this.id(slot));
+    return !!stored && (slot.mode !== 'public' || stored.fp === slot.fp);
+  }
+
+  async endSession(slot: KeySlot): Promise<void> {
+    return this.update(async () => { this.sessions.set(this.id(slot),null); });
+  }
+
   private async write(slot: KeySlot, key: string): Promise<void> {
     if (!isPlausibleAccountKey(key)) throw new KeyStoreError("invalid");
     if (slot.mode === "public" && !isValidFingerprint(slot.fp)) throw new KeyStoreError("invalid");
@@ -126,6 +146,7 @@ export class KeyStore {
     const fp = slot.mode === "public" ? (slot.fp as string) : "-";
     await fsp.writeFile(tmp, this.crypto.encrypt(`${FORMAT}\n${fp}\n${key}`));
     await fsp.rename(tmp, target);
+    this.sessions.delete(this.id(slot));
     this.queueRecovery(slot,key,slot.mode==='public'?slot.fp:null);
   }
 
@@ -157,9 +178,9 @@ export class KeyStore {
     addSecret(stored.key);
     // Queue under the primary mutation lock so a concurrent removal/rebind cannot
     // enqueue an old identity after its replacement or cleanup.
-    if (this.recoveryDir) void this.update(async()=>{
+    if (this.recoveryDir && !this.isSession(slot)) void this.update(async()=>{
       const current=await this.read(slot);
-      if(current?.key===stored.key&&current.fp===stored.fp)this.queueRecovery(slot,stored.key,stored.fp);
+      if(!this.isSession(slot)&&current?.key===stored.key&&current.fp===stored.fp)this.queueRecovery(slot,stored.key,stored.fp);
     }).catch(()=>log.warn('Automatic Documents account backup unavailable'));
     return stored.key;
   }
@@ -178,6 +199,10 @@ export class KeyStore {
     return this.update(async () => {
       const stored = await this.read(slot);
       if (!stored) return false;
+      if (this.sessions.get(this.id(slot))) {
+        this.sessions.set(this.id(slot), { ...stored, fp });
+        return true;
+      }
       await this.write({ ...slot, fp }, stored.key);
       return true;
     });
@@ -186,6 +211,7 @@ export class KeyStore {
   async remove(slot: KeySlot): Promise<void> {
     return this.update(async () => {
       const stored = await this.read(slot).catch(() => null);
+      this.sessions.delete(this.id(slot));
       if (stored) removeSecret(stored.key);
       await this.recoveryPending;
       await fsp.unlink(this.file(slot)).catch(() => undefined);

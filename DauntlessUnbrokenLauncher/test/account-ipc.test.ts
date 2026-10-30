@@ -29,3 +29,13 @@ test('clipboard import reads in main and passes text only to the existing accoun
  assert.equal(await invoke({senderFrame:{}},'renderer supplied text'),result);
  assert.equal(reads,1);assert.deepEqual(calls,['private clipboard backup']);
 });
+
+test('backup imports require explicit temporary opt-in and forward only the selected backup ID',async()=>{
+ const calls:unknown[][]=[],result={ok:true};
+ const invoke=handler('importKeyFile',{c:{importKeyFile:(...args:unknown[])=>{calls.push(args);return result;}}});
+ const event={senderFrame:{}};
+ assert.equal(invoke(event,'backup-id',true),result);
+ assert.equal(invoke(event,undefined,'true'),result);
+ assert.equal(invoke(event,{path:'/arbitrary'},true).ok,false);
+ assert.deepEqual(calls,[['backup-id',true],[undefined,false]]);
+});

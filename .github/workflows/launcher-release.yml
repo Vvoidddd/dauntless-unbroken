@@ -164,7 +164,7 @@ jobs:
     name: Build and test (Linux x64)
     needs: prepare
     if: needs.prepare.outputs.released != 'true' && needs.prepare.outputs.linux_artifact == ''
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Match the tested Linux CI toolchain.
     timeout-minutes: 35
     permissions:
       contents: read

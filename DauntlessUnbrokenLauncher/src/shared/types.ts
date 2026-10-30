@@ -198,6 +198,7 @@ export interface Snapshot {
     lastCheckedAt: string | null;
   };
   account: {
+    sessionOnly?: boolean;
     saved?: { id: string; username: string; current: boolean }[];
     username: string | null;
     hasKey: boolean;
@@ -307,6 +308,7 @@ export const IPC = {
   switchAccount: "dr:switch-account",
   removeSavedAccount: "dr:remove-saved-account",
   importKeyFile: "dr:import-key-file",
+  listKeyBackups: "dr:list-key-backups",
   importKeyClipboard: "dr:import-key-clipboard",
   saveKeyBackup: "dr:save-key-backup",
   locateKeyBackup: "dr:locate-key-backup",

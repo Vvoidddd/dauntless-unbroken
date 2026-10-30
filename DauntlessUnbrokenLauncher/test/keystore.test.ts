@@ -31,6 +31,31 @@ const FP_A = "a1".repeat(32);
 const FP_B = "b2".repeat(32);
 const pub = (fp: string | null): KeySlot => ({ host: "203.0.113.10", port: 443, mode: "public", fp });
 
+test('temporary keys work without a wallet, stay certificate-bound and never replace saved keys or recovery files', async () => {
+  const {ks,dir}=store();
+  await ks.save(pub(FP_A),KEY);
+  const disk=await fs.readFile(path.join(dir,`${serverId('203.0.113.10',443,'public')}.key`));
+  const recovery=path.join(dir,'recovery');
+  const locked=new KeyStore(dir,{isAvailable:()=>false,encrypt:()=>{throw Error('locked');},decrypt:()=>{throw Error('locked');}},recovery);
+  const temporary='UUK_'+'cd'.repeat(24);
+  await locked.saveSession(pub(FP_A),temporary);
+  assert.equal(await locked.load(pub(FP_A)),temporary);
+  assert.equal(await locked.load(pub(FP_B)),null);
+  assert.equal(locked.isSession(pub(FP_A)),true);
+  assert.equal(await new KeyStore(dir,enc).load(pub(FP_A)),KEY);
+  assert.equal(await locked.rebind(pub(FP_A),FP_B),true);
+  assert.equal(await locked.load(pub(FP_A)),null);
+  assert.equal(await locked.load(pub(FP_B)),temporary);
+  assert.equal(locked.isSession(pub(FP_B)),true);
+  await locked.endSession(pub(FP_A));
+  assert.equal(await locked.load(pub(FP_A)),null,'logout must not silently reload the old disk account');
+  assert.deepEqual(await fs.readFile(path.join(dir,`${serverId('203.0.113.10',443,'public')}.key`)),disk);
+  await assert.rejects(fs.stat(recovery),{code:'ENOENT'});
+  assert.equal(await new KeyStore(dir,enc).load(pub(FP_A)),KEY,'the saved account survives restarting the launcher');
+  await assert.rejects(locked.saveSession(pub(null),temporary),KeyStoreError);
+  await assert.rejects(locked.saveSession(pub(FP_A),'bad-key'),KeyStoreError);
+});
+
 test('saved account slots isolate identities, realms and certificates without falling back to the active key', async () => {
   const {ks} = store(), a = {...pub(FP_A), account: 'a'.repeat(64)}, b = {...pub(FP_A), account: 'b'.repeat(64)};
   const second = 'UUK_' + 'cd'.repeat(24);

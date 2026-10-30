@@ -124,7 +124,7 @@ jobs:
 
   launcher-linux:
     name: Launcher (Linux x64)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # RPM maker expects the pre-RPM-6 build directory layout.
     timeout-minutes: 30
     defaults:
       run:

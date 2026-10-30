@@ -12,6 +12,7 @@ import {chooseClosestRegion} from './autoregion';
 //    127.0.0.1:61000 carries the game's own traffic to the gateway (relay.ts).
 
 import { createHash } from "node:crypto";
+import {findBackupFiles} from "./backup-browser";
 import { promises as fsp, existsSync } from "node:fs";
 import path from "node:path";
 import { missingDirectX, gameExitDetail } from './windows-runtime';
@@ -117,6 +118,7 @@ export interface Platform {
   chooseFolder(title: string, defaultPath: string): Promise<string | null>;
   chooseSaveFile(defaultName: string): Promise<string | null>;
   chooseOpenFile(): Promise<string | null>;
+  backupSearchDirs?: string[];
   openExternal(url: string): Promise<void>;
   openPath(dir: string): Promise<void>;
   confirmRemoveGame?(targets:string[]):Promise<boolean>;
@@ -228,6 +230,8 @@ export class Controller {
   private relayStopTask:Promise<void>=Promise.resolve();
   private phase: Phase = "loading";
   private offline: OfflineStatus = { phase: "stopped" };
+
+  private backupChoices = new Map<string,string>();
 
   constructor(private readonly p: Platform) {
     this.settings = new SettingsStore(p.userDataDir, p.defaultLanguage, p.hostPlatform ?? process.platform);
@@ -373,13 +377,14 @@ export class Controller {
         : null,
       connect: { checking: this.checking, problem: this.connectProblem, tailscaleInstalled: this.tailscaleInstalled, lastCheckedAt: this.lastCheckedAt },
       account: {
+        sessionOnly: !!(this.slot() && this.keys.isSession(this.slot()!)),
         saved: sid ? (this.s.accounts[sid] ?? []).map(account => ({...account, current: account.id === this.activeAccountId && this.hasKey})) : [],
         username: sid ? this.s.usernames[sid] ?? null : null,
         hasKey: this.hasKey && !this.keyRejected,
         desktopBackupPath: sid && this.hasKey && !this.keyRejected ? this.desktopBackups.get(sid)?.path ?? undefined : undefined,
         backupTracked: !!(sid && this.hasKey && !this.keyRejected && this.desktopBackups.has(sid)),
         backupMissing: !!(sid && this.hasKey && !this.keyRejected && this.desktopBackups.get(sid)?.missing),
-        offerBackup: sid !== null && this.hasKey && !this.keyRejected && this.s.backupOffered[sid] !== true,
+        offerBackup: sid !== null && this.hasKey && !this.keyRejected && !this.keys.isSession(this.slot()!) && this.s.backupOffered[sid] !== true,
       },
       install: {
         dir: this.installDir,
@@ -695,7 +700,7 @@ export class Controller {
     const info = await fetchUserInfo(ep, key);
     if (gen !== this.statusGen) return;
     if (info.ok) {
-      await this.rememberAccount(slot, key, info.info.username, gen).catch(() => log.warn('Could not save the account for switching'));
+      if (!this.keys.isSession(slot)) await this.rememberAccount(slot, key, info.info.username, gen).catch(() => log.warn('Could not save the account for switching'));
       if (gen !== this.statusGen) return;
       this.activeAccountId = this.accountId(slot, key);
       this.keyRejected = false;
@@ -908,6 +913,7 @@ export class Controller {
   }
 
   private async rememberActiveAccount(slot: KeySlot): Promise<void> {
+    if (this.keys.isSession(slot)) return;
     const key = await this.keys.load(slot);
     const sid = serverId(slot.host, slot.port, slot.mode);
     if (key) await this.rememberAccount(slot, key, this.s.usernames[sid] ?? "Saved account");
@@ -1042,24 +1048,32 @@ export class Controller {
     });
   }
 
-  async useExistingKey(text: unknown): Promise<ActionResult> {
+  async useExistingKey(text: unknown, sessionOnly=false): Promise<ActionResult> {
     if (this.accountChangeLocked()) return err("busy");
     if (typeof text !== 'string' || text.length > 8192) return this.fail('key_invalid');
-    return this.withBusy(() => this.importBackupText(text));
+    return this.withBusy(() => this.importBackupText(text,undefined,sessionOnly));
   }
 
-  private async importBackupText(text: string, sourceFile?:string): Promise<ActionResult> {
+  private async importBackupText(text: string, sourceFile?:string, sessionOnly=false): Promise<ActionResult> {
     const key = extractAccountKey(text), server = backupServer(text);
     if (!key || (/^(?:Server|Certificate):/m.test(text) && !server)) return this.fail('key_invalid');
     if (server) { const joined = await this.join(server); if (!joined.ok) return joined; }
-    return this.adoptKey(key,sourceFile);
+    return this.adoptKey(key,sourceFile,sessionOnly);
   }
 
-  async importKeyFile(): Promise<ActionResult> {
+  async listKeyBackups(): Promise<{id:string;name:string;folder:string}[]> {
+    if (this.accountChangeLocked()) return [];
+    const files=await findBackupFiles(this.p.backupSearchDirs ?? []);
+    this.backupChoices=new Map(files.map(file=>[createHash('sha256').update(file).digest('hex'),file]));
+    return [...this.backupChoices].map(([id,file])=>({id,name:path.basename(file),folder:path.dirname(file)}));
+  }
+
+  async importKeyFile(id?:string, sessionOnly=false): Promise<ActionResult> {
     if (this.game.running) return this.fail("already_running");
     if (this.accountChangeLocked()) return err("busy");
     return this.withBusy(async () => {
-      const file = await this.p.chooseOpenFile();
+      if (id !== undefined && (typeof id !== "string" || !this.backupChoices.has(id))) return this.fail("key_invalid");
+      const file = id === undefined ? await this.p.chooseOpenFile() : this.backupChoices.get(id);
       if (!file) return err("cancelled");
       let text: string;
       try {
@@ -1067,11 +1081,12 @@ export class Controller {
         if (!st.isFile() || st.size > 8192) return this.fail("key_invalid");
         text = await fsp.readFile(file, "utf8");
       } catch { return this.fail("key_invalid"); }
-      return this.importBackupText(text,file);
+      return this.importBackupText(text,file,sessionOnly);
     });
   }
 
-  private async adoptKey(key: string, sourceFile?:string): Promise<ActionResult> {
+  private async adoptKey(key: string, sourceFile?:string, sessionOnly=false): Promise<ActionResult> {
+    if (sessionOnly && this.hostPlatform !== "linux") return this.fail("key_storage_unavailable");
     const gen = this.statusGen;
     const ep = this.endpoint();
     const slot = this.slot();
@@ -1084,20 +1099,23 @@ export class Controller {
       return {ok:false,error:this.lastError};
     }
     try {
-      await this.rememberActiveAccount(slot);
-      await this.rememberAccount(slot, key, info.info.username);
+      if (sessionOnly) await this.keys.saveSession(slot,key);
+      else {
+        await this.rememberActiveAccount(slot);
+        await this.rememberAccount(slot, key, info.info.username);
+        await this.keys.save(slot,key);
+      }
       this.statusGen++;
       if (this.status) this.status = limitedView(this.status);
       this.desktopBackups.delete(sid);
       this.desktopBackupTasks.delete(sid);
-      await this.keys.save(slot, key);
     } catch (e) {
       this.lastError = { code: e instanceof KeyStoreError && e.code === "invalid" ? "key_invalid" : "key_storage_unavailable" };
       return err(this.lastError.code);
     }
     await this.settings.update((s) => {
       s.usernames[sid] = info.info.username;
-      if(sourceFile){s.keyBackups[keyBackupId({key,host:slot.host,port:slot.port,fingerprint:slot.fp})]={serverId:sid,path:sourceFile};s.backupOffered[sid]=true;}
+      if(sourceFile && !sessionOnly){s.keyBackups[keyBackupId({key,host:slot.host,port:slot.port,fingerprint:slot.fp})]={serverId:sid,path:sourceFile};s.backupOffered[sid]=true;}
       if (s.server) s.server.code = null;
     });
     this.hasKey = true;
@@ -1112,7 +1130,8 @@ export class Controller {
     return OK;
   }
 
-  private backupToDesktop(slot: KeySlot, key: string, username: string): Promise<void> {
+  private async backupToDesktop(slot: KeySlot, key: string, username: string): Promise<void> {
+    if (this.keys.isSession(slot) && await this.keys.load(slot) === key) return;
     const sv=this.s.server;
     if(!sv)return Promise.resolve();
     const sid=serverId(slot.host,slot.port,slot.mode);
@@ -1215,8 +1234,10 @@ export class Controller {
       if (this.status) this.status = limitedView(this.status);
       this.desktopBackupTasks.delete(sid);
       const key = await this.keys.load(slot).catch(() => null);
-      const id = key ? this.accountId(slot, key) : this.activeAccountId;
-      await this.keys.remove(slot);
+      const sessionOnly=this.keys.isSession(slot);
+      const id = sessionOnly ? null : key ? this.accountId(slot, key) : this.activeAccountId;
+      if (sessionOnly) await this.keys.endSession(slot);
+      else await this.keys.remove(slot);
       if (id) await this.savedKeys.remove({...slot, account: id});
       await this.settings.update(s => {
         delete s.usernames[sid];

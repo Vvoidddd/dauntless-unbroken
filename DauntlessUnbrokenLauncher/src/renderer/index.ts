@@ -15,7 +15,7 @@ import { exposureKey, graphicsKey, primaryButton, shortFile, stepIndex, taskView
 import { formatBytes, formatDate, formatDuration, formatPlaytime, formatRunningTime } from "../shared/format";
 import { BADGE_HOURS, badgeProgress } from "../shared/badges";
 import { sortInstances, type InstanceKind, type ServerStatus, type StatusInstance } from "../shared/status";
-import { EXPOSURE_MODES, GAME_LANGUAGES, GRAPHICS_PRESETS, LANGUAGES, type Branding, type ExposureMode, type ExternalTarget, type GameLanguage, type GraphicsPreset, type Language, type LauncherError, type NewsItem, type OfflinePhase, type OfflineStatus, type Snapshot, type TaskProgress } from "../shared/types";
+import { EXPOSURE_MODES, GAME_LANGUAGES, GRAPHICS_PRESETS, LANGUAGES, type ActionResult, type Branding, type ExposureMode, type ExternalTarget, type GameLanguage, type GraphicsPreset, type Language, type LauncherError, type NewsItem, type OfflinePhase, type OfflineStatus, type Snapshot, type TaskProgress } from "../shared/types";
 import {isUnbrokenFleet,revivedConnection} from '../shared/server-identity';
 
 type View = "play" | "news" | "server" | "settings" | "mods" | "credits";
@@ -33,6 +33,11 @@ type Modal =
   | { kind: "offline_restore" };
 
 const api = window.launcher;
+const SESSION_KEY_NOTE = "Temporary sign-in: your key stays in memory until you close the launcher. Keep your backup; import it again next time.";
+function openBackupImport(): void {
+  if (state.snap?.app.platform === "linux") showModal({kind:"paste_backup"});
+  else void api.importKeyFile();
+}
 const ART_URL = /^dr-art:\/\/bg\/[0-9a-f]{64}$/;
 const TIME_LOCALES: Record<Language, string> = { en: "en-GB", fi: "fi-FI", de: "de-DE", es: "es-ES", fr: "fr-FR", it: "it-IT", ja: "ja-JP", pt: "pt-BR", ru: "ru-RU" };
 const GAME_LANGUAGE_NAMES: Record<Exclude<GameLanguage, "auto">, string> = { "en-US": "English", "de-DE": "Deutsch", "es-ES": "Español", "fr-FR": "Français", "it-IT": "Italiano", "ja-JP": "日本語", "pt-BR": "Português (Brasil)", "ru-RU": "Русский" };
@@ -444,8 +449,8 @@ function playJoin(snap: Snapshot): HTMLElement[] {
     ...heading(t("join_title"), t("join_text")),
     ...(saved ? [saved] : []),
     card("card-accent", h("h2", {class:"card-title"}, t("reg_have_key")),
-      button(t("reg_key_file"), () => void api.importKeyFile(), {cls:"btn-primary",icon:"folder",fk:"join-key-file",disabled:snap.busy}),
-      linkButton(t('backup_paste_toggle'), () => { state.keyFormOpen=!state.keyFormOpen; renderPlay(); if(state.keyFormOpen) backupInput.focus(); }, {fk:'join-backup-paste'}),
+      button(t("reg_key_file"), () => openBackupImport(), {cls:"btn-primary",icon:"folder",fk:"join-key-file",disabled:snap.busy}),
+      linkButton(t('backup_paste_toggle'), () => { if(snap.app.platform==="linux"){openBackupImport();return;} state.keyFormOpen=!state.keyFormOpen; renderPlay(); if(state.keyFormOpen) backupInput.focus(); }, {fk:'join-backup-paste'}),
       ...(state.keyFormOpen ? [h('div',{class:'field'},h('label',{class:'field-label',for:'backup-paste'},t('backup_paste_help')),backupInput,
         button(t('reg_key_use'),()=>void usePastedBackup(),{cls:'btn-primary',fk:'join-backup-use',disabled:snap.busy}))] : []),
       h("p", {class:"small-print"}, t("reg_key_note"))),
@@ -600,10 +605,11 @@ function playRegister(snap: Snapshot): HTMLElement[] {
   out.push(
     card("card-accent",
       h("h3", {class:"card-title"}, t("reg_have_key")),
-      button(t("reg_key_file"), () => void api.importKeyFile(), {cls:"btn-primary",icon:"folder",fk:"key-file",disabled:snap.busy}),
+      button(t("reg_key_file"), () => openBackupImport(), {cls:"btn-primary",icon:"folder",fk:"key-file",disabled:snap.busy}),
       linkButton(t('backup_paste_toggle'),()=>showModal({kind:'paste_backup'}),{fk:'register-backup-paste',disabled:snap.busy}),
       h("p", {class:"small-print"}, t("reg_key_note")),
       linkButton(state.keyFormOpen ? t("reg_have_key_hide") : t("reg_key_label"), () => {
+        if(snap.app.platform==="linux"){openBackupImport();return;}
         state.keyFormOpen = !state.keyFormOpen;
         renderPlay();
         renderActionBar();
@@ -1565,7 +1571,7 @@ function savedAccountsCard(snap: Snapshot): HTMLElement | null {
       linkButton("Remove from PC", () => showModal({kind: "remove_account", id: account.id, username: account.username}), {fk: "account-remove-" + account.id, disabled: locked})
     )),
     h("div", {class: "card-row"},
-      button("Import account backup…", () => void api.importKeyFile(), {icon: "folder", fk: "account-import", disabled: locked}),
+      button("Import account backup…", () => openBackupImport(), {icon: "folder", fk: "account-import", disabled: locked}),
       linkButton(t('backup_paste_toggle'),()=>showModal({kind:'paste_backup'}),{fk:'account-backup-paste',disabled:locked}),
       button("Add account key…", () => showModal({kind: "add_account"}), {icon: "key", fk: "account-add", disabled: locked}))
   );
@@ -1674,7 +1680,7 @@ function renderSettings(): void {
       snap.server && snap.account.hasKey
         ? settingsRow(
             t("set_signed_in", { user: snap.account.username ?? "?", name: serverName() }),
-            t("set_key_note"),
+            snap.account.sessionOnly ? SESSION_KEY_NOTE : t("set_key_note"),
             button(t("set_backup"), () => void api.saveKeyBackup(), { icon: "key", fk: "set-backup" }),
             button(t("set_logout"), () => showModal({ kind: "logout" }), { cls: "btn-danger", fk: "set-logout", disabled: busy }),
           )
@@ -1705,7 +1711,7 @@ function renderSettings(): void {
       "settings-section",
       h("h2", { class: "card-title" }, t("set_troubleshooting")),
       snap.app.platform === 'linux' ? settingsRow('Steam Deck controls',
-        'Open the updated AppImage in Desktop Mode first and unlock KDE Wallet. Add that same AppImage to Steam as a Non-Steam game, replacing any shortcut to an older copy. Choose a Gamepad layout and leave forced compatibility off for the launcher; Unbroken starts Proton for the game. If the file picker does not accept input, use Paste account backup instead.') : null,
+        'Add this AppImage to Steam as a Non-Steam game and open that shortcut in both Desktop and Gaming Mode. Choose a Gamepad layout; the desktop keyboard layout can make A open chat and B open the menu. Leave forced compatibility off for the launcher. Import account backup opens inside the launcher. If your wallet is unavailable, select Sign in until launcher closes; keep your backup for next time.') : null,
       snap.revived?.supported?settingsRow('Other launchers',
         snap.revived.detected?'Dauntless Revived files were found. Running both launchers can cause a port conflict.':snap.revived.message||'Check for an old Revived installation.',
         button('Check for Revived',()=>void api.checkRevived(),{fk:'revived-settings-check',disabled:snap.busy||snap.revived.busy}),
@@ -1880,7 +1886,7 @@ function renderBanners(): void {
   const container = $("#banners");
   const snap = state.snap;
   const error = snap?.lastError && snap.lastError.code !== "cancelled" && !(snap.phase === "register" && snap.lastError.code === "key_rejected") ? snap.lastError : state.localError;
-  const sig = JSON.stringify([state.lang, error, snap?.notice ?? null, snap?.app.updateReady ?? false, snap?.game.running ?? false, snap?.server, snap?.status?.name, snap?.revived, state.revivedResultDismissed]);
+  const sig = JSON.stringify([state.lang, error, snap?.notice ?? null, snap?.app.updateReady ?? false, snap?.game.running ?? false, snap?.server, snap?.status?.name, snap?.revived, state.revivedResultDismissed, snap?.account.sessionOnly, snap?.account.hasKey]);
   renderRegion(container, sig, () => {
     const out: HTMLElement[] = [];
     if(snap){
@@ -1908,6 +1914,7 @@ function renderBanners(): void {
         ),
       );
     }
+    if (snap?.account.hasKey && snap.account.sessionOnly) out.push(h("div",{class:"banner banner-notice",role:"status"},icon("info"),h("span",{class:"banner-text"},SESSION_KEY_NOTE)));
     if (snap?.notice) {
       out.push(
         h(
@@ -2093,6 +2100,7 @@ function renderAll(): void {
 // ------------------------------------------------------------------ modals
 
 function showModal(m: Modal): void {
+  if(m.kind === "add_account" && state.snap?.app.platform === "linux") m={kind:"paste_backup"};
   state.modalReturnFocus = document.activeElement as HTMLElement | null;
   state.modal = m;
   renderModal();
@@ -2166,10 +2174,43 @@ function renderModal(): void {
       break;
     case "paste_backup": {
       title = "Import account backup";
-      const input=h('textarea',{class:'input backup-paste',rows:'5',maxlength:'8192',autocomplete:'off',spellcheck:'false','aria-label':'Account key backup','data-fk':'paste-backup-text'});
-      text=[h('p',{class:'modal-text'},t('backup_paste_help')+' Copy the text inside your backup file, then choose Import from clipboard.'),button('Import from clipboard',()=>{void api.importKeyClipboard().then(async result=>{await report(result);if(result.ok)closeModal();});},{icon:'key',fk:'backup-clipboard-import'}),input];
-      confirmLabel=t('reg_key_use');
-      onConfirm=async()=>{const value=input.value;input.value='';const result=await api.useExistingKey(value);await report(result);return null;};
+      const linux=state.snap?.app.platform === "linux";
+      const input=h('textarea',{class:'input backup-paste',rows:'3',maxlength:'8192',autocomplete:'off',spellcheck:'false','aria-label':'Account key backup','data-fk':'paste-backup-text'});
+      const temporary=h('input',{type:'checkbox',id:'temporary-sign-in','data-fk':'temporary-sign-in'});
+      const message=h('p',{class:'modal-text',role:'status','aria-live':'polite'});
+      let importing=false;
+      const run=async(action:()=>Promise<ActionResult>)=>{
+        if(importing)return;
+        importing=true;message.textContent='Checking account…';
+        try {
+          const result=await action();
+          if(state.modal!==m)return;
+          if(result.ok){input.value='';closeModal();}
+          else if(result.error.code!=='cancelled'){
+            message.textContent=errorText(result.error)+(linux&&result.error.code==='key_storage_unavailable'?' Select “Sign in until launcher closes”, then try again.':'');
+          }
+        }catch{if(state.modal===m)message.textContent='Import failed. Please try again.';}
+        finally{importing=false;}
+      };
+      text=[h('p',{class:'modal-text'},'Choose your backup below, paste its full text, or import it from the clipboard.'),
+        ...(linux?[h('label',{class:'backup-session-option',for:'temporary-sign-in'},temporary,' Sign in until launcher closes'),
+          h('p',{class:'small-print'},SESSION_KEY_NOTE+' Use this if your desktop wallet is unavailable in Gaming Mode.')]:[]),
+        message];
+      if(linux){
+        const list=h('div',{class:'backup-file-list','aria-label':'Backup text files'});
+        text.push(h('p',{class:'small-print'},'Files from Desktop, Downloads and Documents. Keep the backup in one of these folders to import without opening another window.'),list);
+        list.textContent='Looking for backup files…';
+        void api.listKeyBackups().then(files=>{
+          if(state.modal!==m)return;
+          list.replaceChildren(...files.map(file=>button(file.name+' — '+file.folder.split(/[\\\\/]/).pop(),()=>void run(()=>api.importKeyFile(file.id,temporary.checked)),{icon:'folder',fk:'backup-file-'+file.id})));
+          if(!files.length)list.textContent='No small .txt files found. Paste your backup below, or put it in Downloads and reopen this window.';
+        }).catch(()=>{if(state.modal===m)list.textContent='Could not list backups. Paste your backup below.';});
+      }
+      text.push(input,h('div',{class:'card-row'},
+        button('Import pasted backup',()=>void run(()=>api.useExistingKey(input.value,temporary.checked)),{cls:'btn-primary',fk:'backup-text-import'}),
+        button('Import from clipboard',()=>void run(()=>api.importKeyClipboard(temporary.checked)),{icon:'key',fk:'backup-clipboard-import'})),
+        linkButton(linux?'Browse another folder (Desktop Mode)':'Browse another folder',()=>void run(()=>api.importKeyFile(undefined,temporary.checked)),{fk:'backup-native-browse'}));
+      confirmLabel='Close';
       break;
     }
     case "add_account": {
@@ -2251,12 +2292,12 @@ function renderModal(): void {
     { class: `modal${m.kind === "cert_changed" ? " modal-danger" : ""}`, role: m.kind === "cert_changed" ? "alertdialog" : "dialog", "aria-modal": "true", "aria-labelledby": "modal-title" },
     h("h2", { class: "modal-title", id: "modal-title" }, m.kind === "cert_changed" ? icon("shield") : null, title),
     ...text,
-    h("div", { class: "modal-actions" }, cancel, confirm),
+    h("div", { class: "modal-actions" }, m.kind === "paste_backup" ? null : cancel, confirm),
   );
   root.replaceChildren(dialog);
   root.hidden = false;
   // Destructive or risky choices never get the default focus.
-  (m.kind === "logout" || m.kind === "cert_changed" || m.kind === "remove_server" || m.kind === "remove_account" ? cancel : m.kind === "add_account" ? dialog.querySelector<HTMLInputElement>("input")! : m.kind==='paste_backup' ? dialog.querySelector<HTMLTextAreaElement>('textarea')! : confirm).focus();
+  (m.kind === "logout" || m.kind === "cert_changed" || m.kind === "remove_server" || m.kind === "remove_account" ? cancel : m.kind === "add_account" ? dialog.querySelector<HTMLInputElement>("input")! : m.kind==='paste_backup' ? dialog.querySelector<HTMLElement>(state.snap?.app.platform==='linux'?'input[type=checkbox]':'textarea')! : confirm).focus();
 }
 
 // The server switcher closes on a click anywhere else, and on Escape.

@@ -182,6 +182,42 @@ function harness(relayPort = RELAY_PORT, userDataDir?: string, chooseFolder: Pla
   return { c, last: () => snap ?? c.snapshot(), spawns, child: () => child, configDir, installDir, userData, offlineStatuses, };
 }
 
+test('Linux backup import can sign in temporarily, download and launch with a locked wallet without writing keys',async()=>{
+  const desktop=temp('deck-backups-'),documents=temp('deck-documents-');
+  const key='UUK_'+'97'.repeat(24), username='DeckSession';
+  meta.users.set(key,{username,id:'UID-deck-session'});
+  const backup=backupFileText({key,username,serverName:'Friday Hunts',host:'127.0.0.1',port:GATEWAY_PORT,fingerprint:cert.fingerprint,date:new Date()});
+  writeFileSync(path.join(desktop,'Gadis-backup.txt'),backup);
+  const extra:Partial<Platform>={hostPlatform:'linux',desktopDir:desktop,backupSearchDirs:[desktop],encryptor:{isAvailable:()=>false,encrypt:()=>{throw Error('locked');},decrypt:()=>{throw Error('locked');}},chooseOpenFile:async()=>{throw Error('Native picker must not open');}};
+  const hx=harness(RELAY_PORT,undefined,undefined,undefined,undefined,documents,undefined,undefined,extra);
+  try{
+    await hx.c.init();
+    const choices=await hx.c.listKeyBackups();
+    assert.equal(choices.length,1);assert.equal(JSON.stringify(choices).includes(key),false);
+    assert.deepEqual(await hx.c.importKeyFile('../outside',true),{ok:false,error:{code:'key_invalid'}});
+    assert.deepEqual(await hx.c.importKeyFile(choices[0].id),{ok:false,error:{code:'key_storage_unavailable'}});
+    assert.deepEqual(await hx.c.importKeyFile(choices[0].id,true),{ok:true});
+    assert.equal(hx.last().account.hasKey,true);assert.equal(hx.last().account.sessionOnly,true);assert.equal(hx.last().account.offerBackup,false);
+    assert.equal(hx.last().account.saved?.length,0);
+    await hx.c.pollStatus();
+    assert.deepEqual(await hx.c.repair(),{ok:true});
+    assert.deepEqual(await hx.c.play(),{ok:true});
+    assert.equal(hx.spawns.length,1);
+    assert.deepEqual((await fs.readdir(desktop)),['Gadis-backup.txt']);
+    assert.equal(existsSync(path.join(hx.userData,'keys')),false);
+    assert.equal(existsSync(path.join(hx.userData,'accounts')),false);
+    assert.deepEqual(await fs.readdir(documents),[]);
+    assert.equal(JSON.stringify(hx.last()).includes(key),false);
+    hx.child()?.emit('exit',0);
+    assert.deepEqual(await hx.c.logout(),{ok:true});
+    await hx.c.pollStatus();
+    assert.equal(hx.last().account.hasKey,false);
+    assert.equal(logLines.some(line=>line.includes(key)),false);
+  }finally{hx.child()?.emit('exit',0);await hx.c.shutdown();}
+  const reopened=harness(RELAY_PORT,hx.userData,undefined,undefined,undefined,documents,undefined,undefined,extra);
+  try{await reopened.c.init();assert.equal(reopened.last().account.hasKey,false);}finally{await reopened.c.shutdown();}
+});
+
 test('cleanup maintenance blocks concurrent launcher work and always releases busy state',async()=>{
  const h=harness();let release!:()=>void;
  try{
@@ -364,6 +400,23 @@ test('a new registration preserves its Desktop backup if secure storage fails af
   assert.ok(text.includes('BackupBeforeSave'));
   assert.ok(extractAccountKey(text));
   await hx.c.shutdown();
+});
+
+
+test('a new registration still backs up its key when a different temporary account occupies the slot',async()=>{
+  const desktop=temp('desktop-register-session-');
+  const hx=harness(RELAY_PORT,undefined,undefined,undefined,undefined,undefined,undefined,undefined,{hostPlatform:'linux',desktopDir:desktop,encryptor:{isAvailable:()=>false,encrypt:()=>{throw Error('locked');},decrypt:()=>{throw Error('locked');}}});
+  try{
+    const temporary='UUK_'+'98'.repeat(24);meta.users.set(temporary,{username:'Temporary',id:'UID-temporary'});
+    await hx.c.init();await hx.c.submitInvite(invite(cert.fingerprint));
+    assert.deepEqual(await hx.c.useExistingKey(temporary,true),{ok:true});
+    meta.opts.validCodes?.add(''); // A realm that allows registration without another invite.
+    assert.deepEqual(await hx.c.register('NewWhileSession'),{ok:false,error:{code:'key_storage_unavailable'}});
+    const names=await fs.readdir(desktop);assert.equal(names.length,1);
+    const backup=await fs.readFile(path.join(desktop,names[0]),'utf8');
+    assert.ok(backup.includes('NewWhileSession'));assert.ok(extractAccountKey(backup));
+    assert.notEqual(extractAccountKey(backup),temporary);
+  }finally{meta.opts.validCodes?.delete('');await hx.c.shutdown();}
 });
 
 

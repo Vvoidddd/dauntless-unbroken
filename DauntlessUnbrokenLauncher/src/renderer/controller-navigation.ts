@@ -89,7 +89,7 @@ export function installControllerNavigation(){
   const list=controls(),el=current(list);
   if(action==='confirm'){
    if(!el)return;focus(el);
-   if((el instanceof HTMLInputElement||el instanceof HTMLTextAreaElement)&&!el.readOnly)keyboard(el);else el.click();
+   if((el instanceof HTMLTextAreaElement||(el instanceof HTMLInputElement&&['text','password','search','email','url','tel','number'].includes(el.type)))&&!el.readOnly)keyboard(el);else el.click();
   }else if(action==='back'){
    if(!key('Escape'))document.querySelector<HTMLElement>('[data-fk="nav-play"]')?.click();
   }else if(action==='previous'||action==='next'){

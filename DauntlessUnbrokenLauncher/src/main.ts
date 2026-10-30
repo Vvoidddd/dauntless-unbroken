@@ -478,13 +478,14 @@ function registerIpc(c: Controller): void {
     const s = boundedString(username, 32);
     return s === null ? { ok: false, error: { code: "username_invalid" } } : c.register(s);
   });
-  handle(IPC.useExistingKey, (_e, text) => {
+  handle(IPC.useExistingKey, (_e, text, sessionOnly) => {
     const s = boundedString(text, 8192);
-    return s === null ? { ok: false, error: { code: "key_invalid" } } : c.useExistingKey(s);
+    return s === null ? { ok: false, error: { code: "key_invalid" } } : c.useExistingKey(s,sessionOnly===true);
   });
-  handle(IPC.importKeyFile, () => c.importKeyFile());
+  handle(IPC.listKeyBackups, () => c.listKeyBackups());
+  handle(IPC.importKeyFile, (_e,id,sessionOnly) => id === undefined || typeof id === "string" ? c.importKeyFile(id,sessionOnly===true) : {ok:false,error:{code:"key_invalid"}});
   // Explicit import action: parse/verify in the main process; never expose clipboard keys to the renderer.
-  handle(IPC.importKeyClipboard, () => c.useExistingKey(clipboard.readText()));
+  handle(IPC.importKeyClipboard, (_e,sessionOnly) => c.useExistingKey(clipboard.readText(),sessionOnly===true));
   handle(IPC.saveKeyBackup, () => c.saveKeyBackup());
   handle(IPC.locateKeyBackup, () => c.locateKeyBackup());
   handle(IPC.dismissBackupOffer, () => c.dismissBackupOffer());
@@ -572,6 +573,7 @@ function makePlatform(): Platform {
     userDataDir: app.getPath("userData"),
     documentsDir: app.getPath("documents"),
     desktopDir: app.getPath("desktop"),
+    backupSearchDirs: [app.getPath("desktop"),app.getPath("downloads"),app.getPath("documents"),path.join(app.getPath("documents"),"Dauntless Unbroken","Account Keys")],
     findExistingGames: async () => {
       const home = app.getPath("home");
       const drives = await fixedGameDrives();
