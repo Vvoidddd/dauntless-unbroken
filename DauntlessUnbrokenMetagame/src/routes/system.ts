@@ -21,6 +21,17 @@ import { RecordPlaytimeBeat } from "../controllers/playtime";
 
 export const systemRouter = Router();
 
+// Local 1.10.5 protocol fixture: only the explicitly selected fresh test account.
+// Existing player saves must not be reported as migrated by this no-op fixture.
+function Local1105Migration(req: any, res: any, next: any) {
+    const account = process.env.LOCAL_1105_ACCOUNT_ID;
+    if (!account || process.env.BIND_HOST !== '127.0.0.1') { next('route'); return; }
+    if (req.AuthData.userId !== account) { res.sendStatus(403); return; }
+    res.json({ migration_finished: true, migration_failed: false });
+}
+systemRouter.post('/migration/trigger', HasDauntlessUnbrokenMetagameAuth, Local1105Migration);
+systemRouter.get('/migration/status', HasDauntlessUnbrokenMetagameAuth, Local1105Migration);
+
 // Replies for routes that 404'd since upstream, where the client binary shows an
 // empty answer is harmless. MISC_ROUTES=0 puts the 404s back.
 function MiscRoutesOn(req: any, res: any, next: any){

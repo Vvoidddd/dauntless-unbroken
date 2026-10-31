@@ -174,7 +174,8 @@ matchmakingRouter.get("/candidate/status", HasDauntlessUnbrokenMetagameAuth, asy
                 huntId: MatchmakingResult.HuntId,
                 playerStates: PlayerStatesOf(MatchmakingResult),
                 serverInfo: {
-                    buildId: TARGET_CHANGELIST + "_1.4.4_shipping", // TODO: pull the end of the buildstring from somewhere nonstatic
+                    buildId: process.env.LOCAL_1105_ACCOUNT_ID === UserId && process.env.BIND_HOST === '127.0.0.1'
+                        ? '365075_rel-1.10.5_shipping' : TARGET_CHANGELIST + "_1.4.4_shipping",
                     gameSessionId: GameSessionForCandidate(MatchmakingResult),
                     host: MatchmakingResult.Host,
                     port: MatchmakingResult.Port

@@ -1,0 +1,27 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations"><ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration></ItemGroup>
+  <PropertyGroup Label="Globals"><ProjectGuid>{9B27317C-78F8-4A5B-9EB1-75D5AFA217E8}</ProjectGuid><WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration"><ConfigurationType>DynamicLibrary</ConfigurationType><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+  <PropertyGroup><SdkRoot>$(ProjectDir)..\..\..\sdk\4.26.2-365075+++dauntless+rel-1.10.5-Archon\CppSDK</SdkRoot></PropertyGroup>
+  <PropertyGroup><OutDir>$(ProjectDir)bin\</OutDir><IntDir>$(ProjectDir)obj\</IntDir><TargetName>DauntlessUnbroken</TargetName></PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile><LanguageStandard>stdcpp20</LanguageStandard><RuntimeLibrary>MultiThreaded</RuntimeLibrary><Optimization>MaxSpeed</Optimization><AdditionalIncludeDirectories>$(SdkRoot);$(ProjectDir)..\..\DauntlessUnbrokenInternalServer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories></ClCompile>
+    <Link><AdditionalDependencies>bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies><GenerateDebugInformation>true</GenerateDebugInformation></Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="bootstrap.cpp" />
+    <ClCompile Include="$(SdkRoot)\SDK\Basic.cpp" />
+    <ClCompile Include="$(SdkRoot)\SDK\CoreUObject_functions.cpp" />
+    <ClCompile Include="$(SdkRoot)\SDK\Engine_functions.cpp" />
+    <MASM Include="journey-guard.asm" />
+    <ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\buffer.c" />
+    <ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\hook.c" />
+    <ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\trampoline.c" />
+    <ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\hde\hde64.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+</Project>
