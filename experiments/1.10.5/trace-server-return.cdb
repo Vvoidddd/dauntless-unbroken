@@ -1,0 +1,3 @@
+bp Dauntless_Win64_Shipping+0x1b5fc70 ".echo LAB_SERVER_RETURN;dq @rdx L3;dq poi(@rdx) L8;kp 16;gc"
+bp Dauntless_Win64_Shipping+0x189b6ef ".echo LAB_BOUNTY_REASON;du poi(@rax) L100;kp 10;gc"
+g

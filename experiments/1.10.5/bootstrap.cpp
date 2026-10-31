@@ -25,6 +25,22 @@ static void Note(const char* text) {
     FlushFileBuffers(Log);
 }
 struct FString { wchar_t* Data; int Count; int Capacity; };
+static wchar_t ServerKey[65];
+static bool (*OriginalProcessRequest)(void*);
+static bool ProcessRequest(void* request) {
+    // Exact-build FCurlHttpRequest URL. The trailing slash prevents matching a
+    // different authority such as 127.0.0.1:62000.example.org. No key leaves the lab.
+    const auto& url = *reinterpret_cast<const FString*>(reinterpret_cast<uintptr_t>(request)+0x70);
+    constexpr wchar_t prefix[] = L"http://127.0.0.1:62000/";
+    constexpr size_t length = (sizeof(prefix)/sizeof(wchar_t))-1;
+    if (url.Data && url.Count > length && url.Count <= 16384 && wmemcmp(url.Data, prefix, length) == 0) {
+        wchar_t headerText[] = L"x-dauntless-unbroken-gameserver-apikey";
+        FString header{headerText, static_cast<int>(sizeof(headerText)/sizeof(wchar_t)), static_cast<int>(sizeof(headerText)/sizeof(wchar_t))};
+        FString key{ServerKey, 65, 65};
+        reinterpret_cast<void(*)(void*,const FString*,const FString*)>(Base+0x30c7990)(request, &header, &key);
+    }
+    return OriginalProcessRequest(request);
+}
 static void SetString(FString* out, const std::wstring& text) {
     auto realloc = reinterpret_cast<void*(*)(void*, size_t, uint32_t)>(Base + 0x23808d0);
     auto data = static_cast<wchar_t*>(realloc(out->Data, (text.size() + 1) * sizeof(wchar_t), 0));
@@ -57,7 +73,7 @@ static const wchar_t* (*OriginalCommandLine)();
 static int (*OriginalNetMode)(void*);
 static int DedicatedNetMode(void*) { return 1; }
 static const wchar_t* ServerCommandLine() {
-    return L"Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -EpicPortal -NoEAC -RepDriverDisable -MULTIHOME=127.0.0.1 -port=62770 -CULTURE=en-US -UserDir=C:/dr/build-1.10.5-20261030/profile/ -SaveToUserDir";
+    return L"Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -EpicPortal -NoEAC -MULTIHOME=127.0.0.1 -port=62770 -CULTURE=en-US -UserDir=C:/dr/build-1.10.5-20261030/profile/ -SaveToUserDir";
 }
 static FString* DefaultMap(FString* out) {
     auto result = OriginalMap(out);
@@ -67,8 +83,26 @@ static FString* DefaultMap(FString* out) {
     return result;
 }
 static void (*OriginalTick)(void*, float, char);
+static void (*OriginalTickFlush)(SDK::UNetDriver*, float);
+static void TickFlush(SDK::UNetDriver* driver, float delta) {
+    // WindowsClient TickFlush retains dispatch/flush but omits server replication.
+    // Use this build's intact Archon graph; do not also run the old manual actor loop.
+    auto* graph = driver->ReplicationDriver;
+    if (graph && !driver->ServerConnection && driver->ClientConnections.Num() > 0) {
+        const auto replicate = (*reinterpret_cast<uintptr_t**>(graph))[0x2f8/8];
+        if (replicate == Base+0x1a85e40)
+            reinterpret_cast<int(*)(SDK::UReplicationDriver*,float)>(replicate)(graph, delta);
+    }
+    OriginalTickFlush(driver, delta);
+}
 extern "C" bool LocalListen(SDK::UWorld* world, SDK::FURL* requested) {
     if (!world || world->GetName() != "ramsgate_01_persistent") return false;
+    const int active = *reinterpret_cast<int*>(reinterpret_cast<uintptr_t>(world)+0x158);
+    if (active < 0 || active >= world->LevelCollections.Num() || world->LevelCollections.Num() > 16) return false;
+    auto& collection = world->LevelCollections[active];
+    // SetActiveLevelCollection restores these pointers on every collection switch.
+    // Only the dynamic source collection owns this server's gameplay driver.
+    if (collection.Pad_0[0] != 0 || collection.PersistentLevel != world->PersistentLevel) return false;
     auto* engine = SDK::UEngine::GetEngine();
     if (!engine) return false;
     const auto name = SDK::UKismetStringLibrary::Conv_StringToName(L"GameNetDriver");
@@ -99,7 +133,12 @@ extern "C" bool LocalListen(SDK::UWorld* world, SDK::FURL* requested) {
             const bool listening = reinterpret_cast<bool(*)(SDK::UNetDriver*,void*,SDK::FURL*,bool,SDK::FString*)>(table[0x290/8])(
                 driver, reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(world)+0x28), &url, false, &error);
             sprintf_s(line, "listen=%d port=%d error=%s\n", listening, url.Port, error.ToString().c_str()); Note(line);
-            if (listening) { setWorld(driver, world); world->NetDriver = driver; }
+            if (listening) {
+                collection.NetDriver = driver;
+                setWorld(driver, world);
+                world->NetDriver = driver;
+                sprintf_s(line, "listen_world=%p collection=%d driver=%p\n", world, active, driver); Note(line);
+            }
             return listening;
         }
     }
@@ -112,7 +151,10 @@ static void Tick(void* self, float delta, char render) {
         next = GetTickCount64() + 5000;
         char line[256];
         auto* world = SDK::UWorld::GetWorld();
-        sprintf_s(line, "engine_tick world=%p name=%s flags=%u/%u\n", world, world ? world->GetName().c_str() : "none",
+        auto* driver = world ? world->NetDriver : nullptr;
+        sprintf_s(line, "engine_tick world=%p name=%s driver=%p graph=%p clients=%d frame=%u flags=%u/%u\n", world, world ? world->GetName().c_str() : "none", driver,
+                  driver ? driver->ReplicationDriver : nullptr, driver ? driver->ClientConnections.Num() : 0,
+                  driver ? *reinterpret_cast<unsigned*>(reinterpret_cast<uintptr_t>(driver)+0x418) : 0,
                   *reinterpret_cast<unsigned char*>(Base+0x6af8eda), *reinterpret_cast<unsigned char*>(Base+0x6af8ed9));
         Note(line);
     }
@@ -172,6 +214,13 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     JourneyFailure = reinterpret_cast<void*>(Base + 0x192a71a);
     if (!Hook(0x192a6b8, JourneyGuard, &JourneyContinue)) Fail("journey_guard_failed\n");
     if (Server) {
+        if (GetEnvironmentVariableW(L"DR_1105_GAMESERVER_KEY", ServerKey, 65) != 64 ||
+            wcsspn(ServerKey, L"0123456789abcdef") != 64) Fail("missing_local_server_credential\n");
+        const unsigned char processBytes[] = {0x40,0x55,0x53,0x41,0x54,0x41,0x56,0x41,0x57,0x48,0x8d,0x6c,0x24,0xc9,0x48,0x81,0xec,0xd0,0x00,0x00,0x00};
+        const unsigned char headerBytes[] = {0x48,0x83,0xec,0x38,0x83,0xb9,0xc4,0x00,0x00,0x00,0x01,0x0f,0x85,0xf6,0x00,0x00,0x00};
+        if (memcmp(reinterpret_cast<void*>(Base+0x30c4210), processBytes, sizeof(processBytes)) ||
+            memcmp(reinterpret_cast<void*>(Base+0x30c7990), headerBytes, sizeof(headerBytes))) Fail("http_auth_bytes_mismatch\n");
+        if (!Hook(0x30c4210, ProcessRequest, reinterpret_cast<void**>(&OriginalProcessRequest))) Fail("http_auth_hook_failed\n");
         // The WindowsClient build compiles UWorld::Listen to a false-return stub.
         const unsigned char listenCall[] = {0xe8,0xd3,0x3d,0x9c,0xfc};
         if (memcmp(reinterpret_cast<void*>(Base+0x400bc38), listenCall, 5)) Fail("listen_call_bytes_mismatch\n");
@@ -181,6 +230,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
         if (!Hook(0x23ff650, ServerCommandLine, reinterpret_cast<void**>(&OriginalCommandLine)) ||
             !Hook(0x4063fc0, DedicatedNetMode, reinterpret_cast<void**>(&OriginalNetMode)) ||
             !Hook(0x2cf1100, DefaultMap, reinterpret_cast<void**>(&OriginalMap)) ||
+            !Hook(0x3d48950, TickFlush, reinterpret_cast<void**>(&OriginalTickFlush)) ||
             !Hook(0x3bc2f20, Tick, reinterpret_cast<void**>(&OriginalTick))) Fail("server_hook_failed\n");
         *reinterpret_cast<uint8_t*>(Base + 0x6af8eda) = 1;
         *reinterpret_cast<uint8_t*>(Base + 0x6af8ed9) = 0;

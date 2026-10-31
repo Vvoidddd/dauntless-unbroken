@@ -1,0 +1,6 @@
+bp Dauntless_Win64_Shipping+0x3ff41d0 ".echo LAB_BROWSE;du poi(@r8+0x10) L80;dd @r8+0x20 L2;du poi(@r8+0x28) L100;kp 12;gc"
+bp Dauntless_Win64_Shipping+0x41a76b8 ".echo LAB_RETURN_STRING;du poi(@rdx) L100;kp 12;gc"
+bp Dauntless_Win64_Shipping+0x41a7753 ".echo LAB_RETURN_TEXT;dq @rdx L3;kp 12;gc"
+bp Dauntless_Win64_Shipping+0x213c7c8 ".echo LAB_ARCHON_RETURN;dq @rdx L3;kp 12;gc"
+bp Dauntless_Win64_Shipping+0x189b90b ".echo LAB_SERVER_ERROR;dq @rdx L3;kp 12;gc"
+g

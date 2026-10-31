@@ -19,6 +19,12 @@ async function main() {
         fs.writeFileSync(secretsFile, JSON.stringify(pair), { flag: 'wx' });
     }
     const pair = JSON.parse(fs.readFileSync(secretsFile));
+    if (!pair.gameserverKey) {
+        pair.gameserverKey = crypto.randomBytes(32).toString('hex');
+        fs.writeFileSync(secretsFile + '.tmp', JSON.stringify(pair), { flag: 'wx' });
+        fs.renameSync(secretsFile + '.tmp', secretsFile);
+    }
+    if (!/^[a-f0-9]{64}$/.test(pair.gameserverKey)) throw new Error('Invalid local server credential');
     const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => /^(PATH|SYSTEMROOT|WINDIR|TEMP|TMP|USERPROFILE|LOCALAPPDATA|APPDATA)$/i.test(key)));
     Object.assign(env, { NODE_ENV: 'production', PORT: '62000', BIND_HOST: '127.0.0.1',
         AUTH_MODE: 'APIKEY', REGISTRATION_MODE: 'OPEN', DB_FILENAME: path.join(state, 'synthetic.db'),
@@ -40,6 +46,12 @@ async function main() {
         await new Promise(r => setTimeout(r, 250));
     }
     if (!ready) { child.kill(); throw new Error('Local backend did not become ready; inspect backend.log'); }
+    const Database = require('../../DauntlessUnbrokenMetagame/node_modules/better-sqlite3');
+    const db = new Database(path.join(state, 'synthetic.db'), { timeout: 5000 });
+    try {
+        const hash = crypto.createHash('sha256').update(pair.gameserverKey).digest('hex');
+        db.prepare('INSERT INTO gameserverapikeys(keyHash) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM gameserverapikeys WHERE keyHash=?)').run(hash, hash);
+    } finally { db.close(); }
     const accountFile = path.join(state, 'test-account.json');
     if (!fs.existsSync(accountFile)) {
         const response = await fetch('http://127.0.0.1:62000/unbroken/api/Register', {

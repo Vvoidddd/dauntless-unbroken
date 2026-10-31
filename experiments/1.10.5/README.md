@@ -2,6 +2,8 @@
 
 Work in progress on branch `1.10.5`. This is not a release or a replacement for the 1.4.4 fleet.
 
+Paused at the user's request after the local client repeatedly returned to the main menu following the first cutscene. This checkpoint is not playable. The isolated client, server, backend and allocator have been stopped; resume them explicitly with the commands below.
+
 Validated locally on October 30, 2026:
 
 - All 606 client files verified against build 365075's manifest.
@@ -9,8 +11,11 @@ Validated locally on October 30, 2026:
 - Dedicated Ramsgate world remains loaded and listens on `127.0.0.1:62770`.
 - A synthetic `Local1105` account signs in against the loopback backend.
 - The client passes the new data-migration response and reaches matchmaking.
+- A real client connected to Ramsgate and advanced the native replication graph, then received a server-origin return-to-menu command during loading.
 
 Still incomplete: joining/possession/replication, playable hunts, 1.10.5 progression and inventory contracts, and migration of existing player saves. The local allocator intentionally sends the synthetic account to the existing Ramsgate world even for a tutorial request, solely to test network entry. It is not a hunt allocator.
+
+The Bounty config is currently a disabled-board fixture. Journey reads return empty progress only for the synthetic account; writes are not acknowledged. Neither is a completed progression implementation or a save migration.
 
 ## Isolation
 
@@ -45,18 +50,28 @@ node experiments/1.10.5/local-deploy.cjs
 node experiments/1.10.5/start-client.cjs --debug
 ```
 
+For the unresolved return, add `--trace-travel` to the client command. Attach CDB to the isolated server PID with `-cf experiments/1.10.5/trace-server-return.cdb` to capture the initiating call stack. Run CDB from this checkout so that relative command-file path resolves. Trace logs must remain outside Git.
+
+The last server trace hit `UBountyComponent::ReturnToMainMenu` at RVA `0x189B6EF`, with the rendered reason `An error occurred. Please try again later.`, followed by Archon's return implementation at `0x1B5FC70` and the client RPC. This identifies the observed Bounty failure path; the failed underlying request/contract still needs investigation. Do not suppress the return or claim progression is working. `POST /pjm/:accountId` also remains unimplemented; its callback treats a completed HTTP transport as success even for a 404, so Journey persistence needs its own implementation and checks.
+
 The backend creates a fresh test account and private signing keys when absent. This checkpoint's fixture account ID is pinned to the original lab account; a new lab database requires updating `LOCAL_1105_ACCOUNT_ID`, the allocator whitelist and the check together. Never use a real player's ID to make migration appear successful. CDB is optional unless `--debug` is supplied; debug output can contain local credentials and must stay outside Git.
 
 Contract check against the running local backend:
 
 ```powershell
 node experiments/1.10.5/check-local-backend.cjs
+./experiments/1.10.5/check-local-server.ps1
+# After an actual client connection:
+./experiments/1.10.5/check-local-server.ps1 -RequireConnection
 ```
 
 ## Native findings
 
 - Early engine startup overwrites `GIsServer/GIsClient`. Setting the globals only in `DllMain` caused repeated world loading. Exact-build guarded startup patches keep dedicated flags stable.
 - `UWorld::Listen` is a false-return stub in this WindowsClient build. The hook replaces only the LoadMap call site, creates the named net driver and calls the verified `IpNetDriver::InitListen`; successful UDP binding is checked independently.
+- The dynamic source level collection must also own the driver. `SetActiveLevelCollection` (`0x40712D0`) copies its driver back to `UWorld::NetDriver`; assigning the world alone was undone by the next collection switch.
+- The lab server config enables `/Script/Archon.ArchonReplicationGraph`. Native InitListen creates it and SetWorld registers dispatch/flush delegates. WindowsClient TickFlush omits server replication, so the hook invokes the verified Archon graph once before native flush when a client is connected; it does not duplicate dispatch or the old manual actor loop.
+- Server HTTP requests need the existing backend's game-server API-key header. The server-only Curl hook verifies exact build bytes and attaches a fresh lab-only credential solely to `http://127.0.0.1:62000/` URLs. Credentials remain outside Git. Backend authentication is not bypassed.
 - `UPlayerJourneyComponent::OnQueryPlayerJourneyDataComplete` dereferences a null HTTP response at RVA `0x192a6bb`. The assembly guard enters the existing failure/cleanup path instead of returning past shared-pointer cleanup. It compiles; a forced-null runtime regression is still pending.
 - 1.10.5 adds `/migration/trigger` (POST) and `/migration/status` (GET). Its response parser requires top-level boolean `migration_finished` and `migration_failed`. The older 167-endpoint map omitted these keys. The generator now incorporates packaged Phoenix endpoint keys and redirects them to loopback.
 - Broad substring matching of MCP `Domain`/`Protocol` keys also changed URL paths and WebSocket schemes. The experiment matches exact keys and preserves `ws` for the STOMP transport. Chat/STOMP services are not implemented in this lab.

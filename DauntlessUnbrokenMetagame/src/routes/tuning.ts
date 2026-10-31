@@ -5,6 +5,20 @@ import { TrialIdForWeek, TrialWeekAt, TrialsWindowForWeek } from "../controllers
 
 export const tuningRouter = Router();
 
+// Disabled boards for the isolated fresh 1.10.5 account, not playable bounty
+// content. These are the native config constructor defaults (serializer 0x189F4B0).
+tuningRouter.get(['/game_tuning/bounty_game_data', '/game_tuning/bounty_game_data_daily', '/game_tuning/bounty_game_data_weekly'], (_req, res, next) => {
+    if (!process.env.LOCAL_1105_ACCOUNT_ID || process.env.BIND_HOST !== '127.0.0.1') { next('route'); return; }
+    res.json({ code: '', message: 'OK', payload: {
+        max_slots: 0, num_draft_options: 0, num_spicy_options: 0,
+        bounty_token_id: '', premium_bounty_token_id: '', num_tokens_hp_start: 0,
+        history_length: 0, bronze_count: 0, silver_count: 0, gold_count: 0,
+        new_season_reset_bounties: false, bounty_data: [], item_grant_data: [],
+        token_rollover_warning_days: 0, automatic_draft: false,
+        automatic_claim: false, delete_claimed_bounties: true
+    } });
+});
+
 type ScheduledItem = {
     ID: string,
     MaxCompletionPerInterval: number
