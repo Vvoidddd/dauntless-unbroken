@@ -1,31 +1,31 @@
-# Dauntless Unbroken 1.10.5 local server experiment
+# Dauntless Unbroken — 1.10.5
 
-Work in progress on branch `1.10.5`. This is not a release or a replacement for the 1.4.4 fleet.
+I'm working on getting 1.10.5 running for Unbroken. Everything here is being tested locally on my PC, on its own `1.10.5` branch. The live servers are still on 1.4.4.
 
-Paused at the user's request after the local client repeatedly returned to the main menu following the first cutscene. This checkpoint is not playable. The isolated client, server, backend and allocator have been stopped; resume them explicitly with the commands below.
+I've paused this for now. Login and matchmaking work, but the game still kicks back to the main menu after the first cutscene, so it isn't ready to play yet. The local test services are stopped.
 
-Validated locally on October 30, 2026:
+What I've got working so far:
 
 - All 606 client files verified against build 365075's manifest.
 - Fresh SDK generated from UE 4.26.2, changelist 365075.
 - Dedicated Ramsgate world remains loaded and listens on `127.0.0.1:62770`.
-- A synthetic `Local1105` account signs in against the loopback backend.
+- A separate `Local1105` test account can sign in to the local backend.
 - The client passes the new data-migration response and reaches matchmaking.
 - A real client connected to Ramsgate and advanced the native replication graph, then received a server-origin return-to-menu command during loading.
 
-Still incomplete: joining/possession/replication, playable hunts, 1.10.5 progression and inventory contracts, and migration of existing player saves. The local allocator intentionally sends the synthetic account to the existing Ramsgate world even for a tutorial request, solely to test network entry. It is not a hunt allocator.
+Still to do: finish loading into Ramsgate with a controllable character, get hunts working, sort out the 1.10.5 inventory and progression data, and handle existing player saves. Right now every local matchmaking request goes to the same Ramsgate instance, including tutorial requests. That's just for testing the connection.
 
-The Bounty config is currently a disabled-board fixture. Journey reads return empty progress only for the synthetic account; writes are not acknowledged. Neither is a completed progression implementation or a save migration.
+Bounties and Slayer's Path aren't finished. Bounty boards are disabled in this test, and Journey reads return empty progress for the test account. Journey writes aren't implemented yet. Existing player saves haven't been migrated.
 
-## Isolation
+## Test setup
 
-This checkpoint is deliberately locked to `C:\dr\build-1.10.5-20261030`. The checkout is its `repo` subdirectory. The DLL requires `DR_1105_LOCAL_LAB=1`, that exact game path, and the executable SHA-256 below. A different binary must be analyzed before changing offsets.
+My test folder is `C:\dr\build-1.10.5-20261030`, with the source in `repo`. The DLL checks `DR_1105_LOCAL_LAB=1`, that exact game path, and the executable SHA-256 below. These offsets are only for this build.
 
 `41c3b9a92967b3a35f3bc6b97613e93d9901c7701bd47e9f09e0c241c9cf78fd`
 
-Game files, generated SDK, account keys, databases, logs and compiled experiment binaries are not committed. Live server configuration and saves are not used. The migration response is a no-op fixture restricted by `LOCAL_1105_ACCOUNT_ID` to the fresh synthetic test account; it does not convert player saves.
+Game files, the generated SDK, keys, databases, logs and compiled test binaries stay out of Git. This setup uses its own configuration and test account. The migration response is currently a placeholder limited to `LOCAL_1105_ACCOUNT_ID`; it doesn't convert anyone's save.
 
-## Local prerequisites and commands
+## Building and running locally
 
 Use the verified `Dauntless_1.10.5.365075.manifest` (SHA-1 `a31648745d9e41016aaa6ed9a16d1eabab85ec7d`) from [DauntlessManifestArchive](https://github.com/addison2k/DauntlessManifestArchive/blob/main/manifests/Windows/Dauntless_1.10.5.365075.manifest). Obtain the client separately. Place it under the lab's `game` directory, and its extracted `DefaultGame.ini` under `extracted-config`. Generate the SDK from this exact build using Dumper-7; the project expects `sdk/4.26.2-365075+++dauntless+rel-1.10.5-Archon/CppSDK` beside `repo`.
 
@@ -52,11 +52,11 @@ node experiments/1.10.5/start-client.cjs --debug
 
 For the unresolved return, add `--trace-travel` to the client command. Attach CDB to the isolated server PID with `-cf experiments/1.10.5/trace-server-return.cdb` to capture the initiating call stack. Run CDB from this checkout so that relative command-file path resolves. Trace logs must remain outside Git.
 
-The last server trace hit `UBountyComponent::ReturnToMainMenu` at RVA `0x189B6EF`, with the rendered reason `An error occurred. Please try again later.`, followed by Archon's return implementation at `0x1B5FC70` and the client RPC. This identifies the observed Bounty failure path; the failed underlying request/contract still needs investigation. Do not suppress the return or claim progression is working. `POST /pjm/:accountId` also remains unimplemented; its callback treats a completed HTTP transport as success even for a 404, so Journey persistence needs its own implementation and checks.
+The last trace caught the server calling `UBountyComponent::ReturnToMainMenu` at RVA `0x189B6EF`, with `An error occurred. Please try again later.`, then Archon's return at `0x1B5FC70` and the client RPC. That's where I'll pick this back up: find out which Bounty request is failing. `POST /pjm/:accountId` also needs implementing. Its callback treats a completed HTTP request as success even when the response is 404, so Journey saves need a proper check too.
 
-The backend creates a fresh test account and private signing keys when absent. This checkpoint's fixture account ID is pinned to the original lab account; a new lab database requires updating `LOCAL_1105_ACCOUNT_ID`, the allocator whitelist and the check together. Never use a real player's ID to make migration appear successful. CDB is optional unless `--debug` is supplied; debug output can contain local credentials and must stay outside Git.
+The backend creates a test account and private signing keys if they don't exist. The account ID is pinned to my original test account. If you start with a new test database, update `LOCAL_1105_ACCOUNT_ID`, the allocator whitelist and the check together, using only a test account. CDB is only needed with `--debug`. Debug output can include credentials, so keep those logs out of Git.
 
-Contract check against the running local backend:
+Checks to run with the local services up:
 
 ```powershell
 node experiments/1.10.5/check-local-backend.cjs
@@ -65,7 +65,7 @@ node experiments/1.10.5/check-local-backend.cjs
 ./experiments/1.10.5/check-local-server.ps1 -RequireConnection
 ```
 
-## Native findings
+## Notes for continuing the port
 
 - Early engine startup overwrites `GIsServer/GIsClient`. Setting the globals only in `DllMain` caused repeated world loading. Exact-build guarded startup patches keep dedicated flags stable.
 - `UWorld::Listen` is a false-return stub in this WindowsClient build. The hook replaces only the LoadMap call site, creates the named net driver and calls the verified `IpNetDriver::InitListen`; successful UDP binding is checked independently.
