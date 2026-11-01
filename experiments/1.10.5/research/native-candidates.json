@@ -1,0 +1,260 @@
+{
+  "Realloc": {
+    "oldRva": "0x1c8ee00",
+    "newCandidates": [
+      "0x23808d0"
+    ],
+    "bytes": 48,
+    "oldMatches": [
+      "0x1c8ee00"
+    ],
+    "verified": false
+  },
+  "ConfigGetString": {
+    "oldRva": "0x1d09d50",
+    "newCandidates": [
+      "0x2401e10"
+    ],
+    "bytes": 49,
+    "oldMatches": [
+      "0x1d09d50"
+    ],
+    "verified": false
+  },
+  "DefaultMap": {
+    "oldRva": "0x25a37c0",
+    "newCandidates": [
+      "0x2cf1100"
+    ],
+    "bytes": 39,
+    "oldMatches": [
+      "0x25a37c0"
+    ],
+    "verified": false
+  },
+  "CommandLine": {
+    "oldRva": "0x1d06d40",
+    "newCandidates": [
+      "0x23ff650"
+    ],
+    "bytes": 49,
+    "oldMatches": [
+      "0x1d06d40"
+    ],
+    "verified": false
+  },
+  "ServerBootCrash": {
+    "oldRva": "0x2e4d7f0",
+    "newCandidates": [],
+    "bytes": 0,
+    "oldMatches": [],
+    "verified": false
+  },
+  "EncounterSetup": {
+    "oldRva": "0x1658f90",
+    "newCandidates": [
+      "0x1b71fe0"
+    ],
+    "bytes": 52,
+    "oldMatches": [
+      "0x1658f90"
+    ],
+    "verified": false
+  },
+  "GameEngineTick": {
+    "oldRva": "0x3307100",
+    "newCandidates": [
+      "0x3bc2f20"
+    ],
+    "bytes": 50,
+    "oldMatches": [
+      "0x3307100"
+    ],
+    "verified": false
+  },
+  "FixupNetworkNotify": {
+    "oldRva": "0x820120",
+    "newCandidates": [],
+    "bytes": 0,
+    "oldMatches": [],
+    "verified": false
+  },
+  "HttpProcessRequest": {
+    "oldRva": "0x28a76c0",
+    "newCandidates": [],
+    "bytes": 0,
+    "oldMatches": [],
+    "verified": false
+  },
+  "CombatText": {
+    "oldRva": "0x1390300",
+    "newCandidates": [],
+    "bytes": 0,
+    "oldMatches": [],
+    "verified": false
+  },
+  "PostLogin": {
+    "oldRva": "0x14b7460",
+    "newCandidates": [
+      "0x196f330"
+    ],
+    "bytes": 48,
+    "oldMatches": [
+      "0x14b7460"
+    ],
+    "verified": false
+  },
+  "HasFinishedLoading": {
+    "oldRva": "0x1528000",
+    "newCandidates": [
+      "0x1a32d90"
+    ],
+    "bytes": 50,
+    "oldMatches": [
+      "0x1528000"
+    ],
+    "verified": false
+  },
+  "IsNetReady": {
+    "oldRva": "0x347e110",
+    "newCandidates": [
+      "0x3d41be0"
+    ],
+    "bytes": 32,
+    "oldMatches": [
+      "0x347e110"
+    ],
+    "verified": false
+  },
+  "SetReplicationDriver": {
+    "oldRva": "0x3491720",
+    "newCandidates": [
+      "0x3d55af0"
+    ],
+    "bytes": 48,
+    "oldMatches": [
+      "0x3491720"
+    ],
+    "verified": false
+  },
+  "GetNetDriverInternal": {
+    "oldRva": "0x3078af0",
+    "newCandidates": [
+      "0x391cf50"
+    ],
+    "bytes": 48,
+    "oldMatches": [
+      "0x3078af0"
+    ],
+    "verified": false
+  },
+  "IsLevelInitialized": {
+    "oldRva": "0x3458780",
+    "newCandidates": [],
+    "bytes": 0,
+    "oldMatches": [],
+    "verified": false
+  },
+  "StartSpot": {
+    "oldRva": "0x1368660",
+    "newCandidates": [
+      "0x18008a0"
+    ],
+    "bytes": 48,
+    "oldMatches": [
+      "0x1368660"
+    ],
+    "verified": false
+  },
+  "ProcessEvent": {
+    "oldRva": "0x1f61820",
+    "newCandidates": [
+      "0x266ec40"
+    ],
+    "bytes": 48,
+    "oldMatches": [
+      "0x1f61820"
+    ],
+    "verified": false
+  },
+  "NetMode": {
+    "oldRva": "0x378bda0",
+    "newCandidates": [
+      "0x4063fc0"
+    ],
+    "bytes": 33,
+    "oldMatches": [
+      "0x378bda0"
+    ],
+    "verified": false
+  },
+  "GetEscalationSeason": {
+    "oldRva": "0x14f2a30",
+    "newCandidates": [
+      "0x19f3320"
+    ],
+    "bytes": 50,
+    "oldMatches": [
+      "0x14f2a30"
+    ],
+    "verified": false
+  },
+  "ActorPreReplication": {
+    "oldRva": "0x306b150",
+    "newCandidates": [],
+    "bytes": 0,
+    "oldMatches": [],
+    "verified": false
+  },
+  "CreateNamedNetDriver": {
+    "oldRva": "0x371a5e0",
+    "newCandidates": [
+      "0x3ff8ff0",
+      "0x3ff9060"
+    ],
+    "bytes": 53,
+    "oldMatches": [
+      "0x371a570",
+      "0x371a5e0"
+    ],
+    "verified": false
+  },
+  "SetWorld": {
+    "oldRva": "0x3491890",
+    "newCandidates": [],
+    "bytes": 0,
+    "oldMatches": [],
+    "verified": false
+  },
+  "GIsClientAssignment": {
+    "oldRva": "0x7961a9",
+    "newCandidates": [
+      "0x9dc83c"
+    ],
+    "bytes": 50,
+    "oldMatches": [
+      "0x7961a9"
+    ],
+    "verified": false
+  },
+  "ListenCheck": {
+    "oldRva": "0x372e746",
+    "newCandidates": [
+      "0x400bc38",
+      "0x401874f"
+    ],
+    "bytes": 29,
+    "oldMatches": [
+      "0x372e746",
+      "0x373f9ff"
+    ],
+    "verified": false
+  },
+  "RamsgateCrash": {
+    "oldRva": "0x1346a98",
+    "newCandidates": [],
+    "bytes": 0,
+    "oldMatches": [],
+    "verified": false
+  }
+}

@@ -1,0 +1,4 @@
+bp Dauntless_Win64_Shipping+0xe17c20 ".echo LAB_TRACK_LOOKUP;du poi(@rdx) L60;gc"
+bp Dauntless_Win64_Shipping+0xe17d01 ".echo LAB_TRACK_MISSING;du poi(@rdi) L60;kp 6;gc"
+bp Dauntless_Win64_Shipping+0x189b6ef ".echo LAB_BOUNTY_RETURN;kp 8;gc"
+g

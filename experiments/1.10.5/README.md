@@ -111,6 +111,12 @@ The catalog comparison found 925/928 instanced IDs and 1,729/1,738 stacked IDs i
 
 ## Notes for continuing the port
 
+I've kept the early diagnostic scripts and build findings in `research` too. These are the original lab tools, not the normal startup commands above. The Python scripts expect to be copied into the lab's `tools` folder; they use this machine's paths for the old client, `repak`, `pefile` and `capstone`. `prepare-dump.py` overwrites the disposable lab profile configuration, so only use it when preparing a separate SDK dump, with the game closed.
+
+`build-identity.json` identifies the exact executable. `native-candidates.json` is an early signature-search result: every candidate is marked unverified, and the reviewed offsets in `bootstrap.cpp` take precedence. `season-trace.cdb` records the track-lookup and Bounty-return breakpoints used during loading diagnosis. The archived manifest-tool patch handles plain CDN chunks as well as compressed ones; its source notice and MIT license are included. The downloaded chunks, game assets and SDK are not.
+
+The old standalone startup scripts were replaced by the current scripts in this folder. The production-access export helper and one-time Void XP correction stay local. That correction only changed the seven previously seeded `27,775 XP / level 20` weapon tracks to `0 XP / level 1`, after a backup, and checked that all other saved data stayed unchanged. New imports use `migrate-experience.cjs` instead; don't reset progress already earned in 1.10.5.
+
 - Early engine startup overwrites `GIsServer/GIsClient`. Setting the globals only in `DllMain` caused repeated world loading. Exact-build guarded startup patches keep dedicated flags stable.
 - `UWorld::Listen` is a false-return stub in this WindowsClient build. The hook replaces only the LoadMap call site, creates the named net driver and calls the verified `IpNetDriver::InitListen`; successful UDP binding is checked independently.
 - The dynamic source level collection must also own the driver. `SetActiveLevelCollection` (`0x40712D0`) copies its driver back to `UWorld::NetDriver`; assigning the world alone was undone by the next collection switch.
