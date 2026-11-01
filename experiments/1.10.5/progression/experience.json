@@ -1,0 +1,807 @@
+[
+  {
+    "progression_id": "ExperienceTrack_Weapon_Axe",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 1,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 350
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 500
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 700
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 900
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 1050
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 1200
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 1300
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 1350
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 1500
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 1600
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 1650
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 1750
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 1800
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 1900
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 1950
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 1975
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 2050
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 2100
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 2150
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "ExperienceTrack_Weapon_ChainBlades",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 1,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 350
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 500
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 700
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 900
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 1050
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 1200
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 1300
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 1350
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 1500
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 1600
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 1650
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 1750
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 1800
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 1900
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 1950
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 1975
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 2050
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 2100
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 2150
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "ExperienceTrack_Weapon_Hammer",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 1,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 350
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 500
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 700
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 900
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 1050
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 1200
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 1300
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 1350
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 1500
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 1600
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 1650
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 1750
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 1800
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 1900
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 1950
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 1975
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 2050
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 2100
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 2150
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "ExperienceTrack_Weapon_Repeaters",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 1,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 350
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 500
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 700
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 900
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 1050
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 1200
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 1300
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 1350
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 1500
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 1600
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 1650
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 1750
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 1800
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 1900
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 1950
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 1975
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 2050
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 2100
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 2150
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "ExperienceTrack_Weapon_Spear",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 1,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 350
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 500
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 700
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 900
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 1050
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 1200
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 1300
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 1350
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 1500
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 1600
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 1650
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 1750
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 1800
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 1900
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 1950
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 1975
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 2050
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 2100
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 2150
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "ExperienceTrack_Weapon_Strikers",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 1,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 350
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 500
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 700
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 900
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 1050
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 1200
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 1300
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 1350
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 1500
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 1600
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 1650
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 1750
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 1800
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 1900
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 1950
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 1975
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 2050
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 2100
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 2150
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "ExperienceTrack_Weapon_Sword",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 1,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 350
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 500
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 700
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 900
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 1050
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 1200
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 1300
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 1350
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 1500
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 1600
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 1650
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 1750
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 1800
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 1900
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 1950
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 1975
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 2050
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 2100
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 2150
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "ExperienceTrack_PlayerLevel",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 1,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 2000
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 2260
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 2550
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 2880
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 3250
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 3670
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 4150
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 4690
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 5300
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 5990
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 6770
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 7650
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 8640
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 9760
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 11030
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 12460
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 14080
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 15910
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 17980
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": [],
+    "start_date": "2019-01-01T14:00:00Z",
+    "end_date": "2099-01-01T14:00:00Z"
+  },
+  {
+    "progression_id": "PrestigeTrack_Weapon_Axe",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 0,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "PrestigeTrack_Weapon_ChainBlades",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 0,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "PrestigeTrack_Weapon_Hammer",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 0,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "PrestigeTrack_Weapon_Repeaters",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 0,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "PrestigeTrack_Weapon_Spear",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 0,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "PrestigeTrack_Weapon_Strikers",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 0,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  },
+  {
+    "progression_id": "PrestigeTrack_Weapon_Sword",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 0,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      }
+    ],
+    "free_rewards": [],
+    "premium_rewards": []
+  }
+]

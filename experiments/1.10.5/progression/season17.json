@@ -1,0 +1,10 @@
+{
+  "progression_id": "season17",
+  "premium_gating_entitlement": "season17_premium",
+  "progression_multiplier": 1,
+  "start_date": "2022-01-01T00:00:00+00:00",
+  "end_date": "2099-01-01T00:00:00+00:00",
+  "requirements": [{"rank_id": 0, "xp_required": 0}],
+  "free_rewards": [],
+  "premium_rewards": []
+}

@@ -1,21 +1,26 @@
 # Dauntless Unbroken — 1.10.5
 
-I'm working on getting 1.10.5 running for Unbroken. Everything here is being tested locally on my PC, on its own `1.10.5` branch. The live servers are still on 1.4.4.
+I'm getting 1.10.5 running for Unbroken in a separate local test. This branch stays separate from the live 1.4.4 servers.
 
-I've paused this for now. Login and matchmaking work, but the game still kicks back to the main menu after the first cutscene, so it isn't ready to play yet. The local test services are stopped.
+Ramsgate now loads, and the first Slayer's Path quest completes, gives 100 Rams and saves its progress. Training Grounds has its own local server now, instead of matchmaking sending every request back to Ramsgate. Travel to the training map and Rosk's dialogue have both been confirmed in-game, with the next quest progressing in the saved character data.
 
-What I've got working so far:
+I also fixed the shared dialogue lookup for characters whose grammatical gender hasn't been set. It uses the packaged neutral translation without changing the character's appearance. The first quest description and Rosk's later conversation have been confirmed in-game. The rest of the quest chain still needs testing.
 
-- All 606 client files verified against build 365075's manifest.
-- Fresh SDK generated from UE 4.26.2, changelist 365075.
-- Dedicated Ramsgate world remains loaded and listens on `127.0.0.1:62770`.
-- A separate `Local1105` test account can sign in to the local backend.
-- The client passes the new data-migration response and reaches matchmaking.
-- A real client connected to Ramsgate and advanced the native replication graph, then received a server-origin return-to-menu command during loading.
+Slayer's Path snapshots now save to the local database with version checks. Bounty boards are still disabled, and the local season17 configuration only supplies the dates needed to finish loading. Combat hunts, multiplayer and full save conversion aren't ready.
 
-Still to do: finish loading into Ramsgate with a controllable character, get hunts working, sort out the 1.10.5 inventory and progression data, and handle existing player saves. Right now every local matchmaking request goes to the same Ramsgate instance, including tutorial requests. That's just for testing the connection.
+Void's imported inventory loads in-game. The old Slayer Mastery is still rank 37; the newer HUD shows weapon skill instead. Its stuck `8,888 / 100,000` was placeholder text because the backend was missing the packaged experience tracks. Those tracks are now included with the original 1.10.5 XP thresholds.
 
-Bounties and Slayer's Path aren't finished. Bounty boards are disabled in this test, and Journey reads return empty progress for the test account. Journey writes aren't implemented yet. Existing player saves haven't been migrated.
+I'm starting migrated weapon skills at zero XP (level 1 in 1.10.5), regardless of old equipment rank. Gear, old Mastery, quests, island unlock records and tutorial progress stay intact. `migrate-experience.cjs` only inserts missing weapon tracks, so running it again never resets XP earned in the new version. The old quest-to-Slayer's Path unlock mapping still needs checking before a public migration.
+
+With the imported profile selected and the local client/world servers closed:
+
+```powershell
+node experiments/1.10.5/check-experience.cjs
+node experiments/1.10.5/migrate-experience.cjs # preview
+node experiments/1.10.5/migrate-experience.cjs --apply
+```
+
+The first apply keeps a private SQLite snapshot beside the imported database. Restart the local backend and worlds afterward to reload the progression configuration. The XP configurations come from the packaged `Gameplay/Experience` weapon, player and prestige track tables. The HUD now shows real levels in-game; migrated weapon skills start at zero XP.
 
 ## Test setup
 
@@ -39,7 +44,7 @@ npm run build
 cd ..
 ```
 
-The lab game directory also needs the existing pinned `dxgi.dll` loader from `DauntlessUnbrokenLauncher/assets`; do not copy the 1.4.4 `DauntlessUnbroken.dll`. `start-server.ps1` installs the newly built experiment DLL only after confirming the lab game is closed.
+The lab game directory also needs the existing pinned `dxgi.dll` loader from `DauntlessUnbrokenLauncher/assets`; do not copy the 1.4.4 `DauntlessUnbroken.dll`. `start-server.ps1` installs a rebuilt DLL only while the lab game and servers are closed. It can start the second world while the first is running if the installed DLL matches the build.
 
 Run each service in a separate terminal:
 
@@ -47,23 +52,39 @@ Run each service in a separate terminal:
 node experiments/1.10.5/start-backend.cjs
 node experiments/1.10.5/local-deploy.cjs
 ./experiments/1.10.5/start-server.ps1
+./experiments/1.10.5/start-server.ps1 -World dojo
 node experiments/1.10.5/start-client.cjs --debug
 ```
 
-For the unresolved return, add `--trace-travel` to the client command. Attach CDB to the isolated server PID with `-cf experiments/1.10.5/trace-server-return.cdb` to capture the initiating call stack. Run CDB from this checkout so that relative command-file path resolves. Trace logs must remain outside Git.
+For travel debugging, add `--trace-travel` to the client command. Attach CDB to the isolated server PID with `-cf experiments/1.10.5/trace-server-return.cdb` to capture the initiating call stack. Run CDB from this checkout so that relative command-file path resolves. Trace logs must remain outside Git.
 
-The last trace caught the server calling `UBountyComponent::ReturnToMainMenu` at RVA `0x189B6EF`, with `An error occurred. Please try again later.`, then Archon's return at `0x1B5FC70` and the client RPC. That's where I'll pick this back up: find out which Bounty request is failing. `POST /pjm/:accountId` also needs implementing. Its callback treats a completed HTTP request as success even when the response is 404, so Journey saves need a proper check too.
+The loading return was caused by Bounty initialization asking for season17's missing dates. Supplying the local fixture fixed that return. The native Journey save callback ignores HTTP status, so a rejected save still needs native retry handling; server-side validation alone doesn't resolve that client behavior.
 
-The backend creates a test account and private signing keys if they don't exist. The account ID is pinned to my original test account. If you start with a new test database, update `LOCAL_1105_ACCOUNT_ID`, the allocator whitelist and the check together, using only a test account. CDB is only needed with `--debug`. Debug output can include credentials, so keep those logs out of Git.
+The backend creates a test account and private signing keys if they don't exist. `lab-account.cjs` selects the account and database for the backend, client and allocator. Its synthetic account ID is pinned to this lab; change that default if rebuilding the lab from an empty database. CDB is only needed with `--debug`. Debug output can include credentials, so keep those logs out of Git.
 
 Checks to run with the local services up:
 
 ```powershell
 node experiments/1.10.5/check-local-backend.cjs
+node experiments/1.10.5/check-local-deploy.cjs
 ./experiments/1.10.5/check-local-server.ps1
+./experiments/1.10.5/check-local-server.ps1 -World dojo
 # After an actual client connection:
 ./experiments/1.10.5/check-local-server.ps1 -RequireConnection
+./experiments/1.10.5/check-local-server.ps1 -World dojo -RequireConnection
 ```
+
+Use `check-local-backend.cjs --matchmaking` only while the game is closed, because it changes the account's travel request. The allocator accepts CITY and `SHARED / ShatteredIsles_TrainingDojo`; unsupported hunts fail explicitly instead of silently returning Ramsgate.
+
+## Existing saves
+
+Void's live account was exported read-only and copied to `backend-state/imported.db`. The original export, its checksum and both account keys remain outside Git. `import-account.py` refuses to overwrite an existing test copy, preserves raw character/inventory data and gives the local copy a disposable key. It doesn't change the live account or its key.
+
+Run `node experiments/1.10.5/check-imported-account.cjs` before the imported character makes its first in-game save. It checks the original export checksum, normal backend authentication, exact character/inventory preservation and database integrity.
+
+To test the imported account, stop the local game, both world servers, backend and allocator, then set `backend-state/selected-account.json` to `{"profile":"imported"}` and start them again. Use `{"profile":"synthetic"}` to return to Local1105. Friend and guild relationships are archived in the export but aren't installed in this single-account lab.
+
+The catalog comparison found 925/928 instanced IDs and 1,729/1,738 stacked IDs in the 1.10.5 assets. That doesn't prove every item works. Twelve IDs remain unresolved, and `WP_GA_BEAVER` has an old level of 15 where the new catalog allows 0–1. Other weapons still use levels up to 15, so changing every item to level 1 would be wrong. Weapon experience and reforge tracks are separate from those item levels and are absent from this 1.4.4 save. Quest-to-Slayer's-Path conversion also remains unfinished. Nothing here is a production migration yet.
 
 ## Notes for continuing the port
 

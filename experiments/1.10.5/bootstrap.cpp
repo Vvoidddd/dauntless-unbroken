@@ -1,4 +1,4 @@
-// Local port investigation only. No production DLL, account, or endpoint is used.
+// Local port investigation only. No production DLL or endpoint is used.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <bcrypt.h>
@@ -17,6 +17,9 @@ extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
 
 static uintptr_t Base;
 static bool Server;
+static bool Dojo;
+static int ServerPort = 62770;
+static std::wstring LocalServerCommand;
 static HANDLE Log = INVALID_HANDLE_VALUE;
 static void Note(const char* text) {
     if (Log == INVALID_HANDLE_VALUE) return;
@@ -26,6 +29,12 @@ static void Note(const char* text) {
 }
 struct FString { wchar_t* Data; int Count; int Capacity; };
 static wchar_t ServerKey[65];
+static FString* (*OriginalDialogNamespace)(FString*, const FString*, uint8_t);
+static FString* DialogNamespace(FString* out, const FString* speaker, uint8_t addressee) {
+    // The packaged quest translations have Neutral entries but no Unspecified
+    // addressee. Normalize only the display lookup; never change saved appearance.
+    return OriginalDialogNamespace(out, speaker, addressee == 4 ? 0 : addressee);
+}
 static bool (*OriginalProcessRequest)(void*);
 static bool ProcessRequest(void* request) {
     // Exact-build FCurlHttpRequest URL. The trailing slash prevents matching a
@@ -73,13 +82,14 @@ static const wchar_t* (*OriginalCommandLine)();
 static int (*OriginalNetMode)(void*);
 static int DedicatedNetMode(void*) { return 1; }
 static const wchar_t* ServerCommandLine() {
-    return L"Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -EpicPortal -NoEAC -MULTIHOME=127.0.0.1 -port=62770 -CULTURE=en-US -UserDir=C:/dr/build-1.10.5-20261030/profile/ -SaveToUserDir";
+    return LocalServerCommand.c_str();
 }
 static FString* DefaultMap(FString* out) {
     auto result = OriginalMap(out);
-    SetString(result, L"/Game/Maps/ramsgate/ramsgate_01_persistent");
+    SetString(result, Dojo ? L"/Game/Maps/islands/dojo/training_dojo_persistent?game=/Game/Blueprints/GameMode/BPGM_ArchonTrainingGrounds.BPGM_ArchonTrainingGrounds_C?MaxPlayers=12"
+                          : L"/Game/Maps/ramsgate/ramsgate_01_persistent");
     static bool logged = false;
-    if (!logged) { Note("default_map=ramsgate\n"); logged = true; }
+    if (!logged) { Note(Dojo ? "default_map=training_dojo\n" : "default_map=ramsgate\n"); logged = true; }
     return result;
 }
 static void (*OriginalTick)(void*, float, char);
@@ -96,7 +106,7 @@ static void TickFlush(SDK::UNetDriver* driver, float delta) {
     OriginalTickFlush(driver, delta);
 }
 extern "C" bool LocalListen(SDK::UWorld* world, SDK::FURL* requested) {
-    if (!world || world->GetName() != "ramsgate_01_persistent") return false;
+    if (!world || world->GetName() != (Dojo ? "training_dojo_persistent" : "ramsgate_01_persistent")) return false;
     const int active = *reinterpret_cast<int*>(reinterpret_cast<uintptr_t>(world)+0x158);
     if (active < 0 || active >= world->LevelCollections.Num() || world->LevelCollections.Num() > 16) return false;
     auto& collection = world->LevelCollections[active];
@@ -127,7 +137,7 @@ extern "C" bool LocalListen(SDK::UWorld* world, SDK::FURL* requested) {
             setWorld(driver, world);
             driver->ServerConnection = nullptr;
             SDK::FURL url = *requested;
-            url.Port = 62770;
+            url.Port = ServerPort;
             url.Host = L"127.0.0.1";
             SDK::FString error;
             const bool listening = reinterpret_cast<bool(*)(SDK::UNetDriver*,void*,SDK::FURL*,bool,SDK::FString*)>(table[0x290/8])(
@@ -203,7 +213,14 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
         wcscmp(path, L"C:\\dr\\build-1.10.5-20261030\\game\\Archon\\Binaries\\Win64\\Dauntless-Win64-Shipping.exe") != 0 || !ExactBuild(path)) return FALSE;
     Base = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
     Server = wcsstr(GetCommandLineW(), L"-server") != nullptr;
-    Log = CreateFileW(Server ? L"C:\\dr\\build-1.10.5-20261030\\native-server.log" : L"C:\\dr\\build-1.10.5-20261030\\native-client.log",
+    wchar_t world[16] = {};
+    const DWORD worldLength = GetEnvironmentVariableW(L"DR_1105_WORLD", world, 16);
+    if (Server && (worldLength >= 16 || (worldLength && wcscmp(world, L"ramsgate") && wcscmp(world, L"dojo")))) return FALSE;
+    Dojo = Server && wcscmp(world, L"dojo") == 0;
+    ServerPort = Dojo ? 62771 : 62770;
+    LocalServerCommand = L"Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -EpicPortal -NoEAC -MULTIHOME=127.0.0.1 -port=" + std::to_wstring(ServerPort) +
+        L" -CULTURE=en-US -UserDir=C:/dr/build-1.10.5-20261030/" + (Dojo ? std::wstring(L"profile-dojo/") : std::wstring(L"profile/")) + L" -SaveToUserDir";
+    Log = CreateFileW(Server ? (Dojo ? L"C:\\dr\\build-1.10.5-20261030\\native-dojo.log" : L"C:\\dr\\build-1.10.5-20261030\\native-server.log") : L"C:\\dr\\build-1.10.5-20261030\\native-client.log",
                       FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     Note("verified_exact_1.10.5_build\n");
     AddVectoredExceptionHandler(1, Exception);
@@ -213,6 +230,10 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     if (memcmp(reinterpret_cast<void*>(Base + 0x192a6b8), journeyBytes, sizeof(journeyBytes))) Fail("journey_guard_bytes_mismatch\n");
     JourneyFailure = reinterpret_cast<void*>(Base + 0x192a71a);
     if (!Hook(0x192a6b8, JourneyGuard, &JourneyContinue)) Fail("journey_guard_failed\n");
+    // Both quest descriptions and scripted dialogue events share this namespace builder.
+    const unsigned char dialogBytes[] = {0x48,0x89,0x5c,0x24,0x08,0x55,0x56,0x57};
+    if (memcmp(reinterpret_cast<void*>(Base+0x1369ca0), dialogBytes, sizeof(dialogBytes))) Fail("dialog_bytes_mismatch\n");
+    if (!Hook(0x1369ca0, DialogNamespace, reinterpret_cast<void**>(&OriginalDialogNamespace))) Fail("dialog_hook_failed\n");
     if (Server) {
         if (GetEnvironmentVariableW(L"DR_1105_GAMESERVER_KEY", ServerKey, 65) != 64 ||
             wcsspn(ServerKey, L"0123456789abcdef") != 64) Fail("missing_local_server_credential\n");

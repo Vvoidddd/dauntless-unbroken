@@ -1,6 +1,12 @@
 import { sql } from "drizzle-orm";
 import { check, index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+export const playerjourney = sqliteTable('playerjourney', {
+    accountId: text('accountId').primaryKey().notNull(),
+    nodes: text('nodes').notNull(),
+    updateVersion: integer('updateVersion').notNull()
+});
+
 export const recoveryproofs = sqliteTable('recoveryproofs', {
     discordId: text('discordId').primaryKey().notNull(),
     userId: text('userId').unique().notNull(),

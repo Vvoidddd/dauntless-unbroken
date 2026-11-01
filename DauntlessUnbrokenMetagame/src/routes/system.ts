@@ -19,10 +19,12 @@ import { TrialsError, UpdateLeaderboardProfile } from "../controllers/trials";
 import { BOUNTY_TOKENS_DAILY } from "../controllers/inventory";
 import { RecordPlaytimeBeat } from "../controllers/playtime";
 
+import { GetPlayerJourney, SavePlayerJourney } from '../controllers/playerjourney';
 export const systemRouter = Router();
 
-// Local 1.10.5 protocol fixture: only the explicitly selected fresh test account.
-// Existing player saves must not be reported as migrated by this no-op fixture.
+// Local 1.10.5 protocol fixture: only the selected synthetic or imported lab copy.
+// Acknowledging the handshake lets us test compatibility; it does NOT convert old
+// equipment ranks or quest progress. This is never enabled on a deployed backend.
 function Local1105Migration(req: any, res: any, next: any) {
     const account = process.env.LOCAL_1105_ACCOUNT_ID;
     if (!account || process.env.BIND_HOST !== '127.0.0.1') { next('route'); return; }
@@ -32,21 +34,27 @@ function Local1105Migration(req: any, res: any, next: any) {
 systemRouter.post('/migration/trigger', HasDauntlessUnbrokenMetagameAuth, Local1105Migration);
 systemRouter.get('/migration/status', HasDauntlessUnbrokenMetagameAuth, Local1105Migration);
 
-// Fresh-account connection fixture only. Journey writes and save migration are
-// deliberately not acknowledged until their 1.10.5 contracts are implemented.
-systemRouter.get(['/pjm', '/pjm/:accountId'], HasDauntlessUnbrokenMetagameAuth, (req: any, res, next) => {
+// 1.10.5 Journey state is separate from the character's SERIE_* quests.
+function Local1105Journey(req: any, res: any, next: any) {
     const account = process.env.LOCAL_1105_ACCOUNT_ID;
     if (!account || process.env.BIND_HOST !== '127.0.0.1') { next('route'); return; }
     if ((req.AuthData.userId !== account && !(req.AuthData.IsGameserver && req.params.accountId === account)) ||
         (req.params.accountId && req.params.accountId !== account)) {
         res.sendStatus(403); return;
     }
-    // Native serializers 0xDD7590 / 0x1937A10: payload and nodes are objects.
-    res.json({ code: '', message: 'OK', payload: { nodes: {}, update_version: 0 } });
+    next();
+}
+systemRouter.get(['/pjm', '/pjm/:accountId'], HasDauntlessUnbrokenMetagameAuth, Local1105Journey, (req: any, res) => {
+    res.json({code: '', message: 'OK', payload: GetPlayerJourney(process.env.LOCAL_1105_ACCOUNT_ID!)});
+});
+systemRouter.post('/pjm/:accountId', HasDauntlessUnbrokenMetagameAuth, Local1105Journey, (req: any, res) => {
+    if (RefuseUnlessGameserver(req, res, 'Player Journey save', req.params.accountId)) return;
+    const status = SavePlayerJourney(req.params.accountId, req.body);
+    if (status !== 200) logger.warn({accountId: req.params.accountId, status}, 'Rejected Player Journey snapshot');
+    res.status(status).json({code: status === 200 ? '' : String(status), message: status === 200 ? 'OK' : 'Journey save rejected'});
 });
 
-// Replies for routes that 404'd since upstream, where the client binary shows an
-// empty answer is harmless. MISC_ROUTES=0 puts the 404s back.
+// Optional routes whose empty replies are harmless to the client.
 function MiscRoutesOn(req: any, res: any, next: any){
 	next(process.env.MISC_ROUTES === "0" ? "route" : undefined);
 }
