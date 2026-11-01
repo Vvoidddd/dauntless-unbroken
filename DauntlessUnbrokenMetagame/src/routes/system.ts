@@ -19,8 +19,17 @@ import { TrialsError, UpdateLeaderboardProfile } from "../controllers/trials";
 import { BOUNTY_TOKENS_DAILY } from "../controllers/inventory";
 import { RecordPlaytimeBeat } from "../controllers/playtime";
 
+import patchNotes1105 from './patchnotes1105.json';
 import { GetPlayerJourney, SavePlayerJourney } from '../controllers/playerjourney';
 export const systemRouter = Router();
+
+// Native Update Notes endpoint; English fallback for this isolated test build.
+systemRouter.get('/patchnotes/:language/365075_rel-1.10.5_shipping', (req, res, next) => {
+    if (!process.env.LOCAL_1105_ACCOUNT_ID || process.env.BIND_HOST !== '127.0.0.1') {
+        next('route'); return;
+    }
+    res.set('Cache-Control', 'no-store').json({code: '', message: 'OK', payload: patchNotes1105});
+});
 
 // Local 1.10.5 protocol fixture: only the selected synthetic or imported lab copy.
 // Acknowledging the handshake lets us test compatibility; it does NOT convert old

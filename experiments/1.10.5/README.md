@@ -10,7 +10,30 @@ Slayer's Path snapshots now save to the local database with version checks. Boun
 
 Void's imported inventory loads in-game. The old Slayer Mastery is still rank 37; the newer HUD shows weapon skill instead. Its stuck `8,888 / 100,000` was placeholder text because the backend was missing the packaged experience tracks. Those tracks are now included with the original 1.10.5 XP thresholds.
 
-I'm starting migrated weapon skills at zero XP (level 1 in 1.10.5), regardless of old equipment rank. Gear, old Mastery, quests, island unlock records and tutorial progress stay intact. `migrate-experience.cjs` only inserts missing weapon tracks, so running it again never resets XP earned in the new version. The old quest-to-Slayer's Path unlock mapping still needs checking before a public migration.
+I'm starting migrated weapon skills at zero XP (level 1 in 1.10.5), regardless of old equipment rank. Gear, old Mastery, quests, island unlock records and tutorial progress stay intact. `migrate-experience.cjs` only inserts missing weapon tracks, so running it again never resets XP earned in the new version. I checked Void after the reset: his current quests and previously available islands are still accessible. That confirms this account's migration, not every possible save or the complete old quest-to-Slayer's Path mapping.
+
+## Where I'm leaving it — 1 November
+
+Ramsgate login, the first Markus quest (including its 100 Rams reward), Training Grounds travel and Rosk's dialogue have passed the local in-game checks. Void's belongings are present, and resetting weapon XP leaves his quests and islands available. The original live export is untouched; the test uses a separate database and account key.
+
+Next up: combat hunts, multiplayer, the rest of the quest chain and more migrated accounts. The twelve unresolved item IDs and the old Gnasher axe rank still need checking. Bounty boards remain disabled. I also need to handle failed Journey saves on the native side before calling this ready for public use.
+
+## In-game Update Notes
+
+Unbroken's notes are in `DauntlessUnbrokenMetagame/src/routes/patchnotes1105.json`. They cover the local build, account progression, quest fixes and current limits. Edit that file and rebuild/restart the local backend to update the text. All language requests currently use the English copy. The HTTP response and isolation checks pass; the populated screen still needs a visual check in the next game session.
+
+The game already requests `GET /patchnotes/en/365075_rel-1.10.5_shipping`; it was falling through to the unstubbed-route handler, leaving the built-in `1.6.3` placeholder screen. The new response uses the existing endpoint and widget, with no additional DLL hook. It only answers for this build when `LOCAL_1105_ACCOUNT_ID` is set and `BIND_HOST=127.0.0.1`.
+
+For this exact client, the response is `{code, message, payload}`. The payload has `date` (an ISO date string), `description`, `language`, `permalink`, `release_version`, `title` and `notes`. Each note has `type`, `title` and `sections`; each section has `type`, `title`, `description`, `background`, `cta`, `url` and `changes`. Each change has a `comment` and a string `list`. The response serializer is at RVA `0xDD7590`, payload at `0x1AC15B0`, category at `0x1AC11F0`, section at `0x1AC19A0` and change at `0x1AC1180`. Recheck this contract if the client build changes.
+
+Run the focused check from `DauntlessUnbrokenMetagame`:
+
+```powershell
+./node_modules/.bin/tsc.cmd -p tsconfig.test.json
+node --test build/test/patchnotes1105.test.js
+```
+
+## Weapon XP migration
 
 With the imported profile selected and the local client/world servers closed:
 

@@ -1,0 +1,70 @@
+{
+  "date": "2026-11-01T00:00:00Z",
+  "title": "Dauntless Unbroken",
+  "release_version": "1.10.5 - Local Test",
+  "description": "Ramsgate, quest dialogue and account migration testing. This is a local test build, not a live release.",
+  "language": "en",
+  "permalink": "https://github.com/Vvoidddd/dauntless-unbroken/tree/1.10.5/experiments/1.10.5",
+  "notes": [
+    {
+      "type": "unbroken",
+      "title": "Unbroken Test Build",
+      "sections": [
+        {
+          "type": "text",
+          "title": "Welcome to the 1.10.5 test",
+          "description": "Ramsgate and Training Grounds are now available in the local test. We are working toward bringing existing Unbroken accounts into this version.",
+          "background": "",
+          "cta": "",
+          "url": "",
+          "changes": [{"comment": "Confirmed in-game", "list": ["Login and travel to Ramsgate.", "Travel to Training Grounds and speak with Trainer Rosk."]}]
+        }
+      ]
+    },
+    {
+      "type": "migration",
+      "title": "Accounts & Progression",
+      "sections": [
+        {
+          "type": "text",
+          "title": "Keep your Slayer's belongings",
+          "description": "Void's imported account has been checked in-game: gear, current quests and previously available islands remain accessible. More accounts still need testing before a public migration.",
+          "background": "",
+          "cta": "",
+          "url": "",
+          "changes": [{"comment": "A fresh start for weapon skills", "list": ["Migrated weapons start at zero weapon XP, shown as level 1 in this version.", "Your old Slayer Mastery is preserved separately from weapon skill.", "The migration does not reset your existing quests or tutorial progress.", "The weapon level display now uses the correct XP tracks instead of placeholder values."]}]
+        }
+      ]
+    },
+    {
+      "type": "fixes",
+      "title": "Quest Fixes",
+      "sections": [
+        {
+          "type": "text",
+          "title": "Dialogue and early progression",
+          "description": "Fixed a shared dialogue lookup that showed missing-translation messages for some characters. The first Markus quest and Rosk's Training Grounds dialogue have been checked in-game.",
+          "background": "",
+          "cta": "",
+          "url": "",
+          "changes": [{"comment": "Confirmed changes", "list": ["The Slayer's Path quest completes, grants 100 Rams and advances.", "Training Grounds requests now send you to the training map.", "Slayer's Path state is saved in the local test."]}]
+        }
+      ]
+    },
+    {
+      "type": "testing",
+      "title": "Known Limits",
+      "sections": [
+        {
+          "type": "text",
+          "title": "Still in development",
+          "description": "This test is separate from the live 1.4.4 servers. Local test progress does not transfer back to your live account.",
+          "background": "",
+          "cta": "",
+          "url": "",
+          "changes": [{"comment": "Next to test", "list": ["Combat hunts and multiplayer are not ready.", "Bounty boards remain disabled.", "The full quest chain and migration of more accounts still need testing."]}]
+        }
+      ]
+    }
+  ]
+}
