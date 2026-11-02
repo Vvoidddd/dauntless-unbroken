@@ -1833,21 +1833,20 @@ export class Controller {
       const admission = await this.waitForAdmission(ep,key);
       if (!admission.ok) return admission;
 
-      // Where the game connects. Public mode: the local relay, started before the game.
-      let gameHost = sv.host;
-      let gamePort = sv.port;
-      let xmppPort = XMPP_PORT;
-      if (sv.mode === "public") {
-        const started = await this.startRelay(sv);
-        if (!started.ok) return started;
-        gameHost = "127.0.0.1";
-        gamePort = this.relay?.port ?? DEFAULT_RELAY_PORT;
-        xmppPort = gamePort;
-      }
-
       let launched = false;
-
       try {
+        // Where the game connects. Public mode: the local relay, started before the game.
+        let gameHost = sv.host;
+        let gamePort = sv.port;
+        let xmppPort = XMPP_PORT;
+        if (sv.mode === "public") {
+          const started = await this.startRelay(sv);
+          if (!started.ok) return started;
+          gameHost = "127.0.0.1";
+          gamePort = this.relay?.port ?? DEFAULT_RELAY_PORT;
+          xmppPort = gamePort;
+        }
+
         const result = await this.launchGame(
             gameHost,
             gamePort,
@@ -1860,7 +1859,10 @@ export class Controller {
         launched = result.ok;
         return result;
       } finally {
-        if (!launched) await this.stopRelay();
+        if (!launched) {
+          await this.stopRelay();
+          await launcherAdmission(ep,key,'DELETE').catch(()=>{});
+        }
       }
     });
   }
@@ -1931,7 +1933,7 @@ export class Controller {
         await installPinnedDlls(this.p.resourcesDir, dir);
       } catch (e) {
         log.error(`DLL repair before launch failed: ${describeError(e)}`);
-        return this.fail("dll_failed");
+        return this.fail("dll_failed", e instanceof DllError ? `${e.dll}: ${e.message}` : describeError(e));
       }
     }
 

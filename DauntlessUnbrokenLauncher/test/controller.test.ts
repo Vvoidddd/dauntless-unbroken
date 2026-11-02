@@ -1479,13 +1479,17 @@ test("public mode: a busy relay port is reported and the game is not started", a
   assert.deepEqual(await hx.c.startInstall(), { ok: true });
   const squatter = net.createServer();
   await new Promise<void>((resolve) => squatter.listen(BUSY_RELAY_PORT, "127.0.0.1", resolve));
+  const cancelsBefore=admissionCancels;
+  admissionResponse={state:'ready',kind:'ramsgate'};
   try {
     const r = await hx.c.play();
     assert.deepEqual(r, { ok: false, error: { code: "relay_port_busy", detail: String(BUSY_RELAY_PORT) } });
     assert.equal(hx.spawns.length, 0);
     assert.equal(hx.c.relayActive, false);
     assert.equal(hx.last().phase, "ready");
+    assert.equal(admissionCancels,cancelsBefore+1,'release admitted slot when relay cannot start');
   } finally {
+    admissionResponse=null;
     await new Promise<void>((resolve) => squatter.close(() => resolve()));
   }
   await hx.c.shutdown();

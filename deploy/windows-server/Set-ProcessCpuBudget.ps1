@@ -12,10 +12,15 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 public static class DauntlessCpuBudget {
     [StructLayout(LayoutKind.Sequential)] public struct Rate { public uint Flags; public uint Value; }
+    [StructLayout(LayoutKind.Sequential)] public struct Accounting {
+        public long User, Kernel, PeriodUser, PeriodKernel;
+        public uint Faults, Processes, Active, Terminated;
+    }
     [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern IntPtr CreateJobObject(IntPtr attributes,string name);
     [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern IntPtr OpenJobObject(uint access,bool inherit,string name);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool SetInformationJobObject(IntPtr job,int type,ref Rate info,uint size);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool QueryInformationJobObject(IntPtr job,int type,out Rate info,uint size,IntPtr returned);
+    [DllImport("kernel32.dll", SetLastError=true)] static extern bool QueryInformationJobObject(IntPtr job,int type,out Accounting info,uint size,IntPtr returned);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool AssignProcessToJobObject(IntPtr job,IntPtr process);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool IsProcessInJob(IntPtr process,IntPtr job,out bool member);
     [DllImport("kernel32.dll", SetLastError=true)] static extern IntPtr OpenProcess(uint access,bool inherit,int pid);
@@ -24,6 +29,15 @@ public static class DauntlessCpuBudget {
     [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr handle);
     static IntPtr retainedJob;
     static string retainedName;
+    public static long CpuTicks(string name) {
+        IntPtr job=OpenJobObject(4,false,name);
+        if(job==IntPtr.Zero)throw new Win32Exception();
+        try {
+            Accounting info;
+            if(!QueryInformationJobObject(job,1,out info,(uint)Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero))throw new Win32Exception();
+            return info.User+info.Kernel;
+        } finally { CloseHandle(job); }
+    }
     public static int[] Apply(string name,uint percent,bool verifyOnly,int[] processIds) {
         if(!verifyOnly && (retainedJob==IntPtr.Zero || retainedName!=name)) {
             IntPtr next=CreateJobObject(IntPtr.Zero,name);
@@ -80,4 +94,4 @@ public static class DauntlessCpuBudget {
 }
 $ids = if ($PSBoundParameters.ContainsKey('ProcessIds')) { $ProcessIds } elseif ($VerifyOnly) { @() } else { @($PID) }
 $checked = [DauntlessCpuBudget]::Apply($Name,[uint32]$Percent,$VerifyOnly.IsPresent,[int[]]$ids)
-[pscustomobject]@{ Name=$Name; Percent=$Percent; ProcessIds=@($checked) }
+[pscustomobject]@{ Name=$Name; Percent=$Percent; ProcessIds=@($checked); CpuTimeTicks=[DauntlessCpuBudget]::CpuTicks($Name) }
