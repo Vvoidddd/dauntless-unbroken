@@ -979,7 +979,7 @@ async function StartPartyCandidate(TheParty: Party, GameMode: string, HuntId: st
         for (const member of Active) MatchmakingResultMap.get(member)!.LaunchDeadline = deadline;
         const allocationId = crypto.randomUUID();
         MatchmakingRoster.beginAllocation(allocationId, Active.map(playerId => ({playerId, candidateId: CandidateId})), deadline);
-        const Game = await LaunchGameOnDeployserver(GameMode, '', HuntId, ['ISLAND','CITY'].includes(GameMode) ? Active : undefined, Region);
+        const Game = await LaunchGameOnDeployserver(GameMode, '', HuntId, ['ISLAND','CITY'].includes(GameMode) || Local1105Account(LeaderId) ? Active : undefined, Region);
         if (PartyNow() >= deadline || (CapacityWaits.get(CandidateId)?.deadline ?? Infinity) <= PartyNow()) {
             FailCandidate(CandidateId, 'allocation deadline expired');
             return true;
@@ -1210,6 +1210,10 @@ async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, H
 
         return false;
     }
+
+    // 1.10.5 Hunting Grounds use SHARED on the wire. Normalize before party
+    // selection so parties and solo hunters use the same hunt/roster path.
+    if(GameMode === 'SHARED' && HuntId && HuntIdRequiresMatchmaking(HuntId) && Local1105Account(PlayerId)) GameMode = 'ISLAND';
 
     if(MATCHMAKING_MODE === "DISABLED"){
         logger.warn("Matchmaking is disabled, refusing MM!");

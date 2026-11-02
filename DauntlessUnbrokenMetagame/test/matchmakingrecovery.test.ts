@@ -83,6 +83,31 @@ afterEach(() => {
 });
 after(() => RemoveTestDb(() => GetDb().$client.close()));
 
+for (const [hunt,mode] of [['ShatteredIsles_IslandA','ISLAND'],['ShatteredIsles_TrainingDojo','SHARED']]) {
+    it(`1.10.5 party ${hunt} retains both accounts in the allocator request`, async () => {
+        const oldHost=process.env.BIND_HOST, oldRealm=process.env.LOCAL_1105_REALM;
+        process.env.BIND_HOST='127.0.0.1';process.env.LOCAL_1105_REALM='1';
+        try {
+            for(const id of [A,B]) {
+                await HandlePlayerMatchmaking('CITY','','',id);
+                assert.equal((await DecideCandidateStatus(id)).Kind,'travel');
+            }
+            await formParty();posts=[];
+            deploy=async body=>body.ExpectedPlayers?.length===2?ready(8791):json({},403);
+            assert.equal(await HandlePlayerMatchmaking('SHARED','',hunt,A),true);
+            await flush();
+            assert.equal(posts.length,1);
+            assert.equal(posts[0].GameMode,mode);
+            assert.deepEqual(posts[0].ExpectedPlayers,[A,B]);
+            assert.equal((await DecideCandidateStatus(A)).Kind,'travel');
+            assert.equal((await DecideCandidateStatus(B)).Kind,'travel');
+        } finally {
+            if(oldHost===undefined)delete process.env.BIND_HOST;else process.env.BIND_HOST=oldHost;
+            if(oldRealm===undefined)delete process.env.LOCAL_1105_REALM;else process.env.LOCAL_1105_REALM=oldRealm;
+        }
+    });
+}
+
 for (const phase of ['headers', 'body'] as const) {
     it(`an unanswered deploy ${phase} reaches FAILED, aborts, and ignores a late success without retrying`, async t => {
         t.mock.timers.enable({apis: ['setTimeout']});

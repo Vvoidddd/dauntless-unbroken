@@ -36,6 +36,7 @@ if (require.main === module && fs.existsSync(huntFile)) {
     if (catalog[entry.hunt] && huntPorts.includes(entry.port) && Array.isArray(entry.players) && entry.players.length) {
       if(entry.hunt === 'Tutorial' && (!Array.isArray(entry.players) || entry.players.length !== 1))continue;
       const key=huntKey(entry.hunt,entry.players);
+      entry.launchedAt ??= entry.requestedAt;
       hunts.set(key, entry); worlds[key] = { stem: `native-hunt-${entry.port}`, port: entry.port };
     }
   }
@@ -45,6 +46,11 @@ function emptyHunt(entry, tail, modified, now=Date.now()) {
   const samples=[...tail.matchAll(/engine_tick[^\r\n]*clients=(\d+)/g)];
   return now-modified < 15000 && now-entry.requestedAt > 90000 && samples.length>0 && samples.at(-1)[1]==='0';
 }
+function deadHunt(entry, live, sockets, now=Date.now()) {
+  // Polling renews arrival protection, never the lifetime of a failed startup.
+  return !live && now-(entry.launchedAt ?? entry.requestedAt)>180000 &&
+    Array.isArray(sockets) && !sockets.some(s=>s.LocalPort===entry.port);
+}
 let cleaning=false;
 async function cleanEmptyHunts() {
   if(cleaning)return;cleaning=true;
@@ -53,10 +59,10 @@ async function cleanEmptyHunts() {
     let live=false;
     try{const pid=Number(fs.readFileSync(path.join(root,`native-hunt-${entry.port}.pid`),'utf8'));if(pid>0){process.kill(pid,0);live=true;}}
     catch(error){if(error.code!=='ENOENT'&&error.code!=='ESRCH')live=true;}
-    if(!live&&Date.now()-entry.requestedAt>180000){
+    if(!live&&Date.now()-(entry.launchedAt ?? entry.requestedAt)>180000){
       const sockets=await socketSnapshot();
-      if(sockets&&!sockets.some(s=>s.LocalPort===entry.port)){
-        hunts.delete(hunt);delete worlds[hunt];emptySince.delete(hunt);sessions.delete(hunt);saveHunts();continue;
+      if(deadHunt(entry,live,sockets)){
+        hunts.delete(hunt);delete worlds[hunt];emptySince.delete(hunt);sessions.delete(hunt);readinessCache.delete(hunt);saveHunts();console.log(`Released dead hunt: ${hunt}`);continue;
       }
     }
     const log=path.join(root,`native-hunt-${entry.port}.log`);let stat,tail;
@@ -88,7 +94,7 @@ async function startHunt(hunt, players) {
     const release=memoryAdmission.reserve(true);
     const port = huntPorts.find(p => ![...hunts.values()].some(x=>x.port===p));
     if (!port) {release();throw new CapacityUnavailable('ports');}
-    hunts.set(hunt,{hunt:definition,players,port,requestedAt:Date.now()});
+    hunts.set(hunt,{hunt:definition,players,port,requestedAt:Date.now(),launchedAt:Date.now()});
     worlds[hunt] = {stem:`native-hunt-${port}`,port}; saveHunts(); launching.add(hunt);
     execFile(powershell,['-NoProfile','-NonInteractive','-File',path.join(__dirname,'start-server.ps1'),
       '-World','combat-probe','-BindIp',host,'-Hunt',definition,'-HuntPort',String(port),'-Players',players.join(',')],
@@ -169,10 +175,20 @@ return http.createServer(async (req, res) => {
   try {
     if(req.method==='GET'&&req.url==='/worlds'){reply(200,{CITY:await readiness('CITY'),SHARED:await readiness('SHARED')});return;}
     if (req.method === 'GET' && req.url === '/gameservers') {
-      const available = await Promise.all(Object.keys(worlds).map(readiness));
-      const servers=available.filter(Boolean).map(world=>({id:world.sessionId,retiring:false}));let complete=true;
+      const available = await Promise.all(Object.keys(worlds).map(async mode=>{
+        const world=await readiness(mode);if(!world)return;
+        const entry=hunts.get(mode), definition=entry&&catalog[entry.hunt];
+        return {id:world.sessionId,port:world.port,retiring:false,
+          kind:mode==='CITY'?'city':mode==='SHARED'?'dojo':entry?.hunt==='Tutorial'?'tutorial':'hunt',
+          map:definition?.map||definition?.url?.split('?')[0]||(mode==='CITY'?'Ramsgate':'ShatteredIsles_TrainingDojo'),
+          gameMode:definition?.gameMode||null,behemoth:null,huntId:entry?.hunt||null,
+          matchmakerHuntId:definition?.matchmaker||null,expectedPlayers:entry?.players||[],
+          maxPlayers:mode==='CITY'?20:mode==='SHARED'?12:entry?.hunt==='Tutorial'?1:definition?.maxPlayers||4,
+          startedAt:new Date(world.startedAt).toISOString(),connectedPlayers:world.players};
+      }));
+      const servers=available.filter(Boolean);let complete=true;
       if(worker){try{const response=await fetch(worker+'/gameservers',{signal:AbortSignal.timeout(5000)});if(!response.ok)throw Error('Worker unavailable');const remote=await response.json();if(!Array.isArray(remote.servers))throw Error('Invalid worker');servers.push(...remote.servers);complete=remote.complete===true;}catch{complete=false;}}
-      reply(200, { complete, servers }); return;
+      reply(200, { complete, servers, capacity:{running:hunts.size-launching.size,pending:launching.size,limit:maxHunts,draining:HuntsDraining()} }); return;
     }
     if (req.method !== 'POST' || req.url !== '/api/matchmaker/handle-matchmaking-for-player') { reply(404, {}); return; }
     let text = '';
@@ -201,7 +217,7 @@ return http.createServer(async (req, res) => {
   } catch(error) { if(error instanceof CapacityUnavailable)reply(503,{error:'capacity_unavailable',reason:error.reason});else reply(400,{error:'invalid_local_request'}); }
 });
 }
-module.exports = { createAllocator, emptyHunt, huntKey, workerOwns };
+module.exports = { createAllocator, emptyHunt, deadHunt, huntKey, workerOwns };
 if (require.main === module) {
   let account = require('./lab-account.cjs').userId;
   if(process.env.DR_1105_WORKER==='1')account=id=>typeof id==='string'&&/^UID-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(id);

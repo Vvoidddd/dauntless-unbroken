@@ -44,9 +44,9 @@ function Start-LabNode([string]$Name,[string]$Script,[int]$Port) {
     }
     $p = Start-Process -FilePath $node -ArgumentList ('"'+$Script+'"') -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $lab "$Name-stdout.log") -RedirectStandardError (Join-Path $lab "$Name-stderr.log")
     if($env:DR_1105_CPU_BUDGET){
-        # Task Scheduler owns the supervisor's job; attach its child instead.
-        try{& (Join-Path $lab 'repo/deploy/windows-server/Set-ProcessCpuBudget.ps1') -Percent ([int]$env:DR_1105_CPU_BUDGET) -Name 'Global\DauntlessUnbrokenEU1Cpu' -ProcessIds @($p.Id) | Out-Null}
-        catch{Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue;throw}
+        # The supervisor joined the CPU job before spawning; verify inheritance.
+        try{& (Join-Path $lab 'repo/deploy/windows-server/Set-ProcessCpuBudget.ps1') -Percent ([int]$env:DR_1105_CPU_BUDGET) -Name 'Global\DauntlessUnbroken1105Cpu' -VerifyOnly -ProcessIds @($p.Id) | Out-Null}
+        catch{$failure=$_.Exception.GetBaseException();Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue;throw "CPU job error $($failure.NativeErrorCode): $($failure.Message)"}
     }
     Set-Content -LiteralPath (Join-Path $lab "$Name-manager.pid") -Value $p.Id
     for ($n=0;$n -lt 30;$n++) {

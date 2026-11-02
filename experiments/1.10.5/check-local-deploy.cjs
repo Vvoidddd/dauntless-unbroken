@@ -1,6 +1,12 @@
 const assert = require('node:assert/strict');
-const { createAllocator, emptyHunt, huntKey } = require('./local-deploy.cjs');
+const { createAllocator, emptyHunt, deadHunt, huntKey } = require('./local-deploy.cjs');
 async function check() {
+  const dead={port:63872,launchedAt:0,requestedAt:200000};
+  assert.equal(deadHunt(dead,false,[],200001),true,'fresh player polls must not preserve a dead startup');
+  assert.equal(deadHunt(dead,true,[],200001),false,'a live process keeps its reservation');
+  assert.equal(deadHunt(dead,false,null,200001),false,'unknown socket state keeps its reservation');
+  assert.equal(deadHunt(dead,false,[{LocalPort:63872}],200001),false,'a listening child keeps its reservation');
+  assert.equal(deadHunt(dead,false,[],100000),false,'startup grace protects a launching process');
   assert.notEqual(huntKey('Tutorial',['one']),huntKey('Tutorial',['two']));
   assert.notEqual(huntKey('ShatteredIsles_IslandB',['one']),huntKey('ShatteredIsles_IslandB',['two']));
   assert.equal(huntKey('ShatteredIsles_IslandB',['two','one']),huntKey('ShatteredIsles_IslandB',['one','two']));
@@ -29,6 +35,8 @@ async function check() {
     }
     const health = await (await fetch(base + '/gameservers')).json();
     assert.deepEqual(health.servers.map(world => world.id), ['CITY', 'SHARED']);
+    assert.deepEqual(health.servers.map(world=>[world.kind,world.maxPlayers,world.connectedPlayers]),[['city',20,0],['dojo',12,0]]);
+    for(const world of health.servers){assert.equal(typeof world.startedAt,'string');assert.equal(typeof world.map,'string');assert.equal(world.behemoth,null);assert.ok(Array.isArray(world.expectedPlayers));}
     assert.equal((await allocate({ GameMode: 'ISLAND' })).status, 422);
     const GameArgs=require('./hunting-grounds.json').Tutorial.url;
     const tutorial=await allocate({GameMode:'ISLAND',GameArgs});
