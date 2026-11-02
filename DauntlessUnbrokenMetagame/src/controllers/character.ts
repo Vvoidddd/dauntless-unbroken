@@ -10,6 +10,12 @@ import { EnsureCharacterBaseline, FormatCharacterDate, RecordCharacterVersion } 
 
 const TARGET_CHANGELIST = process.env.TARGET_CHANGELIST;
 
+// Current native saves are below 71 KiB; leave room for progression without
+// allowing arbitrary blobs to be multiplied through the save-history table.
+export const MAX_CHARACTER_DATA_BYTES = 256 * 1024;
+export const MAX_CHARACTERS_PER_ACCOUNT = 8;
+export class CharacterCreationError extends Error {}
+
 export type CharacterUpdateError = "not_found" | "conflict" | "invalid_data";
 export type CharacterUpdateResult = {success: true} | {success: false, error: CharacterUpdateError, storedVersion?: number};
 
@@ -66,6 +72,9 @@ const FTUE_DOJO_UNLOCK_OBJECTIVE = "929A333B40E413C41E47B0A425EC3349";
 // a JSON object; storing that would make the character unloadable. A trigger that
 // can't read its own inputs is skipped so the save still goes through.
 export function ProcessTriggers(CharacterDataToUpdateWith: string){
+    if (typeof CharacterDataToUpdateWith !== 'string' || Buffer.byteLength(CharacterDataToUpdateWith, 'utf8') > MAX_CHARACTER_DATA_BYTES) {
+        throw new CharacterUpdateFailure('invalid_data', 'Character data exceeds the save limit or is not a string');
+    }
     let CharacterData: any;
 
     try{
@@ -98,11 +107,17 @@ export function ProcessTriggers(CharacterDataToUpdateWith: string){
 }
 
 export async function CreateCharacterForUid(userId: string, characterName: string){
+    if (typeof characterName !== 'string' || !characterName.trim() || Buffer.byteLength(characterName, 'utf8') > 64 || /[\x00-\x1f\x7f]/.test(characterName)) {
+        throw new CharacterCreationError('invalid_character_name');
+    }
+    return GetDb().transaction(tx => {
+    const count = tx.select({id: characters.characterId}).from(characters).where(eq(characters.userId, userId)).all().length;
+    if (count >= MAX_CHARACTERS_PER_ACCOUNT) throw new CharacterCreationError('character_limit_reached');
     let CharacterUUID = crypto.randomUUID();
 
     let FormattedCurrentDate = FormatCharacterDate(new Date());
 
-    let NewCharacter = await GetDb().insert(characters).values({
+    let NewCharacter = tx.insert(characters).values({
         characterId: CharacterUUID,
         userId: userId,
         name: characterName,
@@ -110,9 +125,10 @@ export async function CreateCharacterForUid(userId: string, characterName: strin
         lastModifiedDate: FormattedCurrentDate,
         updateVersion: 0,
         data: "{}"
-    }).returning();
+    }).returning().all();
 
     return TransformDbCharacterToWireCharacter(NewCharacter[0]);
+    });
 }
 
 // The read, the version check, the write and the history entry are one SQLite
@@ -143,6 +159,7 @@ export function UpdateCharacterForUid(CharacterId: string, UserId: string, Chara
             }
 
             const {data: ProcessedData, preserved: AppearancePreserved} = PreserveInitializedAppearance(Current.data, ProcessTriggers(CharacterDataToUpdateWith));
+            if (Buffer.byteLength(ProcessedData, 'utf8') > MAX_CHARACTER_DATA_BYTES) throw new CharacterUpdateFailure('invalid_data', 'Character data exceeds the save limit');
             if(AppearancePreserved)logger.warn(`Preserved initialized appearance for characterId ${CharacterId} during ${Reason} at version ${UpdateVersion}`);
 
             EnsureCharacterBaseline(tx, Current);

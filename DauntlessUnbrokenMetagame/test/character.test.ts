@@ -2,7 +2,7 @@ import { RemoveTestDb } from "./setup";
 import { after, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { GetDb } from "../src/db";
-import { ProcessTriggers, UpdateCharacterForUid } from "../src/controllers/character";
+import { CreateCharacterForUid, MAX_CHARACTER_DATA_BYTES, MAX_CHARACTERS_PER_ACCOUNT, ProcessTriggers, UpdateCharacterForUid } from "../src/controllers/character";
 import { FormatCharacterDate, GetSaveHistory, RollbackCharacter } from "../src/controllers/savehistory";
 import { characterhistory } from "../src/db/schema";
 import { Count, MakePlayer, ReadCharacter } from "./helpers";
@@ -46,6 +46,21 @@ describe("ProcessTriggers", () => {
 });
 
 describe("UpdateCharacterForUid", () => {
+    it('bounds character creation and oversized saves without changing existing data or history', async () => {
+        const {UserId, CharacterId} = await MakePlayer();
+        const before = ReadCharacter(CharacterId);
+        const history = Count('characterhistory');
+        const oversized = JSON.stringify({data: 'x'.repeat(MAX_CHARACTER_DATA_BYTES)});
+        assert.equal(UpdateCharacterForUid(CharacterId, UserId, oversized, 1).success, false);
+        assert.equal(UpdateCharacterForUid(CharacterId, UserId, oversized, 0).success, false);
+        assert.deepEqual(ReadCharacter(CharacterId), before);
+        assert.equal(Count('characterhistory'), history);
+        await assert.rejects(CreateCharacterForUid(UserId, 'x'.repeat(65)), /invalid_character_name/);
+        await assert.rejects(CreateCharacterForUid(UserId, 'bad\nname'), /invalid_character_name/);
+        for (let i=1; i<MAX_CHARACTERS_PER_ACCOUNT; i++) await CreateCharacterForUid(UserId, `名前${i}`);
+        await assert.rejects(CreateCharacterForUid(UserId, 'Extra'), /character_limit_reached/);
+        assert.equal(Count('characters', 'userId = ?', UserId), MAX_CHARACTERS_PER_ACCOUNT);
+    });
     it('preserves initialized appearance on incomplete saves and acknowledges normalized retries once', async () => {
         const {UserId,CharacterId}=await MakePlayer();
         const appearance=JSON.stringify({CreationState:'EArchonCharacterCreationState::FaceComplete',Data:[{MorphName:'Example',Value:1}],AssetReferences:[],StringData:[{Key:'GenderId',Data:'Feminine'},{Key:'BodyType',Data:'Feminine'}]});

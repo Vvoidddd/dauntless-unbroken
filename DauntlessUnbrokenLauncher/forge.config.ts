@@ -9,6 +9,7 @@ import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { constants as fsConstants, promises as fs } from "node:fs";
 import path from "node:path";
+import { extractFile } from "@electron/asar";
 
 // Windows uses Squirrel plus a portable ZIP. Linux builds AppImage, deb, rpm and a portable ZIP.
 // CI builds both platforms on every push and launcher-release.yml publishes them together.
@@ -41,6 +42,14 @@ const config: ForgeConfig = {
   },
   hooks: {
     postPackage: async (_forgeConfig, result) => {
+      for (const output of result.outputPaths) {
+        const archive = path.join(output, "resources", "app.asar");
+        const manifest = JSON.parse(extractFile(archive, "package.json").toString());
+        const main = extractFile(archive, path.normalize(manifest.main)).toString();
+        // Forge 8 emits .cjs: catch a missing main/preload before publishing an installer.
+        if (!main.includes('preload.cjs')) throw new Error('Packaged main does not reference preload.cjs');
+        extractFile(archive, path.join(".vite", "build", "preload.cjs"));
+      }
       if (result.platform !== "linux") return;
       for (const output of result.outputPaths) {
         const executable = path.join(output, "DauntlessUnbrokenLauncher");

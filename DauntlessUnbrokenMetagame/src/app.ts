@@ -21,7 +21,7 @@ import { slayerLinksRouter } from "./routes/slayerlinks.js";
 import { progressionRouter } from "./routes/progression.js";
 import { loadoutRouter } from "./routes/loadout.js";
 import { unbrokenApiRouter } from "./routes/unbrokenapi.js";
-import { DescribeOrigin, RefuseProxiedInDevAuthMode } from "./middleware/RequestOrigin.js";
+import { DescribeOrigin, IsProxiedRequest, RefuseProxiedInDevAuthMode } from "./middleware/RequestOrigin.js";
 import { BodyLog, Redact } from "./middleware/BodyLog.js";
 import { backupRouter } from './routes/backup';
 
@@ -36,7 +36,11 @@ app.use(RefuseProxiedInDevAuthMode);
 
 // Small, scrubbed diagnostics use their own limits and never enter body-capture logs.
 app.use('/unbroken/api',supportReportsRouter);
-app.use(express.json({ limit: "50mb" }));
+// Match the public gateway's budget after decompression, too. Direct world-server
+// batches retain their existing limit; adding forwarding headers only reduces it.
+const publicJson = express.json({ limit: '128kb' });
+const internalJson = express.json({ limit: '50mb' });
+app.use((req, res, next) => (IsProxiedRequest(req) ? publicJson : internalJson)(req, res, next));
 
 app.use(express.urlencoded({ extended: true }));
 

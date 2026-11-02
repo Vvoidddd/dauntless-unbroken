@@ -208,7 +208,7 @@ function createWindow(): void {
     title: "Dauntless Unbroken Launcher",
     icon: existsSync(iconPath) ? iconPath : undefined,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       nodeIntegrationInWorker: false,

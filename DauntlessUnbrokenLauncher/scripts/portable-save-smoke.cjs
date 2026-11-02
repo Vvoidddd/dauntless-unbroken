@@ -38,8 +38,8 @@ async function smoke() {
     const { migrate } = require(path.join(runtime, "metagame/node_modules/drizzle-orm/better-sqlite3/migrator.cjs"));
     const helper = require(path.join(runtime, "offline-save-db.cjs"));
     assert.ok((await fs.readFile(path.join(runtime, "offline-save-db.cjs"))).equals(await fs.readFile(path.resolve(__dirname, "../runtime/offline-save-db.cjs"))));
-    const bundled = require("@electron/asar").extractFile(path.join(resources, "app.asar"), path.join(".vite", "build", "main.js"));
-    assert.ok(bundled.equals(await fs.readFile(path.resolve(__dirname, "../.vite/build/main.js"))));
+    const bundled = require("@electron/asar").extractFile(path.join(resources, "app.asar"), path.join(".vite", "build", "main.cjs"));
+    assert.ok(bundled.equals(await fs.readFile(path.resolve(__dirname, "../.vite/build/main.cjs"))));
     assert.ok(bundled.includes(Buffer.from("exportOfflineSave")) && bundled.includes(Buffer.from("rolled-back")));
     mark("Packaged main bundle and save helper match the current build/source");
     const secretsSeen = [];
