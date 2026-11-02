@@ -48,5 +48,9 @@ if ($credential -notmatch '^[a-f0-9]{64}$') { throw 'Start the local backend fir
 $env:DR_1105_GAMESERVER_KEY = $credential
 Add-Content -LiteralPath (Join-Path $lab "$stem.log") -Value "`nRUN $(Get-Date -Format o)"
 $p = Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe) -WindowStyle Hidden -PassThru -ArgumentList @('-server','-unattended','-nullrhi','-nosound','-EpicPortal','-NoEAC',"-MULTIHOME=$BindIp","-port=$port",'-CULTURE=en-US',"-UserDir=$lab/$profile/",'-SaveToUserDir')
+if($env:DR_1105_CPU_BUDGET){
+    try{& (Join-Path $lab 'repo/deploy/windows-server/Set-ProcessCpuBudget.ps1') -Percent ([int]$env:DR_1105_CPU_BUDGET) -Name 'Global\DauntlessUnbrokenEU1Cpu' -ProcessIds @($p.Id) | Out-Null}
+    catch{Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue;throw}
+}
 Set-Content -LiteralPath (Join-Path $lab "$stem.pid") -Value $p.Id
 Write-Output "Isolated $World server PID $($p.Id) on ${BindIp}:$port"

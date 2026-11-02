@@ -216,7 +216,8 @@ test("the big button in every phase", () => {
 test("the compiled-in game manifest is the verified 1.10.5 list", () => {
   const file = path.join(ROOT, "..", "DauntlessUnbrokenContent", "data", "dauntless-1.10.5.json");
   const bytes = readFileSync(file);
-  assert.equal(createHash("sha256").update(bytes).digest("hex"), "c146103db10bd20554c67bb42ae847294b34d72f0f9799c53a670dda49a1462e");
+  // Git checks this JSON out with LF; local generators may use CRLF.
+  assert.equal(createHash("sha256").update(bytes.toString("utf8").replace(/\r\n/g, "\n")).digest("hex"), "46060f8fb2b8a1e109d45e33ff4a575e4aaaf3b4dedcb9845c29a4a2eae7dabb");
   const r = validateManifest(JSON.parse(bytes.toString("utf8")));
   assert.equal(r.ok, true, r.ok ? "" : r.reason);
   if (!r.ok) return;

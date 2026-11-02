@@ -41,17 +41,17 @@ public static class DauntlessCpuBudget {
     public static int[] Apply(string name,uint percent,bool verifyOnly,int[] processIds) {
         if(!verifyOnly && (retainedJob==IntPtr.Zero || retainedName!=name)) {
             IntPtr next=CreateJobObject(IntPtr.Zero,name);
-            if(next==IntPtr.Zero)throw new Win32Exception();
+            if(next==IntPtr.Zero)throw new Win32Exception(Marshal.GetLastWin32Error(),"Create CPU job " + name);
             if(retainedJob!=IntPtr.Zero)CloseHandle(retainedJob);
             retainedJob=next;
             retainedName=name;
         }
         IntPtr handle=verifyOnly ? OpenJobObject(4,false,name) : retainedJob;
-        if(handle==IntPtr.Zero)throw new Win32Exception();
+        if(handle==IntPtr.Zero)throw new Win32Exception(Marshal.GetLastWin32Error(),"Open CPU job " + name);
         try {
             var info=new Rate { Flags=5, Value=percent*100 }; // ENABLE | HARD_CAP
-            if(!verifyOnly && !SetInformationJobObject(handle,15,ref info,8))throw new Win32Exception();
-            if(!QueryInformationJobObject(handle,15,out info,8,IntPtr.Zero))throw new Win32Exception();
+            if(!verifyOnly && !SetInformationJobObject(handle,15,ref info,8))throw new Win32Exception(Marshal.GetLastWin32Error(),"Set CPU job rate");
+            if(!QueryInformationJobObject(handle,15,out info,8,IntPtr.Zero))throw new Win32Exception(Marshal.GetLastWin32Error(),"Read CPU job rate");
             if(info.Flags!=5 || info.Value!=percent*100)throw new InvalidOperationException("CPU job budget mismatch");
             var checkedIds=new List<int>();
             foreach(int pid in processIds) {
@@ -75,7 +75,7 @@ public static class DauntlessCpuBudget {
                             int error=Marshal.GetLastWin32Error();
                             IntPtr discarded;
                             if(DuplicateHandle(process,keeper,GetCurrentProcess(),out discarded,0,false,3))CloseHandle(discarded);
-                            throw new Win32Exception(error);
+                            throw new Win32Exception(error,"Attach process to CPU job: " + pid);
                         }
                     }
                     checkedIds.Add(pid);

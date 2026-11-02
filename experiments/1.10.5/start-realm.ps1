@@ -18,7 +18,7 @@ if(Test-Path -LiteralPath $hostedFile){
  $env:GAMESERVER_CPU_RESUME_PERCENT=if($hosted.cpuResume){[string]$hosted.cpuResume}else{'65'}
  $env:GAMESERVER_MEMORY_GUARD='1'
  $env:DRAIN_FILE=Join-Path $lab 'backend-state/drain.flag'
- if($hosted.cpuBudget){. (Join-Path $lab 'repo/deploy/windows-server/Set-ProcessCpuBudget.ps1') -Percent ([int]$hosted.cpuBudget) -Name 'Global\DauntlessUnbrokenEU1Cpu' | Out-Null}
+ $env:DR_1105_CPU_BUDGET=if($hosted.cpuBudget){[string]$hosted.cpuBudget}else{''}
 }else{
 $ts = & 'C:\Program Files\Tailscale\tailscale.exe' status --json | ConvertFrom-Json
 if ($ts.BackendState -ne 'Running') { throw 'Sign into Tailscale first.' }
@@ -43,6 +43,11 @@ function Start-LabNode([string]$Name,[string]$Script,[int]$Port) {
         return
     }
     $p = Start-Process -FilePath $node -ArgumentList ('"'+$Script+'"') -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $lab "$Name-stdout.log") -RedirectStandardError (Join-Path $lab "$Name-stderr.log")
+    if($env:DR_1105_CPU_BUDGET){
+        # Task Scheduler owns the supervisor's job; attach its child instead.
+        try{& (Join-Path $lab 'repo/deploy/windows-server/Set-ProcessCpuBudget.ps1') -Percent ([int]$env:DR_1105_CPU_BUDGET) -Name 'Global\DauntlessUnbrokenEU1Cpu' -ProcessIds @($p.Id) | Out-Null}
+        catch{Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue;throw}
+    }
     Set-Content -LiteralPath (Join-Path $lab "$Name-manager.pid") -Value $p.Id
     for ($n=0;$n -lt 30;$n++) {
         if (Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue | Where-Object RemotePort -eq 0) { return }
