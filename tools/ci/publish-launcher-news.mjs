@@ -8,7 +8,7 @@ export function newsEntry(event, kind, now = new Date()) {
     if(!r || r.draft || r.prerelease || !/^launcher-v\d+\.\d+\.\d+$/.test(r.tag_name)) return null;
     return {id:r.tag_name,date:r.published_at || now.toISOString(),title:`Launcher ${r.tag_name.slice(10)} is available`,body:clean(r.body,6000)};
   }
-  if(kind !== 'push' || event.deleted || event.ref !== 'refs/heads/main') return null;
+  if(kind !== 'push' || event.deleted || event.ref !== 'refs/heads/1.10.5') return null;
   const messages=[...new Set((event.commits ?? []).map(c=>clean(c.message,2000).split('\n')[0]))]
     .filter(s=>s && !/^(merge |chore\(news\)|docs?:|test[s]?:|ci:)/i.test(s)).slice(0,8);
   if(!messages.length) return null;
@@ -28,7 +28,7 @@ export async function publish(event, kind) {
     return response.json();
   };
   try { await api('git/ref/heads/launcher-news'); }
-  catch(e) { if(e.status !== 404) throw e; const head=await api('git/ref/heads/main'); await api('git/refs','POST',{ref:'refs/heads/launcher-news',sha:head.object.sha}); }
+  catch(e) { if(e.status !== 404) throw e; const head=await api('git/ref/heads/1.10.5'); await api('git/refs','POST',{ref:'refs/heads/launcher-news',sha:head.object.sha}); }
   let previous,items=[];
   try { previous=await api('contents/news.json?ref=launcher-news'); items=JSON.parse(Buffer.from(previous.content,'base64').toString()).items ?? []; }
   catch(e) { if(e.status !== 404) throw e; }

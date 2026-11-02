@@ -103,7 +103,7 @@ export interface Platform {
 
   defaultInstallDir: string;
   prepareInstallDir?(dir:string):Promise<string>;
-  installFromArchive?(dir:string,signal:AbortSignal,progress:(p:TaskProgress)=>void):Promise<void>;
+  installFromArchive?(dir:string,signal:AbortSignal,progress:(p:TaskProgress)=>void,files:ManifestFile[]):Promise<void>;
   finishGameUpgrade?(dir:string):Promise<void>;
   hostPlatform?: NodeJS.Platform;
   appVersion: string;
@@ -1481,7 +1481,7 @@ export class Controller {
         const required=needed.reduce((sum,f)=>sum+f.size,0)+DISK_MARGIN_BYTES;
         const free=await freeBytes(dir);
         if(free!==null&&free<required)return this.fail('disk_space',String(required));
-        await this.p.installFromArchive(dir,abort.signal,p=>this.setTask(p));
+        await this.p.installFromArchive(dir,abort.signal,p=>this.setTask(p),needed);
         const verified=await verifyInstall(dir,manifest.files,{fullHash:true,signal:abort.signal,onProgress:p=>this.setTask({...blank('verify',p.totalBytes,p.filesTotal),doneBytes:p.doneBytes,filesDone:p.filesDone,currentFile:p.currentFile})});
         if(verified.bad.length)throw Error('Downloaded game did not pass file verification. Run Repair.');
       } else if (needed.length > 0) {

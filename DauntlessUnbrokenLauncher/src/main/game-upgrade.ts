@@ -1,11 +1,11 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { createRequire } from 'node:module';
+import { DownloadJob } from './downloader';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { removeGameFiles } from './game-removal';
 import {verifyInstall} from './verify';
-import type { GameManifest } from './manifest';
+import type { GameManifest, ManifestFile } from './manifest';
 import type { TaskProgress } from '../shared/types';
 
 const EXE = 'Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe';
@@ -59,13 +59,15 @@ export async function finishGameUpgrade(record:string,current:string,legacy:Game
   await fs.rename(record+'.tmp',record);
 }
 
-export async function installArchivedGame(resources:string,dir:string,signal:AbortSignal,progress:(p:TaskProgress)=>void):Promise<void>{
-  const folder=path.join(resources,'realm1105');
-  const installer=createRequire(path.join(folder,'install.cjs'))('./install.cjs');
-  const index=JSON.parse(await fs.readFile(path.join(folder,'install-index.json'),'utf8'));
-  await installer.install(index,dir,{signal,onProgress:(p:{phase:string;file?:string;detail?:string;done?:number;total?:number;finished?:number;files?:number})=>progress({
-    kind:p.phase==='checking'||p.phase==='verified'?'verify':p.phase==='unpacking'?'unpack':'download',paused:false,
-    totalBytes:p.total??0,doneBytes:p.done??0,filesTotal:p.files??606,filesDone:p.finished??0,
-    bytesPerSecond:0,etaSeconds:null,currentFile:p.file??p.detail??null,
-  })});
+export const GAME_DOWNLOAD_BASE_URL='https://downloads.voidvault.xyz/1.10.5/';
+export async function installHostedGame(dir:string,signal:AbortSignal,progress:(p:TaskProgress)=>void,files:ManifestFile[]):Promise<void>{
+  // Reuse the resumable downloader and the launcher's pinned SHA-256 manifest.
+  // CDN requests never carry account keys or the game gateway's certificate pin.
+  const job=new DownloadJob({endpoint:{host:'127.0.0.1',port:0,pin:null},key:'',
+    downloadBaseUrl:GAME_DOWNLOAD_BASE_URL,installDir:dir,files,
+    onProgress:p=>progress({kind:'download',...p})});
+  const cancel=()=>job.cancel();
+  signal.addEventListener('abort',cancel,{once:true});
+  if(signal.aborted)cancel();
+  try{await job.run();}finally{signal.removeEventListener('abort',cancel);}
 }

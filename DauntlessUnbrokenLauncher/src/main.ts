@@ -1,4 +1,4 @@
-import {prepareGameUpgrade,finishGameUpgrade,installArchivedGame} from './main/game-upgrade';
+import {prepareGameUpgrade,finishGameUpgrade,installHostedGame} from './main/game-upgrade';
 import legacyManifest from '../../DauntlessUnbrokenContent/data/dauntless-1.4.4.json';
 import type {GameManifest} from './main/manifest';
 // Dauntless Unbroken Launcher - Electron main process.
@@ -593,7 +593,7 @@ function makePlatform(): Platform {
       const answer=await dialog.showMessageBox(mainWindow!,{type:'question',title:'Dauntless Unbroken has moved to 1.10.5',message:'Install game version 1.10.5',detail:`Your account key and online progress will be kept.\nNew game: ${newDir}\nOld game: ${oldDir}\nIf you choose removal, old game files go to the Recycle Bin / Trash only after 1.10.5 verifies. Saves and backups stay.`,buttons:['Keep 1.4.4 and install 1.10.5','Remove 1.4.4 after installing 1.10.5'],defaultId:0,cancelId:0});
       return answer.response===1?'remove':'keep';
     }),
-    installFromArchive:(dir,signal,progress)=>installArchivedGame(resourcesDir(),dir,signal,progress),
+    installFromArchive:installHostedGame,
     finishGameUpgrade:async dir=>{if(!GAME_MANIFEST)throw Error('Game manifest unavailable');await finishGameUpgrade(path.join(app.getPath('userData'),'upgrade-1.10.5.json'),dir,legacyManifest as GameManifest,GAME_MANIFEST,[app.getPath('userData'),resourcesDir()],target=>shell.trashItem(target));},
     trashPath: target=>shell.trashItem(target),
     confirmRemoveGame: async targets=>{
