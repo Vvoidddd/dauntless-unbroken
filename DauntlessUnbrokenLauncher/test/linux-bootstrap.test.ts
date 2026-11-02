@@ -6,6 +6,7 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {runInNewContext} from 'node:vm';
 import ts from 'typescript';
+import {createPackage,extractFile} from '@electron/asar';
 
 test('Linux packaging wraps the fused binary once; Steam overlay is withheld only from Electron',async()=>{
     const tree=ts.createSourceFile('forge.config.ts',readFileSync('forge.config.ts','utf8'),ts.ScriptTarget.Latest,true);
@@ -14,10 +15,17 @@ test('Linux packaging wraps the fused binary once; Steam overlay is withheld onl
         if(ts.isPropertyAssignment(node)&&node.name.getText(tree)==='postPackage')hook=node.initializer;
         ts.forEachChild(node,visit);
     };visit(tree);assert.ok(hook);
-    const postPackage=runInNewContext(ts.transpile(`(${hook.getText(tree)})`,{target:ts.ScriptTarget.ES2022}),{fs,fsConstants:constants,path});
+    const postPackage=runInNewContext(ts.transpile(`(${hook.getText(tree)})`,{target:ts.ScriptTarget.ES2022}),{fs,fsConstants:constants,path,extractFile});
     const root=await fs.mkdtemp(path.join(tmpdir(),'unbroken-bootstrap-'));
     const executable=path.join(root,'DauntlessUnbrokenLauncher');
     try{
+        const fixture=path.join(root,'fixture');
+        await fs.mkdir(path.join(fixture,'.vite','build'),{recursive:true});
+        await fs.mkdir(path.join(root,'resources'));
+        await fs.writeFile(path.join(fixture,'package.json'),JSON.stringify({main:'.vite/build/main.cjs'}));
+        await fs.writeFile(path.join(fixture,'.vite','build','main.cjs'),'require("./preload.cjs")');
+        await fs.writeFile(path.join(fixture,'.vite','build','preload.cjs'),'module.exports = {};');
+        await createPackage(fixture,path.join(root,'resources','app.asar'));
         const program='#!/bin/sh\nprintf "%s\\n" "${LD_PRELOAD-unset}" "${DR_GAME_LD_PRELOAD-unset}" "${SteamAppId-unset}" "$@" > "$BOOTSTRAP_OUTPUT"\n';
         await fs.writeFile(executable,program,{mode:0o755});
         await postPackage(null,{platform:'win32',outputPaths:[root]});
