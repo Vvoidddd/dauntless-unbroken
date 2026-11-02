@@ -9,6 +9,14 @@ async function main(){
  const html=fs.readFileSync(path.join(__dirname,'launcher/index.html'),'utf8'),fieldIds=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
  assert.equal(new Set(fieldIds).size,fieldIds.length,'Each form field must have a unique ID');
  assert.match(html,/No Tailscale or VPN needed/);
+ // A failed first login must expose the invite error and allow retrying the same key.
+ const fields=Object.fromEntries(fieldIds.map(id=>[id,{value:'',hidden:false,textContent:'',attrs:{},setAttribute(k,v){this.attrs[k]=v;},removeAttribute(k){delete this.attrs[k];},scrollIntoView(){this.scrolled=true;},focus(){this.focused=true;},replaceChildren(){}}]));
+ let attempts=0;const loginCalls=[],api={action:async(action,value)=>{if(action==='status')return {state:{accounts:[]}};loginCalls.push({action,value});return ++attempts===1?{ok:false,error:'Paste a new 1.10.5 test invite to copy your live account.',state:{accounts:[]}}:{ok:true,state:{accounts:[]}};},progress(){},state(){}};
+ require('node:vm').runInNewContext(fs.readFileSync(path.join(__dirname,'launcher/renderer.js'),'utf8'),{document:{getElementById:id=>fields[id],querySelectorAll:()=>[]},window:{lab:api}});
+ fields.key.value='fixture-key';await fields.signin.onclick();
+ assert.equal(fields.error.hidden,false);assert.match(fields.error.textContent,/test invite/);assert.ok(fields.error.scrolled);assert.ok(fields.invite.focused);assert.equal(fields.key.value,'fixture-key');
+ fields.invite.value='ABCD-EFGH-IJKL';await fields.signin.onclick();
+ assert.equal(loginCalls[1].value.key,'fixture-key');assert.equal(loginCalls[1].value.invite,'ABCD-EFGH-IJKL');assert.equal(fields.key.value,'');assert.equal(fields.error.hidden,true);
  const encryptionKey=crypto.randomBytes(32),secure={isEncryptionAvailable:()=>true,encryptString(text){const iv=crypto.randomBytes(12),c=crypto.createCipheriv('aes-256-gcm',encryptionKey,iv),body=Buffer.concat([c.update(text),c.final()]);return Buffer.concat([iv,c.getAuthTag(),body]);},decryptString(data){const c=crypto.createDecipheriv('aes-256-gcm',encryptionKey,data.subarray(0,12));c.setAuthTag(data.subarray(12,28));return Buffer.concat([c.update(data.subarray(28)),c.final()]).toString();}};
  const keyA='UUK_'+crypto.randomBytes(24).toString('hex'),keyB='UUK-'+crypto.randomBytes(32).toString('hex');
  const state={key:secure.encryptString(keyA).toString('base64'),name:'TesterA',uid:'UID-A',folder:'existing-game'};let persisted;

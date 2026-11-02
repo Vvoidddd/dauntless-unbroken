@@ -11,6 +11,7 @@
 #include "MinHook/MinHook.h"
 #include "SDK/Archon_structs.hpp"
 #include "SDK/Engine_classes.hpp"
+#include "SDK/GameplayAbilities_classes.hpp"
 #include "SDK/exploration_game_mode_bpc_classes.hpp"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
 extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
@@ -43,6 +44,33 @@ static void Note(const char* text) {
     DWORD written;
     WriteFile(Log, text, static_cast<DWORD>(strlen(text)), &written, nullptr);
     FlushFileBuffers(Log);
+}
+// Both RPC wrappers keep ownership/validation and event lifetime. Native
+// activation still checks the ability spec, prediction, cooldown and cost.
+static bool (*TryAbility)(SDK::UAbilitySystemComponent*, uint32_t, SDK::FPredictionKey*, SDK::UGameplayAbility**, void*, const SDK::FGameplayEventData*);
+static void (*InputPressed)(SDK::UAbilitySystemComponent*, uint32_t);
+static void (*InputReleased)(SDK::UAbilitySystemComponent*, uint32_t);
+static unsigned AbilityAccepted = 0, AbilityRejected = 0;
+static void ActivateAbility(SDK::UAbilitySystemComponent* self, uint32_t handle, bool pressed,
+                            const SDK::FPredictionKey* prediction, const SDK::FGameplayEventData* event) {
+    if (!self || !prediction) return;
+    auto key = *prediction; // Native function takes a 16-byte value indirectly.
+    if (pressed) InputPressed(self, handle);
+    SDK::UGameplayAbility* instance = nullptr;
+    if (TryAbility(self, handle, &key, &instance, nullptr, event)) {
+        ++AbilityAccepted;
+        return;
+    }
+    ++AbilityRejected;
+    if (pressed) InputReleased(self, handle);
+    // Send failure to the owning client to clear its predicted activation.
+    // Calling the implementation directly would not send the RPC.
+    auto* failed = self->Class->GetFunction("AbilitySystemComponent", "ClientActivateAbilityFailed");
+    if (failed) {
+        struct { uint32_t Handle; int16_t Key; uint16_t Pad; } params{handle, prediction->Current, 0};
+        static_assert(sizeof(params) == 8 && sizeof(SDK::FPredictionKey) == 16);
+        self->ProcessEvent(failed, &params);
+    }
 }
 struct FString { wchar_t* Data; int Count; int Capacity; };
 static wchar_t ServerKey[65];
@@ -232,6 +260,8 @@ static void Tick(void* self, float delta, char render) {
                   driver ? *reinterpret_cast<unsigned*>(reinterpret_cast<uintptr_t>(driver)+0x418) : 0,
                   *reinterpret_cast<unsigned char*>(Base+0x6af8eda), *reinterpret_cast<unsigned char*>(Base+0x6af8ed9));
         Note(line);
+        sprintf_s(line, "ability_dispatch accepted=%u rejected=%u\n", AbilityAccepted, AbilityRejected);
+        Note(line);
         if (CombatProbe && world && world->AuthorityGameMode && world->AuthorityGameMode->IsA(SDK::AArchonGameMode_Island::StaticClass())) {
             auto* mode=static_cast<SDK::AArchonGameMode_Island*>(world->AuthorityGameMode);
             auto* component=mode->MainGameModeComponent;
@@ -282,6 +312,28 @@ static bool Hook(uintptr_t offset, void* replacement, void** original) {
     return MH_CreateHook(reinterpret_cast<void*>(Base + offset), replacement, original) == MH_OK;
 }
 [[noreturn]] static void Fail(const char* text) { Note(text); TerminateProcess(GetCurrentProcess(), 11); __assume(0); }
+static void RestoreAbilityDispatch() {
+    constexpr unsigned char activate[] = {0x4c,0x89,0x4c,0x24,0x20,0x4c,0x89,0x44,0x24,0x18,0x89,0x54,0x24,0x10,0x55,0x53,0x56,0x57,0x41,0x54,0x41,0x56,0x41,0x57,0x48,0x8d,0xac,0x24,0x30,0xff,0xff,0xff};
+    constexpr unsigned char input[] = {0x48,0x8b,0x81,0xf8,0x04,0,0,0x4c,0x63,0x81,0,0x05,0,0,0x4d,0x69,0xc8,0xe0,0,0,0,0x4c,0x03,0xc8,0x49,0x3b,0xc1,0x74,0x21,0x0f,0x1f,0};
+    constexpr unsigned char stub[] = {0xc2,0,0};
+    if (memcmp(reinterpret_cast<void*>(Base+0x15adad0), activate, sizeof(activate)) ||
+        memcmp(reinterpret_cast<void*>(Base+0x15c3b40), input, sizeof(input)) ||
+        memcmp(reinterpret_cast<void*>(Base+0x15c3b80), input, sizeof(input)) ||
+        memcmp(reinterpret_cast<void*>(Base+0x9cfa00), stub, sizeof(stub))) Fail("ability_bytes_mismatch\n");
+    TryAbility = reinterpret_cast<decltype(TryAbility)>(Base+0x15adad0);
+    InputPressed = reinterpret_cast<decltype(InputPressed)>(Base+0x15c3b40);
+    InputReleased = reinterpret_cast<decltype(InputReleased)>(Base+0x15c3b80);
+    // Never hook the shared ret stub: unrelated stripped functions also use it.
+    for (const uintptr_t table : {uintptr_t(0x5038ba8), uintptr_t(0x50bb2d0)}) {
+        auto* slot = reinterpret_cast<void**>(Base+table+0x808);
+        if (*slot != reinterpret_cast<void*>(Base+0x9cfa00)) Fail("ability_slot_mismatch\n");
+        DWORD protection, ignored;
+        if (!VirtualProtect(slot, sizeof(*slot), PAGE_READWRITE, &protection)) Fail("ability_slot_write_failed\n");
+        *slot = reinterpret_cast<void*>(ActivateAbility);
+        if (!VirtualProtect(slot, sizeof(*slot), protection, &ignored)) Fail("ability_slot_protection_failed\n");
+    }
+    Note("ability_dispatch_restored\n");
+}
 BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     if (reason != DLL_PROCESS_ATTACH) return TRUE;
     DisableThreadLibraryCalls(module);
@@ -336,6 +388,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     if (memcmp(reinterpret_cast<void*>(Base+0x1369ca0), dialogBytes, sizeof(dialogBytes))) Fail("dialog_bytes_mismatch\n");
     if (!Hook(0x1369ca0, DialogNamespace, reinterpret_cast<void**>(&OriginalDialogNamespace))) Fail("dialog_hook_failed\n");
     if (Server) {
+        RestoreAbilityDispatch();
         if (GetEnvironmentVariableW(L"DR_1105_GAMESERVER_KEY", ServerKey, 65) != 64 ||
             wcsspn(ServerKey, L"0123456789abcdef") != 64) Fail("missing_local_server_credential\n");
         const unsigned char processBytes[] = {0x40,0x55,0x53,0x41,0x54,0x41,0x56,0x41,0x57,0x48,0x8d,0x6c,0x24,0xc9,0x48,0x81,0xec,0xd0,0x00,0x00,0x00};

@@ -19,7 +19,7 @@ async function main(){
  const certificate=new crypto.X509Certificate(publicConfig.certificate);
  if(certificate.checkIP(publicConfig.host)!==publicConfig.host||certificate.fingerprint256.replaceAll(':','').toLowerCase()!==publicConfig.fingerprint)throw Error('Public certificate does not match realm');
  fs.writeFileSync(path.join(stage,'config.json'),JSON.stringify({...publicConfig,gameHash:require('./research/build-identity.json').sha256,indexHash:crypto.createHash('sha256').update(index).digest('hex')}));
- fs.writeFileSync(path.join(stage,'package.json'),JSON.stringify({name:'unbroken-1105-test',productName:'Unbroken 1.10.5 Test',version:'1.10.5',main:'main.cjs',private:true}));
+ fs.writeFileSync(path.join(stage,'package.json'),JSON.stringify({name:'unbroken-1105-test',productName:'Unbroken 1.10.5 Test',version:'1.10.5-test.2',main:'main.cjs',private:true}));
  const native=path.join(root,'lab-native');fs.mkdirSync(native,{recursive:true});
  fs.copyFileSync(path.join(__dirname,'bin/DauntlessUnbroken.dll'),path.join(native,'DauntlessUnbroken.dll'));fs.copyFileSync(path.join(repo,'DauntlessUnbrokenLauncher/assets/dxgi.dll'),path.join(native,'dxgi.dll'));
  const [out]=await dep('@electron/packager').packager({dir:stage,out:path.join(root,'test-launcher-build-v2'),name:'Unbroken1105Test',platform:'win32',arch:'x64',electronVersion:dep('electron/package.json').version,asar:true,overwrite:true,icon:path.join(repo,'DauntlessUnbrokenLauncher/assets/icon.ico'),extraResource:[native]});

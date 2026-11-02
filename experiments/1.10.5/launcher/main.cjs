@@ -14,7 +14,7 @@ async function api(route,body,credential=accounts?.key||''){
 }
 const exe=folder=>path.join(folder,'Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe');
 async function verify(folder){if(await digest(exe(folder),'sha256')!==config.gameHash)throw Error('Choose the 1.10.5 game folder. Your regular game must use its own launcher.');}
-function snapshot(){return {name:accounts?.current?.name||'',accounts:accounts?.list()||[],folder:state.folder||state.installFolder||'',running:!!gameProcess,host:config.host,busy,progress:lastProgress};}
+function snapshot(){return {name:accounts?.current?.name||'',accounts:accounts?.list()||[],folder:state.folder||state.installFolder||'',running:!!gameProcess,host:config.host,build:app.getVersion(),busy,progress:lastProgress};}
 async function installGame(){
  if(!accounts.key)throw Error('Sign in first.');await api('/unbroken/api/GetUserInfo');
  const picked=await dialog.showOpenDialog(window,{title:'Choose the parent folder or an existing Unbroken1105Game folder to resume',defaultPath:state.installFolder||state.folder,properties:['openDirectory','createDirectory']});
@@ -43,7 +43,11 @@ async function launch(){
  const bin=path.dirname(exe(state.folder)),escaped=exe(state.folder).replaceAll("'","''");
  const running=await new Promise((resolve,reject)=>execFile(path.join(process.env.SystemRoot,'System32/WindowsPowerShell/v1.0/powershell.exe'),['-NoProfile','-NonInteractive','-Command',`Get-CimInstance Win32_Process -Filter "Name='Dauntless-Win64-Shipping.exe'" | Where-Object { $_.ExecutablePath -eq '${escaped}' -and $_.CommandLine -notmatch '(^|\\s)-server(\\s|$)' } | Select-Object -ExpandProperty ProcessId`],{windowsHide:true,timeout:10000},(e,out)=>e?reject(Error('Could not check whether the game is already running.')):resolve(out.trim())));
  if(running)throw Error('The test game is already running. Close it before starting another.');
- for(const name of ['dxgi.dll','DauntlessUnbroken.dll']){const source=path.join(process.resourcesPath,'lab-native',name),target=path.join(bin,name);if(await digest(source,'sha256')!==await digest(target,'sha256').catch(()=>''))await fsp.copyFile(source,target);}
+ for(const name of ['dxgi.dll','DauntlessUnbroken.dll']){
+  const source=path.join(process.resourcesPath,'lab-native',name),target=path.join(bin,name);
+  try{const expected=await digest(source,'sha256');if(expected!==await digest(target,'sha256').catch(()=>''))await fsp.copyFile(source,target);if(await digest(target,'sha256')!==expected)throw Error('File verification failed.');}
+  catch(e){if(['ENOENT','EACCES','EPERM'].includes(e.code))throw Error(`Required game file is missing or blocked: ${name}. Check Windows Security > Protection history for this file, then reinstall the complete test launcher from the host. Keep your account backup. Do not turn off protection.`);throw e;}
+ }
  const profile=path.join(app.getPath('userData'),'game-profile');await fsp.mkdir(profile,{recursive:true});
  const configDir=path.join(profile,'Archon/Saved/Config/WindowsClient');await fsp.mkdir(configDir,{recursive:true});
  const engine=path.join(configDir,'Engine.ini');let ini=await fsp.readFile(engine,'utf8').catch(e=>{if(e.code!=='ENOENT')throw e;return '';});
