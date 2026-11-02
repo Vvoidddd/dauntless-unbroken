@@ -7,6 +7,7 @@ import { DoesCharacterBelongToUserId } from "./character";
 import type { Tx } from "./savehistory";
 import { FindFusionItemIndex, IsValidFusionRemoval, IsValidFusionSave, MiddlemanConflictError, MiddlemanValidationError, NormaliseFusionItem, ValidateFusionCompletions } from "./middleman";
 import { MiddlemanFusionGuards } from "../features";
+import { Local1105Enabled, NativeStackedCosmetic } from './local1105';
 
 export type InventoryError = "forbidden" | "not_found" | "conflict" | "insufficient_quantity" | "invalid_inventory_item" | "invalid_inventory_data" | "db_error";
 export type InventoryResult<T = void> = { success: true, data?: T } | { success: false, error: InventoryError };
@@ -868,24 +869,30 @@ export async function GetInventoryForUserIdAndCharacterId(UserId: string, Charac
     }
 
     try{
-        let InventoryFromDb = await GetDb().query.inventory.findFirst({where: eq(inventory.characterId, CharacterId)});
-
-        if(InventoryFromDb == undefined){
-            logger.info(`Creating inventory for characterId ${CharacterId} and userId ${UserId}`);
-
-            InventoryFromDb = MakeEmptyInventoryRow(CharacterId);
-
-            await GetDb().insert(inventory).values(InventoryFromDb);
-        }
-
-        return {
-            success: true,
-            data: {
-                characterId: CharacterId,
-                instancedItems: JSON.parse(InventoryFromDb!.instancedItems),
-                stackedItems: JSON.parse(InventoryFromDb!.stackedItems)
+        return GetDb().transaction(tx => {
+            let row = tx.select().from(inventory).where(eq(inventory.characterId,CharacterId)).get();
+            if(!row){row=MakeEmptyInventoryRow(CharacterId);tx.insert(inventory).values(row).run();}
+            const instances:any[]=JSON.parse(row.instancedItems), stacks:any[]=JSON.parse(row.stackedItems);
+            if(!Array.isArray(instances)||!Array.isArray(stacks))throw new SyntaxError('Invalid inventory arrays');
+            const native=Local1105Enabled();
+            const additions:LogEntry[]=[];
+            if(native) for(const item of instances){
+                if(!NativeStackedCosmetic(item.catalogId))continue;
+                let stack=stacks.find(s=>s.catalogId===item.catalogId);
+                if(stack && Number(stack.quantity)>=1)continue;
+                if(stack){if(Number(stack.quantity)!==0)throw new SyntaxError('Invalid cosmetic quantity');stack.quantity=1;}
+                else {stack={catalogId:item.catalogId,quantity:1};stacks.push(stack);}
+                additions.push({operation:'add',catalogId:item.catalogId,quantityChange:1,quantityAfter:1});
             }
-        };
+            if(additions.length){
+                tx.update(inventory).set({stackedItems:JSON.stringify(stacks)}).where(eq(inventory.characterId,CharacterId)).run();
+                WriteLog(tx,UserId,CharacterId,undefined,{Caller:'admin',Source:'migration1105_cosmetic_kinds'},additions);
+            }
+            // Keep legacy instances in the database for recovery; expose their canonical native stacks.
+            return {success:true,data:{characterId:CharacterId,
+                instancedItems:native?instances.filter(item=>!NativeStackedCosmetic(item.catalogId)):instances,
+                stackedItems:stacks}} as InventoryResult<{characterId:string,instancedItems:any[],stackedItems:any[]}>;
+        });
     }
     catch(error){
         if(error instanceof SyntaxError){

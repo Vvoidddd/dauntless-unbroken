@@ -1,5 +1,11 @@
 import { GetDb } from '../db';
 import { GetConfiguredPaths } from './progressionconfig';
+import itemKinds from '../vendor/store_item_kinds_1105.json';
+
+// Only exact native cosmetic definitions qualify; weapon/armour prefixes alone include gear.
+export function NativeStackedCosmetic(id: string): boolean {
+    return /^(AR_|WP_|LT_|EM_|BNC_)/.test(id) && (itemKinds as Record<string,string>)[id] === 'stacked';
+}
 
 // Opt-in compatibility mode for the isolated 365075 realm only.
 export function Local1105Enabled() {

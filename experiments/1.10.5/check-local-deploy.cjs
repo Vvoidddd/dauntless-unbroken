@@ -1,6 +1,9 @@
 const assert = require('node:assert/strict');
-const { createAllocator, emptyHunt, deadHunt, huntKey } = require('./local-deploy.cjs');
+const { createAllocator, emptyHunt, deadHunt, staleHunt, huntKey } = require('./local-deploy.cjs');
 async function check() {
+  assert.equal(staleHunt({launchedAt:0,requestedAt:400000},0,400001),true,'polling cannot keep a frozen worker alive');
+  assert.equal(staleHunt({launchedAt:300000,requestedAt:300000},0,400001),false,'allow startup grace');
+  assert.equal(staleHunt({launchedAt:0,requestedAt:0},399999,400001),false,'keep healthy occupied worlds');
   const dead={port:63872,launchedAt:0,requestedAt:200000};
   assert.equal(deadHunt(dead,false,[],200001),true,'fresh player polls must not preserve a dead startup');
   assert.equal(deadHunt(dead,true,[],200001),false,'a live process keeps its reservation');

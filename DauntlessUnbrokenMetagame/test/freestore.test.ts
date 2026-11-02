@@ -194,6 +194,21 @@ it('production Rams shop requires updated clients and charges every account thro
     });
 });
 
+it('1.10.5 uses native Rams prices without the legacy launcher protocol',async()=>{
+    const A=await MakePlayer();
+    await WithEnv({BIND_HOST:'127.0.0.1',LOCAL_1105_REALM:'1',STORE_RAMS:'1',STORE_RAMS_EVENT_TRANSPORT:undefined,STORE_WEEKLY_ROTATION:undefined},async()=>{
+        GetDb().insert(inventory).values({characterId:A.CharacterId,instancedItems:'[]',stackedItems:JSON.stringify([{catalogId:'CURRENCY_NOTES',quantity:1500}])}).run();
+        const offer=await Call('GET',`/product/sku/${SKU}`,{as:A.UserId});
+        assert.equal(offer.status,200);
+        assert.deepEqual(offer.json.prices,[{currencyId:'CURRENCY_NOTES',price:750,salesPrice:0}]);
+        const issued=await Call('GET',`/token/CURRENCY_NOTES/${SKU}`,{as:A.UserId});
+        assert.equal(issued.status,200);
+        for(let i=0;i<2;i++) assert.equal((await Call('POST',`/notification/CURRENCY_NOTES?token=${issued.json.purchaseToken}`,{as:A.UserId})).status,204);
+        assert.equal(StackQuantity(A.CharacterId,'CURRENCY_NOTES'),750);
+        assert.equal(StackQuantity(A.CharacterId,ITEM),1);
+    });
+});
+
 it('weekly shop rejects inactive offers and outstanding tokens without taking Rams',async()=>{
     const A=await MakePlayer();
     await WithEnv({STORE_RAMS_TEST_ACCOUNT:A.UserId},async()=>{

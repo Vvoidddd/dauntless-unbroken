@@ -51,6 +51,10 @@ function deadHunt(entry, live, sockets, now=Date.now()) {
   return !live && now-(entry.launchedAt ?? entry.requestedAt)>180000 &&
     Array.isArray(sockets) && !sockets.some(s=>s.LocalPort===entry.port);
 }
+function staleHunt(entry, modified, now=Date.now()) {
+  // An occupied UDP port does not prove the game thread survived a crash.
+  return now-(entry.launchedAt ?? entry.requestedAt)>180000 && now-modified>180000;
+}
 let cleaning=false;
 async function cleanEmptyHunts() {
   if(cleaning)return;cleaning=true;
@@ -68,18 +72,22 @@ async function cleanEmptyHunts() {
     const log=path.join(root,`native-hunt-${entry.port}.log`);let stat,tail;
     try {stat=fs.statSync(log);const fd=fs.openSync(log,'r');try{const bytes=Buffer.alloc(Math.min(stat.size,4096));fs.readSync(fd,bytes,0,bytes.length,stat.size-bytes.length);tail=bytes.toString();}finally{fs.closeSync(fd);}}
     catch {continue;}
-    if(!emptyHunt(entry,tail,stat.mtimeMs)){emptySince.delete(hunt);continue;}
-    if(!emptySince.has(hunt)){emptySince.set(hunt,Date.now());continue;}
-    if(Date.now()-emptySince.get(hunt)<90000)continue;
+    const stale=staleHunt(entry,stat.mtimeMs);
+    if(!stale){
+      if(!emptyHunt(entry,tail,stat.mtimeMs)){emptySince.delete(hunt);continue;}
+      if(!emptySince.has(hunt)){emptySince.set(hunt,Date.now());continue;}
+      if(Date.now()-emptySince.get(hunt)<90000)continue;
+    }
     let pid;try{pid=Number(fs.readFileSync(path.join(root,`native-hunt-${entry.port}.pid`),'utf8'));}catch{continue;}
     if(!Number.isSafeInteger(pid)||pid<=0)continue;
-    if(Date.now()-entry.requestedAt<=90000)continue;
+    if(!stale&&Date.now()-entry.requestedAt<=90000)continue;
     retiring.add(hunt);
     const exe=path.join(root,'game/Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe').replaceAll("'","''");
+    const staleGuard=stale?` -and ((Get-Item -LiteralPath '${log.replaceAll("'","''")}').LastWriteTimeUtc -lt [DateTime]::UtcNow.AddSeconds(-180))`:'';
     const stopped=await new Promise(resolve=>execFile(powershell,['-NoProfile','-NonInteractive','-Command',
-      `$p=Get-CimInstance Win32_Process -Filter 'ProcessId=${pid}'; if (!$p) {'gone'} elseif ($p.ExecutablePath -eq '${exe}' -and $p.CommandLine -match '(^|\\s)-server(\\s|$)' -and $p.CommandLine -match '(^|\\s)-port=${entry.port}(\\s|$)') { Stop-Process -Id ${pid} -ErrorAction Stop; 'stopped' }`],
+      `$p=Get-CimInstance Win32_Process -Filter 'ProcessId=${pid}'; if (!$p) {'gone'} elseif ($p.ExecutablePath -eq '${exe}' -and $p.CommandLine -match '(^|\\s)-server(\\s|$)' -and $p.CommandLine -match '(^|\\s)-port=${entry.port}(\\s|$)'${staleGuard}) { Stop-Process -Id ${pid} -ErrorAction Stop; 'stopped' }`],
       {windowsHide:true,timeout:10000,env:psEnvironment},(error,out)=>resolve(!error&&/^(stopped|gone)$/.test(out.trim()))));
-    if(stopped){hunts.delete(hunt);delete worlds[hunt];emptySince.delete(hunt);sessions.delete(hunt);saveHunts();console.log(`Closed empty local island: ${hunt}`);}
+    if(stopped){hunts.delete(hunt);delete worlds[hunt];emptySince.delete(hunt);sessions.delete(hunt);readinessCache.delete(hunt);saveHunts();console.log(`Closed ${stale?'unresponsive':'empty'} island: ${hunt}`);}
     retiring.delete(hunt);
   }}finally{cleaning=false;}
 }
@@ -146,7 +154,9 @@ async function probeReady(mode) {
     sessions.set(mode,{pid,id:`${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20,32)}`});
   }
   const startedAt=fs.statSync(path.join(root,stem+'.pid')).mtimeMs;
-  return {host:publicHost,port,sessionId:sessions.get(mode).id,startedAt,players:occupancy(stem,startedAt)};
+  const players=occupancy(stem,startedAt);
+  if(players===undefined)return;
+  return {host:publicHost,port,sessionId:sessions.get(mode).id,startedAt,players};
 }
 function createAllocator(account, readiness = ready, allocateHunt = startHunt, worker=workerUrl) {
   // ponytail: two warm anchors per mode; the existing backend queues when both are full.
@@ -217,7 +227,7 @@ return http.createServer(async (req, res) => {
   } catch(error) { if(error instanceof CapacityUnavailable)reply(503,{error:'capacity_unavailable',reason:error.reason});else reply(400,{error:'invalid_local_request'}); }
 });
 }
-module.exports = { createAllocator, emptyHunt, deadHunt, huntKey, workerOwns };
+module.exports = { createAllocator, emptyHunt, deadHunt, staleHunt, probeReady, huntKey, workerOwns };
 if (require.main === module) {
   let account = require('./lab-account.cjs').userId;
   if(process.env.DR_1105_WORKER==='1')account=id=>typeof id==='string'&&/^UID-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(id);

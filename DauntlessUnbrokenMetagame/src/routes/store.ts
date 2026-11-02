@@ -18,7 +18,7 @@ import { ResolveOfferPricing } from '../controllers/freestore';
 
 const MainShopSkus = new Set(StoreCatalog.webstore.map(offer=>offer.id));
 function RequireRamsClient(req: any, applies: boolean){
-    if(applies && process.env.STORE_RAMS === '1' && req.query.shop_protocol !== 'rams-v1'){
+    if(applies && !Local1105Enabled() && process.env.STORE_RAMS === '1' && req.query.shop_protocol !== 'rams-v1'){
         throw new StoreError(426, 'Update the launcher to use the Rams shop');
     }
 }

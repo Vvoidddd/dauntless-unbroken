@@ -100,7 +100,10 @@ export function SetBounties(AccountId: string, Body: unknown, Who: Caller): Real
             }
 
             if(SlotIndex !== null){
-                const Replaced = tx.delete(bounties).where(and(eq(bounties.accountId, AccountId), eq(bounties.slotIndex, SlotIndex), ne(bounties.bountyId, BountyId))).returning().all();
+                // Seasonal/daily challenges and ordinary bounties have independent slots.
+                const Replaced = tx.select().from(bounties).where(and(eq(bounties.accountId, AccountId), eq(bounties.slotIndex, SlotIndex), ne(bounties.bountyId, BountyId))).all()
+                    .filter(row => !Local1105Enabled() || (BountyId.startsWith('Bounty_') && row.bountyId.startsWith('Bounty_')));
+                for(const row of Replaced) tx.delete(bounties).where(and(eq(bounties.accountId,AccountId),eq(bounties.bountyId,row.bountyId))).run();
 
                 for(const Row of Replaced){
                     Notes.push(`${BountyId} took slot ${SlotIndex} from ${Row.bountyId}`);

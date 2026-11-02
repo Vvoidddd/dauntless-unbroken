@@ -1,68 +1,104 @@
 {
-  "date": "2026-11-01T00:00:00Z",
+  "date": "2026-11-02T00:00:00Z",
   "title": "Dauntless Unbroken",
-  "release_version": "1.10.5 - Local Test",
-  "description": "Private realm testing: Ramsgate, Training Grounds, Hunting Grounds and existing Unbroken accounts. Test progress stays separate from the live servers.",
+  "release_version": "1.10.5 - Public Release",
+  "description": "Dauntless Unbroken is now running 1.10.5. These notes cover our changes and the issues still being investigated.",
   "language": "en",
-  "permalink": "https://github.com/Vvoidddd/dauntless-unbroken/tree/1.10.5/experiments/1.10.5",
+  "permalink": "https://github.com/Vvoidddd/dauntless-unbroken/releases/latest",
   "notes": [
     {
       "type": "unbroken",
-      "title": "Unbroken Test Build",
+      "title": "Welcome to 1.10.5",
       "sections": [
         {
           "type": "text",
-          "title": "Welcome to the 1.10.5 test",
-          "description": "Ramsgate and Training Grounds are available, and Hunting Grounds now starts on demand. Island entry and two Behemoth kills have been confirmed in-game, with XP and inventory saves recorded.",
+          "title": "Welcome to 1.10.5",
+          "description": "Use your existing Unbroken account key with the current public launcher.",
           "background": "",
           "cta": "",
           "url": "",
-          "changes": [{"comment": "Confirmed in-game", "list": ["Login and travel to Ramsgate.", "Travel to Training Grounds and speak with Trainer Rosk.", "Enter a Hunting Grounds island, fight Behemoths and earn weapon XP."]}]
+          "changes": [
+            {
+              "comment": "Dauntless Unbroken",
+              "list": [
+                "Game downloads use Cloudflare R2 with resume support and file verification.",
+                "Ramsgate, Training Grounds and Hunting Grounds are available."
+              ]
+            }
+          ]
         }
       ]
     },
     {
       "type": "migration",
-      "title": "Accounts & Progression",
+      "title": "Accounts and cosmetics",
       "sections": [
         {
           "type": "text",
-          "title": "Keep your Slayer's belongings",
-          "description": "Void's gear, quests and previously available islands have been checked in-game. GOLLUM, EkoR and Sheep have also been copied into the private realm with their existing account keys. Full migration still needs more testing.",
+          "title": "Accounts and cosmetics",
+          "description": "Existing accounts carry their inventory and progression into the new realm.",
           "background": "",
           "cta": "",
           "url": "",
-          "changes": [{"comment": "A fresh start for weapon skills", "list": ["Migrated weapons start at zero weapon XP, shown as level 1 in this version.", "Your old Slayer Mastery is preserved separately from weapon skill.", "The migration does not reset your existing quests or tutorial progress.", "The weapon level display now uses the correct XP tracks instead of placeholder values."]}]
+          "changes": [
+            {
+              "comment": "Dauntless Unbroken",
+              "list": [
+                "Legacy cosmetic records are converted to the item format used by 1.10.5 when inventory loads.",
+                "The conversion keeps recovery records and does not reset equipment or cells.",
+                "Main-shop cosmetic offers use Rams; the displayed price is checked again when purchasing."
+              ]
+            }
+          ]
         }
       ]
     },
     {
       "type": "fixes",
-      "title": "Quest Fixes",
+      "title": "Reliability fixes",
       "sections": [
         {
           "type": "text",
-          "title": "Dialogue and early progression",
-          "description": "Fixed a shared dialogue lookup that showed missing-translation messages for some characters. The first Markus quest and Rosk's Training Grounds dialogue have been checked in-game.",
+          "title": "Reliability fixes",
+          "description": "This update addresses stale hunt servers and conflicting bounty slots.",
           "background": "",
           "cta": "",
           "url": "",
-          "changes": [{"comment": "Confirmed changes", "list": ["The Slayer's Path quest completes, grants 100 Rams and advances.", "Training Grounds requests now send you to the training map.", "Slayer's Path state is saved in the local test."]}]
+          "changes": [
+            {
+              "comment": "Dauntless Unbroken",
+              "list": [
+                "Hunt allocation checks fresh game activity before assigning a world.",
+                "Unresponsive hunt processes are retired after a grace period.",
+                "Ordinary bounties and seasonal challenges no longer replace each other when they use the same slot number.",
+                "Quest dialogue and Training Grounds routing have been corrected."
+              ]
+            }
+          ]
         }
       ]
     },
     {
-      "type": "testing",
-      "title": "Known Limits",
+      "type": "known",
+      "title": "Issues under investigation",
       "sections": [
         {
           "type": "text",
-          "title": "Still in development",
-          "description": "This test is separate from the live 1.4.4 servers. Local test progress does not transfer back to your live account.",
+          "title": "Issues under investigation",
+          "description": "Please upload launcher logs after an error so we can investigate your session.",
           "background": "",
           "cta": "",
           "url": "",
-          "changes": [{"comment": "Next to test", "list": ["Multiplayer, the remaining islands and Escalations still need testing.", "Bounty boards remain disabled.", "The full quest chain and migration of more accounts still need testing."]}]
+          "changes": [
+            {
+              "comment": "Dauntless Unbroken",
+              "list": [
+                "Some players still report hunt timeouts or Escalation cancellations.",
+                "Weapon meters, lanterns, consumables and zero-health states still need further gameplay validation.",
+                "Missing items and bounty rewards are being checked; report the item or bounty name with your account name."
+              ]
+            }
+          ]
         }
       ]
     }

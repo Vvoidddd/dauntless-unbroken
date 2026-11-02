@@ -8,7 +8,7 @@ import { GetDb } from '../src/db';
 before(StartApp);
 after(async () => { await StopApp(); RemoveTestDb(() => GetDb().$client.close()); });
 
-test('1.10.5 Update Notes use the native payload and stay limited to the local build', async () => {
+test('1.10.5 Update Notes use the native payload and stay limited to the matching build', async () => {
     const url = '/patchnotes/en/365075_rel-1.10.5_shipping';
     const oldAccount = process.env.LOCAL_1105_ACCOUNT_ID;
     const oldBind = process.env.BIND_HOST;
@@ -27,7 +27,7 @@ test('1.10.5 Update Notes use the native payload and stay limited to the local b
         assert.equal(reply.json.message, 'OK');
         const notes = reply.json.payload;
         assert.equal(notes.title, 'Dauntless Unbroken');
-        assert.equal(notes.release_version, '1.10.5 - Local Test');
+        assert.equal(notes.release_version, '1.10.5 - Public Release');
         assert.ok(Number.isFinite(Date.parse(notes.date)));
         assert.equal(notes.notes.length, 4);
         for (const category of notes.notes) {
