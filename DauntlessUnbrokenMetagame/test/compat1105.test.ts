@@ -1,0 +1,58 @@
+import {RemoveTestDb} from './setup';
+import './authenv';
+import {after, before, it} from 'node:test';
+import assert from 'node:assert/strict';
+import {StartApp, StopApp, Call} from './appclient';
+import {MakePlayer} from './helpers';
+import {GetDb} from '../src/db';
+import {GetAllEscalationSeasons} from '../src/controllers/escalationConfig';
+import {GrantKind} from '../src/controllers/freestore';
+import {GetSelectedHuntPass} from '../src/controllers/realprogression';
+import {GetProgressionPath} from '../src/controllers/progressionrank';
+import path from 'node:path';
+
+before(async()=>{
+    Object.assign(process.env,{BIND_HOST:'127.0.0.1',LOCAL_1105_REALM:'1',ESCALATION_MODE:'real',STORE:'free',ACTIVE_HUNT_PASS:'season09b',PROGRESSION_CONFIG_DIR:path.resolve('..','experiments/1.10.5/progression')});
+    await StartApp();
+});
+after(async()=>{await StopApp();RemoveTestDb(()=>GetDb().$client.close());});
+it('serves the 1.10.5 ordinary bounty board, real six-season state and price-array offers',async()=>{
+    const player=await MakePlayer();
+    const tuning=await Call('GET','/game_tuning/bounty_game_data');
+    assert.equal(tuning.status,200);
+    assert.equal(tuning.json.payload.max_slots,4);
+    assert.equal(tuning.json.payload.bounty_token_id,'TOKEN_BOUNTY_DRAFT');
+    assert.deepEqual(tuning.json.payload.bounty_data,[]);
+    assert.equal(tuning.json.payload.delete_claimed_bounties,true);
+    const oldTuning=await Call('GET','/bounty/game-data',{as:player.UserId});
+    assert.deepEqual(oldTuning.json.payload,tuning.json.payload);
+    assert.equal(GrantKind('AR_HP07A_MONK_ARMS'),'stacked');
+    GetDb().$client.prepare('INSERT INTO huntpassselection(accountId,progressionId,updatedDate) VALUES(?,?,?)').run(player.UserId,'season17',new Date().toISOString());
+    assert.equal(GetSelectedHuntPass(player.UserId),'season09b');
+    const pass=GetProgressionPath('season09b')!;
+    assert.equal(pass.requirements!.length,51);
+    assert.equal(pass.free_rewards!.length,51);
+    assert.equal(pass.premium_rewards!.length,51);
+    const lanternReward=(pass.premium_rewards as any[]).flatMap(r=>r.stacked_items).find(r=>r.catalog_id==='LT_HP09B_COMMANDO_00');
+    assert.equal(lanternReward.quantity,1);
+    for(const suffix of ['_daily','_weekly']){
+        const disabled=await Call('GET','/game_tuning/bounty_game_data'+suffix);
+        assert.equal(disabled.json.payload.max_slots,0);
+    }
+    const seasons=GetAllEscalationSeasons();
+    assert.equal(seasons.length,6);
+    assert.ok(seasons.every(s=>s.enabled&&s.levels.length===25));
+    for(const season of seasons){
+        const reply=await Call('GET',`/escalation/${season.id}/${player.UserId}`,{as:player.UserId});
+        assert.equal(reply.status,200);
+        assert.equal(reply.json.payload.escalation_level,0);
+    }
+    const offers=await Call('GET','/product/skus/public?requiredTags=webstore',{as:player.UserId});
+    assert.equal(offers.status,200);assert.ok(offers.json.length>0);
+    assert.ok(offers.json.every((o:any)=>o.prices.length===1&&Number.isSafeInteger(o.prices[0].price)));
+    const offer=offers.json[0];
+    assert.equal(offer.prices[0].currencyId,'id_currency_platinum');
+    assert.equal(offer.prices[0].salesPrice,0);
+    const detail=await Call('GET','/product/sku/'+offer.id,{as:player.UserId});
+    assert.deepEqual(detail.json.prices,offer.prices);
+});

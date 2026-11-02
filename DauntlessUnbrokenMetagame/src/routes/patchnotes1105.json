@@ -2,7 +2,7 @@
   "date": "2026-11-01T00:00:00Z",
   "title": "Dauntless Unbroken",
   "release_version": "1.10.5 - Local Test",
-  "description": "Ramsgate, quest dialogue and account migration testing. This is a local test build, not a live release.",
+  "description": "Private realm testing: Ramsgate, Training Grounds, Hunting Grounds and existing Unbroken accounts. Test progress stays separate from the live servers.",
   "language": "en",
   "permalink": "https://github.com/Vvoidddd/dauntless-unbroken/tree/1.10.5/experiments/1.10.5",
   "notes": [
@@ -13,11 +13,11 @@
         {
           "type": "text",
           "title": "Welcome to the 1.10.5 test",
-          "description": "Ramsgate and Training Grounds are now available in the local test. We are working toward bringing existing Unbroken accounts into this version.",
+          "description": "Ramsgate and Training Grounds are available, and Hunting Grounds now starts on demand. Island entry and two Behemoth kills have been confirmed in-game, with XP and inventory saves recorded.",
           "background": "",
           "cta": "",
           "url": "",
-          "changes": [{"comment": "Confirmed in-game", "list": ["Login and travel to Ramsgate.", "Travel to Training Grounds and speak with Trainer Rosk."]}]
+          "changes": [{"comment": "Confirmed in-game", "list": ["Login and travel to Ramsgate.", "Travel to Training Grounds and speak with Trainer Rosk.", "Enter a Hunting Grounds island, fight Behemoths and earn weapon XP."]}]
         }
       ]
     },
@@ -28,7 +28,7 @@
         {
           "type": "text",
           "title": "Keep your Slayer's belongings",
-          "description": "Void's imported account has been checked in-game: gear, current quests and previously available islands remain accessible. More accounts still need testing before a public migration.",
+          "description": "Void's gear, quests and previously available islands have been checked in-game. GOLLUM, EkoR and Sheep have also been copied into the private realm with their existing account keys. Full migration still needs more testing.",
           "background": "",
           "cta": "",
           "url": "",
@@ -62,7 +62,7 @@
           "background": "",
           "cta": "",
           "url": "",
-          "changes": [{"comment": "Next to test", "list": ["Combat hunts and multiplayer are not ready.", "Bounty boards remain disabled.", "The full quest chain and migration of more accounts still need testing."]}]
+          "changes": [{"comment": "Next to test", "list": ["Multiplayer, the remaining islands and Escalations still need testing.", "Bounty boards remain disabled.", "The full quest chain and migration of more accounts still need testing."]}]
         }
       ]
     }

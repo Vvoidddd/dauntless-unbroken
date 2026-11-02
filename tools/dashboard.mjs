@@ -43,7 +43,8 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
   const target = new URL(backend);
   if (target.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(target.hostname) || target.username || target.password) throw new Error('Backend must be loopback HTTP');
   const page = await readFile(new URL('./dashboard.html', import.meta.url));
-  if (serverConfig && (serverConfig.Mode !== 'Public' || !/^[a-z0-9.-]+$/i.test(serverConfig.PublicHost || '') || !Number.isInteger(serverConfig.Ports?.gateway) || serverConfig.Ports.gateway < 1 || serverConfig.Ports.gateway > 65535 || !/^[a-f0-9]{64}$/i.test(serverConfig.CertFingerprint || ''))) throw new Error('Invalid public server configuration');
+  const testRealm = serverConfig?.Mode === 'Local1105' && /^100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}$/.test(serverConfig?.PublicHost || '') && serverConfig?.Ports?.gateway === 62002;
+  if (serverConfig && !testRealm && (serverConfig.Mode !== 'Public' || !/^[a-z0-9.-]+$/i.test(serverConfig.PublicHost || '') || !Number.isInteger(serverConfig.Ports?.gateway) || serverConfig.Ports.gateway < 1 || serverConfig.Ports.gateway > 65535 || !/^[a-f0-9]{64}$/i.test(serverConfig.CertFingerprint || ''))) throw new Error('Invalid server configuration');
   const [workerMonitor,ausMonitor,germanyMonitor,eu2Monitor] = await Promise.all([monitorWorker(workerUrl,'Server #2',fetcher),monitorWorker(ausUrl,'Server #3',fetcher),monitorWorker(germanyUrl,'Server #4',fetcher),monitorWorker(eu2Url,'Server #5',fetcher)]);
 
   let previous = cpuTimes(), known = null, added = 0, sample = null, failure = null, polling = false;
@@ -278,6 +279,10 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
         if (!response.ok) { res.writeHead(response.status === 429 ? 429 : 502).end(JSON.stringify({error: 'Backend refused invite creation.'})); return; }
         const result = await response.json();
         if (!/^[A-Za-z0-9-]{4,64}$/.test(result.code || '')) throw new Error('Invalid invite response');
+        if (testRealm) {
+          const query = new URLSearchParams({v:'1',host:serverConfig.PublicHost,port:'62002',code:result.code,name:'Dauntless Unbroken 1.10.5 Test'});
+          res.end(JSON.stringify({invite:`dauntless-unbroken://join?${query}`,uses:body.uses,realm:serverConfig.PublicHost,gameVersion:'1.10.5'})); return;
+        }
         const query = new URLSearchParams({v: '2', mode: 'public', host: serverConfig.PublicHost.toLowerCase(), port: String(serverConfig.Ports.gateway), fp: serverConfig.CertFingerprint.toLowerCase(), code: result.code, name: serverConfig.ServerName || 'Dauntless Unbroken'});
         res.end(JSON.stringify({invite: `dauntless-unbroken://join?${query}`, uses: body.uses}));
       } catch { if (!res.destroyed) res.writeHead(502).end(JSON.stringify({error: submitted ? 'Invite result unknown. It may have been created; do not automatically retry.' : 'Invalid invite request.'})); }

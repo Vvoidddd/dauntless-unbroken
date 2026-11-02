@@ -2,7 +2,7 @@ param([switch]$RequireConnection, [ValidateSet('ramsgate','dojo')][string]$World
 $ErrorActionPreference = 'Stop'
 $lab = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
 $stem = if ($World -eq 'dojo') { 'native-dojo' } else { 'native-server' }
-$port = if ($World -eq 'dojo') { 62771 } else { 62770 }
+$port = if ($World -eq 'dojo') { 63871 } else { 63870 }
 $map = if ($World -eq 'dojo') { 'training_dojo_persistent' } else { 'ramsgate_01_persistent' }
 $serverId = [int](Get-Content -LiteralPath (Join-Path $lab "$stem.pid") -Raw)
 $server = Get-Process -Id $serverId

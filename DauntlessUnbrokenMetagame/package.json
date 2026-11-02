@@ -26,6 +26,7 @@
     "ltx": "^3.1.2",
     "pino": "^10.4.0",
     "pino-pretty": "^13.2.0",
+    "ssh2": "1.17.0",
     "ws": "^8.21.3"
   },
   "devDependencies": {

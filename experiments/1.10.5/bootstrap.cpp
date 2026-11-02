@@ -9,7 +9,9 @@
 #include <string>
 #include <map>
 #include "MinHook/MinHook.h"
+#include "SDK/Archon_structs.hpp"
 #include "SDK/Engine_classes.hpp"
+#include "SDK/exploration_game_mode_bpc_classes.hpp"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
 extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
 
@@ -18,7 +20,22 @@ extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
 static uintptr_t Base;
 static bool Server;
 static bool Dojo;
-static int ServerPort = 62770;
+static bool CombatProbe;
+static std::wstring BindIp = L"127.0.0.1", BackendAuthority = L"127.0.0.1:62000";
+static std::wstring HuntUrl, HuntMapName, ProfileName;
+
+static bool PrivateIp(const wchar_t* value) {
+    unsigned a,b,c,d; wchar_t rest;
+    return swscanf_s(value, L"%u.%u.%u.%u%c", &a,&b,&c,&d,&rest,1) == 4 && c<=255 && d<=255 &&
+        ((a==100 && b>=64 && b<=127) || (a==127 && b==0 && c==0 && d==1));
+}
+static std::wstring Endpoint(const std::wstring& original) {
+    auto text = original;
+    const auto pos = text.find(L"127.0.0.1:62000");
+    if (!Server && pos != std::wstring::npos) text.replace(pos,15,BackendAuthority);
+    return text;
+}
+static int ServerPort = 63870;
 static std::wstring LocalServerCommand;
 static HANDLE Log = INVALID_HANDLE_VALUE;
 static void Note(const char* text) {
@@ -61,17 +78,17 @@ static bool (*OriginalConfig)(void*, const wchar_t*, const wchar_t*, FString*, F
 static bool Config(void* self, const wchar_t* section, const wchar_t* key, FString* out, FString* filename) {
     if (key && out) {
         const auto found = Endpoints.find(key);
-        if (found != Endpoints.end()) { SetString(out, found->second); return true; }
+        if (found != Endpoints.end()) { SetString(out, Endpoint(found->second)); return true; }
         if (section && wcsstr(section, L"Mcp")) {
             if (_wcsicmp(key, L"Protocol") == 0) {
                 SetString(out, wcsstr(section, L"Stomp") ? L"ws" : L"http"); return true;
             }
             if (wcsstr(section, L"XMPP")) {
-                if (wcscmp(key, L"ServerAddr") == 0) { SetString(out, L"ws://127.0.0.1:62099"); return true; }
+                if (wcscmp(key, L"ServerAddr") == 0) { SetString(out, L"ws://127.0.0.1"); return true; }
                 if (wcscmp(key, L"Domain") == 0) { SetString(out, L"localhost"); return true; }
             }
             if (wcscmp(key, L"Domain") == 0 || wcscmp(key, L"RedirectUrl") == 0) {
-                SetString(out, L"127.0.0.1:62000"); return true;
+                SetString(out, BackendAuthority); return true;
             }
         }
     }
@@ -86,7 +103,7 @@ static const wchar_t* ServerCommandLine() {
 }
 static FString* DefaultMap(FString* out) {
     auto result = OriginalMap(out);
-    SetString(result, Dojo ? L"/Game/Maps/islands/dojo/training_dojo_persistent?game=/Game/Blueprints/GameMode/BPGM_ArchonTrainingGrounds.BPGM_ArchonTrainingGrounds_C?MaxPlayers=12"
+    SetString(result, CombatProbe ? HuntUrl.c_str() : Dojo ? L"/Game/Maps/islands/dojo/training_dojo_persistent?game=/Game/Blueprints/GameMode/BPGM_ArchonTrainingGrounds.BPGM_ArchonTrainingGrounds_C?MaxPlayers=12"
                           : L"/Game/Maps/ramsgate/ramsgate_01_persistent");
     static bool logged = false;
     if (!logged) { Note(Dojo ? "default_map=training_dojo\n" : "default_map=ramsgate\n"); logged = true; }
@@ -106,7 +123,7 @@ static void TickFlush(SDK::UNetDriver* driver, float delta) {
     OriginalTickFlush(driver, delta);
 }
 extern "C" bool LocalListen(SDK::UWorld* world, SDK::FURL* requested) {
-    if (!world || world->GetName() != (Dojo ? "training_dojo_persistent" : "ramsgate_01_persistent")) return false;
+    if (!world || world->GetName() != (CombatProbe ? std::string(HuntMapName.begin(),HuntMapName.end()) : Dojo ? "training_dojo_persistent" : "ramsgate_01_persistent")) return false;
     const int active = *reinterpret_cast<int*>(reinterpret_cast<uintptr_t>(world)+0x158);
     if (active < 0 || active >= world->LevelCollections.Num() || world->LevelCollections.Num() > 16) return false;
     auto& collection = world->LevelCollections[active];
@@ -138,7 +155,7 @@ extern "C" bool LocalListen(SDK::UWorld* world, SDK::FURL* requested) {
             driver->ServerConnection = nullptr;
             SDK::FURL url = *requested;
             url.Port = ServerPort;
-            url.Host = L"127.0.0.1";
+            url.Host = SDK::FString(BindIp.c_str());
             SDK::FString error;
             const bool listening = reinterpret_cast<bool(*)(SDK::UNetDriver*,void*,SDK::FURL*,bool,SDK::FString*)>(table[0x290/8])(
                 driver, reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(world)+0x28), &url, false, &error);
@@ -154,11 +171,59 @@ extern "C" bool LocalListen(SDK::UWorld* world, SDK::FURL* requested) {
     }
     return false;
 }
+// Explicit catalog diagnostics run only on the game thread, never in client HUD callbacks.
+static void DumpHuntTables() {
+    static unsigned attempts = 0;
+    static bool mmDone = false, phDone = false;
+    wchar_t enabled[2];
+    if (GetEnvironmentVariableW(L"DR_1105_DUMP_HUNTS",enabled,2)!=1 || enabled[0]!=L'1' || attempts++>=24) return;
+    auto* mm=SDK::UObject::FindObject<SDK::UDataTable>("DataTable matchmaker_hunts_table.matchmaker_hunts_table");
+    if (!mmDone && mm && mm->RowStruct && mm->RowStruct->GetName()=="MatchmakerHuntTableData" && mm->RowMap.IsValid() && mm->RowMap.NumAllocated()<4096 && mm->RowMap.Num()>0) {
+        Note("DUMP_MM_BEGIN\n");
+        for (const auto& pair : mm->RowMap) {
+            if (!pair.Value()) continue;
+            const auto& row=*reinterpret_cast<const SDK::FMatchmakerHuntTableData*>(pair.Value());
+            auto line="DUMP_MM\t"+pair.Key().ToString()+"\t"+row.GameModeOverride.ToString()+"\t"+row.SpecificBehemoth.BehemothAsset.ObjectID.AssetPathName.ToString()+"\t"+std::to_string(row.MaxPlayers)+"\t"+row.GameModeSpecificData.RowName.ToString();
+            if (row.MapList.Num()>=0 && row.MapList.Num()<=64)
+                for(const auto& map:row.MapList) line+="\t"+map.MapAsset.ObjectID.AssetPathName.ToString();
+            Note((line+"\n").c_str());
+        }
+        Note("DUMP_MM_END\n"); mmDone=true;
+    }
+    auto* ph=SDK::UObject::FindObject<SDK::UDataTable>("DataTable player_hunts_table.player_hunts_table");
+    if (!phDone && ph && ph->RowStruct && ph->RowStruct->GetName()=="PlayerHuntTableData" && ph->RowMap.IsValid() && ph->RowMap.NumAllocated()<4096 && ph->RowMap.Num()>0) {
+        Note("DUMP_PH_BEGIN\n");
+        for(const auto& pair:ph->RowMap) {
+            if(!pair.Value())continue;
+            const auto& row=*reinterpret_cast<const SDK::FPlayerHuntTableData*>(pair.Value());
+            auto line="DUMP_PH\t"+pair.Key().ToString();
+            if(row.MatchmakerHuntIDs.Num()>=0 && row.MatchmakerHuntIDs.Num()<=128)
+                for(const auto& id:row.MatchmakerHuntIDs) line+="\t"+id.RowName.ToString();
+            Note((line+"\n").c_str());
+        }
+        Note("DUMP_PH_END\n"); phDone=true;
+    }
+}
 static void Tick(void* self, float delta, char render) {
     OriginalTick(self, delta, render);
+    auto* currentWorld = SDK::UWorld::GetWorld();
+    auto* currentDriver = currentWorld ? currentWorld->NetDriver : nullptr;
+    if (currentDriver && !currentDriver->ServerConnection) {
+        for (auto* connection : currentDriver->ClientConnections) {
+            auto* pawn = connection && connection->PlayerController ? connection->PlayerController->Pawn : nullptr;
+            if (!pawn || pawn->IsActorBeingDestroyed()) continue;
+            // WindowsClient omits this authority dispatch. Match the 1.4.4 host:
+            // the Blueprint handles regen permission, drain and frame delta.
+            auto* tickStamina = pawn->Class->GetFunction("BP_PlayerCharacter_C", "TickStamina");
+            if (!tickStamina) continue;
+            struct { uint8_t Where, Whom; } params{2,5}; // Both cities/hunts; All peers.
+            pawn->ProcessEvent(tickStamina, &params);
+        }
+    }
     static ULONGLONG next = 0;
     if (GetTickCount64() >= next) {
         next = GetTickCount64() + 5000;
+        DumpHuntTables();
         char line[256];
         auto* world = SDK::UWorld::GetWorld();
         auto* driver = world ? world->NetDriver : nullptr;
@@ -167,6 +232,19 @@ static void Tick(void* self, float delta, char render) {
                   driver ? *reinterpret_cast<unsigned*>(reinterpret_cast<uintptr_t>(driver)+0x418) : 0,
                   *reinterpret_cast<unsigned char*>(Base+0x6af8eda), *reinterpret_cast<unsigned char*>(Base+0x6af8ed9));
         Note(line);
+        if (CombatProbe && world && world->AuthorityGameMode && world->AuthorityGameMode->IsA(SDK::AArchonGameMode_Island::StaticClass())) {
+            auto* mode=static_cast<SDK::AArchonGameMode_Island*>(world->AuthorityGameMode);
+            auto* component=mode->MainGameModeComponent;
+            if (component && component->IsA(SDK::Uexploration_game_mode_bpc_C::StaticClass())) {
+                auto* exploration=static_cast<SDK::Uexploration_game_mode_bpc_C*>(component);
+                auto* director=reinterpret_cast<SDK::UIslandDirectorComponent*>(exploration->IslandDirectorComponent);
+                sprintf_s(line,"hunt_state spec=%d started=%d waiting=%d active=%d target=%d director=%d contents=%d behemoths=%d\n",
+                    exploration->ValidIslandSpecExists,exploration->GameHasStarted,exploration->WaitForArrivals,
+                    exploration->ActivePrimaryContents,exploration->TargetNumberOfPrimaryContents,
+                    director ? director->bHasIslandDirectorBeenInitialized : 0,director ? director->GameModeContents.Num() : 0,mode->SpawnedBehemoths.Num());
+                Note(line);
+            }
+        }
     }
     Sleep(25);
 }
@@ -210,18 +288,41 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     wchar_t path[32768], enabled[2];
     GetModuleFileNameW(nullptr, path, 32768);
     if (GetEnvironmentVariableW(L"DR_1105_LOCAL_LAB", enabled, 2) != 1 || enabled[0] != L'1' ||
-        wcscmp(path, L"C:\\dr\\build-1.10.5-20261030\\game\\Archon\\Binaries\\Win64\\Dauntless-Win64-Shipping.exe") != 0 || !ExactBuild(path)) return FALSE;
+         !ExactBuild(path)) return FALSE;
     Base = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
     Server = wcsstr(GetCommandLineW(), L"-server") != nullptr;
     wchar_t world[16] = {};
     const DWORD worldLength = GetEnvironmentVariableW(L"DR_1105_WORLD", world, 16);
-    if (Server && (worldLength >= 16 || (worldLength && wcscmp(world, L"ramsgate") && wcscmp(world, L"dojo")))) return FALSE;
+    if (Server && (worldLength >= 16 || (worldLength && wcscmp(world, L"ramsgate") && wcscmp(world, L"dojo") && wcscmp(world, L"combat-probe")))) return FALSE;
     Dojo = Server && wcscmp(world, L"dojo") == 0;
-    ServerPort = Dojo ? 62771 : 62770;
-    LocalServerCommand = L"Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -EpicPortal -NoEAC -MULTIHOME=127.0.0.1 -port=" + std::to_wstring(ServerPort) +
-        L" -CULTURE=en-US -UserDir=C:/dr/build-1.10.5-20261030/" + (Dojo ? std::wstring(L"profile-dojo/") : std::wstring(L"profile/")) + L" -SaveToUserDir";
-    Log = CreateFileW(Server ? (Dojo ? L"C:\\dr\\build-1.10.5-20261030\\native-dojo.log" : L"C:\\dr\\build-1.10.5-20261030\\native-server.log") : L"C:\\dr\\build-1.10.5-20261030\\native-client.log",
-                      FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    CombatProbe = Server && wcscmp(world, L"combat-probe") == 0;
+    ServerPort = CombatProbe ? 63872 : Dojo ? 63871 : 63870;
+    if (CombatProbe) {
+        wchar_t url[4096]={}, port[8]={};
+        const auto size=GetEnvironmentVariableW(L"DR_1105_HUNT_URL",url,4096);
+        if (!size || size>=4096 || wcsncmp(url,L"/Game/Maps/islands/",18)) return FALSE;
+        HuntUrl=url;
+        auto map=HuntUrl.substr(0,HuntUrl.find(L'?'));
+        HuntMapName=map.substr(map.find_last_of(L'/')+1);
+        GetEnvironmentVariableW(L"DR_1105_HUNT_PORT",port,8);
+        ServerPort=_wtoi(port);
+        if (ServerPort<63872 || ServerPort>63875) return FALSE;
+    }
+    ProfileName=CombatProbe ? L"profile-hunt-"+std::to_wstring(ServerPort) : Dojo ? L"profile-dojo" : L"profile";
+
+    wchar_t host[64] = {};
+    const DWORD hostLength = GetEnvironmentVariableW(Server ? L"DR_1105_BIND_IP" : L"DR_1105_HOST", host, 64);
+    if (hostLength) {
+        if (hostLength >= 64 || (!PrivateIp(host) && !(Server && wcscmp(host, L"0.0.0.0") == 0))) return FALSE;
+        if (Server) BindIp = host;
+        else BackendAuthority = std::wstring(host) + L":62002";
+    }
+    LocalServerCommand = L"Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -NoAsyncLoadingThread -EpicPortal -NoEAC -MULTIHOME=" + BindIp + L" -port=" + std::to_wstring(ServerPort) +
+        L" -CULTURE=en-US -UserDir=C:/dr/build-1.10.5-20261030/" + ProfileName + L"/ -SaveToUserDir";
+    wchar_t clientLog[32768] = {};
+    const DWORD logLength = GetEnvironmentVariableW(L"DR_1105_LOG", clientLog, 32768);
+    const auto serverLog = L"C:/dr/build-1.10.5-20261030/" + (CombatProbe ? L"native-hunt-"+std::to_wstring(ServerPort) : Dojo ? std::wstring(L"native-dojo") : std::wstring(L"native-server")) + L".log";
+    Log = CreateFileW(!Server && logLength > 0 && logLength < 32768 ? clientLog : Server ? serverLog.c_str() : L"C:/dr/build-1.10.5-20261030/native-client.log", FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     Note("verified_exact_1.10.5_build\n");
     AddVectoredExceptionHandler(1, Exception);
     if (MH_Initialize() != MH_OK || !Hook(0x2401e10, Config, reinterpret_cast<void**>(&OriginalConfig))) Fail("config_hook_failed\n");

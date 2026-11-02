@@ -11,6 +11,7 @@ import { Caller, DoesAccountExist, IsPlainObject, ParsePathInteger, ReadField, R
 import { ComputeEarnedRanks, GetProgressionPath, GetProgressionPaths, INT32_MAX, MaxRankId, PremiumGatingEntitlement, ProgressionPath, TotalXpToMaxRank } from "./progressionrank";
 import { Tx } from "./savehistory";
 import { GetActiveHuntPass } from "./progressionconfig";
+import { Local1105Enabled } from './local1105';
 import { ProgressionConfirmEntitlements, ProgressionReplayWindow } from "../features";
 import { GrantEntitlementInTx } from "./entitlements";
 
@@ -624,7 +625,9 @@ export function ResetTrack(AccountId: string, ProgressionId: string, Who: Caller
 // The selected Hunt Pass track; ACTIVE_HUNT_PASS (season09b, the only one with reward data) by default
 export function GetSelectedHuntPass(AccountId: string){
     const Row = GetDb().select().from(huntpassselection).where(eq(huntpassselection.accountId, AccountId)).get();
-
+    // Early test builds selected an empty season17 fixture. Keep its saved XP,
+    // but present the supported pass instead of a zero-rank screen.
+    if(Local1105Enabled() && Row?.progressionId==='season17' && (GetProgressionPath('season17')?.requirements?.length ?? 0)<=1) return GetActiveHuntPass();
     return Row != undefined && GetProgressionPath(Row.progressionId) != undefined ? Row.progressionId : GetActiveHuntPass();
 }
 

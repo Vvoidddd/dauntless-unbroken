@@ -9,6 +9,8 @@ import { MiddlemanStore, StoreMode, StoreRepeatableTokens, TrialsStore } from ".
 import catalog from "../vendor/store_catalog.json";
 import curated30 from "../vendor/store_curated_30.json";
 import itemKinds from "../vendor/store_item_kinds.json";
+import itemKinds1105 from "../vendor/store_item_kinds_1105.json";
+import { Local1105Enabled } from './local1105';
 import ladyLuck from "../vendor/store_ladyluck.json";
 import middlemanStore from "../vendor/store_middleman.json";
 import middlemanCells from "../vendor/store_middleman_cells.json";
@@ -168,6 +170,7 @@ const CURRENCY_FIELDS: Record<string, {PriceField: string, CatalogId: string}> =
 };
 
 const CURRENCY_ALIASES: Record<string, string> = {
+    id_currency_platinum: "platinum",
     id_currency_notes: "notes",
     currency_notes: "notes",
     rams: "notes",
@@ -206,6 +209,8 @@ const Hash = (Value: string) => createHash("sha256").update(Value).digest("hex")
 const OfferHash = (Offer: StoreOffer) => Hash(JSON.stringify(Offer));
 
 export function GrantKind(CatalogId: string): "stacked" | "instanced" | undefined {
+    const nativeKind=(itemKinds1105 as Record<string,string>)[CatalogId];
+    if(Local1105Enabled() && (nativeKind==='stacked'||nativeKind==='instanced')) return nativeKind;
     // Native Tutorial_Store_Quest requires this one receipt item, not dye ownership.
     if(CatalogId === 'TOKEN_STORE_TUTORIAL_DYE_BUNDLE') return 'stacked';
     if(MIDDLEMAN_CELL_IDS.has(CatalogId)){
@@ -283,7 +288,7 @@ function FindOffer(SkuId: string, AccountId: string){
     return Offer ? PriceInRams(Offer, AccountId) : undefined;
 }
 
-function ResolveOfferPricing(Offer: StoreOffer){
+export function ResolveOfferPricing(Offer: StoreOffer){
     const Matches = Object.entries(CURRENCY_FIELDS).filter(([, Field]) => typeof Offer[Field.PriceField] === "number");
 
     if(Matches.length !== 1){

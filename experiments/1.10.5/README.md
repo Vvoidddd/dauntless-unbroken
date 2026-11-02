@@ -6,7 +6,7 @@ Ramsgate now loads, and the first Slayer's Path quest completes, gives 100 Rams 
 
 I also fixed the shared dialogue lookup for characters whose grammatical gender hasn't been set. It uses the packaged neutral translation without changing the character's appearance. The first quest description and Rosk's later conversation have been confirmed in-game. The rest of the quest chain still needs testing.
 
-Slayer's Path snapshots now save to the local database with version checks. Bounty boards are still disabled, and the local season17 configuration only supplies the dates needed to finish loading. Combat hunts, multiplayer and full save conversion aren't ready.
+Slayer's Path snapshots now save to the local database with version checks. Bounty boards are still disabled, and the local season17 configuration only supplies the dates needed to finish loading. Hunting Grounds now starts on demand: Void entered an island, moved around and killed two Behemoths. The backend recorded inventory saves and weapon XP from that visit. Multiplayer and the rest of the islands still need in-game testing.
 
 Void's imported inventory loads in-game. The old Slayer Mastery is still rank 37; the newer HUD shows weapon skill instead. Its stuck `8,888 / 100,000` was placeholder text because the backend was missing the packaged experience tracks. Those tracks are now included with the original 1.10.5 XP thresholds.
 
@@ -14,15 +14,40 @@ I'm starting migrated weapon skills at zero XP (level 1 in 1.10.5), regardless o
 
 ## Where I'm leaving it — 1 November
 
-Ramsgate login, the first Markus quest (including its 100 Rams reward), Training Grounds travel and Rosk's dialogue have passed the local in-game checks. Void's belongings are present, and resetting weapon XP leaves his quests and islands available. The original live export is untouched; the test uses a separate database and account key.
+Ramsgate login, the first Markus quest (including its 100 Rams reward), Training Grounds travel, Rosk's dialogue and one Hunting Grounds island have passed the local in-game checks. Void's belongings are present, and resetting weapon XP leaves his quests and islands available. GOLLUM, EkoR and Sheep are now copied into the separate test database too. Their inventories match their exports, and their original account keys work on this realm. Nothing writes back to the live database.
 
-Next up: combat hunts, multiplayer, the rest of the quest chain and more migrated accounts. The twelve unresolved item IDs and the old Gnasher axe rank still need checking. Bounty boards remain disabled. I also need to handle failed Journey saves on the native side before calling this ready for public use.
+Next up: multiplayer, the other islands, Escalations and the rest of the quest chain. The twelve unresolved item IDs and the old Gnasher axe rank still need checking. Bounty boards remain disabled. I also need to handle failed Journey saves on the native side before calling this ready for public use.
+
+## Hosted test realm
+
+The 1.10.5 test realm runs on EU #2 (`5.175.140.184`). The original invite address (`82.153.118.185:62002`) forwards TCP to EU #2, so existing invites and launchers keep working. Testers use the separate Windows launcher; they don't need Tailscale or my PC online. The launcher has no supporter-theme code. Send `Unbroken1105Test.zip`, extract the whole folder and run `Unbroken1105Test.exe`.
+
+Existing Unbroken players paste a fresh test invite and import their usual account backup. The first login reads that account from the live 1.4.4 database and copies it into the separate test database. The invite is spent only after the copy succeeds. Later logins use the same account key without another invite and never replace earned test progress. New players can register with a test invite instead. Logout and saved-account switching are included.
+
+The importer preserves inventory, appearance, quests and unlock records, starts missing weapon tracks at zero XP, and does not copy admin privileges. Guild, friend and Slayer Link relationships are not imported by this single-account flow. Void's earlier local migration passed in-game; other saves and all quest paths still need testing. Production data is read-only.
+
+Login and game API traffic use certificate-verified HTTPS on TCP 62002. The launcher bridges the game's local HTTP connection to that encrypted gateway. Worlds advertise the VPS address on UDP 63870–63875. The backend, allocator and owner dashboard remain loopback-only. Administrators reach the dashboard through an SSH tunnel; the owner key stays in `backend-state/realm-owner.key`.
+
+The Windows scheduled task `Unbroken1105-TestRealm` starts and supervises the realm. It waits for all 606 game files to verify before starting worlds. Ramsgate and Training Grounds stay available, with at most two Hunting Grounds instances on this small VPS. Same-island requests share a map; empty islands close after sustained fresh zero-client samples and no recent allocation.
+
+The launcher downloads chunks directly from Epic using the pinned archived GitHub 1.10.5 manifest. It shows the current download/assembly file, verifies checksums and resumes verified work. No full game ZIP is needed. Keep the launcher running during play.
+
+```powershell
+node experiments/1.10.5/check-launcher.cjs
+node experiments/1.10.5/check-migration-login.cjs
+node experiments/1.10.5/check-local-deploy.cjs
+node experiments/1.10.5/build-launcher.cjs
+```
+
+Build inputs and generated packages stay outside Git. `hosted-ops/launcher-public.json` supplies the VPS address, public certificate and fingerprint; its private key must never enter the launcher. The packaged native DLL is restricted to the exact 1.10.5 executable. The local Tailscale setup remains available for development through `start-realm.ps1` when no hosted configuration is present.
+
+Two startup problems were caught during the island test: Windows excluded the old UDP port range, so native bind fallback advertised the wrong destination; and background Windows PowerShell inherited incompatible module paths, making `Get-FileHash` unavailable. The scripts now probe their configured ports, verify the actual listener owner and give Windows PowerShell its own module directory. Hosted processes run under Task Scheduler because processes launched from a short SSH session did not survive logout.
 
 ## In-game Update Notes
 
 Unbroken's notes are in `DauntlessUnbrokenMetagame/src/routes/patchnotes1105.json`. They cover the local build, account progression, quest fixes and current limits. Edit that file and rebuild/restart the local backend to update the text. All language requests currently use the English copy. The HTTP response and isolation checks pass; the populated screen still needs a visual check in the next game session.
 
-The game already requests `GET /patchnotes/en/365075_rel-1.10.5_shipping`; it was falling through to the unstubbed-route handler, leaving the built-in `1.6.3` placeholder screen. The new response uses the existing endpoint and widget, with no additional DLL hook. It only answers for this build when `LOCAL_1105_ACCOUNT_ID` is set and `BIND_HOST=127.0.0.1`.
+The game already requests `GET /patchnotes/en/365075_rel-1.10.5_shipping`; it was falling through to the unstubbed-route handler, leaving the built-in `1.6.3` placeholder screen. The new response uses the existing endpoint and widget, with no additional DLL hook. It only answers for this build with a local profile or `LOCAL_1105_REALM=1`, and `BIND_HOST=127.0.0.1`.
 
 For this exact client, the response is `{code, message, payload}`. The payload has `date` (an ISO date string), `description`, `language`, `permalink`, `release_version`, `title` and `notes`. Each note has `type`, `title` and `sections`; each section has `type`, `title`, `description`, `background`, `cta`, `url` and `changes`. Each change has a `comment` and a string `list`. The response serializer is at RVA `0xDD7590`, payload at `0x1AC15B0`, category at `0x1AC11F0`, section at `0x1AC19A0` and change at `0x1AC1180`. Recheck this contract if the client build changes.
 
@@ -97,7 +122,7 @@ node experiments/1.10.5/check-local-deploy.cjs
 ./experiments/1.10.5/check-local-server.ps1 -World dojo -RequireConnection
 ```
 
-Use `check-local-backend.cjs --matchmaking` only while the game is closed, because it changes the account's travel request. The allocator accepts CITY and `SHARED / ShatteredIsles_TrainingDojo`; unsupported hunts fail explicitly instead of silently returning Ramsgate.
+Use `check-local-backend.cjs --matchmaking` only while the game is closed, because it changes the account's travel request. The allocator accepts CITY, `SHARED / ShatteredIsles_TrainingDojo` and catalogued Hunting Grounds; unsupported hunts fail explicitly instead of silently returning Ramsgate.
 
 ## Existing saves
 

@@ -2,7 +2,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawn, execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '../../..');
-const account = require('./lab-account.cjs');
+let account = require('./lab-account.cjs');
+const keyFile = process.argv.find(arg => arg.startsWith('--key-file='));
+if (keyFile) {
+  const text = fs.readFileSync(keyFile.slice(11), 'utf8');
+  const key = /^\s*Key:\s*([A-Za-z0-9_-]{8,128})\s*$/m.exec(text)?.[1] || text.trim();
+  if (!/^[A-Za-z0-9_-]{8,128}$/.test(key)) throw Error('Invalid account backup');
+  account = { name: 'Void', UUK: key };
+}
 if (!account.UUK) throw new Error('Isolated local account missing');
 const exe = path.join(root, 'game/Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe');
 const existing = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',

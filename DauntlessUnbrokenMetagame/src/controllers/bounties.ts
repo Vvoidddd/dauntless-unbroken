@@ -4,6 +4,24 @@ import { bounties, bountydraft } from "../db/schema";
 import { logger } from "../logger";
 import { Caller, IsPlainObject, ReadField, ReadInteger, RealReply, RecordProgressionEvent } from "./progressionevents";
 import { Tx } from "./savehistory";
+import { BOUNTY_TOKENS_DAILY } from './inventory';
+import { Local1105Enabled } from './local1105';
+
+// Shared by the old endpoint and 1.10.5 tuning. Native assets own bounty IDs,
+// unlock requirements and rewards; an empty override list preserves them.
+export const BountyGameData = {
+    max_slots: 4, num_draft_options: 3, num_spicy_options: 1,
+    bounty_token_id: 'TOKEN_BOUNTY_DRAFT', premium_bounty_token_id: 'TOKEN_BOUNTY_DRAFT_PREMIUM',
+    num_tokens_hp_start: BOUNTY_TOKENS_DAILY, num_tokens_per_day: BOUNTY_TOKENS_DAILY,
+    bounty_token_grant_hour: 0, history_length: 10, bronze_count: 9, silver_count: 3, gold_count: 1,
+    new_season_reset_bounties: false, bounty_data: [], item_grant_data: [],
+    token_rollover_warning_days: 1000, automatic_draft: false, automatic_claim: false,
+    delete_claimed_bounties: false
+};
+export function GetBountyGameData(){
+    // 1.10.5's claim path otherwise retains the claimed row in the active slots.
+    return {...BountyGameData, delete_claimed_bounties: Local1105Enabled()};
+}
 
 // Bounty board of real-mode accounts. POST /bounty/:uid is a PARTIAL upsert: each
 // sender puts only the bounty that changed (or none) in "bounties", and draft_data

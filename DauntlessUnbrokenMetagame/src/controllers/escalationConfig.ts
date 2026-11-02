@@ -1,6 +1,8 @@
 // Ported from Harmonicrain/Undaunted (895f7c7), Copyright (C) 2026 Harmonic, AGPL-3.0-only; modified for Dauntless Unbroken.
 
 import registry from "../vendor/escalation/seasons.json";
+import registry1105 from "../vendor/escalation/seasons-1105.json";
+import { Local1105Enabled } from './local1105';
 
 // The Escalation season registry, exported from the installed client's own
 // tables (see the _comment in seasons.json).
@@ -67,19 +69,18 @@ function Validate(Seasons: EscalationSeason[]){
 }
 
 const Seasons: EscalationSeason[] = (registry as any).seasons;
-Validate(Seasons);
+const Seasons1105: EscalationSeason[] = (registry1105 as any).seasons;
+Validate(Seasons); Validate(Seasons1105);
 
-const ById = new Map(Seasons.map((Season) => [Season.id, Season]));
-
-export const ESCALATION_CONTENT_REVISION: string = (registry as any).revision;
+export const ESCALATION_CONTENT_REVISION: string = (Local1105Enabled() ? registry1105 : registry as any).revision;
 
 // Unknown ids never fall back to another season.
 export function GetEscalationSeason(SeasonId: string): EscalationSeason | undefined {
-    return ById.get(SeasonId);
+    return GetAllEscalationSeasons().find(season => season.id === SeasonId);
 }
 
 export function GetAllEscalationSeasons(){
-    return Seasons;
+    return Local1105Enabled() ? Seasons1105 : Seasons;
 }
 
 export function MaxEscalationLevel(Season: EscalationSeason){

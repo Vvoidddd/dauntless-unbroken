@@ -1,3 +1,4 @@
+import { Local1105Enabled, Local1105Account, Initialize1105Experience } from '../controllers/local1105';
 import {RecordPlayingAddress} from '../controllers/moderation';
 import { Router } from "express";
 import { logger } from "../logger";
@@ -9,52 +10,45 @@ import { IsRealProgressionAccount } from "../controllers/progressionmode";
 import { GrantEntitlementInTx, ListEntitlements, RevokeEntitlementInTx } from "../controllers/entitlements";
 import { GetSelectedHuntPass, SetSelectedHuntPass } from "../controllers/realprogression";
 import { GetCooldownReply, SetCooldownBatch, StartCooldown } from "../controllers/cooldowns";
-import { DeleteBounties, GetBountyReply, SetBounties } from "../controllers/bounties";
+import { GetBountyGameData, DeleteBounties, GetBountyReply, SetBounties } from "../controllers/bounties";
 import { CallerOf, DoesAccountExist, ReadField, ReadInteger, RecordProgressionEvent } from "../controllers/progressionevents";
 import { RealProgressionOnly, RefuseForeignPlayer, SendRealReply } from "../middleware/RealProgressionOnly";
 import { GetDb } from "../db";
 import { TouchPlayer } from "../controllers/party";
 import { RefuseUnlessGameserver } from "../middleware/GameServerOnly";
 import { TrialsError, UpdateLeaderboardProfile } from "../controllers/trials";
-import { BOUNTY_TOKENS_DAILY } from "../controllers/inventory";
 import { RecordPlaytimeBeat } from "../controllers/playtime";
 
 import patchNotes1105 from './patchnotes1105.json';
 import { GetPlayerJourney, SavePlayerJourney } from '../controllers/playerjourney';
 export const systemRouter = Router();
 
-// Native Update Notes endpoint; English fallback for this isolated test build.
+// Native Update Notes endpoint; English fallback for the isolated test realm.
 systemRouter.get('/patchnotes/:language/365075_rel-1.10.5_shipping', (req, res, next) => {
-    if (!process.env.LOCAL_1105_ACCOUNT_ID || process.env.BIND_HOST !== '127.0.0.1') {
-        next('route'); return;
-    }
+    if (!Local1105Enabled()) { next('route'); return; }
     res.set('Cache-Control', 'no-store').json({code: '', message: 'OK', payload: patchNotes1105});
 });
 
-// Local 1.10.5 protocol fixture: only the selected synthetic or imported lab copy.
-// Acknowledging the handshake lets us test compatibility; it does NOT convert old
-// equipment ranks or quest progress. This is never enabled on a deployed backend.
 function Local1105Migration(req: any, res: any, next: any) {
-    const account = process.env.LOCAL_1105_ACCOUNT_ID;
-    if (!account || process.env.BIND_HOST !== '127.0.0.1') { next('route'); return; }
-    if (req.AuthData.userId !== account) { res.sendStatus(403); return; }
+    if (!Local1105Enabled()) { next('route'); return; }
+    if (!Local1105Account(req.AuthData.userId)) { res.sendStatus(403); return; }
+    Initialize1105Experience(req.AuthData.userId);
     res.json({ migration_finished: true, migration_failed: false });
 }
 systemRouter.post('/migration/trigger', HasDauntlessUnbrokenMetagameAuth, Local1105Migration);
 systemRouter.get('/migration/status', HasDauntlessUnbrokenMetagameAuth, Local1105Migration);
 
-// 1.10.5 Journey state is separate from the character's SERIE_* quests.
+// Journey snapshots belong to the authenticated account, not the selected host profile.
 function Local1105Journey(req: any, res: any, next: any) {
-    const account = process.env.LOCAL_1105_ACCOUNT_ID;
-    if (!account || process.env.BIND_HOST !== '127.0.0.1') { next('route'); return; }
-    if ((req.AuthData.userId !== account && !(req.AuthData.IsGameserver && req.params.accountId === account)) ||
-        (req.params.accountId && req.params.accountId !== account)) {
+    if (!Local1105Enabled()) { next('route'); return; }
+    const account = req.params.accountId || req.AuthData.userId;
+    if (!Local1105Account(account) || (!req.AuthData.IsGameserver && req.AuthData.userId !== account)) {
         res.sendStatus(403); return;
     }
     next();
 }
 systemRouter.get(['/pjm', '/pjm/:accountId'], HasDauntlessUnbrokenMetagameAuth, Local1105Journey, (req: any, res) => {
-    res.json({code: '', message: 'OK', payload: GetPlayerJourney(process.env.LOCAL_1105_ACCOUNT_ID!)});
+    res.json({code: '', message: 'OK', payload: GetPlayerJourney(req.params.accountId || req.AuthData.userId)});
 });
 systemRouter.post('/pjm/:accountId', HasDauntlessUnbrokenMetagameAuth, Local1105Journey, (req: any, res) => {
     if (RefuseUnlessGameserver(req, res, 'Player Journey save', req.params.accountId)) return;
@@ -395,28 +389,8 @@ systemRouter.get("/bounty/game-data", HasDauntlessUnbrokenMetagameAuth, (req: an
 	res.status(200);
 	res.json({
     code: null,
-    message: "OK",
-    payload: {
-      max_slots: 4,
-      num_draft_options: 3,
-      num_spicy_options: 1,
-      bounty_token_id: "TOKEN_BOUNTY_DRAFT",
-      premium_bounty_token_id: "TOKEN_BOUNTY_DRAFT_PREMIUM",
-      num_tokens_hp_start: BOUNTY_TOKENS_DAILY,
-      num_tokens_per_day: BOUNTY_TOKENS_DAILY,
-      bounty_token_grant_hour: 0,
-      history_length: 10,
-      bronze_count: 9,
-      silver_count: 3,
-      gold_count: 1,
-      new_season_reset_bounties: false,
-      bounty_data: [],
-      item_grant_data: [],
-      token_rollover_warning_days: 1000,
-      automatic_draft: false,
-      automatic_claim: false,
-      delete_claimed_bounties: false,
-    },
+    payload: GetBountyGameData(),
+    message: 'OK'
   });
 });
 

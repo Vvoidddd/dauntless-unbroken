@@ -1,0 +1,166 @@
+{
+  "Tutorial": {
+    "url": "/Game/Maps/islands/1705/dia_moss_triforce?MaxPlayers=1?MonsterClass=/Game/Monsters/mcrollin/mcbeaver_tutorial_bp.mcbeaver_tutorial_bp_C?TODClass=/Game/World/atmospheres/blueprints/atmospheres/experimental/atmospheres_stormy_00_bp.atmospheres_stormy_00_bp_C?HuntID=?ZonePreset=-1"
+  },
+  "ShatteredIsles_IslandA": {
+    "matchmaker": "Adventure_IslandA",
+    "map": "/Game/Maps/islands/adventure/Moss_Triforce/adventure_moss_triforce",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 4,
+    "spec": "Island_A(1-5)"
+  },
+  "ShatteredIsles_IslandB": {
+    "matchmaker": "Adventure_IslandB",
+    "map": "/Game/Maps/islands/adventure/Snow_Jen/adventure_snow_jen",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_B(1-5)"
+  },
+  "ShatteredIsles_IslandC": {
+    "matchmaker": "Adventure_IslandC",
+    "map": "/Game/Maps/islands/adventure/Moss_Croissant/adventure_moss_croissant",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_C(1-5)"
+  },
+  "ShatteredIsles_IslandD": {
+    "matchmaker": "Adventure_IslandD",
+    "map": "/Game/Maps/islands/adventure/Aird_Rose/adventure_arid_rose",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_D(3-7)"
+  },
+  "ShatteredIsles_IslandE": {
+    "matchmaker": "Adventure_IslandE",
+    "map": "/Game/Maps/islands/adventure/Moss_Falls/adventure_moss_falls",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_E(3-7)"
+  },
+  "ShatteredIsles_IslandF": {
+    "matchmaker": "Adventure_IslandF",
+    "map": "/Game/Maps/islands/adventure/Arid_Valley/adventure_arid_valley",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_F(6-10)"
+  },
+  "ShatteredIsles_IslandG": {
+    "matchmaker": "Adventure_IslandG",
+    "map": "/Game/Maps/islands/adventure/Moss_Poodle/adventure_moss_poodle",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_G(6-10)"
+  },
+  "ShatteredIsles_IslandH": {
+    "matchmaker": "Adventure_IslandH",
+    "map": "/Game/Maps/islands/adventure/Snow_Big/adventure_snow_big",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_H(8-12)"
+  },
+  "ShatteredIsles_IslandI": {
+    "matchmaker": "Adventure_IslandI",
+    "map": "/Game/Maps/islands/adventure/Shock/adventure_shock_rose_p",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_I(9-14)"
+  },
+  "ShatteredIsles_IslandJ": {
+    "matchmaker": "Adventure_IslandJ",
+    "map": "/Game/Maps/islands/adventure/Moss_Croissant/adventure_moss_croissant",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_J(9-14)"
+  },
+  "ShatteredIsles_IslandK": {
+    "matchmaker": "Adventure_IslandK",
+    "map": "/Game/Maps/islands/adventure/Moss_Jamima/adventure_moss_jamima",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_K(11-15)"
+  },
+  "ShatteredIsles_IslandL": {
+    "matchmaker": "Adventure_IslandL",
+    "map": "/Game/Maps/islands/adventure/Snow_Vega/adventure_snow_vega",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_L(13-18)"
+  },
+  "ShatteredIsles_IslandM": {
+    "matchmaker": "Adventure_IslandM",
+    "map": "/Game/Maps/islands/adventure/Snow_Big/adventure_snow_big",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_M(13-18)"
+  },
+  "ShatteredIsles_IslandM_183test": {
+    "matchmaker": "Adventure_IslandM_S15Test",
+    "map": "/Game/Maps/islands/adventure/Snow_Ritual/adventure_snow_ritual",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_M(13-18)_glidertest"
+  },
+  "ShatteredIsles_IslandN": {
+    "matchmaker": "Adventure_IslandN",
+    "map": "/Game/Maps/islands/adventure/Moss_Cave/adventure_moss_cave",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_N(16-19)"
+  },
+  "ShatteredIsles_IslandO": {
+    "matchmaker": "Adventure_IslandO",
+    "map": "/Game/Maps/islands/adventure/Shock/adventure_shock_rose_p",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_O(16-19)"
+  },
+  "ShatteredIsles_IslandP": {
+    "matchmaker": "Adventure_IslandP",
+    "map": "/Game/Maps/islands/adventure/Aird_Rose/adventure_arid_rose",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_P(17-20)"
+  },
+  "ShatteredIsles_IslandQ": {
+    "matchmaker": "Adventure_IslandQ",
+    "map": "/Game/Maps/islands/adventure/Moss_Poodle/adventure_moss_poodle",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_Q(19-20)"
+  },
+  "ShatteredIsles_IslandR": {
+    "matchmaker": "Adventure_IslandR",
+    "map": "/Game/Maps/islands/adventure/Moss_Cave/adventure_moss_cave",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_R(19-20)"
+  },
+  "ShatteredIsles_IslandS": {
+    "matchmaker": "Adventure_IslandS",
+    "map": "/Game/Maps/islands/adventure/Radiant_Valley/adventure_radiant_valley",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_S(19-20)"
+  },
+  "ShatteredIsles_IslandT": {
+    "matchmaker": "Adventure_IslandT",
+    "map": "/Game/Maps/islands/adventure/Radiant_Cave/adventure_radiant_cave",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_T(10-13)"
+  },
+  "ShatteredIsles_IslandT_193test": {
+    "matchmaker": "Adventure_IslandT_193test",
+    "map": "/Game/Maps/islands/adventure/Radiant_Cave/adventure_radiant_cave",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_T(10-13)_193test"
+  },
+  "ShatteredIsles_IslandU": {
+    "matchmaker": "Adventure_IslandU",
+    "map": "/Game/Maps/islands/adventure/Tundra_Jamima/adventure_tundra_jamima",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
+    "maxPlayers": 12,
+    "spec": "Island_U(19-20)"
+  }
+}

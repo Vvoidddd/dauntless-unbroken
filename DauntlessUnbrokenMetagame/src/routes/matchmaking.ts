@@ -1,3 +1,4 @@
+import { Local1105Account } from '../controllers/local1105';
 import { Router } from "express";
 import { HasDauntlessUnbrokenMetagameAuth } from "../middleware/HasDauntlessUnbrokenMetagameAuth";
 import { logger } from "../logger";
@@ -174,7 +175,7 @@ matchmakingRouter.get("/candidate/status", HasDauntlessUnbrokenMetagameAuth, asy
                 huntId: MatchmakingResult.HuntId,
                 playerStates: PlayerStatesOf(MatchmakingResult),
                 serverInfo: {
-                    buildId: process.env.LOCAL_1105_ACCOUNT_ID === UserId && process.env.BIND_HOST === '127.0.0.1'
+                    buildId: Local1105Account(UserId)
                         ? '365075_rel-1.10.5_shipping' : TARGET_CHANGELIST + "_1.4.4_shipping",
                     gameSessionId: GameSessionForCandidate(MatchmakingResult),
                     host: MatchmakingResult.Host,

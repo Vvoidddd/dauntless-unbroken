@@ -12,6 +12,8 @@ import { RamsWireOffer, RamsWireCurrency } from "../controllers/ramspricing";
 import StoreCatalog from '../vendor/store_catalog.json';
 import { GetCreatorSupport, RedeemCreatorCode } from "../controllers/creator";
 import { InventoryErrorOf } from "../controllers/inventory";
+import { Local1105Enabled } from '../controllers/local1105';
+import { ResolveOfferPricing } from '../controllers/freestore';
 
 
 const MainShopSkus = new Set(StoreCatalog.webstore.map(offer=>offer.id));
@@ -215,6 +217,11 @@ function StoreImageFor(Offer: any){
 }
 
 function WithStoreImage(req: any, Offer: any){
+    if (Local1105Enabled()) {
+        // 1.10.5 reads the price array; purchases still use our canonical SKU price.
+        const {CatalogId, Price} = ResolveOfferPricing(Offer);
+        Offer = {...Offer, prices: [{currencyId: CatalogId === 'CURRENCY_PLATINUM_UNIV' ? 'id_currency_platinum' : CatalogId, price: Price, salesPrice: 0}]};
+    }
     const File = StoreImageFor(Offer);
     if(File == undefined) return Offer;
 

@@ -1,3 +1,4 @@
+import { Local1105Account } from './local1105';
 import { PlayerRegion, RegionQueueKey, HuntRegion, RegionChoice } from './huntregion';
 import { CapacityTurns } from './capacityturns';
 import { HasServerPriority } from './priorityaccess';
@@ -1271,7 +1272,7 @@ async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, H
                 Entry.LaunchDeadline = deadline;
                 const allocationId = crypto.randomUUID();
                 MatchmakingRoster.beginAllocation(allocationId, [{playerId: PlayerId, candidateId: Entry.CandidateId}], deadline);
-                const localTest = process.env.BIND_HOST === '127.0.0.1' && process.env.LOCAL_1105_ACCOUNT_ID === PlayerId;
+                const localTest = Local1105Account(PlayerId);
                 const result = await LaunchGameOnDeployserver(GameMode, GameArgs, HuntId, GameMode === 'CITY' || localTest ? [PlayerId] : undefined, Region);
                 if (result.succeeded) MatchmakingRoster.assignAllocation(allocationId, result.sessionId, result.host, result.port);
                 if (result.capacity) MatchmakingRoster.releaseAllocation(allocationId);

@@ -1,14 +1,19 @@
+import { Local1105Enabled } from '../controllers/local1105';
 import { Router } from "express";
 import { logger } from "../logger";
 import { TrialsSchedule } from "../features";
 import { TrialIdForWeek, TrialWeekAt, TrialsWindowForWeek } from "../controllers/trials";
+import { GetBountyGameData } from '../controllers/bounties';
 
 export const tuningRouter = Router();
 
-// Disabled boards for the isolated fresh 1.10.5 account, not playable bounty
-// content. These are the native config constructor defaults (serializer 0x189F4B0).
-tuningRouter.get(['/game_tuning/bounty_game_data', '/game_tuning/bounty_game_data_daily', '/game_tuning/bounty_game_data_weekly'], (_req, res, next) => {
-    if (!process.env.LOCAL_1105_ACCOUNT_ID || process.env.BIND_HOST !== '127.0.0.1') { next('route'); return; }
+// Ordinary bounties use packaged rewards. Daily/weekly challenge schedules are
+// separate service content and stay disabled until their payout data is supported.
+tuningRouter.get(['/game_tuning/bounty_game_data', '/game_tuning/bounty_game_data_daily', '/game_tuning/bounty_game_data_weekly'], (req, res, next) => {
+    if (!Local1105Enabled()) { next('route'); return; }
+    if (req.path === '/game_tuning/bounty_game_data') {
+        res.json({code: '', message: 'OK', payload: GetBountyGameData()}); return;
+    }
     res.json({ code: '', message: 'OK', payload: {
         max_slots: 0, num_draft_options: 0, num_spicy_options: 0,
         bounty_token_id: '', premium_bounty_token_id: '', num_tokens_hp_start: 0,
