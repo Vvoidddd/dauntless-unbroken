@@ -57,7 +57,7 @@
     "electron": "44.7.0",
     "node-forge": "^1.4.0",
     "typescript": "~6.0.3",
-    "vite": "^8.3.4"
+    "vite": "^8.3.5"
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
