@@ -34,7 +34,8 @@ export function processSample(current, previous, cores) {
     netOutKbit:seconds>0 ? Math.max(0,(current.sentBytes-previous.sentBytes)*8/1000/seconds) : null};
 }
 
-export async function startWorkerHealth({port=61111,root=process.cwd(),allowlistSecret,fetcher=fetch,collect,storageOnly=false}={}) {
+export async function startWorkerHealth({port=61111,root=process.cwd(),allowlistSecret,fetcher=fetch,collect,storageOnly=false,deployPort=61001,backendPort=61000}={}) {
+  if (![deployPort,backendPort].every(n=>Number.isInteger(n)&&n>0&&n<=65535)) throw Error('Invalid monitor ports');
   const gather=collect || (async()=> {
     const {stdout}=await exec(`${process.env.SystemRoot || 'C:/Windows'}/System32/WindowsPowerShell/v1.0/powershell.exe`,
       ['-NoProfile','-NonInteractive','-File',fileURLToPath(new URL('./worker-processes.ps1',import.meta.url))],{windowsHide:true,timeout:20000,maxBuffer:65536});
@@ -49,9 +50,9 @@ export async function startWorkerHealth({port=61111,root=process.cwd(),allowlist
     if(busy)return; busy=true;
     try {
       const [deploy,allowlist,backend,disk]=await Promise.all([
-        storageOnly ? null : probe('http://127.0.0.1:61001/gameservers'),
+        storageOnly ? null : probe(`http://127.0.0.1:${deployPort}/gameservers`),
         storageOnly ? null : probe('http://127.0.0.1:61005/status',{'x-allowlist-secret':allowlistSecret || ''}),
-        probe('http://127.0.0.1:61000/dauntless-status'), statfs(root).catch(()=>null)]);
+        probe(`http://127.0.0.1:${backendPort}/dauntless-status`), statfs(root).catch(()=>null)]);
       const now=cpuTimes(), elapsed=now.total-prior.total;
       sample={at:new Date().toISOString(),cpu:elapsed>0 ? 100*(1-(now.idle-prior.idle)/elapsed):null,
         logicalCpus:os.cpus().length,ramUsedMB:(os.totalmem()-os.freemem())/1048576,ramTotalMB:os.totalmem()/1048576,
@@ -92,5 +93,5 @@ export async function startWorkerHealth({port=61111,root=process.cwd(),allowlist
   return server;
 }
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  startWorkerHealth({root:process.env.WORKER_ROOT || process.cwd(),allowlistSecret:process.env.ALLOWLIST_SECRET,storageOnly:process.env.WORKER_STORAGE_ONLY==='1'}).then(()=>console.log('Worker health ready')).catch(()=>{console.error('Worker health startup failed');process.exitCode=1;});
+  startWorkerHealth({root:process.env.WORKER_ROOT || process.cwd(),allowlistSecret:process.env.ALLOWLIST_SECRET,storageOnly:process.env.WORKER_STORAGE_ONLY==='1',deployPort:Number(process.env.WORKER_DEPLOY_PORT||61001),backendPort:Number(process.env.WORKER_BACKEND_PORT||61000)}).then(()=>console.log('Worker health ready')).catch(()=>{console.error('Worker health startup failed');process.exitCode=1;});
 }

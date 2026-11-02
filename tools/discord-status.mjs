@@ -53,7 +53,7 @@ export function payload(sample, now = Date.now(), fleet = null) {
   fields.push({name:'Realm guide',value:'Two EU game hosts share accounts and progression. The UK host runs the key bot and database backup storage only. Full servers use a first-come queue; the launcher shows your place. CPU/count headroom is not a queue-time estimate; memory and readiness also affect launches.'});
   fields.push({name:'📥 Launcher · Cloudflare downloads',value:'[Latest launcher / release notes](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest). Game downloads use Cloudflare with resume support and file verification.'});
   fields.push({name:'Last checked',value:`<t:${at}:F> (<t:${at}:R>)`});
-  return {allowed_mentions:{parse:[]},embeds:[{title:'Dauntless Unbroken · Live realm status',
+  return {allowed_mentions:{parse:[]},embeds:[{title:'Dauntless Unbroken · 1.10.5 realm status',
     description:online?'Shared accounts and progression across **two EU game hosts**, with separate **UK key bot and backup storage**.':'The shared backend check failed. Please check again shortly.',
     color:online&&fleet?.servers>0&&fleet.online===fleet.servers&&fleet.rows.every(r=>r.watchdog&&r.watchdog.errors===0&&Object.values(r.watchdog.services).every(Boolean))?0x35bc84:0xe1a349,fields,
     footer:{text:'Host health and backend activity, not player ping or proof of hunt completion. Stale readings are unknown.'}}]};
@@ -201,7 +201,7 @@ export async function sampleFleet(dashboard, key, fetcher=fetch, now=Date.now())
     if(!Array.isArray(f?.rows) || f.rows.length<1 || f.rows.length>16)return null;
     const n=v=>Number.isFinite(v)&&v>=0?v:null;
     const rows=f.rows.map((row,i)=>{
-      const id=Number(/^Server #(\d+)(?:\D|$)/.exec(row.name??'')?.[1]??i+1);
+      const id=Number(row.id ?? /^Server #(\d+)(?:\D|$)/.exec(row.name??'')?.[1]??i+1);
       const at=Date.parse(row.at),huntAt=Date.parse(row.huntSampleAt??row.at);
       const fresh=t=>Number.isFinite(t)&&now-t<=30000&&t<=now+60000;
       const online=row.online===true&&fresh(at);

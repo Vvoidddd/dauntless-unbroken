@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { DownloadJob } from './downloader';
+import {log} from './log';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { removeGameFiles } from './game-removal';
@@ -65,6 +66,7 @@ export async function installHostedGame(dir:string,signal:AbortSignal,progress:(
   // CDN requests never carry account keys or the game gateway's certificate pin.
   const job=new DownloadJob({endpoint:{host:'127.0.0.1',port:0,pin:null},key:'',
     downloadBaseUrl:GAME_DOWNLOAD_BASE_URL,installDir:dir,files,
+    onRetry:(file,attempt,reason)=>log.warn(`CDN retry ${attempt} for ${file.path}: ${reason}`),
     onProgress:p=>progress({kind:'download',...p})});
   const cancel=()=>job.cancel();
   signal.addEventListener('abort',cancel,{once:true});

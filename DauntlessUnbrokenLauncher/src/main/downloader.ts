@@ -79,6 +79,7 @@ export interface DownloadProgress {
 export interface DownloadOptions {
   endpoint: Endpoint;
   downloadBaseUrl?: string;
+  cdnFallbackRequest?: (url: URL, headers: Record<string, string>) => http.ClientRequest;
   key: string;
   installDir: string;
   files: ManifestFile[];
@@ -202,6 +203,7 @@ function isDiskError(e: unknown): DownloadError | null {
 }
 
 export class DownloadJob {
+  private chromiumCdn = false;
   private readonly queue: ManifestFile[];
   private readonly totalBytes: number;
   private completedBytes = 0;
@@ -446,7 +448,7 @@ export class DownloadJob {
     await fsp.rename(part, dest);
   }
 
-  private fetchInto(
+  private async fetchInto(
     file: ManifestFile,
     part: string,
     offset: number,
@@ -469,6 +471,8 @@ export class DownloadJob {
       if (!cdn) headers["if-range"] = `"${file.sha256}"`;
     }
 
+    const fallback = cdn && this.chromiumCdn ? (this.opts.cdnFallbackRequest ?? (await import('./cdn-request')).chromiumCdnRequest) : null;
+    if (signal.aborted) throw new Interrupted();
     return new Promise<number>((resolve, reject) => {
       let ws: WriteStream | null = null;
       let settled = false;
@@ -478,7 +482,10 @@ export class DownloadJob {
         settled = true;
         if (stallTimer) clearTimeout(stallTimer);
         signal.removeEventListener("abort", onAbort);
-        if (err) req.destroy();
+        if (err) {
+          if (fallback) req.abort(); // Electron abort calls its own destroy; never replace it.
+          else req.destroy();
+        }
         const close = ws ? closeStream(ws).catch(() => undefined) : Promise.resolve();
         close.then(() => (err ? reject(err) : resolve(value as number)));
       };
@@ -489,14 +496,19 @@ export class DownloadJob {
       const onAbort = () => finish(new Interrupted());
       signal.addEventListener("abort", onAbort, { once: true });
 
-      const req = (cdn ? https : http).request(url, { method: "GET", headers, agent: this.agent });
+      const req = fallback ? fallback(new URL(url), headers) : (cdn ? https : http).request(url, { method: "GET", headers, agent: this.agent });
       armStall();
       req.on("error", (e) => {
         if (signal.aborted) return finish(new Interrupted());
         if (isPinError(e)) return finish(new AttemptError(false, "certificate mismatch", new DownloadError("cert_mismatch", file.path)));
+        if (cdn && (e as NodeJS.ErrnoException).code === "EPROTO" && !this.chromiumCdn) {
+          this.chromiumCdn = true;
+          this.opts.onRetry?.(file, 0, "TLS transport failed; retrying HTTPS through system network settings");
+        }
         finish(new AttemptError(true, e.message));
       });
       req.on("response", (res) => {
+        let ended = false;
         const status = res.statusCode ?? 0;
         if (status === 401 || status === 403) {
           res.resume();
@@ -573,9 +585,10 @@ export class DownloadJob {
         });
         res.on("error", (e) => finish(signal.aborted ? new Interrupted() : new AttemptError(true, e.message)));
         res.on("close", () => {
-          if (!res.complete) finish(signal.aborted ? new Interrupted() : new AttemptError(true, "connection closed"));
+          if (!ended) finish(signal.aborted ? new Interrupted() : new AttemptError(true, "connection closed"));
         });
         res.on("end", () => {
+          ended = true;
           if (received !== expected) return finish(new AttemptError(true, "connection closed early"));
           finish(null, file.size);
         });

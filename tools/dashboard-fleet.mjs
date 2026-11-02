@@ -28,6 +28,7 @@ export function fleetSummary(main, worker, mainError = null, now = Date.now(), a
     const hunts=capacity?.running ?? (node.sample?.role==='key-bot-storage' ? 0 : node.sample?.services?.deploy !== false && Array.isArray(node.sample?.hunts) ? node.sample.hunts.filter(h=>!['city','dojo'].includes(h.kind)).length : name.startsWith('Server #2') ? 0 : null);
     rows.push(row(name,online,node.sample,hunts,capacity ? node.sample.capacitySampleAt : node.sample?.at ?? null));
   }
+  rows.forEach((r,index)=>{r.id=Number(/^Server #(\d+)/.exec(r.name)[1]);r.name=r.name.replace(/^Server #\d+/,`Server #${index+1}`);});
   const sum = field => rows.every(r=>r[field] !== null) ? rows.reduce((n,r)=>n+r[field],0) : null;
   const cpu = sum('cpu'), ramUsedMB=sum('ramUsedMB'),ramTotalMB=sum('ramTotalMB');
   return {rows,totals:{servers:rows.length,online:rows.filter(r=>r.online).length,

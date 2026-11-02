@@ -64,6 +64,8 @@ Start-LabNode 'realm-proxy' (Join-Path $PSScriptRoot 'realm-proxy.cjs') 62002
 $env:DASHBOARD_OWNER_KEY_FILE = Join-Path $lab 'backend-state\realm-owner.key'
 $env:DASHBOARD_BACKEND = 'http://127.0.0.1:62000'
 $env:DASHBOARD_PORT = '62110'
+$env:DASHBOARD_FLEET_URL = $hosted.dashboardFleetUrl
+$env:DASHBOARD_FLEET_KEY_FILE = if($hosted.dashboardFleetUrl){Join-Path $lab 'backend-state/fleet-owner.key'}else{''}
 $env:DASHBOARD_SERVER_CONFIG = Join-Path $lab 'backend-state\realm-config.json'
 Start-LabNode 'realm-dashboard' (Join-Path $lab 'repo\tools\dashboard.mjs') 62110
 }

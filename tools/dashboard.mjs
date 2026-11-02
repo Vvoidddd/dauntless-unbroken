@@ -38,10 +38,12 @@ const cpuTimes = () => os.cpus().reduce((sum, cpu) => {
   return sum;
 }, {idle: 0, total: 0});
 
-export async function startDashboard({key, backend, port = 61110, logs = {}, serverConfig = null, performanceDir = null, workerUrl = null, ausUrl = null, germanyUrl = null, eu2Url = null, fetcher = fetch}) {
+export async function startDashboard({key, backend, port = 61110, logs = {}, serverConfig = null, performanceDir = null, fleetUrl = null, fleetKey = key, workerUrl = null, ausUrl = null, germanyUrl = null, eu2Url = null, fetcher = fetch}) {
   if (typeof key !== 'string' || key.length < 16) throw new Error('An owner key of at least 16 characters is required');
   const target = new URL(backend);
   if (target.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(target.hostname) || target.username || target.password) throw new Error('Backend must be loopback HTTP');
+  const fleetTarget = fleetUrl ? new URL(fleetUrl) : null;
+  if (fleetTarget && (fleetTarget.protocol !== 'http:' || fleetTarget.hostname !== '127.0.0.1' || fleetTarget.username || fleetTarget.password || fleetTarget.pathname !== '/' || fleetTarget.search || fleetTarget.hash || Number(fleetTarget.port) === port)) throw new Error('Fleet source must be a different loopback HTTP listener');
   const page = await readFile(new URL('./dashboard.html', import.meta.url));
   const testRealm = serverConfig?.Mode === 'Local1105' && /^100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}$/.test(serverConfig?.PublicHost || '') && serverConfig?.Ports?.gateway === 62002;
   if (serverConfig && !testRealm && (serverConfig.Mode !== 'Public' || !/^[a-z0-9.-]+$/i.test(serverConfig.PublicHost || '') || !Number.isInteger(serverConfig.Ports?.gateway) || serverConfig.Ports.gateway < 1 || serverConfig.Ports.gateway > 65535 || !/^[a-f0-9]{64}$/i.test(serverConfig.CertFingerprint || ''))) throw new Error('Invalid server configuration');
@@ -289,6 +291,16 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
       finally { inviting = false; }
       return;
     }
+    if (req.url === '/api/status' && fleetTarget) {
+      try {
+        const upstream = await fetcher(new URL('/api/status', fleetTarget), {headers:{'x-dashboard-key':fleetKey},signal:AbortSignal.timeout(8000),redirect:'error'});
+        if (!upstream.ok) throw new Error('Fleet unavailable');
+        const data = await upstream.json();
+        if (!Array.isArray(data.fleet?.rows) || data.fleet.rows.length > 16) throw new Error('Invalid fleet');
+        res.end(JSON.stringify({...data,logNames:Object.keys(logs),invitesEnabled:!!serverConfig}));
+      } catch { res.writeHead(503).end(JSON.stringify({error:'Fleet status unavailable; retry shortly.'})); }
+      return;
+    }
     if (req.url === '/api/status') { res.end(JSON.stringify({sample, worker:workerMonitor.state, aus:ausMonitor.state, germany:germanyMonitor.state, eu2:eu2Monitor.state, fleet:fleetSummary(sample,workerMonitor.state,failure,Date.now(),ausMonitor.state,germanyMonitor.state,eu2Monitor.state), error: failure, logNames: Object.keys(logs), invitesEnabled: !!serverConfig})); return; }
     if (req.url?.startsWith('/api/log?')) {
       const name = new URL(req.url, 'http://localhost').searchParams.get('name');
@@ -317,7 +329,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const port = Number(process.env.DASHBOARD_PORT || 61110);
     if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid dashboard port');
     const serverConfig = process.env.DASHBOARD_SERVER_CONFIG ? JSON.parse(await readFile(process.env.DASHBOARD_SERVER_CONFIG, 'utf8')) : null;
-    await startDashboard({key, backend: process.env.DASHBOARD_BACKEND || 'http://127.0.0.1:61000', port, logs, serverConfig, performanceDir: process.env.DASHBOARD_PERFORMANCE_DIR || null, workerUrl: process.env.DASHBOARD_WORKER_URL || null, ausUrl: process.env.DASHBOARD_AUS_URL || null, germanyUrl: process.env.DASHBOARD_GERMANY_URL || null, eu2Url: process.env.DASHBOARD_EU2_URL || null});
+    await startDashboard({key, backend: process.env.DASHBOARD_BACKEND || 'http://127.0.0.1:61000', port, logs, serverConfig, fleetUrl: process.env.DASHBOARD_FLEET_URL || null, fleetKey: process.env.DASHBOARD_FLEET_KEY_FILE ? (await readFile(process.env.DASHBOARD_FLEET_KEY_FILE,'utf8')).trim() : key, performanceDir: process.env.DASHBOARD_PERFORMANCE_DIR || null, workerUrl: process.env.DASHBOARD_WORKER_URL || null, ausUrl: process.env.DASHBOARD_AUS_URL || null, germanyUrl: process.env.DASHBOARD_GERMANY_URL || null, eu2Url: process.env.DASHBOARD_EU2_URL || null});
     console.log(`Owner dashboard: http://127.0.0.1:${port} (use an SSH tunnel remotely)`);
   })().catch(() => { console.error('Dashboard startup failed. Check owner key file, settings and port.'); process.exitCode = 1; });
 }
