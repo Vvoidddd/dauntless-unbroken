@@ -31,7 +31,7 @@ permissions:
 # One run at a time per branch or pull request; a newer push to a pull request cancels the older run.
 # Every run on dauntless-unbroken gets its own group, so none of them is ever cancelled or replaced.
 concurrency:
-  group: ci-${{ github.ref }}-${{ github.ref == 'refs/heads/main' && github.run_id || 'latest' }}
+  group: ci-${{ github.ref }}-${{ github.ref_name == github.event.repository.default_branch && github.run_id || 'latest' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -544,7 +544,7 @@ jobs:
     name: Launcher release needed?
     needs: [node-packages, launcher, launcher-linux, server-port-linux, server-port-openbsd, native-regressions, internal-server-dll, server-kit, docs, repo-hygiene]
     if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' && github.ref_name == github.event.repository.default_branch &&
       github.repository == 'Vvoidddd/dauntless-unbroken' && vars.LAUNCHER_AUTO_RELEASE != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 5

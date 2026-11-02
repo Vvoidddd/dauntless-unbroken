@@ -104,4 +104,7 @@ test('workflow uses read-only permissions, trusted checkout and successful publi
   assert.match(workflow, /ref: \$\{\{ github\.event\.repository\.default_branch \}\}/);
   assert.match(workflow, /contents: read/);
   assert.doesNotMatch(workflow, /^  (push|pull_request|pull_request_target):/m);
+  const ci = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8');
+  assert.match(ci, /github\.event_name == 'push' && github\.ref_name == github\.event\.repository\.default_branch/);
+  assert.doesNotMatch(ci, /refs\/heads\/main/);
 });
