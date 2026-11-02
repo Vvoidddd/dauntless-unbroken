@@ -15,6 +15,7 @@ import path from "node:path";
 import { endpointUrl, hostHeader, pinnedTarget, type Endpoint } from "./http";
 import { isPinError, PinnedAgent } from "./pinned";
 import { resolveInside, type ManifestFile } from "./manifest";
+import { chromiumCdnRequest } from "./cdn-request";
 
 export type DownloadErrorCode =
   | "key_rejected"
@@ -471,7 +472,7 @@ export class DownloadJob {
       if (!cdn) headers["if-range"] = `"${file.sha256}"`;
     }
 
-    const fallback = cdn && this.chromiumCdn ? (this.opts.cdnFallbackRequest ?? (await import('./cdn-request')).chromiumCdnRequest) : null;
+    const fallback = cdn && this.chromiumCdn ? (this.opts.cdnFallbackRequest ?? chromiumCdnRequest) : null;
     if (signal.aborted) throw new Interrupted();
     return new Promise<number>((resolve, reject) => {
       let ws: WriteStream | null = null;
