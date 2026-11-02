@@ -210,7 +210,7 @@ export async function fetchUserInfo(ep: Endpoint, key: string): Promise<UserInfo
   if (!isPlausibleAccountKey(key)) return { ok: false, error: "key_rejected" };
   let res: HttpResponse;
   try {
-    res = await request(ep, "/unbroken/api/GetUserInfo", { headers: { [KEY_HEADER]: key }, timeoutMs: 10000, maxBytes: 64 * 1024 });
+    res = await request(ep, "/unbroken/api/GetUserInfo", { headers: { [KEY_HEADER]: key }, timeoutMs: 35000, maxBytes: 64 * 1024 });
   } catch (e) {
     return { ok: false, error: isPin(e) ? "cert_mismatch" : "server_unreachable" };
   }
@@ -220,7 +220,10 @@ export async function fetchUserInfo(ep: Endpoint, key: string): Promise<UserInfo
   }
   if (res.status === 401 || res.status === 403) return { ok: false, error: "key_rejected" };
   if (res.status === 429) return { ok: false, error: "rate_limited" };
-  if (res.status !== 200) return { ok: false, error: "server_error" };
+  if (res.status !== 200) {
+    const body=parseJsonBody(res);
+    return { ok: false, error: "server_error",detail:isObject(body)?cleanText(body.message,300)??undefined:undefined };
+  }
   const body = parseJsonBody(res);
   if (!isObject(body)) return { ok: false, error: "server_error" };
   const userId = cleanText(body.UserId, 128);

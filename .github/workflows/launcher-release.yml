@@ -73,7 +73,7 @@ jobs:
           CALLED_LINUX_ARTIFACT: ${{ inputs.linux_artifact }}
           EVENT: ${{ github.event_name }}
           REF: ${{ github.ref }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          DEFAULT_BRANCH: ${{ github.ref_name == '1.10.5' && '1.10.5' || github.event.repository.default_branch }}
         run: |
           set -euo pipefail
           fail() { echo "::error::$1"; exit 1; }
@@ -237,7 +237,7 @@ jobs:
       VERSION: ${{ needs.prepare.outputs.version }}
       PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
       COMMIT: ${{ github.sha }}
-      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      DEFAULT_BRANCH: ${{ github.ref_name == '1.10.5' && '1.10.5' || github.event.repository.default_branch }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

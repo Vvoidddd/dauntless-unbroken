@@ -18,8 +18,8 @@ export const UPDATE_FEED_URL = "https://github.com/Vvoidddd/dauntless-unbroken/r
 export const WIN64_RELATIVE_DIR = "Archon/Binaries/Win64";
 export const EXE_NAME = "Dauntless-Win64-Shipping.exe";
 export const EXE_RELATIVE_PATH = `${WIN64_RELATIVE_DIR}/${EXE_NAME}`;
-export const PINNED_EXE_SHA256 = "d3d41e614908d2befd518b27046d9822d6130ef12ba3504babbdb786bef9cff4";
-export const PINNED_EXE_SIZE = 103673520;
+export const PINNED_EXE_SHA256 = "41c3b9a92967b3a35f3bc6b97613e93d9901c7701bd47e9f09e0c241c9cf78fd";
+export const PINNED_EXE_SIZE = 117856856;
 
 export interface PinnedDll {
   name: string;
@@ -29,7 +29,7 @@ export interface PinnedDll {
 // Same pins as friend-kit/play.ps1. The files ship in the launcher's resources.
 export const PINNED_DLLS: readonly PinnedDll[] = [
   { name: "dxgi.dll", sha256: "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c" },
-  { name: "DauntlessUnbroken.dll", sha256: "74d18637a0b317d8c799e62b69ceba1d827c5718ae6ac966e45467bdc48ab54a" },
+  { name: "DauntlessUnbroken.dll", sha256: "7426b0326d6968155cf651c8a1d3797b57d6b122c42be1b90ff46190a7212d91" },
 ];
 export const DLL_RELATIVE_PATHS = PINNED_DLLS.map((d) => `${WIN64_RELATIVE_DIR}/${d.name}`);
 

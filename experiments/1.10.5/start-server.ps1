@@ -1,4 +1,4 @@
-param([ValidateSet('ramsgate','dojo','combat-probe')][string]$World = 'ramsgate', [string]$BindIp = '127.0.0.1', [string]$Hunt = 'ShatteredIsles_IslandA', [ValidateRange(63872,63875)][int]$HuntPort = 63872, [string]$Players = '')
+param([ValidateSet('ramsgate','dojo','combat-probe')][string]$World = 'ramsgate', [string]$BindIp = '127.0.0.1', [string]$Hunt = 'ShatteredIsles_IslandA', [ValidateRange(63872,63935)][int]$HuntPort = 63872, [string]$Players = '')
 $ErrorActionPreference = 'Stop'
 $lab = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
 $exe = Join-Path $lab 'game\Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe'

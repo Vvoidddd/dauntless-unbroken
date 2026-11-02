@@ -213,15 +213,15 @@ test("the big button in every phase", () => {
   assert.deepEqual(["join", "register", "install", "ready"].map((p) => stepIndex(p as Snapshot["phase"])), [0, 1, 2, 3]);
 });
 
-test("the compiled-in game manifest is the verified 1.4.4 list", () => {
-  const file = path.join(ROOT, "..", "DauntlessUnbrokenContent", "data", "dauntless-1.4.4.json");
+test("the compiled-in game manifest is the verified 1.10.5 list", () => {
+  const file = path.join(ROOT, "..", "DauntlessUnbrokenContent", "data", "dauntless-1.10.5.json");
   const bytes = readFileSync(file);
-  assert.equal(createHash("sha256").update(bytes).digest("hex"), "05cf8c6aa58f98c4f4ef078a6d6229d2c40becd6d99c78fedb4eb5eeba6f8938");
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), "c146103db10bd20554c67bb42ae847294b34d72f0f9799c53a670dda49a1462e");
   const r = validateManifest(JSON.parse(bytes.toString("utf8")));
   assert.equal(r.ok, true, r.ok ? "" : r.reason);
   if (!r.ok) return;
-  assert.equal(r.manifest.files.length, 410);
-  assert.equal(r.manifest.totalBytes, 10_893_512_875);
+  assert.equal(r.manifest.files.length, 606);
+  assert.equal(r.manifest.totalBytes, 16_218_456_472);
   assert.match(manifestFingerprint(r.manifest), /^[0-9a-f]{64}$/);
 });
 

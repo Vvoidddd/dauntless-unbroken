@@ -665,7 +665,7 @@ function playInstall(snap: Snapshot): HTMLElement[] {
 
 function playInstalling(snap: Snapshot): HTMLElement[] {
   const kind = state.task?.kind ?? snap.task?.kind ?? "verify";
-  const title = kind === "download" ? t("installing_download_title") : kind === "dlls" ? t("task_dlls") : t("installing_verify_title");
+  const title = kind === 'unpack' ? 'Unpacking game files' : kind === "download" ? t("installing_download_title") : kind === "dlls" ? t("task_dlls") : t("installing_verify_title");
   return [eyebrow(snap), ...heading(title, t("task_note"))];
 }
 
@@ -1695,13 +1695,13 @@ function renderSettings(): void {
     onToggle(showConsole, (on) => void api.setSettings({ showConsole: on }));
     // Offline play's save: a portable backup to a file, and a restore (asked first: it replaces the
     // offline save on this PC). Not while offline play runs.
-    const saveLocked = offlineActive() || snap.game.running;
+    const saveLocked = snap.offlineAvailable === false || offlineActive() || snap.game.running;
     const offlineCard = card(
       "settings-section",
       h("h2", { class: "card-title" }, t("off_save_card")),
       settingsRow(
         t("off_save_title"),
-        state.offlineSaveNote ?? (saveLocked ? t("off_save_locked") : t("off_save_text")),
+        snap.offlineAvailable === false ? 'Your 1.4.4 offline save is preserved. Offline play is not available in 1.10.5 yet.' : state.offlineSaveNote ?? (saveLocked ? t("off_save_locked") : t("off_save_text")),
         button(t("off_save_backup"), () => void backupOfflineSave(), { icon: "folder", fk: "offline-backup", disabled: saveLocked }),
         button(t("off_save_restore"), () => showModal({ kind: "offline_restore" }), { icon: "refresh", fk: "offline-restore", disabled: saveLocked }),
       ),
@@ -2660,6 +2660,8 @@ window.addEventListener("keydown", (e) => {
 
 function renderPlayMenu(): void {
   const snap = state.snap;
+  playMore.hidden = snap?.offlineAvailable === false;
+  if(playMore.hidden){state.playMenu=false;playMenu.hidden=true;return;}
   const locked = !snap || snap.game.running || snap.task !== null || snap.busy || offlineActive();
   if (locked) state.playMenu = false;
   playMore.disabled = locked;

@@ -6,6 +6,7 @@
 // fingerprint from the invite (see pinned.ts).
 
 import http from "node:http";
+import {version as launcherVersion} from '../../package.json';
 import { isPrivateModeHost, isValidFingerprint, isValidHost } from "../shared/invite";
 import { isPinError, pinnedCreateConnection, type PinnedTarget } from "./pinned";
 
@@ -78,7 +79,7 @@ export function request(ep: Endpoint, pathAndQuery: string, opts: RequestOptions
       opts.signal?.removeEventListener("abort", onAbort);
       fn();
     };
-    const headers: Record<string, string> = { accept: "application/json", host: hostHeader(ep), ...(opts.headers ?? {}) };
+    const headers: Record<string, string> = { accept: "application/json", host: hostHeader(ep), ...(opts.headers ?? {}), 'x-unbroken-launcher-version':launcherVersion,'x-unbroken-platform':process.platform };
     if (opts.body !== undefined) {
       headers["content-type"] = "application/json";
       headers["content-length"] = String(Buffer.byteLength(opts.body));

@@ -2,7 +2,8 @@ const assert = require('node:assert/strict');
 const { createAllocator, emptyHunt, huntKey } = require('./local-deploy.cjs');
 async function check() {
   assert.notEqual(huntKey('Tutorial',['one']),huntKey('Tutorial',['two']));
-  assert.equal(huntKey('ShatteredIsles_IslandB',['one']),huntKey('ShatteredIsles_IslandB',['two']));
+  assert.notEqual(huntKey('ShatteredIsles_IslandB',['one']),huntKey('ShatteredIsles_IslandB',['two']));
+  assert.equal(huntKey('ShatteredIsles_IslandB',['two','one']),huntKey('ShatteredIsles_IslandB',['one','two']));
   assert.equal(emptyHunt({requestedAt:0},'engine_tick clients=0 frame=2',99999,100000),true);
   assert.equal(emptyHunt({requestedAt:99999},'engine_tick clients=0',99999,100000),false);
   assert.equal(emptyHunt({requestedAt:0},'engine_tick clients=1',99999,100000),false);
@@ -10,7 +11,7 @@ async function check() {
   assert.equal(emptyHunt({requestedAt:0},'no sample',99999,100000),false);
   let dojoReady = true;
   const server = createAllocator('local-test', async mode => mode === 'SHARED' && !dojoReady ? undefined : {
-    host: '127.0.0.1', port: mode === 'CITY' ? 63870 : 63871, sessionId: mode,
+    host: '127.0.0.1', port: mode === 'CITY' ? 63870 : 63871, sessionId: mode,players:0,startedAt:1,
   }, async (hunt, players) => {
     assert.ok(['ShatteredIsles_IslandB','Tutorial'].includes(hunt));assert.deepEqual(players,['local-test']);
     return {host:'127.0.0.1',port:63872,sessionId:hunt};
@@ -43,6 +44,13 @@ async function check() {
     dojoReady = false;
     assert.equal((await allocate({ GameMode: 'SHARED', HuntId: 'ShatteredIsles_TrainingDojo' })).status, 503);
     assert.deepEqual((await (await fetch(base + '/gameservers')).json()).servers.map(world => world.id), ['CITY']);
+    dojoReady = true;
+    const recovered=await Promise.all(Array.from({length:12},()=>allocate({GameMode:'SHARED',HuntId:'ShatteredIsles_TrainingDojo'})));
+    assert.equal(recovered.filter(r=>r.status===200).length,11,'temporary telemetry loss preserves the traveller already reserved');
+    assert.equal(recovered.filter(r=>r.status===503).length,1);
+    const responses=await Promise.all(Array.from({length:20},()=>allocate({GameMode:'CITY'})));
+    assert.equal(responses.filter(r=>r.status===200).length,19,'concurrent arrivals reserve the remaining 19 seats');
+    assert.equal(responses.filter(r=>r.status===503).length,1,'full Ramsgate queues the next player');
     console.log('Local allocation: distinct worlds, unavailable/unsupported destinations and foreign accounts checked.');
   } finally { await new Promise(resolve => server.close(resolve)); }
 }

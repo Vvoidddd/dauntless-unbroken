@@ -125,7 +125,7 @@ export type InviteCheck =
   | { ok: true; certificateChanged: boolean; previousFingerprint: string | null }
   | { ok: false; error: LauncherError };
 
-export type TaskKind = "download" | "verify" | "repair" | "dlls";
+export type TaskKind = "download" | "unpack" | "verify" | "repair" | "dlls";
 
 export interface TaskProgress {
   kind: TaskKind;
@@ -185,6 +185,7 @@ export interface RevivedStatus {
 }
 
 export interface Snapshot {
+  offlineAvailable?: boolean;
   revived?:RevivedStatus;
   queue?: {state:'idle'|'waiting'|'ready'|'failed'; kind?:'ramsgate'|'hunt'; full?:boolean; position?:number; total?:number; groupSize?:number;groupPosition?:number;groupsTotal?:number;waitSeconds?:number;estimatedWaitSeconds?:number|null;reason?:'capacity'|'matching'|'starting'} | null;
   phase: Phase;

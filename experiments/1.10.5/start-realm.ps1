@@ -7,9 +7,18 @@ $hostedFile=Join-Path $lab 'backend-state\hosted.json'
 if(Test-Path -LiteralPath $hostedFile){
  $hosted=Get-Content -LiteralPath $hostedFile -Raw | ConvertFrom-Json
  $ip='0.0.0.0'
- $config=@{Mode='Public';PublicHost=$hosted.host;CertFingerprint=$hosted.fingerprint;ServerName='Dauntless Unbroken 1.10.5 Test';Ports=@{gateway=62002;deploy=62001}}
+ $publicPort=if($hosted.publicPort){[int]$hosted.publicPort}else{62002}
+ $config=@{Mode='Public';PublicHost=$hosted.host;CertFingerprint=$hosted.fingerprint;ServerName='Dauntless Unbroken';Ports=@{gateway=$publicPort;deploy=62001}}
  $env:DR_1105_PUBLIC_HOST=if($hosted.gameHost){$hosted.gameHost}else{$hosted.host}
- $env:DR_1105_MAX_HUNTS=if($hosted.maxHunts -eq 4){'4'}else{'2'}
+ $env:DR_1105_MAX_HUNTS=if($hosted.maxHunts){[string]$hosted.maxHunts}else{'4'}
+ $env:DR_1105_WORKER=if($hosted.role -eq 'worker'){'1'}else{'0'}
+ $env:DR_1105_WORKER_URL=$hosted.workerUrl
+ $env:GAMESERVER_CPU_GUARD='1'
+ $env:GAMESERVER_CPU_LIMIT_PERCENT=if($hosted.cpuLimit){[string]$hosted.cpuLimit}else{'80'}
+ $env:GAMESERVER_CPU_RESUME_PERCENT=if($hosted.cpuResume){[string]$hosted.cpuResume}else{'65'}
+ $env:GAMESERVER_MEMORY_GUARD='1'
+ $env:DRAIN_FILE=Join-Path $lab 'backend-state/drain.flag'
+ if($hosted.cpuBudget){. (Join-Path $lab 'repo/deploy/windows-server/Set-ProcessCpuBudget.ps1') -Percent ([int]$hosted.cpuBudget) -Name 'Global\DauntlessUnbrokenEU1Cpu' | Out-Null}
 }else{
 $ts = & 'C:\Program Files\Tailscale\tailscale.exe' status --json | ConvertFrom-Json
 if ($ts.BackendState -ne 'Running') { throw 'Sign into Tailscale first.' }
@@ -43,14 +52,16 @@ function Start-LabNode([string]$Name,[string]$Script,[int]$Port) {
     throw "$Name did not start. See its logs."
 }
 if($hosted.retiredWorkerBridge){Start-LabNode 'retired-worker' (Join-Path $PSScriptRoot 'retired-worker.cjs') 61001}
-Start-LabNode 'realm-backend' (Join-Path $PSScriptRoot 'start-backend.cjs') 62000
+if($env:DR_1105_WORKER -ne '1'){Start-LabNode 'realm-backend' (Join-Path $PSScriptRoot 'start-backend.cjs') 62000}
 Start-LabNode 'realm-allocator' (Join-Path $PSScriptRoot 'local-deploy.cjs') 62001
+if($env:DR_1105_WORKER -ne '1'){
 Start-LabNode 'realm-proxy' (Join-Path $PSScriptRoot 'realm-proxy.cjs') 62002
 $env:DASHBOARD_OWNER_KEY_FILE = Join-Path $lab 'backend-state\realm-owner.key'
 $env:DASHBOARD_BACKEND = 'http://127.0.0.1:62000'
 $env:DASHBOARD_PORT = '62110'
 $env:DASHBOARD_SERVER_CONFIG = Join-Path $lab 'backend-state\realm-config.json'
 Start-LabNode 'realm-dashboard' (Join-Path $lab 'repo\tools\dashboard.mjs') 62110
+}
 if($NoWorlds){return}
 foreach ($world in @('ramsgate','dojo')) {
     $port = if ($world -eq 'dojo') {63871} else {63870}
@@ -58,5 +69,5 @@ foreach ($world in @('ramsgate','dojo')) {
         & (Join-Path $PSScriptRoot 'start-server.ps1') -World $world -BindIp $ip
     }
 }
-Write-Output "Test realm: ${ip}:62002 | Dashboard: http://127.0.0.1:62110"
-if (!$NoBrowser) { Start-Process 'http://127.0.0.1:62110' }
+Write-Output "Dauntless Unbroken 1.10.5 host ready: $($env:DR_1105_PUBLIC_HOST)"
+if (!$NoBrowser -and $env:DR_1105_WORKER -ne '1') { Start-Process 'http://127.0.0.1:62110' }

@@ -1,3 +1,6 @@
+import {prepareGameUpgrade,finishGameUpgrade,installArchivedGame} from './main/game-upgrade';
+import legacyManifest from '../../DauntlessUnbrokenContent/data/dauntless-1.4.4.json';
+import type {GameManifest} from './main/manifest';
 // Dauntless Unbroken Launcher - Electron main process.
 //
 // Security model: the renderer is sandboxed, has no Node access and no network access at all
@@ -586,6 +589,12 @@ function makePlatform(): Platform {
     },
     resourcesDir: resourcesDir(),
     defaultInstallDir,
+    prepareInstallDir: dir=>prepareGameUpgrade(path.join(app.getPath('userData'),'upgrade-1.10.5.json'),dir,async(oldDir,newDir)=>{
+      const answer=await dialog.showMessageBox(mainWindow!,{type:'question',title:'Dauntless Unbroken has moved to 1.10.5',message:'Install game version 1.10.5',detail:`Your account key and online progress will be kept.\nNew game: ${newDir}\nOld game: ${oldDir}\nIf you choose removal, old game files go to the Recycle Bin / Trash only after 1.10.5 verifies. Saves and backups stay.`,buttons:['Keep 1.4.4 and install 1.10.5','Remove 1.4.4 after installing 1.10.5'],defaultId:0,cancelId:0});
+      return answer.response===1?'remove':'keep';
+    }),
+    installFromArchive:(dir,signal,progress)=>installArchivedGame(resourcesDir(),dir,signal,progress),
+    finishGameUpgrade:async dir=>{if(!GAME_MANIFEST)throw Error('Game manifest unavailable');await finishGameUpgrade(path.join(app.getPath('userData'),'upgrade-1.10.5.json'),dir,legacyManifest as GameManifest,GAME_MANIFEST,[app.getPath('userData'),resourcesDir()],target=>shell.trashItem(target));},
     trashPath: target=>shell.trashItem(target),
     confirmRemoveGame: async targets=>{
       if(!mainWindow)return false;
@@ -604,13 +613,7 @@ function makePlatform(): Platform {
     systemLocale: app.getLocale(),
     relayPort,
     encryptor,
-    offlineSave: app.isPackaged && process.platform === "win32" ? new PortableOfflineSave({
-      layout, userData: app.getPath("userData"),
-      keys: new KeyStore(path.join(app.getPath("userData"), "keys"), encryptor),
-      database: electronSaveDatabase(layout.runtimeRoot, layout.metagameDir),
-      isActive: () => (!!localStack && !["stopped", "failed"].includes(localStack.snapshot.state)) ||
-        !!controller?.snapshot().game.running || !!controller?.snapshot().task || controller?.offlineStatus().phase === "stopping",
-    }) : undefined,
+    offlineSave: undefined,
     manifest: GAME_MANIFEST,
     chooseFolder: async (purpose, defaultPath) => {
       if (!mainWindow) return null;
@@ -660,7 +663,7 @@ function makePlatform(): Platform {
     },
     findTailscale: () => findTailscale(process.env, existsSync, process.platform),
     findRunningClients: () => findRunningClients(process.platform),
-    startOfflineStack: localStack ? (onPhase) => startLocalOfflineStack(onPhase) : undefined,
+    startOfflineStack: undefined, // The bundled 1.4.4 offline server cannot run 1.10.5.
     // Development stacks retain their own configured admission policy.
     offlineFreeMemory: app.isPackaged && process.platform === "win32" ? freemem : undefined,
     prepareGameLaunch:

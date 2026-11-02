@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { EXE_RELATIVE_PATH, PINNED_EXE_SHA256, PINNED_EXE_SIZE, DLL_RELATIVE_PATHS } from "./constants";
 
-export const EXPECTED_BUILD = "dauntless_rel-1.4.4_Shipping_2020-10-28_20-11-15_239827";
+export const EXPECTED_BUILD = "dauntless_rel-1.10.5_365075";
 
 export interface ManifestFile {
   path: string;

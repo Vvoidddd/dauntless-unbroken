@@ -35,6 +35,9 @@ async function main() {
     }
     if (!/^[a-f0-9]{64}$/.test(pair.gameserverKey)) throw new Error('Invalid local server credential');
     const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => /^(PATH|SYSTEMROOT|WINDIR|TEMP|TMP|USERPROFILE|LOCALAPPDATA|APPDATA)$/i.test(key)));
+    if(pair.gatewaySecret)env.GATEWAY_SECRET=pair.gatewaySecret;
+    if(pair.keyRecoveryServiceSecret)env.KEY_RECOVERY_SERVICE_SECRET=pair.keyRecoveryServiceSecret;
+    if(pair.gatewaySecret)env.DISCORD_KEY_STATE_URL='http://127.0.0.1:61112';
     Object.assign(env, { NODE_ENV: 'production', PORT: '62000', BIND_HOST: '127.0.0.1',
         AUTH_MODE: 'APIKEY', REGISTRATION_MODE: hosted ? 'INVITECODE' : 'OPEN', DB_FILENAME: selected.database,
         AUTH_SIGNING_PRIVKEY_B64: Buffer.from(pair.privateKey).toString('base64'),
@@ -42,7 +45,7 @@ async function main() {
         MATCHMAKING_MODE: 'DEPLOYSERVER', DEPLOYSERVER_URL: '127.0.0.1:62001',
         QOS_TARGET_URL: 'http://127.0.0.1:62000/QoS', TARGET_CHANGELIST: '365075',
         LOCAL_1105_ACCOUNT_ID: selected.userId,
-        LOCAL_1105_REALM: hosted ? '1' : '0', SERVER_NAME: 'Unbroken 1.10.5 Test Realm',
+        LOCAL_1105_REALM: hosted ? '1' : '0', SERVER_NAME: 'Dauntless Unbroken',
         PROGRESSION_CONFIG_DIR: path.join(__dirname, 'progression'), ACTIVE_HUNT_PASS: 'season09b',
         ESCALATION_MODE: 'real', STORE: 'free',
         CHAT: '1', CHAT_PORT: '62099', CHAT_BIND_HOST: '127.0.0.1', LOG_BODIES: '0', ACCOUNT_KEY_RECOVERY: '0' });

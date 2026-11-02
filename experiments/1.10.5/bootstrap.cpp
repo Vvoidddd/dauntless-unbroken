@@ -358,7 +358,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
         HuntMapName=map.substr(map.find_last_of(L'/')+1);
         GetEnvironmentVariableW(L"DR_1105_HUNT_PORT",port,8);
         ServerPort=_wtoi(port);
-        if (ServerPort<63872 || ServerPort>63875) return FALSE;
+        if (ServerPort<63872 || ServerPort>63935) return FALSE;
     }
     ProfileName=CombatProbe ? L"profile-hunt-"+std::to_wstring(ServerPort) : Dojo ? L"profile-dojo" : L"profile";
 
@@ -367,7 +367,17 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     if (hostLength) {
         if (hostLength >= 64 || (!PrivateIp(host) && !(Server && wcscmp(host, L"0.0.0.0") == 0))) return FALSE;
         if (Server) BindIp = host;
-        else BackendAuthority = std::wstring(host) + L":62002";
+        else {
+            wchar_t port[8]={};
+            const DWORD n=GetEnvironmentVariableW(L"DR_1105_PORT",port,8);
+            unsigned number=62002;
+            if(n){
+                if(n>=8)return FALSE;
+                number=0;for(DWORD i=0;i<n;++i){if(port[i]<L'0'||port[i]>L'9')return FALSE;number=number*10+(port[i]-L'0');}
+                if(!number||number>65535)return FALSE;
+            }
+            BackendAuthority = std::wstring(host) + L":" + std::to_wstring(number);
+        }
     }
     LocalServerCommand = L"Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -NoAsyncLoadingThread -EpicPortal -NoEAC -MULTIHOME=" + BindIp + L" -port=" + std::to_wstring(ServerPort) +
         L" -CULTURE=en-US -UserDir=C:/dr/build-1.10.5-20261030/" + ProfileName + L"/ -SaveToUserDir";

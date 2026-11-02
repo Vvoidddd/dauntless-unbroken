@@ -3,7 +3,7 @@ const allowed=new Set('users characters userapikeys authepochs loadouts breadcru
 const social=require('./migration-social.cjs'),merits=require('./migration-merits.cjs');
 const hashKey=key=>createHash('sha256').update(key).digest('hex');
 function prepare(db){social.prepare(db);merits.prepare(db);db.exec('CREATE TABLE IF NOT EXISTS imports1105(userId TEXT PRIMARY KEY,sourceDate TEXT NOT NULL,importedAt TEXT NOT NULL)');}
-function admit(db,hash,code,ex){
+function admit(db,hash,code,ex,requireInvite=true){
  return db.transaction(()=>{
   const existing=db.prepare('SELECT u.userId,u.name FROM userapikeys k JOIN users u ON u.userId=k.userId WHERE k.keyHash=?').get(hash);
   if(existing)return {Username:existing.name,UserId:existing.userId,imported:false};
@@ -13,9 +13,9 @@ function admit(db,hash,code,ex){
   const stub=db.prepare('SELECT 1 FROM social1105_stubs WHERE userId=?').get(uid);
   if(db.prepare('SELECT 1 FROM users WHERE (userId=? AND ?=0) OR (userId<>? AND lower(name)=lower(?))').get(uid,stub?1:0,uid,users[0].name))throw Error('An account with that identity already exists in the test realm. Contact the host.');
   const invite=db.prepare('SELECT * FROM invitecodes WHERE inviteCode=? AND (infiniteUses=1 OR usesRemaining>0)').get(code);
-  if(!invite)throw Error('That test invite is invalid or already used.');
+  if(requireInvite&&!invite)throw Error('That invite is invalid or already used.');
   const owner=db.prepare('SELECT discordId FROM discord_invites WHERE inviteCode=?').get(code);
-  if(owner&&!ex.tables.discordlinks.some(x=>x.userId===uid&&x.discordId===owner.discordId))throw Error('This invite belongs to a different Discord account.');
+  if(requireInvite&&owner&&!ex.tables.discordlinks.some(x=>x.userId===uid&&x.discordId===owner.discordId))throw Error('This invite belongs to a different Discord account.');
   const chars=new Set(ex.tables.characters.map(x=>x.characterId));
   for(const [table,rows] of Object.entries(ex.tables)){
    if(!Array.isArray(rows)||rows.length>100000)throw Error('Invalid migration rows');
@@ -30,8 +30,10 @@ function admit(db,hash,code,ex){
   }
   require('./migrate-experience.cjs').applyExperience(db,uid);
   social.apply(db,uid,ex.social);merits.grant(db,uid);
-  const spent=db.prepare('UPDATE invitecodes SET usesRemaining=CASE WHEN infiniteUses=1 THEN usesRemaining ELSE usesRemaining-1 END WHERE inviteCode=? AND (infiniteUses=1 OR usesRemaining>0)').run(code);
-  if(spent.changes!==1)throw Error('Invite was used before migration completed.');
+  if(requireInvite){
+   const spent=db.prepare('UPDATE invitecodes SET usesRemaining=CASE WHEN infiniteUses=1 THEN usesRemaining ELSE usesRemaining-1 END WHERE inviteCode=? AND (infiniteUses=1 OR usesRemaining>0)').run(code);
+   if(spent.changes!==1)throw Error('Invite was used before migration completed.');
+  }
   db.prepare('INSERT INTO imports1105 VALUES(?,?,?)').run(uid,ex.exportedAt,new Date().toISOString());
   return {Username:users[0].name,UserId:uid,imported:true};
  })();
@@ -49,7 +51,7 @@ async function exportRemote(config,hash){
   const timer=setTimeout(()=>finish(unavailable()),25000);
   const parse=()=>{let frame;try{frame=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{return false;}
    try{const ex=frame.gzip?JSON.parse(require('node:zlib').gunzipSync(Buffer.from(Array.isArray(frame.gzip)?frame.gzip.join(''):frame.gzip,'base64'),{maxOutputLength:16*1024**2}).toString('utf8')):frame;
-    if(ex.error==='account_not_found')finish(Error('The account key was not found on the live Unbroken realm.'));
+    if(ex.error==='account_not_found')finish(Object.assign(Error('The account key was not found on the live Unbroken realm.'),{status:401}));
     else if(ex.error)finish(unavailable());else finish(null,ex);
    }catch{finish(unavailable());}return true;
   };
@@ -65,12 +67,14 @@ async function exportRemote(config,hash){
 function createLogin(db,config,exporter=hash=>exportRemote(config,hash)){
  prepare(db);const pending=new Map();
  return async(key,code)=>{
-  if(typeof key!=='string'||!/^UUK[-_][a-f0-9]{48,64}$/i.test(key))throw Error('That does not look like an account key.');
+  if(typeof key!=='string'||!/^UUK[-_][a-f0-9]{48,64}$/i.test(key))throw Object.assign(Error('That does not look like an account key.'),{status:401});
   const hash=hashKey(key),existing=db.prepare('SELECT u.userId,u.name FROM userapikeys k JOIN users u ON u.userId=k.userId WHERE k.keyHash=?').get(hash);
   if(existing)return {Username:existing.name,UserId:existing.userId,imported:false};
-  if(typeof code!=='string'||!/^[A-Za-z0-9-]{4,64}$/.test(code)||!db.prepare('SELECT 1 FROM invitecodes WHERE inviteCode=? AND (infiniteUses=1 OR usesRemaining>0)').get(code))throw Error('Paste a new 1.10.5 test invite to copy your live account.');
+  const requireInvite=config?.requireInvite!==false;
+  if(requireInvite&&(typeof code!=='string'||!/^[A-Za-z0-9-]{4,64}$/.test(code)||!db.prepare('SELECT 1 FROM invitecodes WHERE inviteCode=? AND (infiniteUses=1 OR usesRemaining>0)').get(code)))throw Error('Paste a new 1.10.5 invite to copy your live account.');
   if(pending.has(hash))return pending.get(hash);
-  const job=(async()=>admit(db,hash,code,await exporter(hash)))();pending.set(hash,job);try{return await job;}finally{pending.delete(hash);}
+  if(pending.size>=4)throw Object.assign(Error('Account migration is busy. Please retry in a moment.'),{status:429});
+  const job=(async()=>admit(db,hash,typeof code==='string'?code:'',await exporter(hash),requireInvite))();pending.set(hash,job);try{return await job;}finally{pending.delete(hash);}
  };
 }
 // Backfill older test imports without replacing any test inventory/progression.

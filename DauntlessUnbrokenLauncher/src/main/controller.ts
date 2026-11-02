@@ -79,6 +79,7 @@ import { fixedLinkUrl, isAllowedExternalUrl } from "./links";
 import { describeError, log } from "./log";
 import {bounded} from './diagnostics';
 import { DEFAULT_RELAY_PORT, Relay, RelayError } from "./relay";
+import { requiredLauncherUpdate } from './launcher-policy';
 import {
   DISK_MARGIN_BYTES,
   EXE_NAME,
@@ -101,6 +102,9 @@ export interface Platform {
   offlineSave?: OfflineSaveRuntime;
 
   defaultInstallDir: string;
+  prepareInstallDir?(dir:string):Promise<string>;
+  installFromArchive?(dir:string,signal:AbortSignal,progress:(p:TaskProgress)=>void):Promise<void>;
+  finishGameUpgrade?(dir:string):Promise<void>;
   hostPlatform?: NodeJS.Platform;
   appVersion: string;
   packaged: boolean;
@@ -315,7 +319,15 @@ export class Controller {
     return sv ? serverId(sv.host, sv.port, sv.mode) : null;
   }
 
+  private async prepareInstallDir():Promise<void>{
+    if(!this.p.prepareInstallDir)return;
+    const dir=await this.p.prepareInstallDir(this.installDir);
+    if(dir!==this.installDir)await this.settings.update(s=>{s.installDir=dir;s.verifiedDir=null;});
+  }
+
   async init(): Promise<void> {
+    try{await this.withBusy(()=>this.prepareInstallDir());}
+    catch(e){log.error(describeError(e));this.fail('folder_invalid',describeError(e));}
     if (this.p.offlineSave) await this.withBusy(async()=>{
       try{await this.p.offlineSave!.recover();}
       catch(error){
@@ -401,9 +413,10 @@ export class Controller {
         vcRuntimeMissing: missingVcRuntime(process.env, this.p.runtimeFilesExist ?? existsSync, this.hostPlatform),
         directXMissing: missingDirectX(process.env, this.p.runtimeFilesExist ?? existsSync, this.hostPlatform),
 
-        contentAvailable: this.contentEndpoint() !== null,
+        contentAvailable: !!this.p.installFromArchive || this.contentEndpoint() !== null,
       },
       task: this.task,
+      offlineAvailable: !!this.p.startOfflineStack,
       queue: this.queue,
       game: { running: this.game.running, relayPort: this.relay?.port ?? null },
       playtime: { ...this.playtime.view(), onlineSeconds: this.serverPlaytime !== null && this.serverPlaytime.sid === sid && this.serverPlaytime.gen === this.statusGen ? this.serverPlaytime.seconds : null },
@@ -1409,6 +1422,7 @@ export class Controller {
 
   // UE4SS and the client mods (client-mods.ts). Never fatal: the game runs without them.
   private async installMods(dir: string): Promise<void> {
+    if(this.p.installFromArchive)return; // 1.4.4 UE4SS hooks are incompatible with 1.10.5.
     try {
       const r = await installClientMods(this.p.resourcesDir, dir);
       if (r) log.info(`client mods: ${r.installed} installed, ${r.upToDate} up to date, ${r.kept} kept, ${r.removed} removed, ${r.disabled} switched off`);
@@ -1425,6 +1439,7 @@ export class Controller {
     const sv = this.s.server;
     const slot = this.slot();
     if (!sv || !slot) return this.fail("server_unreachable");
+    try{await this.withBusy(()=>this.prepareInstallDir());}catch(e){return this.fail('folder_invalid',describeError(e));}
     const dir = this.installDir;
     this.lastError = null;
     this.notice = null;
@@ -1462,7 +1477,14 @@ export class Controller {
       if (report.bad.length > 0) log.info(`${report.bad.length} file(s) to fetch (${mode})`);
 
       // 2. Download what is missing or damaged.
-      if (needed.length > 0) {
+      if (needed.length > 0 && this.p.installFromArchive) {
+        const required=needed.reduce((sum,f)=>sum+f.size,0)+DISK_MARGIN_BYTES;
+        const free=await freeBytes(dir);
+        if(free!==null&&free<required)return this.fail('disk_space',String(required));
+        await this.p.installFromArchive(dir,abort.signal,p=>this.setTask(p));
+        const verified=await verifyInstall(dir,manifest.files,{fullHash:true,signal:abort.signal,onProgress:p=>this.setTask({...blank('verify',p.totalBytes,p.filesTotal),doneBytes:p.doneBytes,filesDone:p.filesDone,currentFile:p.currentFile})});
+        if(verified.bad.length)throw Error('Downloaded game did not pass file verification. Run Repair.');
+      } else if (needed.length > 0) {
         if (sv.mode === "public" && this.contentProbe !== true) {
           const ep = this.endpoint();
           if (ep) this.contentProbe = await probeContent(ep);
@@ -1521,11 +1543,14 @@ export class Controller {
       await this.settings.update((s) => {
         s.verifiedDir = dir;
       });
+      if(this.p.finishGameUpgrade && !(await this.p.findRunningClients()).length){
+        try{await this.p.finishGameUpgrade(dir);}catch(e){log.warn(`Old-game cleanup skipped: ${describeError(e)}`);}
+      }
       log.info(`${mode} finished in ${dir}`);
       this.notice = mode === "install" ? "install_done" : "repair_done";
       return OK;
     } catch (e) {
-      if (e instanceof AbortedError || (e instanceof DownloadError && e.code === "cancelled")) {
+      if (abort.signal.aborted || e instanceof AbortedError || (e instanceof DownloadError && e.code === "cancelled")) {
         log.info(`${mode} cancelled`);
         return err("cancelled");
       }
@@ -1810,6 +1835,12 @@ export class Controller {
       if (!key) return this.fail("key_invalid");
       const ep = this.endpoint();
       if (!ep) return this.fail('server_unreachable');
+      if(this.p.installFromArchive){
+        try {
+          const minimum=await requiredLauncherUpdate(ep,this.p.appVersion,this.hostPlatform);
+          if(minimum)return this.fail('server_error',`Launcher ${minimum} or newer is required. Install the update from Settings → Launcher, then retry PLAY.`);
+        } catch(e){return this.fail('server_unreachable',describeError(e));}
+      }
       const account = await fetchUserInfo(ep, key);
       if (!account.ok) {
         this.keyRejected = account.error === 'key_rejected' || account.error === 'account_banned';
@@ -1854,6 +1885,7 @@ export class Controller {
             key,
             () => endPlaying(ep, key),
             sv.mode === "public" ? ` (relay to ${sv.host}:${sv.port})` : "",
+            account.info,
         );
 
         launched = result.ok;
@@ -1948,6 +1980,7 @@ export class Controller {
       key: string,
       onExit: () => Promise<void>,
       logSuffix = "",
+      account?:{userId:string;username:string},
   ): Promise<ActionResult> {
     let prepared: { runtime: LaunchRuntime; configDir: string; runtimeName: string } | null = null;
 
@@ -1963,6 +1996,9 @@ export class Controller {
     }
 
     let displayRepaired = false;
+    const profile=this.p.installFromArchive?path.join(this.p.userDataDir,'game-profile-1.10.5'):null;
+    const gamePath=(file:string)=>this.hostPlatform==='linux'?'Z:'+file.replaceAll('/','\\'):file;
+    if(profile)await fsp.mkdir(profile,{recursive:true});
 
     try {
       const config = await applyGameConfig({
@@ -1971,7 +2007,7 @@ export class Controller {
         graphics: this.s.graphics,
         exposure: this.s.exposure,
         safeWindow: this.s.windowed,
-        configDir: prepared?.configDir ?? this.p.gameConfigDir,
+        configDir: profile?path.join(profile,'Saved','Config','WindowsClient'):prepared?.configDir ?? this.p.gameConfigDir,
       });
 
       displayRepaired = config.displayRepaired;
@@ -1988,7 +2024,9 @@ export class Controller {
       key,
       windowed: this.s.windowed || displayRepaired,
       gameLocale: gameLocale(this.s.gameLanguage, this.p.systemLocale ?? "en-US"),
+      account: this.p.installFromArchive ? account : undefined,
     });
+    if(profile)args.push(`-UserDir=${gamePath(profile)}/`,'-SaveToUserDir');
 
     const via = prepared ? ` via ${prepared.runtimeName}` : "";
     log.info(`starting ${describeLaunch(EXE_NAME, args)}${via}${logSuffix}`);
@@ -1999,7 +2037,7 @@ export class Controller {
           win64Dir(this.installDir),
           args,
           prepared?.runtime,
-          this.s.showConsole ? { DR_SHOW_CONSOLE: "1" } : undefined,
+          {...(this.s.showConsole ? { DR_SHOW_CONSOLE:'1' } : {}),...(this.p.installFromArchive ? {DR_1105_LOCAL_LAB:'1',DR_1105_HOST:gameHost,DR_1105_PORT:String(gamePort),DR_1105_LOG:gamePath(path.join(profile!,'native-client.log'))} : {})},
       );
     } catch (e) {
       this.endPlayingSession = null;

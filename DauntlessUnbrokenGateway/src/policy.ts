@@ -19,6 +19,7 @@ export type Decision =
 // under /unbroken/api is an admin route (invites, renames, rollbacks, entitlements, JWTs for any
 // account) and answers 403 here, even with a valid admin key.
 export const PUBLIC_UNBROKEN_API: ReadonlyMap<string, readonly string[]> = new Map([
+    ["launcherpolicy", ["GET", "HEAD"]],
     ["register", ["POST"]],
     ["getuserinfo", ["GET", "HEAD"]],
     ["playtime", ["GET", "HEAD"]],
