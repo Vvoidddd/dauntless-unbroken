@@ -192,10 +192,33 @@ jobs:
       - name: Build and test the native server services on Linux
         run: |
           set -euo pipefail
+          build_logs="$(mktemp -d)"
+          pids=""
           for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
-            echo "::group::$pkg"
-            (cd "$pkg" && npm ci --no-audit --no-fund && npm run build && npm test)
-            echo "::endgroup::"
+            (
+              set -eu
+              cd "$pkg"
+              npm ci --no-audit --no-fund
+              npm run build
+            ) >"$build_logs/$pkg.log" 2>&1 &
+            pids="$pids $!"
+          done
+          build_failed=0
+          for pid in $pids; do
+            if ! wait "$pid"; then build_failed=1; fi
+          done
+          if [ "$build_failed" -ne 0 ]; then
+            for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
+              echo "=== $pkg build ==="
+              cat "$build_logs/$pkg.log"
+            done
+            exit 1
+          fi
+          rm -rf "$build_logs"
+          # The build phase is independent; tests stay serial because several fixtures use fixed ports.
+          for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
+            echo "=== $pkg tests ==="
+            (cd "$pkg" && npm test)
           done
 
       - name: Test the Unix game-worker and platform config ports
@@ -237,9 +260,33 @@ jobs:
             set -eu
             node --version
             npm --version
+            build_logs="$(mktemp -d)"
+            pids=""
             for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
-              echo "=== $pkg ==="
-              (cd "$pkg" && npm ci --no-audit --no-fund && npm run build && npm test)
+              (
+                set -eu
+                cd "$pkg"
+                npm ci --no-audit --no-fund
+                npm run build
+              ) >"$build_logs/$pkg.log" 2>&1 &
+              pids="$pids $!"
+            done
+            build_failed=0
+            for pid in $pids; do
+              if ! wait "$pid"; then build_failed=1; fi
+            done
+            if [ "$build_failed" -ne 0 ]; then
+              for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
+                echo "=== $pkg build ==="
+                cat "$build_logs/$pkg.log"
+              done
+              exit 1
+            fi
+            rm -rf "$build_logs"
+            # The build phase is independent; tests stay serial because several fixtures use fixed ports.
+            for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
+              echo "=== $pkg tests ==="
+              (cd "$pkg" && npm test)
             done
             node --test deploy/linux-server/tests/game-runner.test.mjs
             for file in deploy/openbsd-server/*.ksh deploy/openbsd-server/rc.d/*; do
