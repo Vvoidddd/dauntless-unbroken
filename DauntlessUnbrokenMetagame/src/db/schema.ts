@@ -307,6 +307,13 @@ export const bountydraft = sqliteTable("bountydraft", {
     updatedDate: text("updatedDate").notNull()
 });
 
+export const challengedrafts = sqliteTable("challengedrafts", {
+    accountId: text("accountId").notNull(),
+    kind: text("kind").notNull(),
+    data: text("data").notNull(),
+    updatedDate: text("updatedDate").notNull()
+}, (table) => [primaryKey({columns: [table.accountId, table.kind]})]);
+
 // Unlocked character loadout slots and the active slot. No row = 1 slot, slot 0.
 export const loadoutslots = sqliteTable("loadoutslots", {
     characterId: text("characterId").notNull().primaryKey(),
