@@ -255,30 +255,31 @@ using ConnectionActorMap = UC::TMap<SDK::AActor*, ConnectionActorInfoRef>;
 static_assert(sizeof(ConnectionActorInfoRef) == 16);
 static_assert(offsetof(ConnectionActorInfo, CullDistance) == 8);
 static_assert(offsetof(ConnectionActorInfo, CullDistanceSquared) == 12);
-static void FixHammerCull(SDK::UNetDriver* driver, SDK::UReplicationDriver* rawGraph) {
+static void FixEquipmentCull(SDK::UNetDriver* driver, SDK::UReplicationDriver* rawGraph) {
     auto* graph = static_cast<SDK::UReplicationGraph*>(rawGraph);
     if (!graph->Connections.IsValid() || !driver->ClientConnections.IsValid() || graph->Connections.Num() > 64 || driver->ClientConnections.Num() > 64) return;
-    std::unordered_set<SDK::AActor*> hammers;
+    std::unordered_set<SDK::AActor*> equipment;
     for (auto* owner : driver->ClientConnections) {
         auto* pawn = owner && owner->PlayerController ? owner->PlayerController->Pawn : nullptr;
         if (!pawn || !pawn->IsA(SDK::AArchonCharacter::StaticClass())) continue;
-        auto* weapon = static_cast<SDK::AArchonCharacter*>(pawn)->Weapon;
-        if (!weapon || weapon->IsActorBeingDestroyed() || weapon->WeaponType != SDK::EWeaponType::WeaponType_IHAMMER || !weapon->bAlwaysRelevant) continue;
-        hammers.insert(weapon);
+        auto* character = static_cast<SDK::AArchonCharacter*>(pawn);
+        auto* weapon = character->Weapon;
+        if (weapon && !weapon->IsActorBeingDestroyed() && weapon->WeaponType == SDK::EWeaponType::WeaponType_IHAMMER && weapon->bAlwaysRelevant) equipment.insert(weapon);
+        auto* role = character->PlayerRole;
+        if (role && !role->IsActorBeingDestroyed() && role->bNetUseOwnerRelevancy) equipment.insert(role);
     }
-    if (hammers.empty()) return;
-    // One scan per connection, regardless of how many players carry hammers.
+    if (equipment.empty()) return;
     for (auto* manager : graph->Connections) {
         if (!manager) continue;
         auto* entries = reinterpret_cast<ConnectionActorMap*>(reinterpret_cast<uint8_t*>(manager) + 0x30);
         if (!entries->IsValid() || entries->NumAllocated() > 100000) continue;
         for (auto& pair : *entries) {
-            if (!hammers.contains(pair.Key()) || !pair.Value().Info || !pair.Value().Controller) continue;
+            if (!equipment.contains(pair.Key()) || !pair.Value().Info || !pair.Value().Controller) continue;
             auto* info = pair.Value().Info;
             if (info->CullDistance != 0 || info->CullDistanceSquared != 0) {
                 info->CullDistance = 0;
                 info->CullDistanceSquared = 0;
-                Note("hammer_replication_distance_fixed\n");
+                Note("equipment_replication_distance_fixed\n");
             }
         }
     }
@@ -290,7 +291,7 @@ static void TickFlush(SDK::UNetDriver* driver, float delta) {
     if (graph && !driver->ServerConnection && driver->ClientConnections.Num() > 0) {
         const auto replicate = (*reinterpret_cast<uintptr_t**>(graph))[0x2f8/8];
         if (replicate == Base+0x1a85e40) {
-            FixHammerCull(driver, graph);
+            FixEquipmentCull(driver, graph);
             reinterpret_cast<int(*)(SDK::UReplicationDriver*,float)>(replicate)(graph, delta);
         }
     }
