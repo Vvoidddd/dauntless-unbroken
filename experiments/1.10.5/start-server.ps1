@@ -16,6 +16,7 @@ if ($World -eq 'combat-probe') {
     if ($ids.Count -gt 4 -or @($ids | Where-Object { $_ -notmatch '^UID-[a-fA-F0-9-]{36}$' }).Count) { throw 'Invalid expected account IDs.' }
     $playerHunts = ($ids | ForEach-Object { "${_}:$Hunt" }) -join ','
     $env:DR_1105_HUNT_URL = if ($Hunt -eq 'Tutorial') { $entry.url } else { "$($entry.map)?game=$($entry.gameMode)?HuntId=$($entry.matchmaker)?MaxPlayers=$($entry.maxPlayers)?PlayerHuntIds=$playerHunts" }
+    if ($entry.atmosphere) { $env:DR_1105_HUNT_URL += "?TODClass=$($entry.atmosphere)" }
     $env:DR_1105_HUNT_PORT = [string]$port
 }
 if (Get-NetUDPEndpoint -LocalPort $port -ErrorAction SilentlyContinue) { throw "Local world port $port is already in use." }

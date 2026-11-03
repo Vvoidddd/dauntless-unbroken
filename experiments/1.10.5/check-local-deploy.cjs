@@ -2,6 +2,19 @@ const assert = require('node:assert/strict');
 const { createAllocator, emptyHunt, deadHunt, staleHunt, huntKey } = require('./local-deploy.cjs');
 const catalog=require('./hunting-grounds.json');
 async function check() {
+  const escalation = Object.entries(catalog).filter(([id])=>id.startsWith('CR19_PlayerHunt_Escalation_'));
+  assert.equal(escalation.length,18,'six Escalation families at three difficulties');
+  for(const family of ['Randall','Funguy','Mint','Armstrong','Thunderbird','Glitter']){
+    for(const [difficulty,min,max] of [['Easy',1,13],['Hard',10,50],['Heroic',51,90]]){
+      const route=catalog[`CR19_PlayerHunt_Escalation_${family}_${difficulty}`];
+      assert.ok(route,`${family} ${difficulty}`);
+      assert.deepEqual([route.initialChallenge,route.maxChallenge,route.rounds,route.maxPlayers],[min,max,5,4]);
+      assert.equal(route.gameMode,'/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C');
+      assert.match(route.map,/^\/Game\/Maps\/islands\/escalation\/escalation_island_/);
+      assert.match(route.atmosphere,/^\/Game\/World\/atmospheres\/.*_C$/);
+      assert.equal(route.matchmaker,`CR19_MatchmakerHunt_Escalation_${family}_${family==='Glitter'&&difficulty==='Heroic'?'heroic':difficulty}`);
+    }
+  }
   assert.equal(staleHunt({launchedAt:0,requestedAt:400000},0,400001),true,'polling cannot keep a frozen worker alive');
   assert.equal(staleHunt({launchedAt:300000,requestedAt:300000},0,400001),false,'allow startup grace');
   assert.equal(staleHunt({launchedAt:0,requestedAt:0},399999,400001),false,'keep healthy occupied worlds');

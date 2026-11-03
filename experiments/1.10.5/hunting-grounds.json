@@ -162,5 +162,203 @@
     "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonExploration.BPGM_ArchonExploration_C",
     "maxPlayers": 12,
     "spec": "Island_U(19-20)"
+  },
+  "CR19_PlayerHunt_Escalation_Randall_Easy": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Randall_Easy",
+    "map": "/Game/Maps/islands/escalation/escalation_island_umbral_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Randall_Easy",
+    "initialChallenge": 1,
+    "maxChallenge": 13,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_night_umbral_00_bp.atmospheres_night_umbral_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Randall_Hard": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Randall_Hard",
+    "map": "/Game/Maps/islands/escalation/escalation_island_umbral_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Randall_Hard",
+    "initialChallenge": 10,
+    "maxChallenge": 50,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_night_umbral_00_bp.atmospheres_night_umbral_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Randall_Heroic": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Randall_Heroic",
+    "map": "/Game/Maps/islands/escalation/escalation_island_umbral_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Randall_Heroic",
+    "initialChallenge": 51,
+    "maxChallenge": 90,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_night_umbral_00_bp.atmospheres_night_umbral_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Funguy_Easy": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Funguy_Easy",
+    "map": "/Game/Maps/islands/escalation/escalation_island_terra_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Funguy_Easy",
+    "initialChallenge": 1,
+    "maxChallenge": 13,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_terra_00_bp.atmospheres_terra_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Funguy_Hard": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Funguy_Hard",
+    "map": "/Game/Maps/islands/escalation/escalation_island_terra_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Funguy_Hard",
+    "initialChallenge": 10,
+    "maxChallenge": 50,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_terra_00_bp.atmospheres_terra_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Funguy_Heroic": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Funguy_Heroic",
+    "map": "/Game/Maps/islands/escalation/escalation_island_terra_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Funguy_Heroic",
+    "initialChallenge": 51,
+    "maxChallenge": 90,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_terra_00_bp.atmospheres_terra_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Mint_Easy": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Mint_Easy",
+    "map": "/Game/Maps/islands/escalation/escalation_island_frost_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Mint_Easy",
+    "initialChallenge": 1,
+    "maxChallenge": 13,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_frost_00_bp.atmospheres_frost_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Mint_Hard": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Mint_Hard",
+    "map": "/Game/Maps/islands/escalation/escalation_island_frost_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Mint_Hard",
+    "initialChallenge": 10,
+    "maxChallenge": 50,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_frost_00_bp.atmospheres_frost_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Mint_Heroic": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Mint_Heroic",
+    "map": "/Game/Maps/islands/escalation/escalation_island_frost_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Mint_Heroic",
+    "initialChallenge": 51,
+    "maxChallenge": 90,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_frost_00_bp.atmospheres_frost_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Armstrong_Easy": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Armstrong_Easy",
+    "map": "/Game/Maps/islands/escalation/escalation_island_blaze_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Armstrong_Easy",
+    "initialChallenge": 1,
+    "maxChallenge": 13,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_blaze_00_bp.atmospheres_blaze_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Armstrong_Hard": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Armstrong_Hard",
+    "map": "/Game/Maps/islands/escalation/escalation_island_blaze_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Armstrong_Hard",
+    "initialChallenge": 10,
+    "maxChallenge": 50,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_blaze_00_bp.atmospheres_blaze_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Armstrong_Heroic": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Armstrong_Heroic",
+    "map": "/Game/Maps/islands/escalation/escalation_island_blaze_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Armstrong_Heroic",
+    "initialChallenge": 51,
+    "maxChallenge": 90,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_blaze_00_bp.atmospheres_blaze_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Thunderbird_Easy": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Thunderbird_Easy",
+    "map": "/Game/Maps/islands/escalation/escalation_island_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Thunderbird_Easy",
+    "initialChallenge": 1,
+    "maxChallenge": 13,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_aether_storm_00_bp.atmospheres_aether_storm_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Thunderbird_Hard": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Thunderbird_Hard",
+    "map": "/Game/Maps/islands/escalation/escalation_island_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Thunderbird_Hard",
+    "initialChallenge": 10,
+    "maxChallenge": 50,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_aether_storm_00_bp.atmospheres_aether_storm_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Thunderbird_Heroic": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Thunderbird_Heroic",
+    "map": "/Game/Maps/islands/escalation/escalation_island_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Thunderbird_Heroic",
+    "initialChallenge": 51,
+    "maxChallenge": 90,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_aether_storm_00_bp.atmospheres_aether_storm_00_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Glitter_Easy": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Glitter_Easy",
+    "map": "/Game/Maps/islands/escalation/escalation_island_radiant_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Glitter_Easy",
+    "initialChallenge": 1,
+    "maxChallenge": 13,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_night_01_radiant_bp.atmospheres_night_01_radiant_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Glitter_Hard": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Glitter_Hard",
+    "map": "/Game/Maps/islands/escalation/escalation_island_radiant_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Glitter_Hard",
+    "initialChallenge": 10,
+    "maxChallenge": 50,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_night_01_radiant_bp.atmospheres_night_01_radiant_bp_C"
+  },
+  "CR19_PlayerHunt_Escalation_Glitter_Heroic": {
+    "matchmaker": "CR19_MatchmakerHunt_Escalation_Glitter_heroic",
+    "map": "/Game/Maps/islands/escalation/escalation_island_radiant_00",
+    "gameMode": "/Game/Blueprints/GameMode/BPGM_ArchonEscalation.BPGM_ArchonEscalation_C",
+    "maxPlayers": 4,
+    "spec": "Glitter_Heroic",
+    "initialChallenge": 51,
+    "maxChallenge": 90,
+    "rounds": 5,
+    "atmosphere": "/Game/World/atmospheres/blueprints/atmospheres/production/atmospheres_night_01_radiant_bp.atmospheres_night_01_radiant_bp_C"
   }
 }
