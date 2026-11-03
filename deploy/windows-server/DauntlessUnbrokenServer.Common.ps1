@@ -1020,6 +1020,7 @@ function Build-DRApp {
     if (-not (Test-Path -LiteralPath $npmCli)) { Stop-DR "npm not found next to $NodeExe" }
     $built = @()
     $buildPackages = @()
+    $buildJobs = @()
     foreach ($pkg in $script:DRPackages) {
         $dir = Join-Path $appNew $pkg
         if (-not (Test-Path -LiteralPath (Join-Path $dir 'package.json'))) {
@@ -1033,13 +1034,9 @@ function Build-DRApp {
         $code = Invoke-DRNative -FilePath $NodeExe -Arguments @($npmCli, 'ci', '--no-audit', '--no-fund') -WorkingDirectory $dir -LogBase (Join-Path $Paths.Logs "install\npm-ci-$pkg") -Environment $envs -LowPriority
         if ($code -ne 0) { Show-DRLogTail (Join-Path $Paths.Logs "install\npm-ci-$pkg"); Stop-DR "npm ci failed in $pkg" }
         $buildPackages += [pscustomobject]@{ Name = $pkg; Dir = $dir; Environment = $envs }
-    }
-
-    # npm ci is intentionally serial: concurrent installs can contend for npm's shared cache. The
-    # TypeScript builds only write inside their own package directories, so overlap those instead.
-    $buildJobs = @()
-    foreach ($item in $buildPackages) {
-        $log = Join-Path $Paths.Logs "install\npm-build-$($item.Name)"
+        # npm ci is intentionally serial: concurrent installs can contend for npm's shared cache.
+        # This build only writes inside its own package directory, so start it while the next package installs.
+        $log = Join-Path $Paths.Logs "install\npm-build-$pkg"
         $buildJobs += Start-Job -ScriptBlock {
             param($Node, $Npm, $Directory, $Package, $Log, $Environment)
             foreach ($key in $Environment.Keys) { Set-Item -Path "Env:$key" -Value ([string]$Environment[$key]) }
@@ -1053,7 +1050,7 @@ function Build-DRApp {
                 $code = 1
             } finally { Pop-Location }
             [pscustomobject]@{ Package = $Package; Code = $code; Log = $Log }
-        } -ArgumentList $NodeExe, $npmCli, $item.Dir, $item.Name, $log, $item.Environment
+        } -ArgumentList $NodeExe, $npmCli, $dir, $pkg, $log, $envs
     }
     $buildResults = @()
     for ($i = 0; $i -lt $buildJobs.Count; $i++) {
