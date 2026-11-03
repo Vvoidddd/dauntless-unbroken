@@ -354,10 +354,14 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  server-kit:
-    name: Server kit (Windows PowerShell 5.1)
+  server-kit-work:
+    name: Server kit (${{ matrix.phase }})
     runs-on: windows-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        phase: [unit, remote, sandbox]
     defaults:
       run:
         shell: powershell
@@ -378,6 +382,7 @@ jobs:
             DauntlessUnbrokenDeployServer/package-lock.json
 
       - name: Every PowerShell script parses in Windows PowerShell 5.1
+        if: matrix.phase == 'unit'
         run: |
           $files = @(git ls-files -- '*.ps1')
           $bad = 0
@@ -391,6 +396,7 @@ jobs:
 
       # PSScriptAnalyzer comes with the runner image; it is never installed from the gallery here.
       - name: PSScriptAnalyzer (errors only)
+        if: matrix.phase == 'unit'
         shell: pwsh
         run: |
           if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
@@ -410,39 +416,55 @@ jobs:
           Write-Output "PSScriptAnalyzer $((Get-Module PSScriptAnalyzer).Version): no errors in $($files.Count) scripts"
 
       - name: Install the gateway's dependencies (Test-KitUnit uses its certificate tool)
+        if: matrix.phase == 'unit'
         shell: pwsh
         working-directory: DauntlessUnbrokenGateway
         run: npm ci --no-audit --no-fund
 
       - name: Fleet watchdog safety regressions
+        if: matrix.phase == 'unit'
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy/windows-server/Test-FleetWatchdog.ps1
 
 
       - name: Unit checks (Test-KitUnit.ps1)
+        if: matrix.phase == 'unit'
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-KitUnit.ps1 -WorkDir "$env:RUNNER_TEMP\dr-kit-unit"
 
       - name: Remote deployment against a local folder (Test-DeployRemote.ps1)
+        if: matrix.phase == 'remote'
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-DeployRemote.ps1 -WorkDir "$env:RUNNER_TEMP\dr-deploy-test"
 
       - name: End-to-end sandbox install (Test-Sandbox.ps1)
+        if: matrix.phase == 'sandbox'
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-Sandbox.ps1 -SandboxDir "$env:RUNNER_TEMP\dr-sandbox"
 
       # Test-Sandbox.ps1 leaves its log in %TEMP%. The sandbox's keys and secrets were made for this run
       # and deleted with it, and the kit never prints them.
       - name: Find the sandbox log
-        if: failure()
+        if: failure() && matrix.phase == 'sandbox'
         run: |
           $log = Join-Path $env:TEMP 'dr-sandbox-test.log'
           if (Test-Path -LiteralPath $log) { Copy-Item -LiteralPath $log -Destination $env:RUNNER_TEMP }
 
       - name: Keep the sandbox log
-        if: failure()
+        if: failure() && matrix.phase == 'sandbox'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sandbox-test-log
           path: ${{ runner.temp }}/dr-sandbox-test.log
           if-no-files-found: ignore
           retention-days: 5
+
+  server-kit:
+    name: Server kit (Windows PowerShell 5.1)
+    needs: server-kit-work
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every server-kit phase
+        env:
+          RESULT: ${{ needs.server-kit-work.result }}
+        run: test "$RESULT" = success
 
   docs:
     name: Docs site
