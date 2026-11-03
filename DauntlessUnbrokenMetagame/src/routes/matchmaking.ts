@@ -155,7 +155,7 @@ matchmakingRouter.get("/candidate/status", HasDauntlessUnbrokenMetagameAuth, asy
             res.status(200);
             res.json({
                 candidateId: MatchmakingResult.CandidateId,
-                candidateStatusPeriodMillis: MatchmakingResult.Private || MatchmakingResult.PartyCandidate ? 1000 : 10000,
+                candidateStatusPeriodMillis: 1000,
                 gameMode: "ISLAND",
                 huntId: MatchmakingResult.HuntId,
                 playerStates: PlayerStatesOf(MatchmakingResult),
@@ -170,7 +170,7 @@ matchmakingRouter.get("/candidate/status", HasDauntlessUnbrokenMetagameAuth, asy
             res.status(200);
             res.json({
                 candidateId: MatchmakingResult.CandidateId,
-                candidateStatusPeriodMillis: MatchmakingResult.Private || MatchmakingResult.PartyCandidate ? 1000 : 10000,
+                candidateStatusPeriodMillis: 1000,
                 gameMode: "ISLAND",
                 huntId: MatchmakingResult.HuntId,
                 playerStates: PlayerStatesOf(MatchmakingResult),
@@ -192,7 +192,7 @@ matchmakingRouter.get("/candidate/status", HasDauntlessUnbrokenMetagameAuth, asy
             res.status(200);
             res.json({
                 candidateId: MatchmakingResult.CandidateId,
-                candidateStatusPeriodMillis: MatchmakingResult.Private || MatchmakingResult.PartyCandidate ? 1000 : 10000,
+                candidateStatusPeriodMillis: 1000,
                 gameMode: "ISLAND",
                 huntId: MatchmakingResult.HuntId,
                 playerStates: PlayerStatesOf(MatchmakingResult),
@@ -243,7 +243,7 @@ matchmakingRouter.post("/candidate/join", HasDauntlessUnbrokenMetagameAuth, asyn
     res.status(200);
     res.json({
         candidateId: MatchmakingEntry.CandidateId,
-        candidateStatusPeriodMillis: MatchmakingEntry.Private || MatchmakingEntry.PartyCandidate ? 1000 : 10000,
+        candidateStatusPeriodMillis: 1000,
         gameMode: GameMode,
         huntId: HuntId,
         status: "MATCHING",
