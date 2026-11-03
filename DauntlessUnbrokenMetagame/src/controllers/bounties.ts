@@ -6,6 +6,17 @@ import { Caller, IsPlainObject, ReadField, ReadInteger, RealReply, RecordProgres
 import { Tx } from "./savehistory";
 import { BOUNTY_TOKENS_DAILY } from './inventory';
 import { Local1105Enabled } from './local1105';
+import NativeBountyIds from './bounty-ids1105.json';
+
+// Extracted from 1.10.5.365075 Gameplay/Bounty/bounty_table.
+const NativeBounties = new Set(NativeBountyIds);
+export const QuarantinedChallenge = 'Challenge_Season_Break_Armour_Rock';
+function CanRestoreBounty(Id: string){
+    if (!Local1105Enabled()) return true;
+    // Player-reported crash containment; retain the original row for recovery.
+    if (Id === QuarantinedChallenge || Id.startsWith(`${QuarantinedChallenge}-`)) return false;
+    return !Id.startsWith('Bounty_') || NativeBounties.has(Id);
+}
 
 // Shared by the old endpoint and 1.10.5 tuning. Native assets own bounty IDs,
 // unlock requirements and rewards; an empty override list preserves them.
@@ -37,7 +48,7 @@ const DEFAULT_DRAFT_DATA = {
 };
 
 function Board(tx: Tx, AccountId: string){
-    const Bounties = tx.select().from(bounties).where(eq(bounties.accountId, AccountId)).orderBy(asc(bounties.slotIndex), asc(bounties.bountyId)).all().map((Row) => {
+    const Bounties = tx.select().from(bounties).where(eq(bounties.accountId, AccountId)).orderBy(asc(bounties.slotIndex), asc(bounties.bountyId)).all().filter(Row => CanRestoreBounty(Row.bountyId)).map((Row) => {
         const Element = JSON.parse(Row.data);
 
         // The client zeroes every bounty member except drafted_timestamp
@@ -49,10 +60,16 @@ function Board(tx: Tx, AccountId: string){
     });
 
     const Draft = tx.select().from(bountydraft).where(eq(bountydraft.accountId, AccountId)).get();
+    const DraftData = Draft != undefined ? JSON.parse(Draft.data) : {...DEFAULT_DRAFT_DATA};
+    if (Local1105Enabled()) {
+        for (const Field of ['current_draft_choices', 'previous_draft_selections']) {
+            if (Array.isArray(DraftData[Field])) DraftData[Field] = DraftData[Field].filter((Id: unknown) => typeof Id === 'string' && CanRestoreBounty(Id));
+        }
+    }
 
     return {
         bounties: Bounties,
-        draft_data: Draft != undefined ? JSON.parse(Draft.data) : DEFAULT_DRAFT_DATA
+        draft_data: DraftData
     };
 }
 
@@ -90,6 +107,10 @@ export function SetBounties(AccountId: string, Body: unknown, Who: Caller): Real
                 continue;
             }
 
+            if (!CanRestoreBounty(BountyId)) {
+                Notes.push(`quarantined ${BountyId}: not restored in 1.10.5`);
+                continue;
+            }
             const Version = ReadInteger(Element.update_version, `${BountyId} update_version`, Notes) ?? 0;
             const SlotIndex = ReadInteger(Element.slot_index, `${BountyId} slot_index`, Notes) ?? null;
             const Stored = tx.select().from(bounties).where(and(eq(bounties.accountId, AccountId), eq(bounties.bountyId, BountyId))).get();
@@ -102,7 +123,7 @@ export function SetBounties(AccountId: string, Body: unknown, Who: Caller): Real
             if(SlotIndex !== null){
                 // Seasonal/daily challenges and ordinary bounties have independent slots.
                 const Replaced = tx.select().from(bounties).where(and(eq(bounties.accountId, AccountId), eq(bounties.slotIndex, SlotIndex), ne(bounties.bountyId, BountyId))).all()
-                    .filter(row => !Local1105Enabled() || (BountyId.startsWith('Bounty_') && row.bountyId.startsWith('Bounty_')));
+                    .filter(row => CanRestoreBounty(row.bountyId) && (!Local1105Enabled() || (BountyId.startsWith('Bounty_') && row.bountyId.startsWith('Bounty_'))));
                 for(const row of Replaced) tx.delete(bounties).where(and(eq(bounties.accountId,AccountId),eq(bounties.bountyId,row.bountyId))).run();
 
                 for(const Row of Replaced){
@@ -161,6 +182,10 @@ export function DeleteBounties(AccountId: string, Body: unknown, Who: Caller): R
                 continue;
             }
 
+            if (!CanRestoreBounty(Id)) {
+                Notes.push(`retained quarantined ${Id}`);
+                continue;
+            }
             if(tx.delete(bounties).where(and(eq(bounties.accountId, AccountId), eq(bounties.bountyId, Id))).returning().all().length > 0){
                 Removed.push(Id);
             }

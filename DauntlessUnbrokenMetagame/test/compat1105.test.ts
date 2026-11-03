@@ -38,6 +38,8 @@ it('serves the 1.10.5 ordinary bounty board, real six-season state and price-arr
     for(const suffix of ['_daily','_weekly']){
         const disabled=await Call('GET','/game_tuning/bounty_game_data'+suffix);
         assert.equal(disabled.json.payload.max_slots,0);
+        assert.deepEqual(disabled.json.payload.bounty_data,suffix==='_weekly'
+            ? [{bounty_id:'Challenge_Season_Break_Armour_Rock',enabled:false,reward_amount:0}] : []);
     }
     const seasons=GetAllEscalationSeasons();
     assert.equal(seasons.length,6);

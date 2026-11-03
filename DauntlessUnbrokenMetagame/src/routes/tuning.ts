@@ -3,7 +3,7 @@ import { Router } from "express";
 import { logger } from "../logger";
 import { TrialsSchedule } from "../features";
 import { TrialIdForWeek, TrialWeekAt, TrialsWindowForWeek } from "../controllers/trials";
-import { GetBountyGameData } from '../controllers/bounties';
+import { GetBountyGameData, QuarantinedChallenge } from '../controllers/bounties';
 
 export const tuningRouter = Router();
 
@@ -18,7 +18,9 @@ tuningRouter.get(['/game_tuning/bounty_game_data', '/game_tuning/bounty_game_dat
         max_slots: 0, num_draft_options: 0, num_spicy_options: 0,
         bounty_token_id: '', premium_bounty_token_id: '', num_tokens_hp_start: 0,
         history_length: 0, bronze_count: 0, silver_count: 0, gold_count: 0,
-        new_season_reset_bounties: false, bounty_data: [], item_grant_data: [],
+        new_season_reset_bounties: false,
+        bounty_data: req.path.endsWith('_weekly') ? [{bounty_id: QuarantinedChallenge, enabled: false, reward_amount: 0}] : [],
+        item_grant_data: [],
         token_rollover_warning_days: 0, automatic_draft: false,
         automatic_claim: false, delete_claimed_bounties: true
     } });
