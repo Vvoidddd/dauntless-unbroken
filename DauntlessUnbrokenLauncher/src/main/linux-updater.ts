@@ -34,7 +34,6 @@ export async function findLinuxUpdate(): Promise<LinuxUpdate | null> {
 export async function installLinuxUpdate(update: LinuxUpdate): Promise<"relaunch" | "quit"> {
   const dir = await fs.mkdtemp(path.join(app.getPath("temp"), "dauntless-unbroken-update-"));
   let next: string | undefined;
-  let installerStarted = false;
   try {
     const ext = update.kind === "deb" ? ".deb" : update.kind === "rpm" ? ".rpm" : ".AppImage";
     const file = path.join(dir, `DauntlessUnbrokenLauncher-${update.version}${ext}`);
@@ -53,17 +52,17 @@ export async function installLinuxUpdate(update: LinuxUpdate): Promise<"relaunch
       return "relaunch";
     }
     const args = update.kind === "deb" ? ["apt", "install", "-y", file] : ["rpm", "-U", file];
-    const child = spawn("pkexec", args, { detached: true, stdio: "ignore" });
+    const child = spawn("pkexec", args, { stdio: "ignore" });
     await new Promise<void>((resolve, reject) => {
-      child.once("spawn", resolve);
       child.once("error", reject);
+      child.once("exit", (code, signal) => {
+        if (code === 0) resolve();
+        else reject(new Error(`Package installer failed (${signal ?? code ?? "unknown"})`));
+      });
     });
-    installerStarted = true;
-    child.unref();
     return "quit";
   } finally {
     if (next) await fs.rm(next, { force: true });
-    // Detached package installers still need their downloaded file.
-    if (update.kind === "appimage" || !installerStarted) await fs.rm(dir, { recursive: true, force: true });
+    await fs.rm(dir, { recursive: true, force: true });
   }
 }
