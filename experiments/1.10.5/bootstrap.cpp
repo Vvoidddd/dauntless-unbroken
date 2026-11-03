@@ -8,6 +8,7 @@
 #include <cwchar>
 #include <string>
 #include <map>
+#include <unordered_set>
 #include "presence-address.h"
 #include "MinHook/MinHook.h"
 #include "SDK/Archon_structs.hpp"
@@ -196,7 +197,8 @@ static uintptr_t PresenceLogin(void* self, void* user, void* credential) {
     auto* port = reinterpret_cast<int*>(object + 0x70);
     auto* domain = reinterpret_cast<FString*>(object + 0x88);
     const auto* saved = reinterpret_cast<const FString*>(object + 0xf0);
-    if (saved->Data && saved->Count > 1 && saved->Count < 256 && saved->Data[saved->Count - 1] == L'\0' &&
+    const bool validSaved = saved->Data && saved->Count > 1 && saved->Count < 256 && saved->Data[saved->Count - 1] == L'\0';
+    if ((domain->Count > 1 || validSaved) &&
         host->Count >= 0 && host->Count < 256 && domain->Count >= 0 && domain->Count < 256 &&
         (host->Count <= 1 || (host->Data && host->Data[host->Count - 1] == L'\0')) &&
         (domain->Count <= 1 || (domain->Data && domain->Data[domain->Count - 1] == L'\0'))) {
@@ -204,7 +206,7 @@ static uintptr_t PresenceLogin(void* self, void* user, void* credential) {
         std::wstring oldDomain = domain->Count > 1 ? std::wstring(domain->Data, domain->Count - 1) : L"";
         auto newHost = oldHost, newDomain = oldDomain;
         int newPort = *port;
-        RepairPresenceAddress(newHost, newPort, newDomain, std::wstring(saved->Data, saved->Count - 1), PresenceHost, PresencePort);
+        RepairPresenceAddress(newHost, newPort, newDomain, validSaved ? std::wstring(saved->Data, saved->Count - 1) : L"", PresenceHost, PresencePort);
         if (newDomain != oldDomain) SetString(domain, newDomain);
         if (newHost != oldHost) { SetString(host, newHost); *port = newPort; }
     }
@@ -255,25 +257,28 @@ static_assert(offsetof(ConnectionActorInfo, CullDistance) == 8);
 static_assert(offsetof(ConnectionActorInfo, CullDistanceSquared) == 12);
 static void FixHammerCull(SDK::UNetDriver* driver, SDK::UReplicationDriver* rawGraph) {
     auto* graph = static_cast<SDK::UReplicationGraph*>(rawGraph);
-    if (!graph->Connections.IsValid() || graph->Connections.Num() > 64 || driver->ClientConnections.Num() > 64) return;
+    if (!graph->Connections.IsValid() || !driver->ClientConnections.IsValid() || graph->Connections.Num() > 64 || driver->ClientConnections.Num() > 64) return;
+    std::unordered_set<SDK::AActor*> hammers;
     for (auto* owner : driver->ClientConnections) {
         auto* pawn = owner && owner->PlayerController ? owner->PlayerController->Pawn : nullptr;
         if (!pawn || !pawn->IsA(SDK::AArchonCharacter::StaticClass())) continue;
         auto* weapon = static_cast<SDK::AArchonCharacter*>(pawn)->Weapon;
         if (!weapon || weapon->IsActorBeingDestroyed() || weapon->WeaponType != SDK::EWeaponType::WeaponType_IHAMMER || !weapon->bAlwaysRelevant) continue;
-        for (auto* manager : graph->Connections) {
-            if (!manager) continue;
-            auto* entries = reinterpret_cast<ConnectionActorMap*>(reinterpret_cast<uint8_t*>(manager) + 0x30);
-            if (!entries->IsValid() || entries->NumAllocated() > 100000) continue;
-            for (auto& pair : *entries) {
-                if (pair.Key() != weapon || !pair.Value().Info || !pair.Value().Controller) continue;
-                auto* info = pair.Value().Info;
-                if (info->CullDistance != 0 || info->CullDistanceSquared != 0) {
-                    info->CullDistance = 0;
-                    info->CullDistanceSquared = 0;
-                    Note("hammer_replication_distance_fixed\n");
-                }
-                break;
+        hammers.insert(weapon);
+    }
+    if (hammers.empty()) return;
+    // One scan per connection, regardless of how many players carry hammers.
+    for (auto* manager : graph->Connections) {
+        if (!manager) continue;
+        auto* entries = reinterpret_cast<ConnectionActorMap*>(reinterpret_cast<uint8_t*>(manager) + 0x30);
+        if (!entries->IsValid() || entries->NumAllocated() > 100000) continue;
+        for (auto& pair : *entries) {
+            if (!hammers.contains(pair.Key()) || !pair.Value().Info || !pair.Value().Controller) continue;
+            auto* info = pair.Value().Info;
+            if (info->CullDistance != 0 || info->CullDistanceSquared != 0) {
+                info->CullDistance = 0;
+                info->CullDistanceSquared = 0;
+                Note("hammer_replication_distance_fixed\n");
             }
         }
     }
