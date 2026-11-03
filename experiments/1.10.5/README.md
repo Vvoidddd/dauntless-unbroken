@@ -13,6 +13,7 @@ Old Slayer Mastery and the weapon skill shown by 1.10.5 are different systems. `
 ## Checks so far
 
 - Ramsgate login, Markus's first quest and its 100 Rams reward, Training Grounds travel and Rosk's dialogue passed in-game checks.
+- In a local Training Grounds test, the starter hammer appeared and worked after its equipped weapon's per-connection replication distance limit was cleared. The server change applies that correction to always-relevant equipped hammers. Multiplayer and other hammer variants have not been checked.
 - Void entered Hunting Grounds and killed two Behemoths. The backend received inventory and weapon XP saves.
 - All 18 Escalation variants passed startup checks. DR_AGON confirmed entering one; full rounds, rewards and return travel still need completion tests.
 - Public matchmaking shares eligible hunts. Private requests keep solo players or their party separate. Reservations count the whole party against capacity.
