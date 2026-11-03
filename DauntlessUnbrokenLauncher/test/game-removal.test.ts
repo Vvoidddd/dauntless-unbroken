@@ -42,3 +42,21 @@ test('a canonical parent alias is accepted while a linked game root is refused',
   const linkedRoot=path.join(h.base,'linked-game');await fs.symlink(h.root,linkedRoot,process.platform==='win32'?'junction':'dir');
   await assert.rejects(gameRemovalTargets(linkedRoot,manifest,[]),/linked/);
 });
+
+test('game removal preserves unrelated files inside game content directories',async t=>{
+  const h=await fixture(t);
+  const extras=[path.join(h.root,'Archon/Content/mod.pak'),path.join(h.root,'Archon/Binaries/Win64/custom.dll'),path.join(h.root,'Engine/Binaries/readme.txt')];
+  for(const file of extras)await fs.writeFile(file,'personal');
+  let i=0;
+  assert.equal(await removeGameFiles(h.root,manifest,[h.profile],async()=>true,async target=>fs.rename(target,path.join(h.trash,String(i++)))),true);
+  for(const file of extras)assert.equal(await fs.readFile(file,'utf8'),'personal');
+  for(const file of manifest.files)await assert.rejects(fs.stat(path.join(h.root,file.path)),{code:'ENOENT'});
+});
+
+test('a file added inside a game directory during confirmation is never moved',async t=>{
+  const h=await fixture(t);let moved=0;
+  const extra=path.join(h.root,'Archon/Content/new-mod.pak');
+  await assert.rejects(removeGameFiles(h.root,manifest,[],async()=>{await fs.writeFile(extra,'personal');return true;},async()=>{moved++;}),/changed/);
+  assert.equal(moved,0);
+  assert.equal(await fs.readFile(extra,'utf8'),'personal');
+});
