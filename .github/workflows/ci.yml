@@ -59,13 +59,16 @@ jobs:
           EVENT: ${{ github.event_name }}
           BEFORE: ${{ github.event.before }}
           BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
           SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           if [ "$EVENT" = workflow_dispatch ]; then
             files="*"
           elif [ "$EVENT" = pull_request ]; then
-            files="$(git diff --name-only "$BASE" "$SHA")"
+            # Compare the PR head with the merge base, not the synthetic merge commit. The
+            # target branch may have advanced since the PR was opened.
+            files="$(git diff --name-only "$BASE...$HEAD")"
           elif [ -n "${BEFORE//0/}" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
             files="$(git diff --name-only "$BEFORE" "$SHA")"
           else
