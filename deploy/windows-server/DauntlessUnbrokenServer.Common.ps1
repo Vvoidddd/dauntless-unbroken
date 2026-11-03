@@ -1019,6 +1019,7 @@ function Build-DRApp {
     $npmCli = Join-Path (Split-Path $NodeExe -Parent) 'node_modules\npm\bin\npm-cli.js'
     if (-not (Test-Path -LiteralPath $npmCli)) { Stop-DR "npm not found next to $NodeExe" }
     $built = @()
+    $buildPackages = @()
     foreach ($pkg in $script:DRPackages) {
         $dir = Join-Path $appNew $pkg
         if (-not (Test-Path -LiteralPath (Join-Path $dir 'package.json'))) {
@@ -1028,11 +1029,49 @@ function Build-DRApp {
         }
         # NODE_ENV=production would make npm ci skip the TypeScript compiler.
         $envs = Get-DRBuildEnvironment $NodeExe
-        Write-DRInfo "npm ci + build: $pkg (a few minutes) ..."
+        Write-DRInfo "npm ci: $pkg (a few minutes) ..."
         $code = Invoke-DRNative -FilePath $NodeExe -Arguments @($npmCli, 'ci', '--no-audit', '--no-fund') -WorkingDirectory $dir -LogBase (Join-Path $Paths.Logs "install\npm-ci-$pkg") -Environment $envs -LowPriority
         if ($code -ne 0) { Show-DRLogTail (Join-Path $Paths.Logs "install\npm-ci-$pkg"); Stop-DR "npm ci failed in $pkg" }
-        $code = Invoke-DRNative -FilePath $NodeExe -Arguments @($npmCli, 'run', 'build') -WorkingDirectory $dir -LogBase (Join-Path $Paths.Logs "install\npm-build-$pkg") -Environment $envs -LowPriority
-        if ($code -ne 0) { Show-DRLogTail (Join-Path $Paths.Logs "install\npm-build-$pkg"); Stop-DR "the build failed in $pkg" }
+        $buildPackages += [pscustomobject]@{ Name = $pkg; Dir = $dir; Environment = $envs }
+    }
+
+    # npm ci is intentionally serial: concurrent installs can contend for npm's shared cache. The
+    # TypeScript builds only write inside their own package directories, so overlap those instead.
+    $buildJobs = @()
+    foreach ($item in $buildPackages) {
+        $log = Join-Path $Paths.Logs "install\npm-build-$($item.Name)"
+        $buildJobs += Start-Job -ScriptBlock {
+            param($Node, $Npm, $Directory, $Package, $Log, $Environment)
+            foreach ($key in $Environment.Keys) { Set-Item -Path "Env:$key" -Value ([string]$Environment[$key]) }
+            try {
+                Push-Location $Directory
+                try { (Get-Process -Id $PID).PriorityClass = 'BelowNormal' } catch {}
+                & $Node $Npm run build *> "$Log.out.log"
+                $code = $LASTEXITCODE
+            } catch {
+                $_ | Out-File -FilePath "$Log.err.log" -Encoding utf8
+                $code = 1
+            } finally { Pop-Location }
+            [pscustomobject]@{ Package = $Package; Code = $code; Log = $Log }
+        } -ArgumentList $NodeExe, $npmCli, $item.Dir, $item.Name, $log, $item.Environment
+    }
+    $buildResults = @()
+    for ($i = 0; $i -lt $buildJobs.Count; $i++) {
+        Wait-Job -Job $buildJobs[$i] | Out-Null
+        $received = @(Receive-Job -Job $buildJobs[$i] -ErrorAction SilentlyContinue | Where-Object { $_.PSObject.Properties['Package'] } | Select-Object -Last 1)
+        if ($received.Count -eq 0) {
+            $buildResults += [pscustomobject]@{ Package = $buildPackages[$i].Name; Code = 1; Log = (Join-Path $Paths.Logs "install\npm-build-$($buildPackages[$i].Name)") }
+        } else { $buildResults += $received[0] }
+        Remove-Job -Job $buildJobs[$i] -Force
+    }
+    foreach ($result in $buildResults) {
+        if ($result.Code -ne 0) { Show-DRLogTail $result.Log; Stop-DR "the build failed in $($result.Package)" }
+    }
+
+    foreach ($item in $buildPackages) {
+        $pkg = $item.Name
+        $dir = $item.Dir
+        $envs = $item.Environment
         foreach ($c in $script:DRComponents.Keys) {
             $cd = $script:DRComponents[$c]
             if ($cd.Dir -eq $pkg -and -not (Test-Path -LiteralPath (Join-Path $dir $cd.Script))) { Stop-DR "the build of $pkg has no $($cd.Script) ($($cd.Label))" }
