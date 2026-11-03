@@ -533,7 +533,7 @@ describe("offers and entitlements (Harmonic's entitlement cases)", () => {
 
     // from Harmonicrain/Undaunted test/entitlements.test.js:204 (with the bounty-token bundle on sale; an
     // offer an earlier bundle already owns is not bought again)
-    it("every storefront offer can be bought and redeemed", async () => {
+    it("every storefront offer grants the expected inventory kind and ownership", async () => {
         await WithEnv({ STORE_REPEATABLE_TOKENS: "1" }, async () => {
             const A = await MakePlayer();
 
@@ -547,6 +547,20 @@ describe("offers and entitlements (Harmonic's entitlement cases)", () => {
                     assert.ok(Ids.has(Item.catalogId), `${Offer.id} should have granted ${Item.catalogId}`);
                 }
             }
+
+            // Kind checks adapted from Harmonicrain/Undaunted test/entitlements.test.js:279.
+            const Stacked = new Set(Held.stacked.map((Stack) => Stack.catalogId));
+            const Instanced = new Set(Held.instanced.map((Instance) => Instance.catalogId));
+            for(const Offer of Sellable.filter((Found) => Found.id !== "bundle_currency_bounty_small")){
+                for(const Item of Offer.items ?? []){
+                    const Expected = Kinds[Item.catalogId];
+                    assert.ok(Expected === "stacked" || Expected === "instanced", `${Item.catalogId} has no recorded kind`);
+                    assert.equal(GrantKind(Item.catalogId), Expected);
+                    assert.ok((Expected === "stacked" ? Stacked : Instanced).has(Item.catalogId), `${Item.catalogId} should be ${Expected}`);
+                    assert.ok(!(Expected === "stacked" ? Instanced : Stacked).has(Item.catalogId), `${Item.catalogId} granted both ways`);
+                }
+            }
+            assert.ok(Held.instanced.every((Instance) => /^[0-9a-f]{32}$/.test(Instance.instanceId) && Instance.updateVersion === 0));
 
             // Every cosmetic reads as owned; the consumable bundle stays on sale
             for(const Listed of ListStoreOffers(A.UserId, "webstore")){
@@ -608,29 +622,6 @@ describe("offers and entitlements (Harmonic's entitlement cases)", () => {
         });
     });
 
-    // from Harmonicrain/Undaunted test/entitlements.test.js:279
-    it("store grants land stacked or instanced exactly as the catalogue flag says", async () => {
-        const A = await MakePlayer();
-
-        BuyEveryOffer(A.UserId, Sellable.filter((Found) => Found.id !== "bundle_currency_bounty_small"));
-
-        const Held = ReadInventory(A.CharacterId);
-        const Stacked = new Set(Held.stacked.map((Stack) => Stack.catalogId));
-        const Instanced = new Set(Held.instanced.map((Instance) => Instance.catalogId));
-
-        for(const Offer of Sellable.filter((Found) => Found.id !== "bundle_currency_bounty_small")){
-            for(const Item of Offer.items ?? []){
-                const Expected = Kinds[Item.catalogId];
-                assert.ok(Expected === "stacked" || Expected === "instanced", `${Item.catalogId} has no recorded kind`);
-                assert.equal(GrantKind(Item.catalogId), Expected);
-                assert.ok((Expected === "stacked" ? Stacked : Instanced).has(Item.catalogId), `${Item.catalogId} should be ${Expected}`);
-                assert.ok(!(Expected === "stacked" ? Instanced : Stacked).has(Item.catalogId), `${Item.catalogId} granted both ways`);
-            }
-        }
-
-        // An instanced grant carries an id of its own, 32 hex characters, and a version of 0
-        assert.ok(Held.instanced.every((Instance) => /^[0-9a-f]{32}$/.test(Instance.instanceId) && Instance.updateVersion === 0));
-    });
 });
 
 describe("limits", () => {
