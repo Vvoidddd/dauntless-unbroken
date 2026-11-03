@@ -8,12 +8,14 @@
 #include <cwchar>
 #include <string>
 #include <map>
+#include "presence-address.h"
 #include "MinHook/MinHook.h"
 #include "SDK/Archon_structs.hpp"
 #include "SDK/Engine_classes.hpp"
 #include "SDK/UMG_classes.hpp"
 #include "SDK/w_store_item_bpw_classes.hpp"
 #include "SDK/GameplayAbilities_classes.hpp"
+#include "SDK/ReplicationGraph_classes.hpp"
 #include "SDK/exploration_game_mode_bpc_classes.hpp"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
 extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
@@ -25,6 +27,8 @@ static bool Server;
 static bool Dojo;
 static bool CombatProbe;
 static std::wstring BindIp = L"127.0.0.1", BackendAuthority = L"127.0.0.1:62000";
+static std::wstring PresenceHost = L"127.0.0.1";
+static int PresencePort = 62099;
 static std::wstring HuntUrl, HuntMapName, ProfileName;
 
 static bool PrivateIp(const wchar_t* value) {
@@ -185,6 +189,27 @@ static void SetString(FString* out, const std::wstring& text) {
     memcpy(data, text.c_str(), (text.size() + 1) * sizeof(wchar_t));
     *out = {data, static_cast<int>(text.size() + 1), static_cast<int>(text.size() + 1)};
 }
+static uintptr_t (*OriginalPresenceLogin)(void*, void*, void*);
+static uintptr_t PresenceLogin(void* self, void* user, void* credential) {
+    auto* object = static_cast<unsigned char*>(self);
+    auto* host = reinterpret_cast<FString*>(object + 0x60);
+    auto* port = reinterpret_cast<int*>(object + 0x70);
+    auto* domain = reinterpret_cast<FString*>(object + 0x88);
+    const auto* saved = reinterpret_cast<const FString*>(object + 0xf0);
+    if (saved->Data && saved->Count > 1 && saved->Count < 256 && saved->Data[saved->Count - 1] == L'\0' &&
+        host->Count >= 0 && host->Count < 256 && domain->Count >= 0 && domain->Count < 256 &&
+        (host->Count <= 1 || (host->Data && host->Data[host->Count - 1] == L'\0')) &&
+        (domain->Count <= 1 || (domain->Data && domain->Data[domain->Count - 1] == L'\0'))) {
+        std::wstring oldHost = host->Count > 1 ? std::wstring(host->Data, host->Count - 1) : L"";
+        std::wstring oldDomain = domain->Count > 1 ? std::wstring(domain->Data, domain->Count - 1) : L"";
+        auto newHost = oldHost, newDomain = oldDomain;
+        int newPort = *port;
+        RepairPresenceAddress(newHost, newPort, newDomain, std::wstring(saved->Data, saved->Count - 1), PresenceHost, PresencePort);
+        if (newDomain != oldDomain) SetString(domain, newDomain);
+        if (newHost != oldHost) { SetString(host, newHost); *port = newPort; }
+    }
+    return OriginalPresenceLogin(self, user, credential);
+}
 static bool (*OriginalConfig)(void*, const wchar_t*, const wchar_t*, FString*, FString*);
 static bool Config(void* self, const wchar_t* section, const wchar_t* key, FString* out, FString* filename) {
     if (key && out) {
@@ -222,14 +247,47 @@ static FString* DefaultMap(FString* out) {
 }
 static void (*OriginalTick)(void*, float, char);
 static void (*OriginalTickFlush)(SDK::UNetDriver*, float);
+struct ConnectionActorInfo { void* Channel; float CullDistance; float CullDistanceSquared; };
+struct ConnectionActorInfoRef { ConnectionActorInfo* Info; void* Controller; };
+using ConnectionActorMap = UC::TMap<SDK::AActor*, ConnectionActorInfoRef>;
+static_assert(sizeof(ConnectionActorInfoRef) == 16);
+static_assert(offsetof(ConnectionActorInfo, CullDistance) == 8);
+static_assert(offsetof(ConnectionActorInfo, CullDistanceSquared) == 12);
+static void FixHammerCull(SDK::UNetDriver* driver, SDK::UReplicationDriver* rawGraph) {
+    auto* graph = static_cast<SDK::UReplicationGraph*>(rawGraph);
+    if (!graph->Connections.IsValid() || graph->Connections.Num() > 64 || driver->ClientConnections.Num() > 64) return;
+    for (auto* owner : driver->ClientConnections) {
+        auto* pawn = owner && owner->PlayerController ? owner->PlayerController->Pawn : nullptr;
+        if (!pawn || !pawn->IsA(SDK::AArchonCharacter::StaticClass())) continue;
+        auto* weapon = static_cast<SDK::AArchonCharacter*>(pawn)->Weapon;
+        if (!weapon || weapon->IsActorBeingDestroyed() || weapon->WeaponType != SDK::EWeaponType::WeaponType_IHAMMER || !weapon->bAlwaysRelevant) continue;
+        for (auto* manager : graph->Connections) {
+            if (!manager) continue;
+            auto* entries = reinterpret_cast<ConnectionActorMap*>(reinterpret_cast<uint8_t*>(manager) + 0x30);
+            if (!entries->IsValid() || entries->NumAllocated() > 100000) continue;
+            for (auto& pair : *entries) {
+                if (pair.Key() != weapon || !pair.Value().Info || !pair.Value().Controller) continue;
+                auto* info = pair.Value().Info;
+                if (info->CullDistance != 0 || info->CullDistanceSquared != 0) {
+                    info->CullDistance = 0;
+                    info->CullDistanceSquared = 0;
+                    Note("hammer_replication_distance_fixed\n");
+                }
+                break;
+            }
+        }
+    }
+}
 static void TickFlush(SDK::UNetDriver* driver, float delta) {
     // WindowsClient TickFlush retains dispatch/flush but omits server replication.
     // Use this build's intact Archon graph; do not also run the old manual actor loop.
     auto* graph = driver->ReplicationDriver;
     if (graph && !driver->ServerConnection && driver->ClientConnections.Num() > 0) {
         const auto replicate = (*reinterpret_cast<uintptr_t**>(graph))[0x2f8/8];
-        if (replicate == Base+0x1a85e40)
+        if (replicate == Base+0x1a85e40) {
+            FixHammerCull(driver, graph);
             reinterpret_cast<int(*)(SDK::UReplicationDriver*,float)>(replicate)(graph, delta);
+        }
     }
     OriginalTickFlush(driver, delta);
 }
@@ -453,6 +511,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
         if (hostLength >= 64 || (!PrivateIp(host) && !(Server && wcscmp(host, L"0.0.0.0") == 0))) return FALSE;
         if (Server) BindIp = host;
         else {
+            PresenceHost = host;
             wchar_t port[8]={};
             const DWORD n=GetEnvironmentVariableW(L"DR_1105_PORT",port,8);
             unsigned number=62002;
@@ -462,6 +521,17 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
                 if(!number||number>65535)return FALSE;
             }
             BackendAuthority = std::wstring(host) + L":" + std::to_wstring(number);
+        }
+    }
+    if (!Server) {
+        wchar_t chatPort[8] = {};
+        const DWORD n = GetEnvironmentVariableW(L"DR_1105_XMPP_PORT", chatPort, 8);
+        if (n) {
+            if (n >= 8) return FALSE;
+            unsigned number = 0;
+            for (DWORD i = 0; i < n; ++i) { if (chatPort[i] < L'0' || chatPort[i] > L'9') return FALSE; number = number * 10 + (chatPort[i] - L'0'); }
+            if (!number || number > 65535) return FALSE;
+            PresencePort = static_cast<int>(number);
         }
     }
     LocalServerCommand = L"Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -NoAsyncLoadingThread -EpicPortal -NoEAC -MULTIHOME=" + BindIp + L" -port=" + std::to_wstring(ServerPort) +
@@ -486,6 +556,9 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     if (memcmp(reinterpret_cast<void*>(Base+0x3bc2f20), tickBytes, sizeof(tickBytes))) Fail("tick_bytes_mismatch\n");
     if (!Hook(0x3bc2f20, Tick, reinterpret_cast<void**>(&OriginalTick))) Fail("tick_hook_failed\n");
     if (!Server) {
+        const unsigned char presenceBytes[] = {0x48,0x89,0x5c,0x24,0x10,0x55,0x56,0x57};
+        if (memcmp(reinterpret_cast<void*>(Base + 0x4321700), presenceBytes, sizeof(presenceBytes))) Fail("presence_login_bytes_mismatch\n");
+        if (!Hook(0x4321700, PresenceLogin, reinterpret_cast<void**>(&OriginalPresenceLogin))) Fail("presence_login_hook_failed\n");
         // Use the legacy EAC plugin's own -NoEAC return path. Unbroken authenticates
         // through its launcher relay; CreateGameClient cannot initialize here.
         auto* eacBranch = reinterpret_cast<unsigned char*>(Base + 0x13645e1);
