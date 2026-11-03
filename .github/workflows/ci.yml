@@ -1,4 +1,4 @@
-# Checks every push and pull request:
+# Checks selected by changed paths on every push and pull request:
 #  - the four server packages: npm ci, build, unit tests; Discord bot: npm ci and unit tests
 #  - the launcher: typecheck, unit tests and the Windows installer, kept as a download for 7 days
 #  - the separate Linux and OpenBSD server ports (native Node services, Wine/SSH game launch wrappers, nftables/PF)
@@ -35,8 +35,88 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Keep one workflow so required checks do not remain pending when an unrelated file changes.
+  changes:
+    name: Select checks
+    runs-on: ubuntu-latest
+    outputs:
+      node_packages: ${{ steps.paths.outputs.node_packages }}
+      launcher: ${{ steps.paths.outputs.launcher }}
+      server_port: ${{ steps.paths.outputs.server_port }}
+      native: ${{ steps.paths.outputs.native }}
+      server_kit: ${{ steps.paths.outputs.server_kit }}
+      docs: ${{ steps.paths.outputs.docs }}
+      all_checks: ${{ steps.paths.outputs.all_checks }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Find affected checks
+        id: paths
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = workflow_dispatch ]; then
+            files="*"
+          elif [ "$EVENT" = pull_request ]; then
+            files="$(git diff --name-only "$BASE" "$SHA")"
+          elif [ -n "${BEFORE//0/}" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            files="$(git diff --name-only "$BEFORE" "$SHA")"
+          else
+            files="*"
+          fi
+
+          node_packages=""
+          launcher=false
+          server_port=false
+          native=false
+          server_kit=false
+          docs=false
+          all_checks=false
+          if [ "$EVENT" = workflow_dispatch ] || [ "$files" = "*" ]; then all_checks=true; fi
+
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            case "$path" in
+              .github/*|AGENTS.md|CONTRIBUTING.md) all_checks=true ;;
+              DauntlessUnbrokenMetagame/*) node_packages+="DauntlessUnbrokenMetagame,"; server_port=true; server_kit=true ;;
+              DauntlessUnbrokenGateway/*) node_packages+="DauntlessUnbrokenGateway,"; server_port=true; server_kit=true ;;
+              DauntlessUnbrokenContent/*) node_packages+="DauntlessUnbrokenContent,"; server_port=true; server_kit=true ;;
+              DauntlessUnbrokenDeployServer/*) node_packages+="DauntlessUnbrokenDeployServer,"; server_port=true; server_kit=true ;;
+              DauntlessUnbrokenDiscordBot/*) node_packages+="DauntlessUnbrokenDiscordBot," ;;
+              DauntlessUnbrokenLauncher/*) launcher=true ;;
+              deploy/linux-server/*|deploy/openbsd-server/*|deploy/unix-common/*) server_port=true ;;
+              deploy/windows-server/*) server_kit=true ;;
+              DauntlessUnbrokenInternalServer/*|tests/client-mods/*) native=true ;;
+              docs/*|tools/*) docs=true ;;
+            esac
+          done <<< "$files"
+
+          if [ "$all_checks" = true ]; then
+            node_packages="DauntlessUnbrokenMetagame,DauntlessUnbrokenGateway,DauntlessUnbrokenContent,DauntlessUnbrokenDeployServer,DauntlessUnbrokenDiscordBot,"
+            launcher=true; server_port=true; native=true; server_kit=true; docs=true
+          fi
+
+          {
+            echo "node_packages=$node_packages"
+            echo "launcher=$launcher"
+            echo "server_port=$server_port"
+            echo "native=$native"
+            echo "server_kit=$server_kit"
+            echo "docs=$docs"
+            echo "all_checks=$all_checks"
+          } >> "$GITHUB_OUTPUT"
+
   node-packages:
     name: ${{ matrix.package }}
+    needs: changes
+    if: contains(needs.changes.outputs.node_packages, matrix.package)
     runs-on: windows-latest
     timeout-minutes: 20
     strategy:
@@ -77,6 +157,8 @@ jobs:
 
   launcher:
     name: Launcher
+    needs: changes
+    if: needs.changes.outputs.launcher == 'true'
     runs-on: windows-2022
     timeout-minutes: 30
     defaults:
@@ -124,6 +206,8 @@ jobs:
 
   launcher-linux:
     name: Launcher (Linux x64)
+    needs: changes
+    if: needs.changes.outputs.launcher == 'true'
     runs-on: ubuntu-24.04 # RPM maker expects the pre-RPM-6 build directory layout.
     timeout-minutes: 30
     defaults:
@@ -172,6 +256,8 @@ jobs:
 
   server-port-linux:
     name: Server port (Linux)
+    needs: changes
+    if: needs.changes.outputs.server_port == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -237,6 +323,8 @@ jobs:
 
   server-port-openbsd:
     name: Server port (OpenBSD 7.9)
+    needs: changes
+    if: needs.changes.outputs.server_port == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -313,6 +401,8 @@ jobs:
 
   native-regressions:
     name: Native server regression tests
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -345,6 +435,8 @@ jobs:
 
   internal-server-dll:
     name: Server DLL (Windows x64)
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
     runs-on: windows-latest
     timeout-minutes: 20
     defaults:
@@ -403,6 +495,8 @@ jobs:
 
   server-kit-work:
     name: Server kit (${{ matrix.phase }})
+    needs: changes
+    if: needs.changes.outputs.server_kit == 'true'
     runs-on: windows-latest
     timeout-minutes: 45
     strategy:
@@ -505,8 +599,8 @@ jobs:
 
   server-kit:
     name: Server kit (Windows PowerShell 5.1)
-    needs: server-kit-work
-    if: always()
+    needs: [changes, server-kit-work]
+    if: always() && needs.changes.outputs.server_kit == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Require every server-kit phase
@@ -516,6 +610,8 @@ jobs:
 
   docs:
     name: Docs site
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -612,10 +708,14 @@ jobs:
   # On by default; the repository variable LAUNCHER_AUTO_RELEASE=false pauses it (see the top of this file).
   release-check:
     name: Launcher release needed?
-    needs: [node-packages, launcher, launcher-linux, server-port-linux, server-port-openbsd, native-regressions, internal-server-dll, server-kit, docs, repo-hygiene]
+    needs: [changes, node-packages, launcher, launcher-linux, server-port-linux, server-port-openbsd, native-regressions, internal-server-dll, server-kit, docs, repo-hygiene]
     if: >-
+      always() &&
       github.event_name == 'push' && github.ref_name == github.event.repository.default_branch &&
-      github.repository == 'Vvoidddd/dauntless-unbroken' && vars.LAUNCHER_AUTO_RELEASE != 'false'
+      github.repository == 'Vvoidddd/dauntless-unbroken' && vars.LAUNCHER_AUTO_RELEASE != 'false' &&
+      needs.changes.outputs.launcher == 'true' &&
+      needs.launcher.result == 'success' && needs.launcher-linux.result == 'success' &&
+      needs.repo-hygiene.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
