@@ -14,6 +14,7 @@
 #include "SDK/UMG_classes.hpp"
 #include "SDK/w_store_item_bpw_classes.hpp"
 #include "SDK/GameplayAbilities_classes.hpp"
+#include "SDK/ReplicationGraph_classes.hpp"
 #include "SDK/exploration_game_mode_bpc_classes.hpp"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
 extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
@@ -222,14 +223,47 @@ static FString* DefaultMap(FString* out) {
 }
 static void (*OriginalTick)(void*, float, char);
 static void (*OriginalTickFlush)(SDK::UNetDriver*, float);
+struct ConnectionActorInfo { void* Channel; float CullDistance; float CullDistanceSquared; };
+struct ConnectionActorInfoRef { ConnectionActorInfo* Info; void* Controller; };
+using ConnectionActorMap = UC::TMap<SDK::AActor*, ConnectionActorInfoRef>;
+static_assert(sizeof(ConnectionActorInfoRef) == 16);
+static_assert(offsetof(ConnectionActorInfo, CullDistance) == 8);
+static_assert(offsetof(ConnectionActorInfo, CullDistanceSquared) == 12);
+static void FixHammerCull(SDK::UNetDriver* driver, SDK::UReplicationDriver* rawGraph) {
+    auto* graph = static_cast<SDK::UReplicationGraph*>(rawGraph);
+    if (!graph->Connections.IsValid() || graph->Connections.Num() > 64 || driver->ClientConnections.Num() > 64) return;
+    for (auto* owner : driver->ClientConnections) {
+        auto* pawn = owner && owner->PlayerController ? owner->PlayerController->Pawn : nullptr;
+        if (!pawn || !pawn->IsA(SDK::AArchonCharacter::StaticClass())) continue;
+        auto* weapon = static_cast<SDK::AArchonCharacter*>(pawn)->Weapon;
+        if (!weapon || weapon->IsActorBeingDestroyed() || weapon->WeaponType != SDK::EWeaponType::WeaponType_IHAMMER || !weapon->bAlwaysRelevant) continue;
+        for (auto* manager : graph->Connections) {
+            if (!manager) continue;
+            auto* entries = reinterpret_cast<ConnectionActorMap*>(reinterpret_cast<uint8_t*>(manager) + 0x30);
+            if (!entries->IsValid() || entries->NumAllocated() > 100000) continue;
+            for (auto& pair : *entries) {
+                if (pair.Key() != weapon || !pair.Value().Info || !pair.Value().Controller) continue;
+                auto* info = pair.Value().Info;
+                if (info->CullDistance != 0 || info->CullDistanceSquared != 0) {
+                    info->CullDistance = 0;
+                    info->CullDistanceSquared = 0;
+                    Note("hammer_replication_distance_fixed\n");
+                }
+                break;
+            }
+        }
+    }
+}
 static void TickFlush(SDK::UNetDriver* driver, float delta) {
     // WindowsClient TickFlush retains dispatch/flush but omits server replication.
     // Use this build's intact Archon graph; do not also run the old manual actor loop.
     auto* graph = driver->ReplicationDriver;
     if (graph && !driver->ServerConnection && driver->ClientConnections.Num() > 0) {
         const auto replicate = (*reinterpret_cast<uintptr_t**>(graph))[0x2f8/8];
-        if (replicate == Base+0x1a85e40)
+        if (replicate == Base+0x1a85e40) {
+            FixHammerCull(driver, graph);
             reinterpret_cast<int(*)(SDK::UReplicationDriver*,float)>(replicate)(graph, delta);
+        }
     }
     OriginalTickFlush(driver, delta);
 }
