@@ -17,6 +17,20 @@ before(StartApp);
 after(async()=>{await StopApp();RemoveTestDb(()=>GetDb().$client.close());});
 const request=(a:{UserId:string,CharacterId:string},id='CURRENCY_NOTES',quantity=10000)=>({accountId:a.UserId,characterId:a.CharacterId,catalogId:id,quantity,reason:'Verified event reward',requestId:randomUUID()});
 
+test('1.10.5 cosmetic grants are immediately visible as native stacks and remain unique',async()=>{
+ const previous={BIND_HOST:process.env.BIND_HOST,LOCAL_1105_REALM:process.env.LOCAL_1105_REALM};
+ process.env.BIND_HOST='127.0.0.1';process.env.LOCAL_1105_REALM='1';
+ try{
+  const a=await MakePlayer(),id='WP_EB_KATSCLAW',body=request(a,id,1);
+  assert.equal(GrantReward('UID-owner',body).added,1);
+  assert.equal(StackQuantity(a.CharacterId,id),1);
+  const row=GetDb().select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get()!;
+  assert.equal(JSON.parse(row.instancedItems).filter((i:any)=>i.catalogId===id).length,0);
+  assert.equal(GrantReward('UID-owner',body).replayed,true);
+  assert.equal(GrantReward('UID-owner',request(a,id,1)).added,0);
+ }finally{for(const [key,value] of Object.entries(previous)){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
+});
+
 test('boost giveaways extend timed account entitlements atomically and replay without adding time twice',async()=>{
  const a=await MakePlayer(),db=GetDb(),id='escalation_xp_boost_entitlement',body=request(a,id,24);
  const read=()=>db.select().from(entitlements).where(eq(entitlements.accountId,a.UserId)).all().find(e=>e.name===id)!;

@@ -1,0 +1,5408 @@
+[
+  {
+    "progression_id": "MasteryTrack_Behemoth",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 21,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 22,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 23,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 24,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 25,
+        "xp_required": 9
+      },
+      {
+        "rank_id": 26,
+        "xp_required": 9
+      },
+      {
+        "rank_id": 27,
+        "xp_required": 9
+      },
+      {
+        "rank_id": 28,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 29,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 30,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 31,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 32,
+        "xp_required": 11
+      },
+      {
+        "rank_id": 33,
+        "xp_required": 11
+      },
+      {
+        "rank_id": 34,
+        "xp_required": 11
+      },
+      {
+        "rank_id": 35,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 36,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 37,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 38,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 39,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 40,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 41,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 42,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 43,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 44,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 45,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 46,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 47,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 48,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 49,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 50,
+        "xp_required": 12
+      }
+    ],
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 2,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 3,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 4,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 5,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 6,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 7,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 8,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 9,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 10,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 11,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 12,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 13,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 14,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 15,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 16,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 17,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 18,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 19,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 20,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 21,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 22,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 23,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 24,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 25,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 26,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 27,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 28,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 29,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 30,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 31,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 32,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 33,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 34,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 35,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 36,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 37,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 38,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 39,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 40,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 41,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 42,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 43,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 44,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 45,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 46,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 47,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 48,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 49,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 50,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 5,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      }
+    ],
+    "premium_rewards": [],
+    "start_date": "2019-01-01T14:00:00+00:00",
+    "end_date": "2099-01-01T14:00:00+00:00"
+  },
+  {
+    "progression_id": "MasteryTrack_PlayerLevel",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 1
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 9
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 9
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 9
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 11
+      },
+      {
+        "rank_id": 21,
+        "xp_required": 12
+      },
+      {
+        "rank_id": 22,
+        "xp_required": 13
+      },
+      {
+        "rank_id": 23,
+        "xp_required": 14
+      },
+      {
+        "rank_id": 24,
+        "xp_required": 15
+      },
+      {
+        "rank_id": 25,
+        "xp_required": 16
+      },
+      {
+        "rank_id": 26,
+        "xp_required": 17
+      },
+      {
+        "rank_id": 27,
+        "xp_required": 18
+      },
+      {
+        "rank_id": 28,
+        "xp_required": 19
+      },
+      {
+        "rank_id": 29,
+        "xp_required": 20
+      },
+      {
+        "rank_id": 30,
+        "xp_required": 21
+      },
+      {
+        "rank_id": 31,
+        "xp_required": 22
+      },
+      {
+        "rank_id": 32,
+        "xp_required": 24
+      },
+      {
+        "rank_id": 33,
+        "xp_required": 26
+      },
+      {
+        "rank_id": 34,
+        "xp_required": 28
+      },
+      {
+        "rank_id": 35,
+        "xp_required": 30
+      },
+      {
+        "rank_id": 36,
+        "xp_required": 32
+      },
+      {
+        "rank_id": 37,
+        "xp_required": 34
+      },
+      {
+        "rank_id": 38,
+        "xp_required": 36
+      },
+      {
+        "rank_id": 39,
+        "xp_required": 38
+      },
+      {
+        "rank_id": 40,
+        "xp_required": 40
+      },
+      {
+        "rank_id": 41,
+        "xp_required": 42
+      },
+      {
+        "rank_id": 42,
+        "xp_required": 44
+      },
+      {
+        "rank_id": 43,
+        "xp_required": 46
+      },
+      {
+        "rank_id": 44,
+        "xp_required": 48
+      },
+      {
+        "rank_id": 45,
+        "xp_required": 50
+      },
+      {
+        "rank_id": 46,
+        "xp_required": 52
+      },
+      {
+        "rank_id": 47,
+        "xp_required": 54
+      },
+      {
+        "rank_id": 48,
+        "xp_required": 56
+      },
+      {
+        "rank_id": 49,
+        "xp_required": 58
+      },
+      {
+        "rank_id": 50,
+        "xp_required": 60
+      }
+    ],
+    "free_rewards": [
+      {
+        "rank_id": 2,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 3,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 4,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 5,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 6,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 7,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 8,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 0,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 9,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_SLAYER_01",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 10,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 0,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 11,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 12,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 13,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 14,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 15,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 16,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 17,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 18,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 19,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 20,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_SLAYER_02",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 21,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 22,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 23,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 24,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_SILVER_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 25,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 26,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 27,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 28,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 29,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 30,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_SLAYER_03",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 31,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 32,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 33,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 34,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 35,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 36,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 37,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 38,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 39,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_SLAYER_04",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 40,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 41,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 42,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 43,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 44,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 45,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 46,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 47,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 48,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 49,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 50,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_SLAYER_05",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      }
+    ],
+    "premium_rewards": [],
+    "start_date": "2019-01-01T14:00:00+00:00",
+    "end_date": "2099-01-01T14:00:00+00:00"
+  },
+  {
+    "progression_id": "MasteryTrack_Weapon_Axe",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 10
+      }
+    ],
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 2,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 3,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 4,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 5,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 6,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 7,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 8,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 9,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_GAXE_01",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 10,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 11,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 12,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 13,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 14,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 15,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 16,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 17,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 18,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 19,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_EMPTY",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 20,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_GAXE_02",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      }
+    ],
+    "premium_rewards": [],
+    "start_date": "2019-01-01T14:00:00+00:00",
+    "end_date": "2099-01-01T14:00:00+00:00"
+  },
+  {
+    "progression_id": "MasteryTrack_Weapon_ChainBlades",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 10
+      }
+    ],
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 2,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 3,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 4,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 5,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 6,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 7,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 8,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 9,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_CBLADE_01",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 10,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 11,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 12,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 13,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 14,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 15,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 16,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 17,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 18,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 19,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_EMPTY",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 20,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_CBLADE_02",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      }
+    ],
+    "premium_rewards": [],
+    "start_date": "2019-01-01T14:00:00+00:00",
+    "end_date": "2099-01-01T14:00:00+00:00"
+  },
+  {
+    "progression_id": "MasteryTrack_Weapon_Hammer",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 10
+      }
+    ],
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 2,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 3,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 4,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 5,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 6,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 7,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 8,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 9,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_IHAMMER_01",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 10,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 11,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 12,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 13,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 14,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 15,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 16,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 17,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 18,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 19,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_EMPTY",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 20,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_IHAMMER_02",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      }
+    ],
+    "premium_rewards": [],
+    "start_date": "2019-01-01T14:00:00+00:00",
+    "end_date": "2099-01-01T14:00:00+00:00"
+  },
+  {
+    "progression_id": "MasteryTrack_Weapon_Repeaters",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 10
+      }
+    ],
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 2,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 3,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 4,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 5,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 6,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 7,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 8,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 9,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_DP_01",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 10,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 11,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 12,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 13,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 14,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 15,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 16,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 17,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 18,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 19,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_EMPTY",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 20,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_DP_02",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      }
+    ],
+    "premium_rewards": [],
+    "start_date": "2019-01-01T14:00:00+00:00",
+    "end_date": "2099-01-01T14:00:00+00:00"
+  },
+  {
+    "progression_id": "MasteryTrack_Weapon_Spear",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 10
+      }
+    ],
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 2,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 3,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 4,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 5,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 6,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 7,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 8,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 9,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_MSPEAR_01",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 10,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 11,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 12,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 13,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 14,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 15,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 16,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 17,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 18,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 19,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_EMPTY",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 20,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_MSPEAR_02",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      }
+    ],
+    "premium_rewards": [],
+    "start_date": "2019-01-01T14:00:00+00:00",
+    "end_date": "2099-01-01T14:00:00+00:00"
+  },
+  {
+    "progression_id": "MasteryTrack_Weapon_Sword",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 10
+      }
+    ],
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 2,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 3,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 4,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 5,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 6,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 7,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 8,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 9,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_EBLADE_01",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 10,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 11,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 12,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 13,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 14,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 15,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 16,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 17,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 18,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 19,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_EMPTY",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 20,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_EBLADE_02",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      }
+    ],
+    "premium_rewards": [],
+    "start_date": "2019-01-01T14:00:00+00:00",
+    "end_date": "2099-01-01T14:00:00+00:00"
+  },
+  {
+    "progression_id": "MasteryTrack_Weapon_Strikers",
+    "premium_gating_entitlement": "",
+    "progression_multiplier": 1,
+    "requirements": [
+      {
+        "rank_id": 0,
+        "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 2,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 3,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 4,
+        "xp_required": 2
+      },
+      {
+        "rank_id": 5,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 6,
+        "xp_required": 3
+      },
+      {
+        "rank_id": 7,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 8,
+        "xp_required": 4
+      },
+      {
+        "rank_id": 9,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 10,
+        "xp_required": 5
+      },
+      {
+        "rank_id": 11,
+        "xp_required": 6
+      },
+      {
+        "rank_id": 12,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 13,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 14,
+        "xp_required": 7
+      },
+      {
+        "rank_id": 15,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 16,
+        "xp_required": 8
+      },
+      {
+        "rank_id": 17,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 18,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 19,
+        "xp_required": 10
+      },
+      {
+        "rank_id": 20,
+        "xp_required": 10
+      }
+    ],
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 2,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_NOTES",
+            "quantity": 250,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 3,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 4,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 10,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 5,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 6,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 7,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_BRONZE_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 8,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 15,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 9,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_AC_01",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 10,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 11,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 25,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 12,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 13,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 14,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 15,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 16,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 17,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_WEAPON",
+            "quantity": 50,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 18,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CONTAINER_CORE_GOLD_CELLCORE",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 19,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_EMPTY",
+            "quantity": 100,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      },
+      {
+        "rank_id": 20,
+        "custom_reward_string": {
+          "culture_invariant_string": null
+        },
+        "stacked_items": [
+          {
+            "catalog_id": "TITLE_MASTERY_AC_02",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": [],
+        "buffs": []
+      }
+    ],
+    "premium_rewards": [],
+    "start_date": "2019-01-01T14:00:00+00:00",
+    "end_date": "2099-01-01T14:00:00+00:00"
+  }
+]

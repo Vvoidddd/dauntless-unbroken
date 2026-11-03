@@ -13,7 +13,7 @@ export interface LaunchSettings {
   port: number;
   key: string;
   windowed: boolean;
-  gameLocale?: string; // -epiclocale; English when left out
+  gameLocale?: string; // Keep the engine and platform locale aligned; English when left out.
   account?: {userId:string;username:string};
 }
 
@@ -51,7 +51,7 @@ export function buildLaunchArgs(s: LaunchSettings): string[] {
   // The first argument is the server address; DauntlessUnbroken.dll reads it.
   const locale = s.gameLocale && GAME_LOCALES.includes(s.gameLocale) ? s.gameLocale : "en-US";
   if(s.account && (!/^UID-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(s.account.userId)||!s.account.username||s.account.username.length>32||/["\x00-\x1f\x7f]/.test(s.account.username)))throw Error('invalid account identity');
-  const fixed = s.account ? ['-AUTH_LOGIN=unused','-AUTH_TYPE=exchangecode','-EpicPortal','-epicapp=Jackal','-epicenv=Prod',`-epicusername=${s.account.username}`,`-epicuserid=${s.account.userId}`,'-NoEAC',`-culture=${locale}`] : FIXED_ARGS.map((a) => (a.startsWith("-epiclocale=") ? `-epiclocale=${locale}` : a));
+  const fixed = s.account ? ['-AUTH_LOGIN=unused','-AUTH_TYPE=exchangecode','-EpicPortal','-epicapp=Jackal','-epicenv=Prod',`-epicusername=${s.account.username}`,`-epicuserid=${s.account.userId}`,'-NoEAC',`-culture=${locale}`,`-epiclocale=${locale}`] : FIXED_ARGS.map((a) => (a.startsWith("-epiclocale=") ? `-epiclocale=${locale}` : a));
   const args = [`${s.host}:${s.port}`, `-AUTH_PASSWORD=${s.key}`, ...fixed];
   if (s.windowed) args.push("-windowed", "-ResX=1280", "-ResY=720");
   return args;

@@ -220,6 +220,16 @@ test("the game language becomes -epiclocale; auto follows the system when the ga
   assert.equal(gameLocale("ja-JP", "en-US"), "ja-JP", "a chosen language wins over the system");
 });
 
+test("1.10.5 sends the chosen language to both engine and platform login", () => {
+  for (const chosen of ["en-US", "de-DE", "pt-BR"] as const) {
+    const args = buildLaunchArgs({ host: "127.0.0.1", port: 62000, key: KEY, windowed: false,
+      gameLocale: gameLocale(chosen, "de-DE"),
+      account: { userId: "UID-00000000-0000-4000-8000-000000000001", username: "LanguageTest" } });
+    assert.deepEqual(args.filter(arg => /^-(culture|epiclocale)=/.test(arg)),
+      [`-culture=${chosen}`, `-epiclocale=${chosen}`]);
+  }
+});
+
 test("the key is masked in anything that can be logged", () => {
   const args = buildLaunchArgs({ host: "100.64.0.7", port: 61000, key: KEY, windowed: false });
   const masked = maskArgs(args);

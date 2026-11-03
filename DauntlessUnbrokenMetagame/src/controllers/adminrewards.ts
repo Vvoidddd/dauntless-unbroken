@@ -6,6 +6,7 @@ import catalog from '../vendor/admin_grant_catalog.json';
 import {ApplyInventoryTransactionInTx,MAX_STACK_QUANTITY} from './inventory';
 import {RecordProgressionEvent} from './progressionevents';
 import {GrantEntitlementInTx} from './entitlements';
+import {Local1105Enabled,NativeStackedCosmetic} from './local1105';
 
 export class RewardError extends Error {constructor(public status:number,message:string){super(message);}}
 const RewardItems:((typeof catalog.items)[number]&{unit?:string})[]=[...catalog.items,{id:'escalation_xp_boost_entitlement',name:'Escalation XP boost',category:'Boosts',kind:'entitlement',unique:false,grantable:true,unit:'hours',aliases:['esca boost','escalation boost']}];
@@ -129,7 +130,7 @@ export function GrantReward(actorId:string,input:unknown){
                     if(existing)upgradedCount++;
                 }
             }else if(add){
-                if(entry.kind==='stacked')StackedItemsToAdd.push({catalogId:entry.id,quantity:add});
+                if(entry.kind==='stacked'||(Local1105Enabled()&&NativeStackedCosmetic(entry.id)))StackedItemsToAdd.push({catalogId:entry.id,quantity:add});
                 else InstancedItemsToAdd.push({catalogId:entry.id,instanceId:createHash('sha256').update(bundle?`${receipt}:${entry.id}`:receipt).digest('hex').slice(0,32),updateVersion:0});
             }
         }
