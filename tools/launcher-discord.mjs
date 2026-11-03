@@ -15,7 +15,18 @@ export function launcherBuild(release) {
   if (!installer || !sums) return null;
   const prefix = `https://github.com/${REPOSITORY}/releases/download/${release.tag_name}/`;
   if (installer.browser_download_url !== prefix + installer.name || sums.browser_download_url !== prefix + sums.name) return null;
-  return { release, version: match[1], page, installer, sums };
+  const linux = [
+    ['linux-x86_64.AppImage', 'Linux / Steam Deck · AppImage'],
+    ['linux-amd64.deb', 'Ubuntu / Debian / Mint / Pop!_OS · DEB'],
+    ['linux-x86_64.rpm', 'Fedora / openSUSE · RPM'],
+    ['linux-x64.tar.gz', 'Linux portable · TAR.GZ'],
+    ['linux-x64.zip', 'Linux portable · ZIP'],
+  ].flatMap(([suffix, label]) => {
+    const name = `DauntlessUnbrokenLauncher-${match[1]}-${suffix}`;
+    const asset = release.assets.find(a => a.name === name && a.state === 'uploaded' && a.size > 0 && a.browser_download_url === prefix + name);
+    return asset ? [{ ...asset, label }] : [];
+  });
+  return { release, version: match[1], page, installer, sums, linux };
 }
 
 function compare(a, b) {
@@ -28,9 +39,10 @@ export function announcement(build) {
   const fields = [
     { name: 'Latest version', value: `**${build.version}**`, inline: true },
     { name: 'Status', value: '🟢 Published', inline: true },
-    { name: 'Platform', value: 'Windows x64', inline: true },
+    { name: 'Platforms', value: build.linux.length ? 'Windows x64 · Linux x86_64 · Steam Deck' : 'Windows x64', inline: true },
     { name: 'Windows installer', value: `[${build.installer.name}](${build.installer.browser_download_url})\n${(build.installer.size / 1024 / 1024).toFixed(1)} MiB`, inline: false },
-    { name: 'Installing / updating', value: 'Run the setup EXE to install or update. Fully close the game before updating, then launch again.', inline: false },
+    ...build.linux.map(asset => ({ name: asset.label, value: `[Download](${asset.browser_download_url}) · ${(asset.size / 1024 / 1024).toFixed(1)} MiB`, inline: false })),
+    { name: 'Installing / updating', value: 'Fully close the game before updating. **Windows:** run Setup.exe.' + (build.linux.length ? '\n**Linux:** use [automatic setup](https://vvoidddd.github.io/dauntless-unbroken/download/) or your distro’s package. For AppImage, enable “Allow executing as a program,” then open it.\n[Linux guide](https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html) · [Steam Deck guide](https://vvoidddd.github.io/dauntless-unbroken/setup/steam-deck.html)' : ''), inline: false },
   ];
   fields.push({ name: 'Downloads & verification', value: `[All downloads and release notes](${build.page}) · [SHA-256 checksums](${build.sums.browser_download_url})`, inline: false });
   return {
@@ -41,6 +53,7 @@ export function announcement(build) {
       footer: { text: 'Launcher releases only · Automatically updated' } }],
     components: [{ type: 1, components: [
       { type: 2, style: 5, label: 'Download Setup.exe', url: build.installer.browser_download_url },
+      ...build.linux.filter(asset => asset.name.endsWith('.AppImage')).map(asset => ({ type: 2, style: 5, label: 'Linux / Steam Deck', url: asset.browser_download_url })),
       { type: 2, style: 5, label: 'All downloads / release notes', url: build.page },
     ] }],
   };
@@ -74,7 +87,9 @@ export async function syncLauncher({ webhookUrl, messageId, githubToken, create 
   const oldUrl = previous.embeds?.[0]?.url;
   const oldVersion = oldUrl?.match(/\/launcher-v(\d+\.\d+\.\d+)$/)?.[1];
   if (oldVersion && compare(build.version, oldVersion) < 0) return { action: 'skipped', reason: 'older than announced build' };
-  if (oldUrl === build.page) return { action: 'unchanged', messageId, version: build.version };
+  const buttons = message => (message.components ?? []).flatMap(row => row.components ?? []).map(({ type, style, label, url }) => ({ type, style, label, url }));
+  if (oldUrl === build.page && JSON.stringify(previous.embeds?.[0]?.fields) === JSON.stringify(payload.embeds[0].fields)
+      && JSON.stringify(buttons(previous)) === JSON.stringify(buttons(payload))) return { action: 'unchanged', messageId, version: build.version };
   const { username, avatar_url, ...edit } = payload;
   await send(messageUrl + '?with_components=true', 'PATCH', edit);
   return { action: 'updated', messageId, version: build.version };

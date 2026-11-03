@@ -14,16 +14,16 @@ function release(version = '1.0.13') {
 }
 function mock({ current = '1.0.12', next = '1.0.13', failEdit = false } = {}) {
   const calls = [];
-  let page = release(current).html_url;
+  let message = announcement(launcherBuild(release(current)));
   const request = async (url, options = {}) => {
     const method = options.method ?? 'GET';
     calls.push({ url, method, body: options.body && JSON.parse(options.body) });
     if (String(url).startsWith('https://api.github.com/')) return Response.json(release(next));
-    if (method === 'GET') return Response.json({ id: messageId, embeds: [{ url: page }] });
+    if (method === 'GET') return Response.json({ id: messageId, ...message });
     if (method === 'POST') return Response.json({ id: '323456789012345678' });
     if (method === 'PATCH') {
       if (failEdit) return new Response(null, { status: 500 });
-      page = JSON.parse(options.body).embeds[0].url;
+      message = JSON.parse(options.body);
       return Response.json({ id: messageId });
     }
     if (method === 'DELETE') return new Response(null, { status: 204 });
@@ -58,6 +58,43 @@ test('bootstrap creates exactly one current-version embed with components enable
   assert.equal(result.action, 'created');
   assert.equal(state.calls.filter(c => c.method === 'POST').length, 1);
   assert.ok(state.calls.at(-1).url.includes('wait=true&with_components=true'));
+});
+
+test('Linux downloads use only uploaded assets from the same release and fit Discord limits', () => {
+  const next = release();
+  for (const suffix of ['linux-x86_64.AppImage', 'linux-amd64.deb', 'linux-x86_64.rpm', 'linux-x64.tar.gz', 'linux-x64.zip']) {
+    const name = `DauntlessUnbrokenLauncher-1.0.13-${suffix}`;
+    next.assets.push({ name, size: 120000000, state: 'uploaded', browser_download_url: `https://github.com/${REPOSITORY}/releases/download/${next.tag_name}/${name}` });
+  }
+  const payload = announcement(launcherBuild(next));
+  assert.equal(launcherBuild(next).linux.length, 5);
+  assert.equal(payload.components[0].components.length, 3);
+  assert.match(payload.embeds[0].fields.find(f => f.name === 'Platforms').value, /Linux.*Steam Deck/);
+  assert.ok(payload.embeds[0].fields.every(f => f.name.length <= 256 && f.value.length <= 1024));
+  assert.ok(JSON.stringify(payload).length < 6000);
+  next.assets[2].browser_download_url = 'https://evil.example/game.AppImage';
+  next.assets[3].state = 'new';
+  next.assets[4].size = 0;
+  assert.equal(launcherBuild(next).linux.length, 2);
+  assert.equal(announcement(launcherBuild(next)).components[0].components.length, 2);
+});
+
+test('same-version legacy embeds refresh in place when Linux assets become available', async () => {
+  const next = release();
+  const name = 'DauntlessUnbrokenLauncher-1.0.13-linux-x86_64.AppImage';
+  next.assets.push({ name, size: 120000000, state: 'uploaded', browser_download_url: `https://github.com/${REPOSITORY}/releases/download/${next.tag_name}/${name}` });
+  let message = { embeds: [{ url: next.html_url }] }, edits = 0;
+  const request = async (url, options = {}) => {
+    if (String(url).startsWith('https://api.github.com/')) return Response.json(next);
+    if (!options.method) return Response.json(message);
+    assert.equal(options.method, 'PATCH');
+    message = JSON.parse(options.body); edits++;
+    return Response.json({ id: messageId });
+  };
+  assert.equal((await syncLauncher({ webhookUrl, messageId, request })).action, 'updated');
+  assert.match(JSON.stringify(message), /linux-x86_64.AppImage/);
+  assert.equal((await syncLauncher({ webhookUrl, messageId, request })).action, 'unchanged');
+  assert.equal(edits, 1);
 });
 
 test('a new published launcher only edits the existing message, and reruns do not duplicate', async () => {
