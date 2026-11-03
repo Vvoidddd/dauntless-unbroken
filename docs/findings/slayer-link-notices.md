@@ -15,7 +15,7 @@ actions use the same answer handler as POST.
 
 The native game server rolls a pool and PUTs `/slayerlink/links/rewards`.
 Pools are immutable per link generation and account, validated against the
-packaged 1.4.4 reward table. Connected linked party members share actual Hunt Pass
+packaged reward table for the running game build. Connected linked party members share actual Hunt Pass
 XP grants; mastery and direct linked-track echoes do not add XP. The cumulative
 chest thresholds are 5, 405, 1205 and 2805. The three
 `Linked_Slayer_Slot_N` progression tracks read shared state rather than personal
@@ -64,7 +64,7 @@ repeat run adds nothing. This is an administrator recovery tool, not a new HTTP
 grant route or automatic reroll. Inventory is still granted only through the
 existing expiry/rank/served-reward checks and atomic claim transaction.
 
-The recovery uses the pinned native table and roll policy. All 69 JSON rows match
+The recovery uses the pinned native table and roll policy. The original 1.4.4 table had 69 rows matching
 the serialized asset row order. Each class draws `[5,4,2,1]` candidates using
 float32 cumulative weights, stable removal and the original CDF retained after
 removal, with a 10,000-attempt limit. The candidate array receives a full-range
@@ -85,3 +85,22 @@ prizes for each of GOLLUM's three links. No inventory was granted and no backend
 or game world was restarted. Collection still requires the link's seven-day timer
 to finish and remains limited to earned ranks. These checks establish the API and
 stored reward data, not a visual confirmation from the player's game client.
+
+## 1.10.5 reward table and recovery
+
+The 1.10.5 server was still validating new pools against the old 1.4.4 table.
+Build 365075 has 35 reward rows, with different quantities and new Combat Merit
+and Aetherspark rewards. Valid native pools could therefore be rejected.
+The backend now uses the table extracted from `Archon_UI_0-WindowsClient.pak`;
+the loaded native configuration still draws `[5,4,2,1]` candidates and four rewards.
+
+On 3 November, a verified database snapshot completed before recovery. We restored
+32 missing account-side pools across 17 links. The transaction confirmed that
+partners, slots, XP and end dates were unchanged; existing pools and claims were
+left alone. A second pass found no eligible missing pools. All eight lifecycle
+checks passed, including reward validation, duplicate claims and recovery.
+Players still collect through the normal earned-rank and expiry checks.
+
+The backend returned HTTP 200 after deployment, with all six existing EU2 world
+processes still running. Native reward display and collection still need an
+in-game confirmation; backend checks alone do not prove the client animation.

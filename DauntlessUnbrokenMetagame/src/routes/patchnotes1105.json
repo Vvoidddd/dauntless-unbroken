@@ -75,7 +75,8 @@
                 "Public matchmaking groups eligible requests for the same hunt; private hunts stay limited to you and your party.",
                 "Launcher 1.0.53 corrects the Rams price and currency icon on shop cards.",
                 "Main-shop offers rotate weekly, with Recruit dye always available for its quest.",
-                "Middleman fusion recipes use a one-hour wait. Existing timers are not restarted."
+                "Middleman fusion recipes use a one-hour wait. Existing timers are not restarted.",
+                "Slayer Links now accept the 1.10.5 reward pool, including Combat Merits and Aethersparks. Missing pools have been restored without resetting link progress or existing rewards."
               ]
             }
           ]

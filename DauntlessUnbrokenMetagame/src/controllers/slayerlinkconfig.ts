@@ -18,7 +18,7 @@ export type LinkPrize={catalog_id:string;quantity:number;received_for_level:numb
 
 // Missing legacy pools only. Preserve the pinned native roll policy, including
 // its retained original CDF after row removal and two full-range swap passes.
-// Rewards JSON order matches all 69 serialized rows in the owned 1.4.4 table.
+// Rewards JSON order matches all 35 serialized rows in the owned 1.10.5 table.
 export function RollLinkPool(draw:()=>number=()=>randomInt(32768)):LinkPrize[]{
     const random=()=>Math.fround(draw()*Math.fround(1/32767));
     const pool:LinkPrize[]=[];
@@ -57,7 +57,7 @@ export function ReadLinkPool(raw:unknown):LinkPrize[]{
     const max=Rewards.config.classes_to_draw.reduce((a,b)=>a+b,0);
     if(!Array.isArray(raw)||raw.length===0||raw.length>max)throw Error('Invalid prize pool size');
     const pool=raw.map(x=>{
-        if(!x||!Rewards.rewards.some(r=>r.catalog_id===x.catalog_id&&r.quantity===x.quantity))throw Error('Prize is not in the native 1.4.4 table');
+        if(!x||!Rewards.rewards.some(r=>r.catalog_id===x.catalog_id&&r.quantity===x.quantity))throw Error('Prize is not in the native 1.10.5 table');
         if(!Number.isInteger(x.received_for_level)||x.received_for_level< -1||x.received_for_level>LINK_RANK_COSTS.length)throw Error('Invalid prize level');
         return {catalog_id:x.catalog_id,quantity:x.quantity,received_for_level:x.received_for_level} as LinkPrize;
     });
