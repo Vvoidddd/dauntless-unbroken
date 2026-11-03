@@ -116,7 +116,7 @@ jobs:
   node-packages:
     name: ${{ matrix.package }}
     needs: changes
-    if: contains(needs.changes.outputs.node_packages, matrix.package)
+    if: needs.changes.outputs.node_packages != ''
     runs-on: windows-latest
     timeout-minutes: 20
     strategy:
