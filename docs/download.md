@@ -26,8 +26,14 @@ Mint and Debian receive the DEB package; Fedora and compatible systems receive
 RPM. Steam Deck, Arch and other compatible distributions receive an AppImage
 with an application shortcut. SteamOS's read-only system is left untouched.
 
-Open Terminal, paste this command, and press Enter. Enter your system password
-if the native package installer asks. No package selection is needed.
+[Download Linux / Steam Deck setup]({{ '/assets/Install-Dauntless-Unbroken.desktop' | relative_url }}){: .button .button-primary download="Install-Dauntless-Unbroken.desktop" }
+
+In Desktop Mode, save that file, open it in your file manager and choose **Execute**
+or **Trust and launch** if asked. Setup opens a terminal with download progress
+and keeps errors visible. Enter your system password only if the native package
+installer asks. Steam Deck setup does not need an administrator password.
+
+If your desktop opens the file as text, use this terminal command instead:
 
 ```sh
 ( setup=$(mktemp) && trap 'rm -f "$setup"' EXIT &&

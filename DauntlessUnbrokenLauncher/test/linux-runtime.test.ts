@@ -52,6 +52,19 @@ test('Steam Deck finds Proton in an SD-card library listed by Steam',()=>{
   }finally{rmSync(home,{recursive:true,force:true});}
 });
 
+test('Proton version selection is independent of the Steam library mount path',()=>{
+  const home=mkdtempSync(path.join(tmpdir(),'unbroken-proton-version-'));
+  try {
+    const steam=path.join(home,'.local/share/Steam');
+    const sd=path.join(home,'zz-SD Card');
+    mkdirSync(path.join(steam,'steamapps'),{recursive:true});
+    writeFileSync(path.join(steam,'steamapps/libraryfolders.vdf'),`"libraryfolders" { "1" { "path" "${sd.replace(/\\/g,'\\\\')}" } }`);
+    const newer=executable(path.join(steam,'steamapps/common/Proton 10.0/proton'));
+    executable(path.join(sd,'steamapps/common/Proton 9.0/proton'));
+    assert.equal(detectLinuxRuntime(path.join(home,'data'),{HOME:home,PATH:''},home)?.command,newer);
+  }finally{rmSync(home,{recursive:true,force:true});}
+});
+
 test("Linux runtime: explicit Wine overrides auto-detected Proton", () => {
   const home = mkdtempSync(path.join(tmpdir(), "dr-linux-runtime-"));
   try {

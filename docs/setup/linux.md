@@ -20,11 +20,11 @@ package instructions below remain available for advanced setups.
 
 **Steam Deck:** use the [Steam Deck setup and PC account-transfer guide](steam-deck.html).
 
-Dauntless Unbroken Launcher runs natively on **x86_64 Linux**. The actual Dauntless 1.4.4 game is still
+Dauntless Unbroken Launcher runs natively on **x86_64 Linux**. The actual Dauntless 1.10.5 game is still
 the original Windows x86_64 build, so the launcher starts it through **Proton or Wine**. You use the
 same invite, account and server as a Windows player.
 
-The launcher does not contain game files. It downloads or verifies the same pinned 1.4.4 files as
+The launcher does not contain game files. It downloads or verifies the same pinned 1.10.5 files as
 the Windows build, installs the two pinned DLLs, creates a separate compatibility prefix and sets the
 required native `dxgi` override automatically.
 
@@ -42,7 +42,7 @@ You need:
 - an **x86_64** Linux desktop using glibc;
 - working graphics drivers, including Vulkan support for the normal Proton/DXVK path;
 - either an existing compatibility runtime (Steam Proton, Proton-GE, Wine, or Lutris Wine) or a desktop that can authorize the launcher's automatic Wine install;
-- about 11 GB for the game, plus free space for downloads and the compatibility prefix;
+- at least 20 GB free for the game, download staging and compatibility prefix; the launcher checks the space required for your install;
 - Tailscale only when your host gave you a private/v1 invite.
 
 ARM64 is not supported by this launcher because the game itself is Windows x86_64. Alpine and other
@@ -364,7 +364,7 @@ After the launcher opens, the flow is the same on every Linux distro:
 3. Register a username, or import your existing account key.
 4. Save the offered key backup somewhere private.
 5. Press **INSTALL**. The default game directory is `~/Games/DauntlessUnbroken`.
-6. If you already have the exact 1.4.4 files, use **I already have the game files** and choose that
+6. If you already have the exact 1.10.5 files, use **I already have the game files** and choose that
    Linux folder instead.
 7. Press **PLAY**. The launcher creates/prepares its Wine/Proton prefix, writes the game's config and
    starts `Dauntless-Win64-Shipping.exe` through the selected runtime.
@@ -440,7 +440,7 @@ under its Electron user-data folder. Common causes are:
 - a Proton/Wine runtime that was moved after the launcher found it;
 - a Steam/Flatpak Steam Proton install that is incomplete or was moved;
 - permission problems in the selected game folder;
-- a game folder that is not the exact pinned 1.4.4 build.
+- a game folder that is not the exact pinned 1.10.5 build.
 
 Try a different installed Proton or Wine runtime before modifying the game files.
 

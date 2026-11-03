@@ -15,8 +15,9 @@ The launcher is a native Linux application; it starts the Windows game through P
 
 ## First setup in Desktop Mode
 
-1. Open Desktop Mode and download the AppImage. In its file properties, allow it
-   to run as a program, then open it. The portable Linux archive is another option.
+1. In Desktop Mode, use [Linux / Steam Deck setup](../download/). It installs the
+   current AppImage and an application shortcut without FUSE or system changes.
+   The manually downloaded AppImage / portable archive remains an alternative.
 2. Ensure a Proton version is installed through Steam. The launcher detects normal
    Steam and Flatpak Steam installations, including Proton stored in libraries on an SD card.
 3. Follow the account steps below, then let the launcher download or verify the game.
@@ -71,9 +72,15 @@ misuses it, your access/key may also be revoked. Use it only on your own devices
 
 ## Open it from Gaming Mode
 
-After Desktop Mode setup, add the **Linux launcher/AppImage** as a Non-Steam game
-in Steam, then launch that shortcut from Gaming Mode. Do not force a Windows
+After setup, open Steam → **Add a Game → Add a Non-Steam Game** and select
+**Dauntless Unbroken Launcher**. If it is not listed, browse to
+`~/.local/opt/dauntless-unbroken-launcher/launch.sh` (show hidden files to see `.local`).
+This stable shortcut survives launcher updates and works without FUSE. Launch it
+from Gaming Mode. Do not force a Windows
 compatibility tool on the Linux launcher itself; the launcher selects Proton for the game.
+Use the native launcher for **1.10.5**. Installing the Windows EXE through Heroic/Wine
+does not guarantee its Windows connection checks will work under Wine. Keep your
+existing account backup and import it into the Linux launcher instead.
 Valve documents the Desktop Mode and Non-Steam application flow in its
 [Steam Deck desktop FAQ](https://help.steampowered.com/en/faqs/view/671a-4453-e8d2-323c).
 

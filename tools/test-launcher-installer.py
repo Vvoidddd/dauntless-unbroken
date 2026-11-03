@@ -2,6 +2,8 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
+import subprocess
 from pathlib import Path, PurePosixPath
 import tempfile
 import unittest
@@ -12,6 +14,33 @@ setup=importlib.util.module_from_spec(spec);spec.loader.exec_module(setup)
 
 
 class InstallerTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'posix', 'Linux desktop entry parser')
+    def test_desktop_setup_executes_verified_installer_and_preserves_download_failures(self):
+        try:
+            from gi.repository import GLib, Gio
+        except ImportError:
+            self.skipTest('GLib Python bindings unavailable')
+        desktop=Path(__file__).resolve().parents[1]/'docs/assets/Install-Dauntless-Unbroken.desktop'
+        keyfile=GLib.KeyFile();keyfile.load_from_file(str(desktop),0)
+        self.assertIsNotNone(Gio.DesktopAppInfo.new_from_filename(str(desktop)))
+        _,args=GLib.shell_parse_argv(keyfile.get_string('Desktop Entry','Exec'))
+        for value in ['Home With Spaces', 'Home $dollar `tick` "quote" \\slash %percent']:
+            data='[Desktop Entry]\nExec='+setup.desktop_argument(value)+'\n'
+            entry=GLib.KeyFile();entry.load_from_data(data,len(data.encode()),0)
+            _,parsed=GLib.shell_parse_argv(entry.get_string('Desktop Entry','Exec'))
+            self.assertEqual(parsed[0].replace('%%','%'),value)
+        with tempfile.TemporaryDirectory() as tmp:
+            curl=Path(tmp)/'curl'
+            curl.write_text('#!/bin/sh\n[ -z "$FAIL_DOWNLOAD" ] || exit 22\nwhile [ "$1" != "-o" ]; do shift; done\nprintf \'print("setup executed")\\n\' > "$2"\n')
+            curl.chmod(0o755)
+            env=dict(os.environ,PATH=tmp+os.pathsep+os.environ['PATH'])
+            result=subprocess.run(args,input='\n',env=env,text=True,capture_output=True)
+            self.assertEqual(result.returncode,0,result.stderr)
+            self.assertIn('setup executed',result.stdout)
+            result=subprocess.run(args,input='\n',env=dict(env,FAIL_DOWNLOAD='1'),text=True,capture_output=True)
+            self.assertEqual(result.returncode,22,result.stderr)
+            self.assertNotIn('setup executed',result.stdout)
+
     def test_distribution_and_version(self):
         for text,wanted in [
             ('ID=pop\nID_LIKE="ubuntu debian"\nVERSION_ID="22.04"','deb'),
@@ -53,9 +82,18 @@ class InstallerTests(unittest.TestCase):
             target=setup.install_appimage(source,home)
             source.write_bytes(b'updated');self.assertEqual(setup.install_appimage(source,home),target)
             self.assertEqual(target.read_bytes(),b'updated');self.assertEqual(key.read_text(),'keep-private')
-            self.assertEqual([f.name for f in target.parent.iterdir()],['DauntlessUnbrokenLauncher.AppImage'])
+            self.assertEqual(sorted(f.name for f in target.parent.iterdir()),['DauntlessUnbrokenLauncher.AppImage','launch.sh'])
             shortcut=(home/'.local/share/applications/dauntless-unbroken-launcher.desktop').read_text()
-            self.assertIn('APPIMAGE_EXTRACT_AND_RUN=1',shortcut);self.assertIn('"'+str(target).replace('\\','\\\\')+'"',shortcut)
+            wrapper=target.parent/'launch.sh'
+            self.assertIn('"'+str(wrapper).replace('\\','\\\\\\\\')+'" %u',shortcut)
+            self.assertIn('MimeType=x-scheme-handler/dauntless-unbroken;',shortcut)
+            if os.name=='posix':
+                # Execute the installed Steam target, with a fake AppImage, from
+                # another directory. URLs/spaces must survive without shell expansion.
+                target.write_text('#!/bin/sh\nprintf "%s\\n" "$APPIMAGE_EXTRACT_AND_RUN" "$@"\n')
+                invite='dauntless-unbroken://join?name=One Two&code=ABC'
+                result=subprocess.run([str(wrapper),invite],cwd=tmp,text=True,capture_output=True,check=True)
+                self.assertEqual(result.stdout.splitlines(),['1',invite])
 
 
 if __name__=='__main__':unittest.main()

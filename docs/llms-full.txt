@@ -10980,8 +10980,14 @@ Mint and Debian receive the DEB package; Fedora and compatible systems receive
 RPM. Steam Deck, Arch and other compatible distributions receive an AppImage
 with an application shortcut. SteamOS's read-only system is left untouched.
 
-Open Terminal, paste this command, and press Enter. Enter your system password
-if the native package installer asks. No package selection is needed.
+[Download Linux / Steam Deck setup](https://vvoidddd.github.io/dauntless-unbroken/assets/Install-Dauntless-Unbroken.desktop)
+
+In Desktop Mode, save that file, open it in your file manager and choose **Execute**
+or **Trust and launch** if asked. Setup opens a terminal with download progress
+and keeps errors visible. Enter your system password only if the native package
+installer asks. Steam Deck setup does not need an administrator password.
+
+If your desktop opens the file as text, use this terminal command instead:
 
 ```sh
 ( setup=$(mktemp) && trap 'rm -f "$setup"' EXIT &&
@@ -13766,11 +13772,11 @@ package instructions below remain available for advanced setups.
 
 **Steam Deck:** use the [Steam Deck setup and PC account-transfer guide](steam-deck.html).
 
-Dauntless Unbroken Launcher runs natively on **x86_64 Linux**. The actual Dauntless 1.4.4 game is still
+Dauntless Unbroken Launcher runs natively on **x86_64 Linux**. The actual Dauntless 1.10.5 game is still
 the original Windows x86_64 build, so the launcher starts it through **Proton or Wine**. You use the
 same invite, account and server as a Windows player.
 
-The launcher does not contain game files. It downloads or verifies the same pinned 1.4.4 files as
+The launcher does not contain game files. It downloads or verifies the same pinned 1.10.5 files as
 the Windows build, installs the two pinned DLLs, creates a separate compatibility prefix and sets the
 required native `dxgi` override automatically.
 
@@ -13781,7 +13787,7 @@ You need:
 - an **x86_64** Linux desktop using glibc;
 - working graphics drivers, including Vulkan support for the normal Proton/DXVK path;
 - either an existing compatibility runtime (Steam Proton, Proton-GE, Wine, or Lutris Wine) or a desktop that can authorize the launcher's automatic Wine install;
-- about 11 GB for the game, plus free space for downloads and the compatibility prefix;
+- at least 20 GB free for the game, download staging and compatibility prefix; the launcher checks the space required for your install;
 - Tailscale only when your host gave you a private/v1 invite.
 
 ARM64 is not supported by this launcher because the game itself is Windows x86_64. Alpine and other
@@ -14103,7 +14109,7 @@ After the launcher opens, the flow is the same on every Linux distro:
 3. Register a username, or import your existing account key.
 4. Save the offered key backup somewhere private.
 5. Press **INSTALL**. The default game directory is `~/Games/DauntlessUnbroken`.
-6. If you already have the exact 1.4.4 files, use **I already have the game files** and choose that
+6. If you already have the exact 1.10.5 files, use **I already have the game files** and choose that
    Linux folder instead.
 7. Press **PLAY**. The launcher creates/prepares its Wine/Proton prefix, writes the game's config and
    starts `Dauntless-Win64-Shipping.exe` through the selected runtime.
@@ -14179,7 +14185,7 @@ under its Electron user-data folder. Common causes are:
 - a Proton/Wine runtime that was moved after the launcher found it;
 - a Steam/Flatpak Steam Proton install that is incomplete or was moved;
 - permission problems in the selected game folder;
-- a game folder that is not the exact pinned 1.4.4 build.
+- a game folder that is not the exact pinned 1.10.5 build.
 
 Try a different installed Proton or Wine runtime before modifying the game files.
 
@@ -14428,8 +14434,9 @@ The launcher is a native Linux application; it starts the Windows game through P
 
 ## First setup in Desktop Mode
 
-1. Open Desktop Mode and download the AppImage. In its file properties, allow it
-   to run as a program, then open it. The portable Linux archive is another option.
+1. In Desktop Mode, use [Linux / Steam Deck setup](../download/). It installs the
+   current AppImage and an application shortcut without FUSE or system changes.
+   The manually downloaded AppImage / portable archive remains an alternative.
 2. Ensure a Proton version is installed through Steam. The launcher detects normal
    Steam and Flatpak Steam installations, including Proton stored in libraries on an SD card.
 3. Follow the account steps below, then let the launcher download or verify the game.
@@ -14484,9 +14491,15 @@ misuses it, your access/key may also be revoked. Use it only on your own devices
 
 ## Open it from Gaming Mode
 
-After Desktop Mode setup, add the **Linux launcher/AppImage** as a Non-Steam game
-in Steam, then launch that shortcut from Gaming Mode. Do not force a Windows
+After setup, open Steam → **Add a Game → Add a Non-Steam Game** and select
+**Dauntless Unbroken Launcher**. If it is not listed, browse to
+`~/.local/opt/dauntless-unbroken-launcher/launch.sh` (show hidden files to see `.local`).
+This stable shortcut survives launcher updates and works without FUSE. Launch it
+from Gaming Mode. Do not force a Windows
 compatibility tool on the Linux launcher itself; the launcher selects Proton for the game.
+Use the native launcher for **1.10.5**. Installing the Windows EXE through Heroic/Wine
+does not guarantee its Windows connection checks will work under Wine. Keep your
+existing account backup and import it into the Linux launcher instead.
 Valve documents the Desktop Mode and Non-Steam application flow in its
 [Steam Deck desktop FAQ](https://help.steampowered.com/en/faqs/view/671a-4453-e8d2-323c).
 

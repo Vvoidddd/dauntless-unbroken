@@ -99,7 +99,10 @@ function protonCandidates(home: string): {command:string;steamRoot:string}[] {
       if (/^(?:proton|ge-proton)/i.test(path.basename(dir))) add(dir);
     }
   }
-  return out.filter(p=>executable(p.command)).sort((a, b) => b.command.localeCompare(a.command, undefined, { numeric: true, sensitivity: "base" }));
+  // Compare versions/tool names, not mount paths: an SD card must not make an
+  // older Proton outrank the newer installation on the internal drive.
+  return out.filter(p=>executable(p.command)).sort((a, b) =>
+    path.basename(path.dirname(b.command)).localeCompare(path.basename(path.dirname(a.command)), undefined, { numeric: true, sensitivity: "base" }));
 }
 
 function lutrisWineCandidates(home: string): string[] {

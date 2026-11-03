@@ -94,6 +94,12 @@ def package_command(kind, file, find=shutil.which):
     raise RuntimeError('Native package installation is unavailable. Use the AppImage from the download page.')
 
 
+def desktop_argument(value):
+    # Desktop entries decode backslashes before parsing Exec's quoted arguments.
+    quoted = ''.join('\\' + c if c in '\\"`$' else c for c in value).replace('%', '%%')
+    return '"' + quoted.replace('\\', '\\\\') + '"'
+
+
 def install_appimage(file, home):
     directory = home / '.local' / 'opt' / 'dauntless-unbroken-launcher'
     directory.mkdir(parents=True, exist_ok=True)
@@ -108,11 +114,15 @@ def install_appimage(file, home):
     finally:
         if os.path.exists(staged):
             os.unlink(staged)
+    # A stable executable works as a Steam shortcut too, without FUSE or a shell
+    # command pasted into Steam's launch options. Forward invites as one argument.
+    launcher = directory / 'launch.sh'
+    launcher.write_text('#!/bin/sh\nexec env APPIMAGE_EXTRACT_AND_RUN=1 "$(dirname "$0")/DauntlessUnbrokenLauncher.AppImage" "$@"\n', encoding='utf-8')
+    launcher.chmod(0o755)
     applications = home / '.local' / 'share' / 'applications'
     applications.mkdir(parents=True, exist_ok=True)
     # Extraction mode works without FUSE and leaves SteamOS's read-only system untouched.
-    escaped = str(target).replace('\\', '\\\\').replace('"', '\\"').replace('`', '\\`').replace('$', '\\$').replace('%', '%%')
-    shortcut = '[Desktop Entry]\nType=Application\nName=Dauntless Unbroken Launcher\nExec=env APPIMAGE_EXTRACT_AND_RUN=1 "' + escaped + '"\nTerminal=false\nCategories=Game;\n'
+    shortcut = '[Desktop Entry]\nType=Application\nName=Dauntless Unbroken Launcher\nExec=' + desktop_argument(str(launcher)) + ' %u\nTerminal=false\nCategories=Game;\nMimeType=x-scheme-handler/dauntless-unbroken;\n'
     (applications / 'dauntless-unbroken-launcher.desktop').write_text(shortcut, encoding='utf-8')
     return target
 
@@ -145,6 +155,8 @@ def main():
         else:
             subprocess.run(package_command(kind, file), check=True)
     print('Installed. Open Dauntless Unbroken Launcher from your applications menu.\nKeep your existing account backup; no account or game files were changed.')
+    if kind == 'appimage':
+        print('Steam Deck: in Steam, choose Add a Game > Add a Non-Steam Game > Dauntless Unbroken Launcher.\nIf it is not listed, browse to ' + str(Path.home() / '.local/opt/dauntless-unbroken-launcher/launch.sh') + '\nLeave Force compatibility tool OFF for this Linux shortcut. Use the Gamepad controller layout.\nInstall Proton from Steam > Library > Tools if it is not already installed.\nUse Gaming Mode for gameplay; keep the launcher open while playing.')
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 name: Documentation deployment
 on:
   push:
-    branches: [main]
+    branches: [1.10.5]
     paths: ['docs/**', 'brand/**', '.github/workflows/docs-pages.yml']
   workflow_dispatch:
 permissions:
@@ -22,7 +22,7 @@ jobs:
           destination: ./_site
       - name: Check essential pages
         run: |
-          for page in index.html setup/index.html server.html reference/index.html legal.html search.json assets/unbroken-docs.css assets/unbroken-docs.js download/index.html assets/install-launcher.py assets/download-platform.js; do
+          for page in index.html setup/index.html server.html reference/index.html legal.html search.json assets/unbroken-docs.css assets/unbroken-docs.js download/index.html assets/install-launcher.py assets/Install-Dauntless-Unbroken.desktop assets/download-platform.js; do
             test -s "_site/$page"
           done
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
