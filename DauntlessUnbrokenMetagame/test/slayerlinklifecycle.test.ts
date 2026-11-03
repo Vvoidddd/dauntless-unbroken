@@ -13,7 +13,7 @@ import {ApplyLinkXp,GetLinkTrack,LINK_GRANT_SOURCE,RepairMissingLinkPools} from 
 import {LinkRank,ReadLinkPool,RollLinkPool} from '../src/controllers/slayerlinkconfig';
 
 const WEEK=168*3600000;
-const pool=[{catalog_id:'CURRENCY_NOTES',quantity:1000,received_for_level:1},{catalog_id:'CURRENCY_NOTES',quantity:2000,received_for_level:2},{catalog_id:'CURRENCY_NOTES',quantity:3000,received_for_level:-1}];
+const pool=[{catalog_id:'CURRENCY_NOTES',quantity:2000,received_for_level:1},{catalog_id:'CURRENCY_NOTES',quantity:3000,received_for_level:2},{catalog_id:'CURRENCY_NOTES',quantity:4000,received_for_level:-1}];
 let now=Date.now();
 before(async()=>{await StartApp();});
 after(async()=>{await StopApp();RemoveTestDb(()=>GetDb().$client.close());});
@@ -33,7 +33,7 @@ async function linked(){
 }
 const store=(uid:string,slot:number,p=pool,extra:any={})=>Call('PUT','/slayerlink/links/rewards',{gs:true,body:{account_id:uid,slot,prize_pool:p,...extra}});
 const rewards=(uid:string,slot:number)=>Call('GET',`/slayerlink/links/rewards/${uid}/${slot}`,{gs:true});
-const grant=(a:{uid:string,cid:string},tx=randomUUID(),quantity=3000)=>Call('POST','/inventory',{gs:true,body:{accountId:a.uid,characterId:a.cid,transactionId:tx,source:LINK_GRANT_SOURCE,addStackedItems:[{catalogId:'CURRENCY_NOTES',quantity}],addInstancedItems:[]}});
+const grant=(a:{uid:string,cid:string},tx=randomUUID(),quantity=5000)=>Call('POST','/inventory',{gs:true,body:{accountId:a.uid,characterId:a.cid,transactionId:tx,source:LINK_GRANT_SOURCE,addStackedItems:[{catalogId:'CURRENCY_NOTES',quantity}],addInstancedItems:[]}});
 const release=(uid:string,slot:number,id?:string)=>Call('DELETE','/slayerlink/links',{gs:true,body:{links:[{account_id:uid,slot,delete_pair:true,...(id?{link_id:id}:{})}]}});
 const points=(uid:string,slot:number)=>GetLinkTrack(uid,`Linked_Slayer_Slot_${slot}`).progress;
 const balance=(cid:string)=>JSON.parse(GetDb().select().from(inventory).where(eq(inventory.characterId,cid)).get()!.stackedItems).find((x:any)=>x.catalogId==='CURRENCY_NOTES')?.quantity??0;
@@ -61,12 +61,12 @@ it('native shared progression, immutable pools, expired collection, retry-safe i
     assert.equal((await rewards(a.uid,1)).json.payload.rewards.length,2);
     assert.equal((await grant(a,randomUUID(),999999)).status,409,'tampered totals rejected');
     assert.equal(balance(a.cid),0);
-    const tx=randomUUID();assert.equal((await grant(a,tx)).status,200);assert.equal(balance(a.cid),3000);
-    assert.equal((await grant(a,tx)).status,200);assert.equal((await grant(a)).status,200);assert.equal(balance(a.cid),3000,'fresh transaction ID cannot claim twice');
+    const tx=randomUUID();assert.equal((await grant(a,tx)).status,200);assert.equal(balance(a.cid),5000);
+    assert.equal((await grant(a,tx)).status,200);assert.equal((await grant(a)).status,200);assert.equal(balance(a.cid),5000,'fresh transaction ID cannot claim twice');
     assert.equal((await release(a.uid,1,id)).status,200);assert.equal(points(a.uid,1),0);
     assert.equal((await Call('GET','/slayerlink/links',{as:b.uid})).json.payload.links.length,1,'partner retains collection');
     assert.equal((await rewards(b.uid,2)).json.payload.rewards.length,2);
-    assert.equal((await grant(b)).status,200);assert.equal(balance(b.cid),3000);
+    assert.equal((await grant(b)).status,200);assert.equal(balance(b.cid),5000);
     assert.equal((await release(b.uid,2,id)).status,200);
     // Reuse must start from zero and reject a late request identifying the previous generation.
     GetDb().insert(slayerlinks).values({linkId:randomUUID(),senderId:a.uid,targetId:b.uid,senderSlot:1,targetSlot:2,createdAt:now,endsAt:now+WEEK}).run();
@@ -87,11 +87,11 @@ it('missing pools preserve earned rewards, unauthorized and malformed requests c
     assert.equal((await store(a.uid,1,[pool[0],pool[0]])).status,400);
     assert.equal((await store(a.uid,1,pool,{link_id:'stale'})).status,409);
     assert.equal((await store(a.uid,1)).status,200,'late native generation repairs missing pool without losing earned XP');
-    assert.equal((await grant(a,randomUUID(),1000)).status,409,'must first serve rewards to a game server');
+    assert.equal((await grant(a,randomUUID(),2000)).status,409,'must first serve rewards to a game server');
     assert.equal((await Call('GET',`/slayerlink/links/rewards/${a.uid}/1`,{as:a.uid})).status,200);
-    assert.equal((await grant(a,randomUUID(),1000)).status,409,'player read cannot authorize collection');
-    await rewards(a.uid,1);assert.equal((await grant(a,randomUUID(),1000)).status,200);
-    assert.equal(balance(a.cid),1000);assert.equal(points(b.uid,2),5);
+    assert.equal((await grant(a,randomUUID(),2000)).status,409,'player read cannot authorize collection');
+    await rewards(a.uid,1);assert.equal((await grant(a,randomUUID(),2000)).status,200);
+    assert.equal(balance(a.cid),2000);assert.equal(points(b.uid,2),5);
     assert.equal(GetDb().select().from(slayerlinkpools).where(eq(slayerlinkpools.linkId,id)).all().length,1);
 });
 
@@ -177,4 +177,9 @@ it('recovery skips canceled links and released sides without discarding the part
     const pools=GetDb().select().from(slayerlinkpools).where(eq(slayerlinkpools.linkId,id)).all();
     assert.deepEqual(pools.map(p=>p.userId),[b.uid]);
     assert.ok(!pools.some(p=>p.userId===a.uid));
+});
+
+it('validates the 1.10.5 Slayer Link reward table',()=>{
+    assert.doesNotThrow(()=>ReadLinkPool([{catalog_id:'CURRENCY_PJM_WEAPON',quantity:200,received_for_level:4}]));
+    assert.throws(()=>ReadLinkPool([{catalog_id:'CURRENCY_NOTES',quantity:1000,received_for_level:1}]));
 });

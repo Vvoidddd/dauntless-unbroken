@@ -1,95 +1,49 @@
-# Dauntless Unbroken — 1.10.5
+# Dauntless Unbroken â€” 1.10.5
 
-I'm getting 1.10.5 running for Unbroken in a separate local test. This branch stays separate from the live 1.4.4 servers.
+This is the current public realm. The folder still says `experiments` because that is where the port started; it is no longer a separate public test launcher.
 
-Ramsgate now loads, and the first Slayer's Path quest completes, gives 100 Rams and saves its progress. Training Grounds has its own local server now, instead of matchmaking sending every request back to Ramsgate. Travel to the training map and Rosk's dialogue have both been confirmed in-game, with the next quest progressing in the saved character data.
+Two EU hosts run the game. EU #2 also runs the shared backend and database; the UK host runs the key bot and keeps a verified backup. Paths, queue rules and the backup schedule are in [fleet operations](../../docs/operations/fleet-admission-backups.md).
 
-I also fixed the shared dialogue lookup for characters whose grammatical gender hasn't been set. It uses the packaged neutral translation without changing the character's appearance. The first quest description and Rosk's later conversation have been confirmed in-game. The rest of the quest chain still needs testing.
+## Accounts and progression
 
-Slayer's Path snapshots now save to the local database with version checks. Bounty boards are still disabled, and the local season17 configuration only supplies the dates needed to finish loading. Hunting Grounds now starts on demand: Void entered an island, moved around and killed two Behemoths. The backend recorded inventory saves and weapon XP from that visit. Multiplayer and the rest of the islands still need in-game testing.
+Players use their existing Unbroken account key. Legacy inventory, cosmetics, quests and unlock records are converted without writing back to the old database. Fresh accounts get the normal starting state, not a completed Slayer's Path or maxed Escalations. Migration must not replace progress already earned on 1.10.5.
 
-Void's imported inventory loads in-game. The old Slayer Mastery is still rank 37; the newer HUD shows weapon skill instead. Its stuck `8,888 / 100,000` was placeholder text because the backend was missing the packaged experience tracks. Those tracks are now included with the original 1.10.5 XP thresholds.
+Old Slayer Mastery and the weapon skill shown by 1.10.5 are different systems. `migrate-experience.cjs` inserts missing weapon tracks at zero XP, displayed as level 1, without overwriting existing tracks. Void confirmed his inventory, current quests and island access after conversion. That does not prove every old save is covered.
 
-I'm starting migrated weapon skills at zero XP (level 1 in 1.10.5), regardless of old equipment rank. Gear, old Mastery, quests, island unlock records and tutorial progress stay intact. `migrate-experience.cjs` only inserts missing weapon tracks, so running it again never resets XP earned in the new version. I checked Void after the reset: his current quests and previously available islands are still accessible. That confirms this account's migration, not every possible save or the complete old quest-to-Slayer's Path mapping.
+## Checks so far
 
-## Where I'm leaving it — 1 November
+- Ramsgate login, Markus's first quest and its 100 Rams reward, Training Grounds travel and Rosk's dialogue passed in-game checks.
+- Void entered Hunting Grounds and killed two Behemoths. The backend received inventory and weapon XP saves.
+- All 18 Escalation variants passed startup checks. DR_AGON confirmed entering one; full rounds, rewards and return travel still need completion tests.
+- Public matchmaking shares eligible hunts. Private requests keep solo players or their party separate. Reservations count the whole party against capacity.
+- Empty worlds retire using fresh occupancy samples and travel reservations. Ramsgate fills available seats before another city starts.
+- Shop cards now read the same Rams price as the purchase screen. Forgemaster Hammer showed 2,500 Rams on both screens; no purchase was made.
+- Main-shop offers rotate weekly. Recruit dye stays available for the quest. Middleman recipe times are set to one hour on client and host.
+- New loadouts start without an Omnicell. Creating a loadout no longer equips an unearned Revenant; saved equipment is preserved.
+- Slayer Link pools now use the 1.10.5 reward table. The repair restored 32 missing pools across 17 links without changing their XP, dates or existing rolls. A second pass made no changes.
+- Database backups are verified before older copies are removed. Player saves happen during play, not only at backup time.
 
-Ramsgate login, the first Markus quest (including its 100 Rams reward), Training Grounds travel, Rosk's dialogue and one Hunting Grounds island have passed the local in-game checks. Void's belongings are present, and resetting weapon XP leaves his quests and islands available. GOLLUM, EkoR and Sheep are now copied into the separate test database too. Their inventories match their exports, and their original account keys work on this realm. Nothing writes back to the live database.
+## Still being checked
 
-Next up: multiplayer, the other islands, Escalations and the rest of the quest chain. The twelve unresolved item IDs and the old Gnasher axe rank still need checking. Bounty boards remain disabled. I also need to handle failed Journey saves on the native side before calling this ready for public use.
+Startup checks do not prove every hunt can be completed. Trials and unsupported story routes fail explicitly instead of sending players to the wrong world. Escalation completion, Slayer Link reward display and claims, some weapon abilities, zero-health states and Lightbound Koshai's invisible effects remain on the gameplay check list.
 
-## Hosted test realm
+Live checks found Bastion equipped and Iceborne charging. Characters without an Omnicell actor in that sample also had an empty saved active slot. A check of 4,034 saved loadout revisions found no populated Omnicell slot being cleared. That does not explain every disappearing HUD slot; capture the active loadout, role and ability state during a failure before changing loadouts.
 
-The 1.10.5 test realm runs on EU #2 (`5.175.140.184`). The original invite address (`82.153.118.185:62002`) forwards TCP to EU #2, so existing invites and launchers keep working. Testers use the separate Windows launcher; they don't need Tailscale or my PC online. The launcher has no supporter-theme code. Send `Unbroken1105Test.zip`, extract the whole folder and run `Unbroken1105Test.exe`.
+## Native build
 
-Existing Unbroken players paste a fresh test invite and import their usual account backup. The first login reads that account from the live 1.4.4 database and copies it into the separate test database. The invite is spent only after the copy succeeds. Later logins use the same account key without another invite and never replace earned test progress. New players can register with a test invite instead. Logout and saved-account switching are included.
+Use build 365075 from [DauntlessManifestArchive](https://github.com/addison2k/DauntlessManifestArchive/blob/main/manifests/Windows/Dauntless_1.10.5.365075.manifest). Manifest SHA-1: `a31648745d9e41016aaa6ed9a16d1eabab85ec7d`.
 
-The importer preserves inventory, appearance, quests and unlock records, starts missing weapon tracks at zero XP, and does not copy admin privileges. Guild, friend and Slayer Link relationships are not imported by this single-account flow. Void's earlier local migration passed in-game; other saves and all quest paths still need testing. Production data is read-only.
+Pinned `Dauntless-Win64-Shipping.exe` SHA-256:
 
-Login and game API traffic use certificate-verified HTTPS on TCP 62002. The launcher bridges the game's local HTTP connection to that encrypted gateway. Worlds advertise the VPS address on UDP 63870–63875. The backend, allocator and owner dashboard remain loopback-only. Administrators reach the dashboard through an SSH tunnel; the owner key stays in `backend-state/realm-owner.key`.
-
-The Windows scheduled task `Unbroken1105-TestRealm` starts and supervises the realm. It waits for all 606 game files to verify before starting worlds. Ramsgate and Training Grounds stay available, with at most two Hunting Grounds instances on this small VPS. Same-island requests share a map; empty islands close after sustained fresh zero-client samples and no recent allocation.
-
-The launcher downloads chunks directly from Epic using the pinned archived GitHub 1.10.5 manifest. It shows the current download/assembly file, verifies checksums and resumes verified work. No full game ZIP is needed. Keep the launcher running during play.
-
-```powershell
-node experiments/1.10.5/check-launcher.cjs
-node experiments/1.10.5/check-migration-login.cjs
-node experiments/1.10.5/check-local-deploy.cjs
-node experiments/1.10.5/build-launcher.cjs
+```
+41c3b9a92967b3a35f3bc6b97613e93d9901c7701bd47e9f09e0c241c9cf78fd
 ```
 
-Build inputs and generated packages stay outside Git. `hosted-ops/launcher-public.json` supplies the VPS address, public certificate and fingerprint; its private key must never enter the launcher. The packaged native DLL is restricted to the exact 1.10.5 executable. The local Tailscale setup remains available for development through `start-realm.ps1` when no hosted configuration is present.
-
-Two startup problems were caught during the island test: Windows excluded the old UDP port range, so native bind fallback advertised the wrong destination; and background Windows PowerShell inherited incompatible module paths, making `Get-FileHash` unavailable. The scripts now probe their configured ports, verify the actual listener owner and give Windows PowerShell its own module directory. Hosted processes run under Task Scheduler because processes launched from a short SSH session did not survive logout.
-
-## In-game Update Notes
-
-Unbroken's notes are in `DauntlessUnbrokenMetagame/src/routes/patchnotes1105.json`. They cover the local build, account progression, quest fixes and current limits. Edit that file and rebuild/restart the local backend to update the text. All language requests currently use the English copy. The HTTP response and isolation checks pass; the populated screen still needs a visual check in the next game session.
-
-The game already requests `GET /patchnotes/en/365075_rel-1.10.5_shipping`; it was falling through to the unstubbed-route handler, leaving the built-in `1.6.3` placeholder screen. The new response uses the existing endpoint and widget, with no additional DLL hook. It only answers for this build with a local profile or `LOCAL_1105_REALM=1`, and `BIND_HOST=127.0.0.1`.
-
-For this exact client, the response is `{code, message, payload}`. The payload has `date` (an ISO date string), `description`, `language`, `permalink`, `release_version`, `title` and `notes`. Each note has `type`, `title` and `sections`; each section has `type`, `title`, `description`, `background`, `cta`, `url` and `changes`. Each change has a `comment` and a string `list`. The response serializer is at RVA `0xDD7590`, payload at `0x1AC15B0`, category at `0x1AC11F0`, section at `0x1AC19A0` and change at `0x1AC1180`. Recheck this contract if the client build changes.
-
-Run the focused check from `DauntlessUnbrokenMetagame`:
-
-```powershell
-./node_modules/.bin/tsc.cmd -p tsconfig.test.json
-node --test build/test/patchnotes1105.test.js
-```
-
-## Weapon XP migration
-
-With the imported profile selected and the local client/world servers closed:
-
-```powershell
-node experiments/1.10.5/check-experience.cjs
-node experiments/1.10.5/migrate-experience.cjs # preview
-node experiments/1.10.5/migrate-experience.cjs --apply
-```
-
-The first apply keeps a private SQLite snapshot beside the imported database. Restart the local backend and worlds afterward to reload the progression configuration. The XP configurations come from the packaged `Gameplay/Experience` weapon, player and prestige track tables. The HUD now shows real levels in-game; migrated weapon skills start at zero XP.
-
-## Test setup
-
-My test folder is `C:\dr\build-1.10.5-20261030`, with the source in `repo`. The DLL checks `DR_1105_LOCAL_LAB=1`, that exact game path, and the executable SHA-256 below. These offsets are only for this build.
-
-`41c3b9a92967b3a35f3bc6b97613e93d9901c7701bd47e9f09e0c241c9cf78fd`
-
-Game files, the generated SDK, keys, databases, logs and compiled test binaries stay out of Git. This setup uses its own configuration and test account. The migration response is currently a placeholder limited to `LOCAL_1105_ACCOUNT_ID`; it doesn't convert anyone's save.
-
-## Building and running locally
-
-Use the verified `Dauntless_1.10.5.365075.manifest` (SHA-1 `a31648745d9e41016aaa6ed9a16d1eabab85ec7d`) from [DauntlessManifestArchive](https://github.com/addison2k/DauntlessManifestArchive/blob/main/manifests/Windows/Dauntless_1.10.5.365075.manifest). Obtain the client separately. Place it under the lab's `game` directory, and its extracted `DefaultGame.ini` under `extracted-config`. Generate the SDK from this exact build using Dumper-7; the project expects `sdk/4.26.2-365075+++dauntless+rel-1.10.5-Archon/CppSDK` beside `repo`.
-
-Build with Visual Studio 2022 Build Tools (v143, Windows SDK, MASM) and Python 3:
+The build workspace has `repo`, `game`, `extracted-config/DefaultGame.ini` and `sdk/4.26.2-365075+++dauntless+rel-1.10.5-Archon/CppSDK` as siblings. Generate the SDK from this exact client. Use Python 3 and Visual Studio 2022 Build Tools with v143, Windows SDK and MASM:
 
 ```powershell
 python experiments/1.10.5/build-bootstrap.py
-cd DauntlessUnbrokenMetagame
-npm ci
-npm run build
-cd ..
+python experiments/1.10.5/check-gameclient-init.py
 ```
 
 The client bootstrap repairs an empty XMPP server address and domain using the launcher-selected host and `DR_1105_XMPP_PORT`. The isolated lab defaults to port 62099; the normal launcher supplies its selected chat port. It leaves an already configured address and domain unchanged. This hook is limited to the verified 365075 client build. Run `python experiments/1.10.5/check-presence-login.py <game-exe>` to verify the hook target; `test-presence-address.cpp` checks the address selection without the game.
@@ -135,20 +89,19 @@ Run `node experiments/1.10.5/check-imported-account.cjs` before the imported cha
 To test the imported account, stop the local game, both world servers, backend and allocator, then set `backend-state/selected-account.json` to `{"profile":"imported"}` and start them again. Use `{"profile":"synthetic"}` to return to Local1105. Friend and guild relationships are archived in the export but aren't installed in this single-account lab.
 
 The catalog comparison found 925/928 instanced IDs and 1,729/1,738 stacked IDs in the 1.10.5 assets. That doesn't prove every item works. Twelve IDs remain unresolved, and `WP_GA_BEAVER` has an old level of 15 where the new catalog allows 0–1. Other weapons still use levels up to 15, so changing every item to level 1 would be wrong. Weapon experience and reforge tracks are separate from those item levels and are absent from this 1.4.4 save. Quest-to-Slayer's-Path conversion also remains unfinished. Nothing here is a production migration yet.
+Do not install the 1.4.4 DLL. `start-server.ps1` refuses a new world when the built and installed DLL hashes differ; stage both together. Existing processes keep their loaded DLL until they exit.
 
-## Notes for continuing the port
+A local lab needs its own database, keys, game profile and ports. The old `start-client.cjs`, selected-account fixtures and research scripts are development tools, not the public launcher. Never point them at production player data.
 
-I've kept the early diagnostic scripts and build findings in `research` too. These are the original lab tools, not the normal startup commands above. The Python scripts expect to be copied into the lab's `tools` folder; they use this machine's paths for the old client, `repak`, `pefile` and `capstone`. `prepare-dump.py` overwrites the disposable lab profile configuration, so only use it when preparing a separate SDK dump, with the game closed.
+## Update Notes
 
-`build-identity.json` identifies the exact executable. `native-candidates.json` is an early signature-search result: every candidate is marked unverified, and the reviewed offsets in `bootstrap.cpp` take precedence. `season-trace.cdb` records the track-lookup and Bounty-return breakpoints used during loading diagnosis. The archived manifest-tool patch handles plain CDN chunks as well as compressed ones; its source notice and MIT license are included. The downloaded chunks, game assets and SDK are not.
+The game reads `/patchnotes/en/365075_rel-1.10.5_shipping`. Edit `DauntlessUnbrokenMetagame/src/routes/patchnotes1105.json` and run its patch-notes test before publishing. Keep confirmed changes separate from issues under investigation.
 
-The old standalone startup scripts were replaced by the current scripts in this folder. The production-access export helper and one-time Void XP correction stay local. That correction only changed the seven previously seeded `27,775 XP / level 20` weapon tracks to `0 XP / level 1`, after a backup, and checked that all other saved data stayed unchanged. New imports use `migrate-experience.cjs` instead; don't reset progress already earned in 1.10.5.
+## Porting notes
 
-- Early engine startup overwrites `GIsServer/GIsClient`. Setting the globals only in `DllMain` caused repeated world loading. Exact-build guarded startup patches keep dedicated flags stable.
-- `UWorld::Listen` is a false-return stub in this WindowsClient build. The hook replaces only the LoadMap call site, creates the named net driver and calls the verified `IpNetDriver::InitListen`; successful UDP binding is checked independently.
-- The dynamic source level collection must also own the driver. `SetActiveLevelCollection` (`0x40712D0`) copies its driver back to `UWorld::NetDriver`; assigning the world alone was undone by the next collection switch.
-- The lab server config enables `/Script/Archon.ArchonReplicationGraph`. Native InitListen creates it and SetWorld registers dispatch/flush delegates. WindowsClient TickFlush omits server replication, so the hook invokes the verified Archon graph once before native flush when a client is connected; it does not duplicate dispatch or the old manual actor loop.
-- Server HTTP requests need the existing backend's game-server API-key header. The server-only Curl hook verifies exact build bytes and attaches a fresh lab-only credential solely to `http://127.0.0.1:62000/` URLs. Credentials remain outside Git. Backend authentication is not bypassed.
-- `UPlayerJourneyComponent::OnQueryPlayerJourneyDataComplete` dereferences a null HTTP response at RVA `0x192a6bb`. The assembly guard enters the existing failure/cleanup path instead of returning past shared-pointer cleanup. It compiles; a forced-null runtime regression is still pending.
-- 1.10.5 adds `/migration/trigger` (POST) and `/migration/status` (GET). Its response parser requires top-level boolean `migration_finished` and `migration_failed`. The older 167-endpoint map omitted these keys. The generator now incorporates packaged Phoenix endpoint keys and redirects them to loopback.
-- Broad substring matching of MCP `Domain`/`Protocol` keys also changed URL paths and WebSocket schemes. The experiment matches exact keys and preserves `ws` for the STOMP transport. Chat/STOMP services are not implemented in this lab.
+- Engine startup overwrote dedicated flags set only in `DllMain`. The startup guards are specific to this executable.
+- `InitListen` and the level collections must share the correct net driver. Native `ArchonReplicationGraph` replication runs before the client build's `TickFlush`, which otherwise omits the server replication step.
+- Server HTTP requests use the game-server API-key header. The server-only Curl hook adds it only for the configured loopback backend. Secrets stay outside Git.
+- The Journey null-response guard takes the native failure/cleanup path; returning early would skip shared-pointer cleanup.
+- Match MCP endpoint keys exactly. Broad matching of `Domain` or `Protocol` changed URL paths and WebSocket schemes.
+- The offer map at `0x190` uses byte enum keys; the FName-keyed map is at `0x1e0`. Treating the enum as an FName crashed while formatting the name. The Rams card fix reads the verified enum map and borrows engine-owned price text.

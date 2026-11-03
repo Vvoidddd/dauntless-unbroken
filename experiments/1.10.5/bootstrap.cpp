@@ -1,4 +1,4 @@
-// Local port investigation only. No production DLL or endpoint is used.
+// Native compatibility hooks for the pinned 1.10.5 client and game hosts.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <bcrypt.h>
@@ -12,6 +12,8 @@
 #include "MinHook/MinHook.h"
 #include "SDK/Archon_structs.hpp"
 #include "SDK/Engine_classes.hpp"
+#include "SDK/UMG_classes.hpp"
+#include "SDK/w_store_item_bpw_classes.hpp"
 #include "SDK/GameplayAbilities_classes.hpp"
 #include "SDK/exploration_game_mode_bpc_classes.hpp"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
@@ -47,6 +49,87 @@ static void Note(const char* text) {
     DWORD written;
     WriteFile(Log, text, static_cast<DWORD>(strlen(text)), &written, nullptr);
     FlushFileBuffers(Log);
+}
+static void SetText(SDK::UTextBlock* block, const SDK::FText& value) {
+    if (!block) return;
+    auto* function = block->Class->GetFunction("TextBlock", "SetText");
+    if (!function) return;
+    struct { SDK::FText InText; } params{value};
+    block->ProcessEvent(function, &params); // Engine copies the borrowed FText.
+}
+static void (*OriginalSetStoreViewModel)(SDK::UStoreItemWidget*, SDK::UStoreItemViewModel*);
+static void SetStoreViewModel(SDK::UStoreItemWidget* widget, SDK::UStoreItemViewModel* model) {
+    OriginalSetStoreViewModel(widget, model);
+    if (!widget || !model || widget->StoreItemViewModel != model ||
+        widget->Class->GetName() != "w_store_item_bpw_C") return;
+    const auto currency = SDK::UKismetStringLibrary::Conv_StringToName(L"CURRENCY_NOTES");
+    // Exact 1.10.5 offer layout: standard currencies use enum keys at 0x190;
+    // the FName map at 0x1e0 contains custom currencies only.
+    struct PriceRef { const uint8_t* Object; void* Reference; };
+    const auto& prices = *reinterpret_cast<const SDK::TMap<SDK::EOnlineStorePhoenixCurrency, PriceRef>*>(
+        reinterpret_cast<const uint8_t*>(&model->StoreItem) + 0x190);
+    if (!prices.IsValid() || prices.NumAllocated() > 16) return;
+    for (const auto& entry : prices) {
+        if (entry.Key() != SDK::EOnlineStorePhoenixCurrency::Rams || !entry.Value().Object) continue;
+        const auto* price = entry.Value().Object;
+        if (*reinterpret_cast<const int32_t*>(price + 0x98) < 0) continue;
+        auto* card = static_cast<SDK::Uw_store_item_bpw_C*>(widget);
+        SetText(card->Text_Cost, *reinterpret_cast<const SDK::FText*>(price + 0x80));
+        SetText(card->old_price, *reinterpret_cast<const SDK::FText*>(price + 0x60));
+        auto* table = model->CurrencyDataTable;
+        if (card->PriceIcon && table && table->RowStruct && table->RowStruct->GetName() == "CurrencyTableData" &&
+            table->RowMap.IsValid() && table->RowMap.NumAllocated() < 512) {
+            for (const auto& row : table->RowMap) {
+                if (row.Key() != currency || !row.Value()) continue;
+                auto* function = card->PriceIcon->Class->GetFunction("Image", "SetBrushFromSoftTexture");
+                if (function) {
+                    struct { SDK::TSoftObjectPtr<SDK::UTexture2D> SoftTexture; bool MatchSize; uint8_t Pad[7]; }
+                        params{reinterpret_cast<const SDK::FCurrencyTableData*>(row.Value())->Icon, false, {}};
+                    static_assert(sizeof(params) == 0x30);
+                    card->PriceIcon->ProcessEvent(function, &params);
+                }
+                break;
+            }
+        }
+    }
+}
+static void UpdateCellFusionTime() {
+    static SDK::UDataTable* table = nullptr;
+    static int index = -1;
+    static ULONGLONG next = 0;
+    const auto now = GetTickCount64();
+    if (now < next) return;
+    next = now + (table ? 30000 : 2000);
+    if (!table || SDK::UObject::GObjects->GetByIndex(index) != table) {
+        table = SDK::UObject::FindObject<SDK::UDataTable>("DataTable cell_exchange_table.cell_exchange_table");
+        index = table ? table->Index : -1;
+    }
+    if (!table || !table->RowStruct || table->RowStruct->GetName() != "CellExchangeTableData" ||
+        !table->RowMap.IsValid() || table->RowMap.NumAllocated() > 4096) return;
+    int changed = 0;
+    for (const auto& entry : table->RowMap) {
+        if (!entry.Value()) continue;
+        auto* row = reinterpret_cast<SDK::FCellExchangeTableData*>(entry.Value());
+        static_assert(sizeof(row->TimeRequired) == sizeof(int64_t));
+        auto& ticks = *reinterpret_cast<int64_t*>(&row->TimeRequired);
+        if (ticks != 36000000000LL) { ticks = 36000000000LL; ++changed; }
+    }
+    if (changed) Note("middleman_fusion_recipes_one_hour\n");
+}
+// The alternate portrait mode calls SetText, removing its Blueprint binding.
+// Recycled ordinary portraits must refresh text with their new VM too.
+static void (*OriginalSetPortraitViewModel)(SDK::UBehemothPortraitWidget*, SDK::UIslandBehemothViewModel*);
+static void SetPortraitViewModel(SDK::UBehemothPortraitWidget* widget, SDK::UIslandBehemothViewModel* model) {
+    OriginalSetPortraitViewModel(widget, model);
+    if (!widget || !model || widget->IslandBehemothViewModel != model || !widget->LevelTextBlock) return;
+    auto* text = widget->LevelTextBlock;
+    auto* setText = text->Class->GetFunction("TextBlock", "SetText");
+    if (!setText) return;
+    // Reflected const-reference parameter: let the engine own/copy FText.
+    // The native virtual setter instead consumes a by-value owning temporary.
+    struct { SDK::FText InText; } params{model->BehemothDisplayName};
+    static_assert(sizeof(params) == 0x18);
+    text->ProcessEvent(setText, &params);
 }
 // Both RPC wrappers keep ownership/validation and event lifetime. Native
 // activation still checks the ability spec, prediction, cooldown and cost.
@@ -258,6 +341,8 @@ static void DumpHuntTables() {
 }
 static void Tick(void* self, float delta, char render) {
     OriginalTick(self, delta, render);
+    UpdateCellFusionTime();
+    if (!Server) return; // Client must never run server stamina work or Sleep(25).
     auto* currentWorld = SDK::UWorld::GetWorld();
     auto* currentDriver = currentWorld ? currentWorld->NetDriver : nullptr;
     if (currentDriver && !currentDriver->ServerConnection) {
@@ -433,6 +518,9 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     const unsigned char dialogBytes[] = {0x48,0x89,0x5c,0x24,0x08,0x55,0x56,0x57};
     if (memcmp(reinterpret_cast<void*>(Base+0x1369ca0), dialogBytes, sizeof(dialogBytes))) Fail("dialog_bytes_mismatch\n");
     if (!Hook(0x1369ca0, DialogNamespace, reinterpret_cast<void**>(&OriginalDialogNamespace))) Fail("dialog_hook_failed\n");
+    const unsigned char tickBytes[] = {0x48,0x8b,0xc4,0x44,0x88,0x40,0x18,0x48,0x89,0x48,0x08,0x55,0x53,0x56,0x57,0x41};
+    if (memcmp(reinterpret_cast<void*>(Base+0x3bc2f20), tickBytes, sizeof(tickBytes))) Fail("tick_bytes_mismatch\n");
+    if (!Hook(0x3bc2f20, Tick, reinterpret_cast<void**>(&OriginalTick))) Fail("tick_hook_failed\n");
     if (!Server) {
         const unsigned char presenceBytes[] = {0x48,0x89,0x5c,0x24,0x10,0x55,0x56,0x57};
         if (memcmp(reinterpret_cast<void*>(Base + 0x4321700), presenceBytes, sizeof(presenceBytes))) Fail("presence_login_bytes_mismatch\n");
@@ -449,6 +537,12 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
         if (!VirtualProtect(eacBranch, sizeof(eacExpected), protection, &unused)) Fail("eac_skip_protection_failed\n");
         FlushInstructionCache(GetCurrentProcess(), eacBranch, sizeof(eacExpected));
         Note("legacy_gameclient_init_skipped\n");
+        const unsigned char portraitBytes[] = {0x40,0x56,0x48,0x81,0xec,0x60,0x01,0x00,0x00,0x48,0x8b,0x05,0xd8,0x34,0xa7,0x04};
+        if (memcmp(reinterpret_cast<void*>(Base+0x1f1cb80), portraitBytes, sizeof(portraitBytes))) Fail("portrait_bytes_mismatch\n");
+        if (!Hook(0x1f1cb80, SetPortraitViewModel, reinterpret_cast<void**>(&OriginalSetPortraitViewModel))) Fail("portrait_hook_failed\n");
+        const unsigned char storeBytes[] = {0x48,0x89,0x5c,0x24,0x18,0x48,0x89,0x74,0x24,0x20,0x55,0x57,0x41,0x56,0x48,0x8d};
+        if (memcmp(reinterpret_cast<void*>(Base+0x1fecc60), storeBytes, sizeof(storeBytes))) Fail("store_price_bytes_mismatch\n");
+        if (!Hook(0x1fecc60, SetStoreViewModel, reinterpret_cast<void**>(&OriginalSetStoreViewModel))) Fail("store_price_hook_failed\n");
     }
     if (Server) {
         RestoreAbilityDispatch();
@@ -468,8 +562,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
         if (!Hook(0x23ff650, ServerCommandLine, reinterpret_cast<void**>(&OriginalCommandLine)) ||
             !Hook(0x4063fc0, DedicatedNetMode, reinterpret_cast<void**>(&OriginalNetMode)) ||
             !Hook(0x2cf1100, DefaultMap, reinterpret_cast<void**>(&OriginalMap)) ||
-            !Hook(0x3d48950, TickFlush, reinterpret_cast<void**>(&OriginalTickFlush)) ||
-            !Hook(0x3bc2f20, Tick, reinterpret_cast<void**>(&OriginalTick))) Fail("server_hook_failed\n");
+            !Hook(0x3d48950, TickFlush, reinterpret_cast<void**>(&OriginalTickFlush))) Fail("server_hook_failed\n");
         *reinterpret_cast<uint8_t*>(Base + 0x6af8eda) = 1;
         *reinterpret_cast<uint8_t*>(Base + 0x6af8ed9) = 0;
         // Same assignment identified in both builds; force the client flag off for -server.

@@ -11127,12 +11127,12 @@ The current realm uses two EU game hosts and a separate UK service host:
 
 | Host | Role |
 | --- | --- |
-| `5.83.134.32` | EU #1: shared metagame, gateway, primary allocator and private dashboard |
-| `5.175.140.184` | EU #2: game worker for hunts, Ramsgate and Training Grounds |
-| `82.153.118.185` | UK: key bot and database snapshot storage; no game hosting |
+| `5.83.134.32` | EU #1: game worker for hunts, Ramsgate and Training Grounds |
+| `5.175.140.184` | EU #2: shared 1.10.5 backend, gateway, allocator, dashboard and game worker |
+| `82.153.118.185` | UK: key bot and verified database backup storage |
 
-The primary runtime is `C:\DauntlessUnbroken`; the second game runtime is
-`E:\DauntlessUnbroken`; UK services use `C:\DauntlessUnbrokenBot`.
+The game runtimes are `C:\Unbroken1105` on EU #1 and `E:\Unbroken1105` on EU #2.
+The authoritative database is `E:\Unbroken1105\backend-state\realm.db` on EU #2; UK services use `C:\DauntlessUnbrokenBot`.
 These installed runtime roots are not Git checkouts. Build source separately and
 stage the resulting application files; preserve `data`, keys, TLS and environment files.
 
@@ -11170,38 +11170,33 @@ three admission methods; backend requests are rate limited per account.
 
 ## Database copies and cleanup
 
-The primary continues producing verified online SQLite snapshots. The UK task
-**Dauntless Unbroken database copies** pulls a completed snapshot hourly and at boot.
-It refuses snapshots older than two hours, checks SHA-256 and SQLite `quick_check`,
-then renames the temporary `.db.partial` file to its final `.db` name. No live
-database files are copied while being written.
+Player changes are saved during play; the weekly job is a recovery backup, not the save interval.
+EU #2 runs **Unbroken 1.10.5 verified backup** every Sunday at 03:00 host time.
+It asks the running backend to create an online SQLite snapshot through its authenticated,
+loopback-only backup endpoint. Using the database writer avoids a separate backup connection
+holding a read lock and delaying player saves in DELETE journal mode.
 
-The source uses a separate SSH key restricted to `Export-DatabaseSnapshot.ps1`:
-only snapshot metadata and reads under the managed backup directory are allowed.
-It cannot run arbitrary shell commands, upload files or use SFTP. Host keys are pinned.
-Windows inbox OpenSSH 8.x uses legacy SCP by default; OpenSSH 9.x requires `-O`
-for this restricted source. The receiver chooses according to the installed binary.
+The UK task **Dauntless Unbroken database copies** runs Sundays at 03:00 UTC.
+It pulls the completed EU #2 snapshot, verifies SHA-256 and SQLite `quick_check`,
+then renames the temporary `.db.partial` file to its final `.db` name.
+The source SSH key is restricted to `Export-DatabaseSnapshot.ps1`: it can read
+managed snapshots, but cannot run a shell, upload files or use SFTP. Host keys are pinned.
+OpenSSH 9.x needs legacy SCP (`-O`) for this restricted source.
 
-**Dauntless Unbroken backup cleanup** runs hourly and at boot. Cleanup also runs
-after each transfer, including failures. It removes receiver-owned `.partial` and
-`.failed` files and snapshots whose **CreationTimeUtc is older than three days**.
-Modification times and filename dates do not determine age. A shared OS-held lock
-protects an active copy; locked files and reparse points are skipped. Other database
-filenames, the live database, configuration and keys are outside this deletion policy.
+Each managed backup location keeps its newest verified snapshot. The previous snapshot
+is deleted only after the replacement passes verification. A failed backup or copy
+keeps the previous good snapshot. Cleanup is restricted to managed backup paths and
+skips reparse points; it never deletes the live database, account keys or configuration.
+A shared lock prevents cleanup from racing an active copy.
 
-The private dashboard receives EU #2 and UK telemetry over restricted SSH tunnels.
-Monitoring binds to loopback only. UK reports snapshot verification time and no hunt
-hosting; stale or missing capacity remains unknown rather than being displayed as zero.
+The UK copy contains the database. Back up server secrets and configuration separately;
+they are not included in the downloadable snapshot.
 
 ## Verification
 
-- `DauntlessUnbrokenMetagame/test/launcher-admission.test.ts`: account isolation,
-  original queue age, twenty-minute waits, cancellation and single-seat reuse.
-- Launcher controller tests: no spawn while queued, position display state,
-  cancellation, admission and hunt queue observation.
-- Deploy city tests: whole-party reservations and second-host fallback.
-- `deploy/windows-server/Test-DatabaseBackupRetention.ps1`: creation-time retention,
-  partial cleanup, transfer locking and protection for unmanaged databases.
+- `deploy/windows-server/Test-DatabaseBackupRetention.ps1`: verified replacement and retention.
+- `deploy/windows-server/lib/dr-db-backup.test.cjs`: writer endpoint failures and concurrent WAL writes.
+- `DauntlessUnbrokenMetagame/test/launcher-admission.test.ts`: account isolation, queue age, cancellation and seat reuse.
 
 ================================================================================
 URL: https://vvoidddd.github.io/dauntless-unbroken/r2-downloads.html

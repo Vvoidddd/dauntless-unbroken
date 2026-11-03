@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-02T00:00:00Z",
+  "date": "2026-11-03T00:00:00Z",
   "title": "Dauntless Unbroken",
   "release_version": "1.10.5 - Public Release",
   "description": "Dauntless Unbroken is now running 1.10.5. These notes cover our changes and the issues still being investigated.",
@@ -71,7 +71,13 @@
                 "Hunt allocation checks fresh game activity before assigning a world.",
                 "Unresponsive hunt processes are retired after a grace period.",
                 "Ordinary bounties and seasonal challenges no longer replace each other when they use the same slot number.",
-                "Quest dialogue and Training Grounds routing have been corrected."
+                "Quest dialogue and Training Grounds routing have been corrected.",
+                "Public matchmaking groups eligible requests for the same hunt; private hunts stay limited to you and your party.",
+                "Launcher 1.0.53 corrects the Rams price and currency icon on shop cards.",
+                "Main-shop offers rotate weekly, with Recruit dye always available for its quest.",
+                "Middleman fusion recipes use a one-hour wait. Existing timers are not restarted.",
+                "New loadouts no longer start with an unearned Revenant Omnicell. Existing equipment is preserved.",
+                "Slayer Links now accept the 1.10.5 reward pool, including Combat Merits and Aethersparks. Missing pools have been restored without resetting link progress or existing rewards."
               ]
             }
           ]
@@ -95,7 +101,8 @@
               "list": [
                 "Some players still report hunt timeouts or Escalation cancellations.",
                 "Weapon meters, lanterns, consumables and zero-health states still need further gameplay validation.",
-                "Missing items and bounty rewards are being checked; report the item or bounty name with your account name."
+                "Missing items and bounty rewards are being checked; report the item or bounty name with your account name.",
+                "Omnicell HUD and activation reports, Lightbound Koshai effects and Slayer Link reward display are still under investigation."
               ]
             }
           ]
