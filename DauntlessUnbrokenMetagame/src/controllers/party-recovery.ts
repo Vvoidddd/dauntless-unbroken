@@ -3,6 +3,7 @@ import { IsAccountIdShape } from './login';
 import { MEMBER_TIMEOUT_MS, PartyMembershipSnapshot, RestorePartyMembership } from './party';
 import { logger } from '../logger';
 import { NativePartyActivitySummary } from './nativepartyactivity';
+import { PartyTravelSnapshot, RestorePartyTravel } from './matchmaking';
 
 const Uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function RestorePartyFile(File: string, Now = Date.now()): void {
@@ -19,13 +20,22 @@ export function RestorePartyFile(File: string, Now = Date.now()): void {
             && p.Seen.every((at: unknown) => typeof at === 'number' && Number.isFinite(at) && at <= Now + 5000));
         if(!Valid) throw Error('invalid checkpoint');
         RestorePartyMembership(Data.parties);
+        if (Array.isArray(Data.travel) && Data.travel.length <= 40000) {
+            const travel = Data.travel.filter((row: any) => row && IsAccountIdShape(row.id)
+                && typeof row.Host === 'string' && row.Host.length > 0 && row.Host.length <= 255 && !/[\x00-\x20\x7f]/.test(row.Host)
+                && Number.isInteger(row.Port) && row.Port > 0 && row.Port <= 65535
+                && typeof row.HuntId === 'string' && row.HuntId.length <= 256
+                && typeof row.SessionId === 'string' && /^[A-Za-z0-9-]{1,64}$/.test(row.SessionId)
+                && Number.isFinite(row.At) && row.At <= Now + 5000);
+            RestorePartyTravel(travel);
+        }
     } catch(Error: any) {
         if(Error.code !== 'ENOENT') logger.warn('party: checkpoint could not be restored');
     }
 }
 
 export function SavePartyFile(File: string): void {
-    const Raw = JSON.stringify({at: Date.now(), nativeActivity: NativePartyActivitySummary(), parties: PartyMembershipSnapshot()});
+    const Raw = JSON.stringify({at: Date.now(), nativeActivity: NativePartyActivitySummary(), parties: PartyMembershipSnapshot(), travel: PartyTravelSnapshot()});
     if(Buffer.byteLength(Raw) > 4 * 1024 * 1024) throw Error('party checkpoint exceeds limit');
     fs.writeFileSync(File + '.tmp', Raw, {mode: 0o600});
     fs.renameSync(File + '.tmp', File);

@@ -90,7 +90,19 @@ let MatchmakingQueueMap: Map<string, MatchmakingQueueData> = new Map<string, Mat
 let MatchmakingResultMap: Map<string, MatchmakingResult> = new Map<string, MatchmakingResult>();
 const PlayerQueueMap = new Map<string, MatchmakingQueueData>();
 // The server each player was last told to travel to (the status poll's IN_PROGRESS)
-const LastSentMap = new Map<string, { Host: string, Port: number, HuntId: string, SessionId?: string, At: number }>();
+type LastSent = { Host: string, Port: number, HuntId: string, SessionId?: string, At: number, Recovered?: boolean };
+const LastSentMap = new Map<string, LastSent>();
+
+export function PartyTravelSnapshot() {
+    return [...LastSentMap].filter(([id, sent]) => (GetPartyOf(id)?.Members.length ?? 0) > 1 && sent.SessionId)
+        .map(([id, sent]) => ({id, Host: sent.Host, Port: sent.Port, HuntId: sent.HuntId, SessionId: sent.SessionId, At: sent.At}));
+}
+
+export function RestorePartyTravel(rows: Array<{id: string} & LastSent>) {
+    for (const {id, ...sent} of rows) {
+        if ((GetPartyOf(id)?.Members.length ?? 0) > 1 && !LastSentMap.has(id)) LastSentMap.set(id, {...sent, Recovered: true});
+    }
+}
 const LauncherAdmissions = new Map<string, string>();
 
 // This is the same candidate the retail client joins, not a second seat/queue.
@@ -1169,11 +1181,17 @@ async function HandlePartyMatchmaking(GameMode: unknown, GameArgs: unknown, Hunt
     }
     else if(Mode === "CITY" || Mode === "SHARED"){
         const LeaderWas = LastSentMap.get(PlayerId);
+        let recoveredLive = false;
+        if (LeaderWas?.Recovered && LeaderWas.SessionId) {
+            recoveredLive = await AllocationHealth({SessionId: LeaderWas.SessionId, AllocatedAt: 0, GameMode: 'ISLAND'} as MatchmakingResult) === true;
+            if (GetPartyOf(PlayerId) !== TheParty || TheParty.LeaderId !== PlayerId || LastSentMap.get(PlayerId) !== LeaderWas) return false;
+        }
 
         Members = TheParty.Members.filter((Member) => {
             const MemberWas = LastSentMap.get(Member);
 
             return Member === PlayerId || (LeaderWas !== undefined && MemberWas !== undefined
+                && (!(LeaderWas.Recovered || MemberWas.Recovered) || (recoveredLive && !!LeaderWas.SessionId))
                 && MemberWas.Host === LeaderWas.Host && MemberWas.Port === LeaderWas.Port
                 && (!(LeaderWas.SessionId || MemberWas.SessionId) || MemberWas.SessionId === LeaderWas.SessionId));
         });

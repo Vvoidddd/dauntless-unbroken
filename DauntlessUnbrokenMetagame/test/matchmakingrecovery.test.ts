@@ -1,5 +1,9 @@
 import { RemoveTestDb } from './setup';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import './matchmakingenv';
+import { SavePartyFile, RestorePartyFile } from '../src/controllers/party-recovery';
 import { after, afterEach, before, beforeEach, it, TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import { GetDb } from '../src/db';
@@ -83,7 +87,7 @@ afterEach(() => {
 });
 after(() => RemoveTestDb(() => GetDb().$client.close()));
 
-for (const [hunt,mode] of [['ShatteredIsles_IslandA','ISLAND'],['ShatteredIsles_TrainingDojo','SHARED']]) {
+for (const [hunt,mode] of [['ShatteredIsles_IslandA','ISLAND'],['ShatteredIsles_TrainingDojo','SHARED'],['CR19_PlayerHunt_Escalation_Funguy_Easy','ISLAND']]) {
     it(`1.10.5 party ${hunt} retains both accounts in the allocator request`, async () => {
         const oldHost=process.env.BIND_HOST, oldRealm=process.env.LOCAL_1105_REALM;
         process.env.BIND_HOST='127.0.0.1';process.env.LOCAL_1105_REALM='1';
@@ -647,4 +651,133 @@ it('an orphaned party capacity retry fails its entries and releases the next hun
     assert.equal((await CheckAndUpdateQueueStatus(nextPlayer))?.Ready, true);
     assert.equal(posts.length, 2);
     assert.deepEqual(posts[1].ExpectedPlayers, [nextPlayer]);
+});
+
+it('1.10.5 party returns together after an Escalation allocation', async () => {
+    deploy = async body => ready(body.GameMode === 'CITY' ? 8790 : 8791);
+    const oldHost = process.env.BIND_HOST, oldRealm = process.env.LOCAL_1105_REALM;
+    process.env.BIND_HOST = '127.0.0.1'; process.env.LOCAL_1105_REALM = '1';
+    try {
+        for (const id of [A, B]) {
+            await HandlePlayerMatchmaking('CITY', '', CITY, id);
+            assert.equal((await DecideCandidateStatus(id)).Kind, 'travel');
+        }
+        await formParty();
+        const hunt = 'CR19_PlayerHunt_Escalation_Funguy_Easy';
+        posts = [];
+        await HandlePlayerMatchmaking('SHARED', '', hunt, A);
+        now += 5001;
+        await CheckAndUpdateQueueStatus(A);
+        await flush();
+        for (const id of [A, B]) assert.equal((await DecideCandidateStatus(id)).Kind, 'travel');
+        assert.deepEqual(posts[0].ExpectedPlayers, [A, B]);
+        posts = [];
+        await HandlePlayerMatchmaking('CITY', '', CITY, A);
+        await flush();
+        assert.deepEqual(posts[0].ExpectedPlayers, [A, B]);
+        for (const id of [A, B]) {
+            const decision = await DecideCandidateStatus(id);
+            assert.equal(decision.Kind, 'travel');
+            assert.equal(decision.Entry.HuntId, CITY);
+        }
+        assert.deepEqual(GetPartyOf(A)?.Members, [A, B]);
+    } finally {
+        if (oldHost === undefined) delete process.env.BIND_HOST; else process.env.BIND_HOST = oldHost;
+        if (oldRealm === undefined) delete process.env.LOCAL_1105_REALM; else process.env.LOCAL_1105_REALM = oldRealm;
+    }
+});
+
+it('after restart, a live shared hunt returns the restored party to Ramsgate', async () => {
+    const oldHost = process.env.BIND_HOST, oldRealm = process.env.LOCAL_1105_REALM;
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'party-return-'));
+    const file = path.join(dir, 'parties.json');
+    const session = 'abcd1234-1234-1234-1234-123456789abc';
+    deploy = async body => ready(body.GameMode === 'CITY' ? 8790 : 8791, body.GameMode === 'CITY' ? undefined : session);
+    health = async () => json({servers: [{id: session}], complete: true});
+    process.env.BIND_HOST = '127.0.0.1'; process.env.LOCAL_1105_REALM = '1';
+    try {
+        for (const id of [A, B]) {
+            await HandlePlayerMatchmaking('CITY', '', CITY, id);
+            assert.equal((await DecideCandidateStatus(id)).Kind, 'travel');
+        }
+        await formParty();
+        await HandlePlayerMatchmaking('SHARED', '', 'CR19_PlayerHunt_Escalation_Funguy_Easy', A);
+        now += 5001;
+        await CheckAndUpdateQueueStatus(A);
+        await flush();
+        for (const id of [A, B]) assert.equal((await DecideCandidateStatus(id)).Kind, 'travel');
+        SavePartyFile(file);
+        ResetMatchmakingForTests(); ResetPartiesForTests();
+        RestorePartyFile(file);
+        posts = [];
+        await HandlePlayerMatchmaking('CITY', '', CITY, A);
+        await flush();
+        assert.deepEqual(posts[0].ExpectedPlayers, [A, B]);
+        for (const id of [A, B]) assert.equal((await DecideCandidateStatus(id)).Kind, 'travel');
+    } finally {
+        fs.rmSync(dir, {recursive: true, force: true});
+        if (oldHost === undefined) delete process.env.BIND_HOST; else process.env.BIND_HOST = oldHost;
+        if (oldRealm === undefined) delete process.env.LOCAL_1105_REALM; else process.env.LOCAL_1105_REALM = oldRealm;
+    }
+});
+
+it('a party member without a completed status poll is excluded from the leader city return', async () => {
+    deploy = async body => ready(body.GameMode === 'CITY' ? 8790 : 8791);
+    const oldHost = process.env.BIND_HOST, oldRealm = process.env.LOCAL_1105_REALM;
+    process.env.BIND_HOST = '127.0.0.1'; process.env.LOCAL_1105_REALM = '1';
+    try {
+        for (const id of [A, B]) {
+            await HandlePlayerMatchmaking('CITY', '', CITY, id);
+            assert.equal((await DecideCandidateStatus(id)).Kind, 'travel');
+        }
+        await formParty();
+        await HandlePlayerMatchmaking('SHARED', '', 'CR19_PlayerHunt_Escalation_Funguy_Easy', A);
+        now += 5001;
+        await CheckAndUpdateQueueStatus(A);
+        await flush();
+        assert.equal((await DecideCandidateStatus(A)).Kind, 'travel');
+        posts = [];
+        await HandlePlayerMatchmaking('CITY', '', CITY, A);
+        await flush();
+        assert.deepEqual(posts[0].ExpectedPlayers, [A]);
+        assert.deepEqual(GetPartyOf(A)?.Members, [A, B]);
+    } finally {
+        if (oldHost === undefined) delete process.env.BIND_HOST; else process.env.BIND_HOST = oldHost;
+        if (oldRealm === undefined) delete process.env.LOCAL_1105_REALM; else process.env.LOCAL_1105_REALM = oldRealm;
+    }
+});
+
+for (const healthState of ['dead', 'unknown', 'other-session'] as const) it(`restored travel does not pull a party member when the hunt health is ${healthState}`, async () => {
+    const oldHost = process.env.BIND_HOST, oldRealm = process.env.LOCAL_1105_REALM;
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'party-return-'));
+    const file = path.join(dir, 'parties.json');
+    const session = 'abcd1234-1234-1234-1234-123456789abc';
+    deploy = async body => ready(body.GameMode === 'CITY' ? 8790 : 8791, body.GameMode === 'CITY' ? undefined : session);
+    process.env.BIND_HOST = '127.0.0.1'; process.env.LOCAL_1105_REALM = '1';
+    try {
+        for (const id of [A, B]) {
+            await HandlePlayerMatchmaking('CITY', '', CITY, id);
+            assert.equal((await DecideCandidateStatus(id)).Kind, 'travel');
+        }
+        await formParty();
+        await HandlePlayerMatchmaking('SHARED', '', 'CR19_PlayerHunt_Escalation_Funguy_Easy', A);
+        now += 5001; await CheckAndUpdateQueueStatus(A); await flush();
+        for (const id of [A, B]) assert.equal((await DecideCandidateStatus(id)).Kind, 'travel');
+        SavePartyFile(file); ResetMatchmakingForTests(); ResetPartiesForTests();
+        if (healthState === 'other-session') {
+            const checkpoint = JSON.parse(fs.readFileSync(file, 'utf8'));
+            checkpoint.travel.find((row: any) => row.id === B).SessionId = 'bbbb1234-1234-1234-1234-123456789abc';
+            fs.writeFileSync(file, JSON.stringify(checkpoint));
+        }
+        RestorePartyFile(file);
+        health = async () => json({servers: healthState === 'other-session' ? [{id: session}] : [], complete: healthState !== 'unknown'});
+        posts = [];
+        await HandlePlayerMatchmaking('CITY', '', CITY, A); await flush();
+        assert.deepEqual(posts[0].ExpectedPlayers, [A]);
+        assert.deepEqual(GetPartyOf(A)?.Members, [A, B]);
+    } finally {
+        fs.rmSync(dir, {recursive: true, force: true});
+        if (oldHost === undefined) delete process.env.BIND_HOST; else process.env.BIND_HOST = oldHost;
+        if (oldRealm === undefined) delete process.env.LOCAL_1105_REALM; else process.env.LOCAL_1105_REALM = oldRealm;
+    }
 });
