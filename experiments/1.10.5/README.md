@@ -46,6 +46,49 @@ python experiments/1.10.5/build-bootstrap.py
 python experiments/1.10.5/check-gameclient-init.py
 ```
 
+The client bootstrap repairs an empty XMPP server address and domain using the launcher-selected host and `DR_1105_XMPP_PORT`. The isolated lab defaults to port 62099; the normal launcher supplies its selected chat port. It leaves an already configured address and domain unchanged. This hook is limited to the verified 365075 client build. Run `python experiments/1.10.5/check-presence-login.py <game-exe>` to verify the hook target; `test-presence-address.cpp` checks the address selection without the game.
+
+The lab game directory also needs the existing pinned `dxgi.dll` loader from `DauntlessUnbrokenLauncher/assets`; do not copy the 1.4.4 `DauntlessUnbroken.dll`. `start-server.ps1` installs a rebuilt DLL only while the lab game and servers are closed. It can start the second world while the first is running if the installed DLL matches the build.
+
+Run each service in a separate terminal:
+
+```powershell
+node experiments/1.10.5/start-backend.cjs
+node experiments/1.10.5/local-deploy.cjs
+./experiments/1.10.5/start-server.ps1
+./experiments/1.10.5/start-server.ps1 -World dojo
+node experiments/1.10.5/start-client.cjs --debug
+```
+
+For travel debugging, add `--trace-travel` to the client command. Attach CDB to the isolated server PID with `-cf experiments/1.10.5/trace-server-return.cdb` to capture the initiating call stack. Run CDB from this checkout so that relative command-file path resolves. Trace logs must remain outside Git.
+
+The loading return was caused by Bounty initialization asking for season17's missing dates. Supplying the local fixture fixed that return. The native Journey save callback ignores HTTP status, so a rejected save still needs native retry handling; server-side validation alone doesn't resolve that client behavior.
+
+The backend creates a test account and private signing keys if they don't exist. `lab-account.cjs` selects the account and database for the backend, client and allocator. Its synthetic account ID is pinned to this lab; change that default if rebuilding the lab from an empty database. CDB is only needed with `--debug`. Debug output can include credentials, so keep those logs out of Git.
+
+Checks to run with the local services up:
+
+```powershell
+node experiments/1.10.5/check-local-backend.cjs
+node experiments/1.10.5/check-local-deploy.cjs
+./experiments/1.10.5/check-local-server.ps1
+./experiments/1.10.5/check-local-server.ps1 -World dojo
+# After an actual client connection:
+./experiments/1.10.5/check-local-server.ps1 -RequireConnection
+./experiments/1.10.5/check-local-server.ps1 -World dojo -RequireConnection
+```
+
+Use `check-local-backend.cjs --matchmaking` only while the game is closed, because it changes the account's travel request. The allocator accepts CITY, `SHARED / ShatteredIsles_TrainingDojo` and catalogued Hunting Grounds; unsupported hunts fail explicitly instead of silently returning Ramsgate.
+
+## Existing saves
+
+Void's live account was exported read-only and copied to `backend-state/imported.db`. The original export, its checksum and both account keys remain outside Git. `import-account.py` refuses to overwrite an existing test copy, preserves raw character/inventory data and gives the local copy a disposable key. It doesn't change the live account or its key.
+
+Run `node experiments/1.10.5/check-imported-account.cjs` before the imported character makes its first in-game save. It checks the original export checksum, normal backend authentication, exact character/inventory preservation and database integrity.
+
+To test the imported account, stop the local game, both world servers, backend and allocator, then set `backend-state/selected-account.json` to `{"profile":"imported"}` and start them again. Use `{"profile":"synthetic"}` to return to Local1105. Friend and guild relationships are archived in the export but aren't installed in this single-account lab.
+
+The catalog comparison found 925/928 instanced IDs and 1,729/1,738 stacked IDs in the 1.10.5 assets. That doesn't prove every item works. Twelve IDs remain unresolved, and `WP_GA_BEAVER` has an old level of 15 where the new catalog allows 0–1. Other weapons still use levels up to 15, so changing every item to level 1 would be wrong. Weapon experience and reforge tracks are separate from those item levels and are absent from this 1.4.4 save. Quest-to-Slayer's-Path conversion also remains unfinished. Nothing here is a production migration yet.
 Do not install the 1.4.4 DLL. `start-server.ps1` refuses a new world when the built and installed DLL hashes differ; stage both together. Existing processes keep their loaded DLL until they exit.
 
 A local lab needs its own database, keys, game profile and ports. The old `start-client.cjs`, selected-account fixtures and research scripts are development tools, not the public launcher. Never point them at production player data.
