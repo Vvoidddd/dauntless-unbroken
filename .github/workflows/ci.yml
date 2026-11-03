@@ -84,6 +84,7 @@ jobs:
           while IFS= read -r path; do
             [ -n "$path" ] || continue
             case "$path" in
+              .github/workflows/ci.yml) server_kit=true ;;
               .github/*|AGENTS.md|CONTRIBUTING.md) all_checks=true ;;
               DauntlessUnbrokenMetagame/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true; server_kit=true ;;
               DauntlessUnbrokenGateway/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true; server_kit=true ;;
