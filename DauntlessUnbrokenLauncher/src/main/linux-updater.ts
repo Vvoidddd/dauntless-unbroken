@@ -51,13 +51,18 @@ export async function installLinuxUpdate(update: LinuxUpdate): Promise<"relaunch
       app.relaunch(launcherRelaunchOptions('linux',target));
       return "relaunch";
     }
-    const escaped = file.replaceAll('"', '\\"');
-    const command = update.kind === "deb" ? `apt install -y "${escaped}"` : `rpm -U "${escaped}"`;
-    spawn("pkexec", ["sh", "-c", command], { detached: true, stdio: "ignore" }).unref();
+    const args = update.kind === "deb" ? ["apt", "install", "-y", file] : ["rpm", "-U", file];
+    const child = spawn("pkexec", args, { stdio: "ignore" });
+    await new Promise<void>((resolve, reject) => {
+      child.once("error", reject);
+      child.once("exit", (code, signal) => {
+        if (code === 0) resolve();
+        else reject(new Error(`Package installer failed (${signal ?? code ?? "unknown"})`));
+      });
+    });
     return "quit";
   } finally {
     if (next) await fs.rm(next, { force: true });
-    // Detached package installers still need their downloaded file.
-    if (update.kind === "appimage") await fs.rm(dir, { recursive: true, force: true });
+    await fs.rm(dir, { recursive: true, force: true });
   }
 }
