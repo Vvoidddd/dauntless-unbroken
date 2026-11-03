@@ -218,7 +218,7 @@ describe("T5: the leader picks a hunt; the whole party lands on one server", () 
     });
 
     it("the leader's second join while loading the island starts no second server", async () => {
-        const Again = await Join(B, { gameMode: "ISLAND", isPrivate: true, partyId: PartyB, hunts: ["CR19_MatchmakerHunt_Host_Beta"], playerHuntId: HUNT });
+        const Again = await Join(B, { gameMode: "ISLAND", isPrivate: false, partyId: PartyB, hunts: ["CR19_MatchmakerHunt_Host_Beta"], playerHuntId: HUNT });
         assert.deepEqual([Again.status, Again.json.candidateId, Again.json.status], [200, CandidateId, "MATCHING"]);
         assert.equal(Deploy.Calls.length, 1);
         assert.equal((await Status(B)).json.status, "MATCHING", "answered like the solo second join, so the client does not travel twice");

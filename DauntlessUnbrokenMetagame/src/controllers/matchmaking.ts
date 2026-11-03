@@ -63,7 +63,7 @@ export type MatchmakingResult = {
     Host: string,
     Port: number,
     Failed?: boolean,          // no game server could be started: the status poll answers FAILED
-    PartyCandidate?: boolean,  // part of a party's candidate (no per-hunt queue behind it)
+    PartyCandidate?: boolean,  // public parties share the hunt queue
     PartyMemberIds?: string[], // the candidate's members, for the status reply's playerStates
     ParkedAt?: number,
     Private?: boolean,
@@ -302,10 +302,14 @@ function StoreEntry(playerId: string, entry: MatchmakingResult) {
 
 function PruneWaitingQueue(queue: MatchmakingQueueData) {
     if (queue.Resolved) return;
+    for (const playerId of queue.Players) {
+        const candidateId = queue.CandidateIds.get(playerId);
+        if (candidateId && !MatchmakingRoster.queueMemberActive(playerId, candidateId))
+            FailCandidate(candidateId, 'queued player stopped polling');
+    }
     queue.Players = queue.Players.filter(playerId => {
         const candidateId = queue.CandidateIds.get(playerId);
         if (candidateId && MatchmakingRoster.queueMemberActive(playerId, candidateId)) return true;
-        if (candidateId) FailCandidate(candidateId, 'queued player stopped polling');
         queue.CandidateIds.delete(playerId);
         if (PlayerQueueMap.get(playerId) === queue) PlayerQueueMap.delete(playerId);
         return false;
@@ -345,10 +349,10 @@ export function DistinctPlayers(PlayerIds: string[]): string[] {
 }
 
 // Never throws: an unreachable deploy server or an unusable answer is a failed launch
-async function LaunchGameOnDeployserver(GameMode: string, GameArgs: string, HuntId: string, AskedPlayers: string[] | undefined, Region: RegionChoice = 'main'): Promise<LaunchResult> {
+async function LaunchGameOnDeployserver(GameMode: string, GameArgs: string, HuntId: string, AskedPlayers: string[] | undefined, Region: RegionChoice = 'main', Private = false): Promise<LaunchResult> {
     const candidate = ['ISLAND','CITY'].includes(GameMode) && AskedPlayers?.length
         ? MatchmakingResultMap.get(AskedPlayers[0])?.CandidateId : undefined;
-    if (!candidate) return LaunchGameOnDeployserverNow(GameMode, GameArgs, HuntId, AskedPlayers, Region);
+    if (!candidate) return LaunchGameOnDeployserverNow(GameMode, GameArgs, HuntId, AskedPlayers, Region, Private);
     const active = new Set([...MatchmakingResultMap.values()].filter(e=>!e.Ready && !e.Failed).map(e=>e.CandidateId));
     const queuedAt = Math.min(...AskedPlayers!.map(id => MatchmakingResultMap.get(id)?.QueuedAt ?? PartyNow()));
     // City seats and hunt processes are separate resources; a full city must not hold up hunts.
@@ -356,13 +360,13 @@ async function LaunchGameOnDeployserver(GameMode: string, GameArgs: string, Hunt
         return {succeeded:false,readyNow:false,host:'',port:0,capacity:true};
     let capacity = false;
     try {
-        const result = await LaunchGameOnDeployserverNow(GameMode, GameArgs, HuntId, AskedPlayers, Region);
+        const result = await LaunchGameOnDeployserverNow(GameMode, GameArgs, HuntId, AskedPlayers, Region, Private);
         capacity = result.capacity === true;
         return result;
     } finally { CapacityOrder.finish(candidate, capacity, PartyNow()); }
 }
 
-async function LaunchGameOnDeployserverNow(GameMode: string, GameArgs: string, HuntId: string, AskedPlayers: string[] | undefined, Region: RegionChoice = 'main'): Promise<LaunchResult> {
+async function LaunchGameOnDeployserverNow(GameMode: string, GameArgs: string, HuntId: string, AskedPlayers: string[] | undefined, Region: RegionChoice = 'main', Private = false): Promise<LaunchResult> {
     const ExpectedPlayers = AskedPlayers === undefined ? undefined : DistinctPlayers(AskedPlayers);
 
     if(AskedPlayers !== undefined && ExpectedPlayers!.length !== AskedPlayers.length){
@@ -388,6 +392,7 @@ async function LaunchGameOnDeployserverNow(GameMode: string, GameArgs: string, H
                     GameArgs,
                     HuntId,
                     ExpectedPlayers,
+                    ...(Private ? {Private: true} : {}),
                     ...(['ISLAND','CITY','SHARED'].includes(GameMode) && Region !== 'main' ? {Region} : {})
                 })
             });
@@ -476,7 +481,7 @@ async function PopQueue(HuntId: string, MatchmakingQueue: MatchmakingQueueData |
     MatchmakingRoster.beginAllocation(allocationId, members, deadline);
     const GameOnDeployServer: LaunchResult = MatchmakingQueue.CapacityDeadline !== undefined && PartyNow() >= MatchmakingQueue.CapacityDeadline
         ? {succeeded: false, readyNow: false, host: '', port: 0}
-        : await LaunchGameOnDeployserver("ISLAND", "", HuntId, MatchmakingQueue.Players, MatchmakingQueue.Region);
+        : await LaunchGameOnDeployserver("ISLAND", "", HuntId, MatchmakingQueue.Players, MatchmakingQueue.Region, MatchmakingQueue.Private);
 
     if (GameOnDeployServer.capacity) {
         MatchmakingRoster.releaseAllocation(allocationId);
@@ -488,45 +493,29 @@ async function PopQueue(HuntId: string, MatchmakingQueue: MatchmakingQueueData |
         if (PartyNow() < MatchmakingQueue.CapacityDeadline && MatchmakingQueue.Players.length > 0) {
             MatchmakingQueue.Resolved = false;
             MatchmakingQueue.RetryAfter = PartyNow() + (GameOnDeployServer.retryAfterMs ?? CAPACITY_RETRY_MS);
-            // A private retry must never enter or merge with the public matchmaking pool.
-            if (MatchmakingQueue.Private) return;
-            // Keep taking joiners while waiting: dropped from the map, every new player for this hunt
-            // opened a queue of its own, asked for another server and made the capacity wait worse
-            const QueueKey = RegionQueueKey(HuntId, MatchmakingQueue.Region);
-            const Newer = MatchmakingQueueMap.get(QueueKey);
-            // Players who joined while the launch request was out opened a fresh queue under this
-            // key. Fold them in if they fit and that queue has not asked for a server yet
-            if(Newer !== undefined && Newer !== MatchmakingQueue && !Newer.Resolved && Newer.RetryAfter === undefined
-                && MatchmakingQueue.Players.length + Newer.Players.length <= QUEUE_FULL_PLAYERS){
-                for(const Player of Newer.Players){
-                    const CandidateId = Newer.CandidateIds.get(Player);
-                    if(CandidateId === undefined || MatchmakingQueue.Players.includes(Player)) continue;
-                    MatchmakingQueue.Players.push(Player);
-                    MatchmakingQueue.CandidateIds.set(Player, CandidateId);
-                    if(PlayerQueueMap.get(Player) === Newer) PlayerQueueMap.set(Player, MatchmakingQueue);
-                }
-                Newer.Players = [];
-                Newer.CandidateIds.clear();
-                Newer.Resolved = true;
-                MatchmakingQueueMap.set(QueueKey, MatchmakingQueue);
-            }
-            else if(Newer === undefined){
-                MatchmakingQueueMap.set(QueueKey, MatchmakingQueue);
-            }
+            // Keep late joiners out: changing the roster starts another allocator process.
+            // Departures are still pruned so cancelled players cannot hold a loading slot.
             return;
         }
     }
 
     if (GameOnDeployServer.succeeded) MatchmakingRoster.assignAllocation(allocationId, GameOnDeployServer.sessionId, GameOnDeployServer.host, GameOnDeployServer.port);
 
+    const FinishedParties = new Set<string>();
     for(const Player of MatchmakingQueue.Players){
         const PlayerMatchmakingResultToUpdate = MatchmakingResultMap.get(Player);
         const CandidateId = MatchmakingQueue.CandidateIds.get(Player);
 
-        if(PlayerMatchmakingResultToUpdate != undefined && CandidateId !== undefined && PlayerMatchmakingResultToUpdate.CandidateId === CandidateId && !PlayerMatchmakingResultToUpdate.Ready && !PlayerMatchmakingResultToUpdate.PartyCandidate && PlayerMatchmakingResultToUpdate.HuntId === HuntId){
+        if(PlayerMatchmakingResultToUpdate != undefined && CandidateId !== undefined && PlayerMatchmakingResultToUpdate.CandidateId === CandidateId && !PlayerMatchmakingResultToUpdate.Ready && !PlayerMatchmakingResultToUpdate.Failed && PlayerMatchmakingResultToUpdate.HuntId === HuntId){
             if (PartyNow() >= deadline || (MatchmakingQueue.CapacityDeadline !== undefined && PartyNow() >= MatchmakingQueue.CapacityDeadline))
                 FailCandidate(CandidateId, 'allocation deadline expired');
-            else ApplyLaunchResult(Player, PlayerMatchmakingResultToUpdate, GameOnDeployServer);
+            else if (PlayerMatchmakingResultToUpdate.PartyCandidate) {
+                const Party = GetPartyOf(Player);
+                if (Party?.Candidate?.CandidateId === CandidateId && !FinishedParties.has(CandidateId)) {
+                    FinishedParties.add(CandidateId);
+                    await FinishPartyCandidate(Party, CandidateId, Party.Candidate.MemberIds, GameOnDeployServer);
+                }
+            } else ApplyLaunchResult(Player, PlayerMatchmakingResultToUpdate, GameOnDeployServer);
         }
 
         if(PlayerQueueMap.get(Player) === MatchmakingQueue){
@@ -578,8 +567,8 @@ export async function CheckAndUpdateQueueStatus(PlayerId: string){
         return MatchmakingResultMap.get(PlayerId);
     }
 
-    // Party candidates have no queue: the leader's join started their server already
-    if(!PlayerMatchmakingResult.Ready && !PlayerMatchmakingResult.Failed && !PlayerMatchmakingResult.PartyCandidate && PlayerMatchmakingResult.DirectKey === undefined){
+    // Public parties share the queue; private parties launch directly.
+    if(!PlayerMatchmakingResult.Ready && !PlayerMatchmakingResult.Failed && (!PlayerMatchmakingResult.PartyCandidate || PlayerQueueMap.has(PlayerId)) && PlayerMatchmakingResult.DirectKey === undefined){
         const MatchmakingQueue = PlayerQueueMap.get(PlayerId);
 
         if(MatchmakingQueue == undefined){
@@ -593,6 +582,11 @@ export async function CheckAndUpdateQueueStatus(PlayerId: string){
             return MatchmakingResultMap.get(PlayerId);
         }
         if (MatchmakingQueue.CapacityDeadline !== undefined) MatchmakingQueue.CapacityDeadline = PartyNow() + CAPACITY_WAIT_MS;
+        if (PlayerMatchmakingResult.PartyCandidate) {
+            const party = GetPartyOf(PlayerId);
+            if (party?.Candidate?.CandidateId === PlayerMatchmakingResult.CandidateId)
+                party.Candidate.CapacityDeadline = PartyNow() + CAPACITY_WAIT_MS;
+        }
 
         if(PartyNow() - MatchmakingQueue.FirstPlayerAddedTime >= QUEUE_WAIT_MS || (MatchmakingQueue.RetryAfter !== undefined && PartyNow() >= MatchmakingQueue.RetryAfter)){
             await WaitBriefly(PopQueue(PlayerMatchmakingResult.HuntId, MatchmakingQueue));
@@ -604,7 +598,6 @@ export async function CheckAndUpdateQueueStatus(PlayerId: string){
 
 async function QueuePlayer(HuntId: string, PlayerId: string, Private = false){
     const Region = PlayerRegion(PlayerId);
-    const QueueKey = RegionQueueKey(HuntId, Region);
     const CurrentEntry = MatchmakingResultMap.get(PlayerId);
     const CurrentQueue = PlayerQueueMap.get(PlayerId);
     if (CurrentEntry) MatchmakingRoster.touchCandidate(PlayerId, CurrentEntry.CandidateId);
@@ -624,21 +617,7 @@ async function QueuePlayer(HuntId: string, PlayerId: string, Private = false){
         }
     }
 
-    const ExistingQueue = Private ? undefined : MatchmakingQueueMap.get(QueueKey);
-    if (ExistingQueue) PruneWaitingQueue(ExistingQueue);
-
-    if(ExistingQueue !== undefined && ExistingQueue.Players.length >= QUEUE_FULL_PLAYERS){
-        void PopQueue(HuntId, ExistingQueue);
-    }
-
     LeaveWaitingQueues(PlayerId, "their new join replaces it");
-
-    let Queue = Private ? undefined : MatchmakingQueueMap.get(QueueKey);
-
-    if(Queue !== undefined && Queue.Players.length >= QUEUE_FULL_PLAYERS){
-        void PopQueue(HuntId, Queue);
-        Queue = undefined;
-    }
 
     const CandidateId = crypto.randomUUID();
 
@@ -653,28 +632,30 @@ async function QueuePlayer(HuntId: string, PlayerId: string, Private = false){
         QueuedAt: PartyNow()
     });
 
-    if(Queue === undefined){
-        Queue = {
-            Private,
-            Region,
-            HuntId: HuntId,
-            Players: [],
-            CandidateIds: new Map<string, string>(),
-            FirstPlayerAddedTime: PartyNow(),
-            Resolved: false
-        };
+    EnqueueMembers(HuntId, Region, [PlayerId], Private);
+    return true;
+}
+
+// Add a party atomically: an existing queue must fit the entire party.
+function EnqueueMembers(HuntId: string, Region: HuntRegion, Members: string[], Private = false) {
+    const QueueKey = RegionQueueKey(HuntId, Region);
+    let Queue = Private ? undefined : MatchmakingQueueMap.get(QueueKey);
+    if (Queue) PruneWaitingQueue(Queue);
+    if (Queue?.Players.length === 0) Queue = undefined;
+    if (Queue && (Queue.Resolved || Queue.RetryAfter !== undefined || Queue.Players.length + Members.length > QUEUE_FULL_PLAYERS)) {
+        void PopQueue(HuntId, Queue);
+        Queue = undefined;
+    }
+    if (!Queue) {
+        Queue = {Private, Region, HuntId, Players: [], CandidateIds: new Map(), FirstPlayerAddedTime: PartyNow(), Resolved: false};
         if (!Private) MatchmakingQueueMap.set(QueueKey, Queue);
     }
-
-    Queue.Players.push(PlayerId);
-    Queue.CandidateIds.set(PlayerId, CandidateId);
-    PlayerQueueMap.set(PlayerId, Queue);
-
-    if(Private || Queue.Players.length >= QUEUE_FULL_PLAYERS){
-        void PopQueue(HuntId, Queue);
+    for (const Member of Members) {
+        Queue.Players.push(Member);
+        Queue.CandidateIds.set(Member, MatchmakingResultMap.get(Member)!.CandidateId);
+        PlayerQueueMap.set(Member, Queue);
     }
-
-    return true;
+    if (Private || Queue.Players.length >= QUEUE_FULL_PLAYERS) void PopQueue(HuntId, Queue);
 }
 
 // A player follows one candidate at a time (their entry in MatchmakingResultMap). Whatever replaces
@@ -731,6 +712,7 @@ export function CancelMatchmaking(PlayerId: string){
                 const Entry = MatchmakingResultMap.get(Member);
 
                 if(Member !== PlayerId && Entry !== undefined && Entry.CandidateId === CandidateId && Entry.FirstSentAt === undefined){
+                    LeaveWaitingQueues(Member, 'party search cancelled');
                     MatchmakingRoster.removePlayer(Member, CandidateId);
                     MatchmakingResultMap.delete(Member);
                     Dropped++;
@@ -748,6 +730,7 @@ export function CancelMatchmaking(PlayerId: string){
             logger.info(`mm: cancel by=${PlayerId} candidate ${CandidateId}: left the party's candidate`);
         }
 
+        LeaveWaitingQueues(PlayerId, 'party search cancelled');
         MatchmakingRoster.removePlayer(PlayerId, CandidateId);
         if (![...MatchmakingResultMap.entries()].some(([id, entry]) => id !== PlayerId && entry.CandidateId === CandidateId)) CapacityWaits.delete(CandidateId);
         MatchmakingResultMap.delete(PlayerId);
@@ -784,6 +767,7 @@ export function LeaveCandidate(PlayerId: string){
         return CancelMatchmaking(PlayerId);
     }
 
+    LeaveWaitingQueues(PlayerId, 'left candidate');
     RemoveFromPartyCandidate(PlayerId, PlayerMatchmakingResult.CandidateId);
     const party = GetPartyOf(PlayerId);
     if (party?.LastCandidate?.CandidateId === PlayerMatchmakingResult.CandidateId)
@@ -800,6 +784,7 @@ SetCandidateLeaveHook((UserId, CandidateId) => {
     const Entry = MatchmakingResultMap.get(UserId);
 
     if(Entry !== undefined && Entry.PartyCandidate && Entry.CandidateId === CandidateId && Entry.FirstSentAt === undefined){
+        LeaveWaitingQueues(UserId, 'left party');
         MatchmakingRoster.removePlayer(UserId, CandidateId);
         MatchmakingResultMap.delete(UserId);
         logger.info(`mm: ${UserId} left the party before candidate ${CandidateId} got its server; they stay behind`);
@@ -931,7 +916,7 @@ async function FinishPartyCandidate(TheParty: Party, CandidateId: string, Member
     }
 }
 
-async function StartPartyCandidate(TheParty: Party, GameMode: string, HuntId: string, Members: string[], LeaderId: string){
+async function StartPartyCandidate(TheParty: Party, GameMode: string, HuntId: string, Members: string[], LeaderId: string, Private = false){
     const Region = PlayerRegion(LeaderId); // The inviter/leader chooses the region for the entire party.
     const CandidateId = crypto.randomUUID();
 
@@ -947,6 +932,7 @@ async function StartPartyCandidate(TheParty: Party, GameMode: string, HuntId: st
             Host: "",
             Port: 0,
             PartyCandidate: true,
+            Private,
             PartyMemberIds: [...Members]
         });
     }
@@ -954,6 +940,7 @@ async function StartPartyCandidate(TheParty: Party, GameMode: string, HuntId: st
     SetPartyCandidate(TheParty, {
         CandidateId: CandidateId,
         State: "MATCHING",
+        Private,
         Region,
         GameMode: GameMode,
         HuntId: HuntId,
@@ -963,6 +950,12 @@ async function StartPartyCandidate(TheParty: Party, GameMode: string, HuntId: st
     });
 
     logger.info(`mm: party P=${TheParty.PartyId} candidate ${CandidateId} mode=${GameMode} hunt=${HuntId} members=${Members.join(",")} by=${LeaderId}`);
+
+    // The 365075 allocator accepts mixed public rosters; preserve legacy party travel.
+    if (GameMode === 'ISLAND' && !Private && Local1105Account(LeaderId)) {
+        EnqueueMembers(HuntId, Region, Members);
+        return;
+    }
 
     let retryMs = CAPACITY_RETRY_MS;
     const TryLaunch = async () => {
@@ -979,7 +972,7 @@ async function StartPartyCandidate(TheParty: Party, GameMode: string, HuntId: st
         for (const member of Active) MatchmakingResultMap.get(member)!.LaunchDeadline = deadline;
         const allocationId = crypto.randomUUID();
         MatchmakingRoster.beginAllocation(allocationId, Active.map(playerId => ({playerId, candidateId: CandidateId})), deadline);
-        const Game = await LaunchGameOnDeployserver(GameMode, '', HuntId, ['ISLAND','CITY'].includes(GameMode) || Local1105Account(LeaderId) ? Active : undefined, Region);
+        const Game = await LaunchGameOnDeployserver(GameMode, '', HuntId, ['ISLAND','CITY'].includes(GameMode) || Local1105Account(LeaderId) ? Active : undefined, Region, Private);
         if (PartyNow() >= deadline || (CapacityWaits.get(CandidateId)?.deadline ?? Infinity) <= PartyNow()) {
             FailCandidate(CandidateId, 'allocation deadline expired');
             return true;
@@ -1011,7 +1004,7 @@ async function StartPartyCandidate(TheParty: Party, GameMode: string, HuntId: st
     clearTimeout(Timer);
 }
 
-function FindRejoinCandidate(TheParty: Party, PlayerId: string, GameMode: string, HuntId: string, IsLeader: boolean){
+function FindRejoinCandidate(TheParty: Party, PlayerId: string, GameMode: string, HuntId: string, IsLeader: boolean, Private: boolean){
     for (const candidate of [TheParty.Candidate, TheParty.LastCandidate]) {
         if (candidate?.State !== 'IN_PROGRESS') continue;
         const entry = MatchmakingResultMap.get(PlayerId);
@@ -1023,7 +1016,7 @@ function FindRejoinCandidate(TheParty: Party, PlayerId: string, GameMode: string
         }
     }
     const Matches = (Candidate: PartyCandidate | null): Candidate is PartyCandidate =>
-        Candidate != null && (Candidate.Region ?? 'main') === PlayerRegion(TheParty.LeaderId) && Candidate.GameMode === GameMode && Candidate.HuntId === HuntId && Candidate.MemberIds.includes(PlayerId);
+        Candidate != null && (!IsLeader || !!Candidate.Private === Private) && (Candidate.Region ?? 'main') === PlayerRegion(TheParty.LeaderId) && Candidate.GameMode === GameMode && Candidate.HuntId === HuntId && Candidate.MemberIds.includes(PlayerId);
 
     if(Matches(TheParty.Candidate)){
         return TheParty.Candidate;
@@ -1072,6 +1065,7 @@ function RejoinPartyCandidate(TheParty: Party, Candidate: PartyCandidate, Player
     StoreEntry(PlayerId, {
         GameMode: Candidate.GameMode,
         Region: Candidate.Region,
+        Private: Candidate.Private,
         Ready: Ready,
         CandidateId: Candidate.CandidateId,
         HuntId: Candidate.HuntId,
@@ -1124,7 +1118,7 @@ export function JoinPartyCandidateById(PlayerId: string, CandidateId: string): P
 }
 
 // "solo": not a party matter, use the solo code; true: handled; false: refused (400)
-async function HandlePartyMatchmaking(GameMode: unknown, GameArgs: unknown, HuntId: unknown, PlayerId: string): Promise<"solo" | boolean> {
+async function HandlePartyMatchmaking(GameMode: unknown, GameArgs: unknown, HuntId: unknown, PlayerId: string, Private = false): Promise<"solo" | boolean> {
     const TheParty = PartyForMatchmaking(PlayerId);
 
     if(TheParty === undefined || TheParty.Members.length < 2){
@@ -1140,7 +1134,7 @@ async function HandlePartyMatchmaking(GameMode: unknown, GameArgs: unknown, Hunt
         return "solo";
     }
 
-    let Rejoin = FindRejoinCandidate(TheParty, PlayerId, Mode, Hunt, IsLeader);
+    let Rejoin = FindRejoinCandidate(TheParty, PlayerId, Mode, Hunt, IsLeader, Private);
     if (Rejoin) {
         const entry = MatchmakingResultMap.get(PlayerId);
         if (entry?.CandidateId === Rejoin.CandidateId && entry.Ready) {
@@ -1193,7 +1187,7 @@ async function HandlePartyMatchmaking(GameMode: unknown, GameArgs: unknown, Hunt
         return "solo";
     }
 
-    await StartPartyCandidate(TheParty, Mode, Hunt, Members, PlayerId);
+    await StartPartyCandidate(TheParty, Mode, Hunt, Members, PlayerId, Private);
 
     return true;
 }
@@ -1225,7 +1219,7 @@ async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, H
         // Restarting the leader's launcher is an individual login, not a request
         // to take their still-fighting party back to town. Retail login reuses it.
         const individualAdmission=LauncherOnly || (GameMode==='CITY' && admission?.LauncherAdmission && admission.FirstSentAt===undefined);
-        const PartyDecision = individualAdmission ? 'solo' : await HandlePartyMatchmaking(GameMode, GameArgs, HuntId, PlayerId);
+        const PartyDecision = individualAdmission ? 'solo' : await HandlePartyMatchmaking(GameMode, GameArgs, HuntId, PlayerId, Private);
 
         if(PartyDecision !== "solo"){
             return PartyDecision;

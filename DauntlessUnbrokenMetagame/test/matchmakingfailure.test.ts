@@ -266,7 +266,7 @@ describe("matchmaking when the deploy server starts no game server", () => {
             for (const player of players) await WaitForStatus(player.Token, 'IN_PROGRESS');
         } finally { SetPartyClockForTests(); }
     });
-    it('players who join while a launch is out share its capacity wait and its server', async () => {
+    it('capacity retries keep the submitted roster stable while later arrivals get a separate launch', async () => {
         const { SetPartyClockForTests } = await import('../src/controllers/party.js');
         let now = Date.now();
         SetPartyClockForTests(() => now);
@@ -283,10 +283,11 @@ describe("matchmaking when the deploy server starts no game server", () => {
             Release();
             await new Promise<void>(resolve => setTimeout(resolve, 50));
             CurrentMode = WORKING;
-            now += 3001;
+            now += 20001;
             for (const player of [first, late]) await WaitForStatus(player.Token, 'IN_PROGRESS');
-            assert.equal(Calls.length, 2, 'one server for both, not one each');
-            assert.deepEqual([...Calls[1].ExpectedPlayers].sort(), [first.UserId, late.UserId].sort());
+            assert.equal(Calls.length, 3);
+            assert.deepEqual(Calls[1].ExpectedPlayers, [first.UserId], 'retry must address the already-starting world');
+            assert.deepEqual(Calls[2].ExpectedPlayers, [late.UserId]);
         } finally { SetPartyClockForTests(); }
     });
     it('a waiting solo candidate can be cancelled without launching when capacity returns', async () => {

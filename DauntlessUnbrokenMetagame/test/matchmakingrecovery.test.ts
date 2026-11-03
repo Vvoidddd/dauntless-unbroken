@@ -95,6 +95,7 @@ for (const [hunt,mode] of [['ShatteredIsles_IslandA','ISLAND'],['ShatteredIsles_
             await formParty();posts=[];
             deploy=async body=>body.ExpectedPlayers?.length===2?ready(8791):json({},403);
             assert.equal(await HandlePlayerMatchmaking('SHARED','',hunt,A),true);
+            if (mode === 'ISLAND') { now += 5001; await CheckAndUpdateQueueStatus(A); }
             await flush();
             assert.equal(posts.length,1);
             assert.equal(posts[0].GameMode,mode);
