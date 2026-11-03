@@ -92,6 +92,8 @@ npm run build
 cd ..
 ```
 
+The client bootstrap repairs an empty XMPP server address and domain using the launcher-selected host and `DR_1105_XMPP_PORT`. The isolated lab defaults to port 62099; the normal launcher supplies its selected chat port. It leaves an already configured address and domain unchanged. This hook is limited to the verified 365075 client build. Run `python experiments/1.10.5/check-presence-login.py <game-exe>` to verify the hook target; `test-presence-address.cpp` checks the address selection without the game.
+
 The lab game directory also needs the existing pinned `dxgi.dll` loader from `DauntlessUnbrokenLauncher/assets`; do not copy the 1.4.4 `DauntlessUnbroken.dll`. `start-server.ps1` installs a rebuilt DLL only while the lab game and servers are closed. It can start the second world while the first is running if the installed DLL matches the build.
 
 Run each service in a separate terminal:

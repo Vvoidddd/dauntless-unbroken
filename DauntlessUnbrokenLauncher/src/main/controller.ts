@@ -2037,7 +2037,7 @@ export class Controller {
           win64Dir(this.installDir),
           args,
           prepared?.runtime,
-          {...(this.s.showConsole ? { DR_SHOW_CONSOLE:'1' } : {}),...(this.p.installFromArchive ? {DR_1105_LOCAL_LAB:'1',DR_1105_HOST:gameHost,DR_1105_PORT:String(gamePort),DR_1105_LOG:gamePath(path.join(profile!,'native-client.log'))} : {})},
+          {...(this.s.showConsole ? { DR_SHOW_CONSOLE:'1' } : {}),...(this.p.installFromArchive ? {DR_1105_LOCAL_LAB:'1',DR_1105_HOST:gameHost,DR_1105_PORT:String(gamePort),DR_1105_XMPP_PORT:String(xmppPort),DR_1105_LOG:gamePath(path.join(profile!,'native-client.log'))} : {})},
       );
     } catch (e) {
       this.endPlayingSession = null;
