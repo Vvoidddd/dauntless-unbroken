@@ -29,6 +29,8 @@ Old Slayer Mastery and the weapon skill shown by 1.10.5 are different systems. `
 
 Startup checks do not prove every hunt can be completed. Trials and unsupported story routes fail explicitly instead of sending players to the wrong world. Escalation completion, Slayer Link reward display and claims, some weapon abilities, zero-health states and Lightbound Koshai's invisible effects remain on the gameplay check list.
 
+An already-starting hunt waits briefly for its existing readiness checks within the allocation request. If it becomes ready in that window, the same request returns its address instead of waiting for a later matchmaking poll. The latest server heartbeat must also show an initialized replication graph; an open UDP port and a fresh heartbeat alone are not enough. The wait is bounded, preserves the existing capacity checks, and does not establish that the client finished loading.
+
 Live checks found Bastion equipped and Iceborne charging. Characters without an Omnicell actor in that sample also had an empty saved active slot. A check of 4,034 saved loadout revisions found no populated Omnicell slot being cleared. That does not explain every disappearing HUD slot; capture the active loadout, role and ability state during a failure before changing loadouts.
 
 ## Native build
@@ -73,6 +75,9 @@ Checks to run with the local services up:
 ```powershell
 node experiments/1.10.5/check-local-backend.cjs
 node experiments/1.10.5/check-local-deploy.cjs
+node experiments/1.10.5/check-stale-readiness.cjs
+node experiments/1.10.5/test-hunt-readiness.cjs
+node experiments/1.10.5/test-hunt-start.cjs
 ./experiments/1.10.5/check-local-server.ps1
 ./experiments/1.10.5/check-local-server.ps1 -World dojo
 # After an actual client connection:
