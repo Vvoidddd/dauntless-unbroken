@@ -372,6 +372,7 @@ jobs:
 
       # The sandbox test builds all four server packages with npm ci, so their lockfiles key the cache.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: matrix.phase != 'remote'
         with:
           node-version: 24
           cache: npm
