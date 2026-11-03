@@ -6,6 +6,16 @@ import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
+test('1.10.5 monitor reads the current supervisor instead of the legacy watchdog',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'unbroken-realm-health-'));
+ await mkdir(join(root,'backend-state'));
+ const report={kind:'realm-supervisor',at:new Date().toISOString(),errors:0,tasks:[]};
+ await writeFile(join(root,'backend-state/realm-health.json'),JSON.stringify(report));
+ const server=await startWorkerHealth({root,port:0,deployPort:62001,backendPort:62000,collect:async()=>({at:report.at,processes:[],receivedBytes:0,sentBytes:0}),fetcher:async()=>Response.json({servers:[]})});
+ try {const result=await(await fetch(`http://127.0.0.1:${server.address().port}/health`)).json();assert.deepEqual(result.watchdog,report);}
+ finally {await new Promise(resolve=>server.close(resolve));await rm(root,{recursive:true,force:true});}
+});
+
 test('storage monitor reads the watchdog report with Windows UTF-8 BOM',async()=>{
  const root=await mkdtemp(join(tmpdir(),'unbroken-watchdog-'));
  await mkdir(join(root,'watchdog'));

@@ -63,7 +63,7 @@ export async function startWorkerHealth({port=61111,root=process.cwd(),allowlist
         firewall:allowlist ? {enabled:allowlist.lastApply?.enabled ?? false,ok:allowlist.lastApply?.ok ?? null,addresses:allowlist.entries?.length ?? 0,pending:allowlist.pending,ports:allowlist.ports}:null,
         hunts:Array.isArray(deploy?.servers) ? deploy.servers.map(s=>({id:s.id,port:s.port,kind:s.kind,map:s.map,huntId:s.huntId,expectedPlayers:s.expectedPlayers?.length ?? 0,startedAt:s.startedAt})):[],
         processes:processInfo,monitorMemoryMB:process.memoryUsage().rss/1048576,
-        watchdog:await readFile(resolve(root,'watchdog/health.json'),'utf8').then(s=>JSON.parse(s.replace(/^\uFEFF/,''))).catch(()=>null)};
+        watchdog:await readFile(resolve(root,deployPort===62001&&!storageOnly?'backend-state/realm-health.json':'watchdog/health.json'),'utf8').then(s=>JSON.parse(s.replace(/^\uFEFF/,''))).catch(()=>null)};
       if(storageOnly){
         const last=await readFile(resolve(root,'backups/last-success.json'),'utf8').then(JSON.parse).catch(()=>null);
         sample.backup={verified:last?.verified===true,at:typeof last?.at==='string'?last.at:null};

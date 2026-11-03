@@ -69,6 +69,7 @@ $env:DASHBOARD_FLEET_KEY_FILE = if($hosted.dashboardFleetUrl){Join-Path $lab 'ba
 $env:DASHBOARD_SERVER_CONFIG = Join-Path $lab 'backend-state\realm-config.json'
 Start-LabNode 'realm-dashboard' (Join-Path $lab 'repo\tools\dashboard.mjs') 62110
 }
+if($hosted){ & (Join-Path $PSScriptRoot 'write-realm-health.ps1') }
 if($NoWorlds){return}
 foreach ($world in @('ramsgate','dojo')) {
     $port = if ($world -eq 'dojo') {63871} else {63870}

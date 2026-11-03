@@ -4,6 +4,21 @@ import {payload, Publisher, sampleBackend, webhookUrl} from './discord-status.mj
 import {sampleFleet, sampleLocalCapacity, applyLocalCapacity} from './discord-status.mjs';
 import {publicWatchdog} from './discord-status.mjs';
 
+test('1.10.5 supervisor heartbeat preserves failed services and expires',()=>{
+ const now=Date.now();
+ const raw={kind:'realm-supervisor',at:new Date(now).toISOString(),errors:1,tasks:['Realm allocator','Realm backend','Realm game access','Realm dashboard'].map(name=>({name,state:name==='Realm game access'?'Unavailable':'Running'}))};
+ const health=publicWatchdog(raw,now);
+ assert.equal(health.services['Game access'],false);
+ assert.equal(publicWatchdog(raw,now+90001),null);
+ assert.equal(publicWatchdog({...raw,tasks:raw.tasks.slice(1)},now),null);
+ const body=payload({players:4,uptime:60,ms:5},now,{online:1,servers:1,rows:[{id:1,online:true,watchdog:health}]});
+ const text=JSON.stringify(body);
+ assert.match(text,/Supervisor: ⚠️ check failed/);
+ assert.doesNotMatch(text,/fallback cleanups/);
+ assert.equal(body.embeds[0].color,0xe1a349);
+ assert.ok(body.embeds[0].fields.every(f=>f.value.length<=1024));
+});
+
 test('drain state reaches the public embed without claiming admission headroom',async()=>{
  for(const draining of [true,false,undefined]){
   const c=await sampleLocalCapacity('http://127.0.0.1:61001',async()=>Response.json({capacity:{running:0,pending:0,limit:42,draining,cpu:{blocked:false,percent:1,limit:80,resume:65}}}));

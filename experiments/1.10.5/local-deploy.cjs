@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const { execFile } = require('node:child_process');
 // Windows PowerShell must load its own modules, not the parent PowerShell 7 modules.
 const powershell = path.join(process.env.SystemRoot || 'C:/Windows','System32/WindowsPowerShell/v1.0/powershell.exe');
-const {CityPool,CapacityUnavailable,memoryAdmission,CheckCpuAdmission,HuntsDraining}=require('./bin/fleet.cjs');
+const {CityPool,CapacityUnavailable,memoryAdmission,CheckCpuAdmission,HuntsDraining,cpuAdmission}=require('./bin/fleet.cjs');
 const psEnvironment = { ...process.env, PSModulePath: path.join(path.dirname(powershell),'Modules') };
 const root = path.resolve(__dirname, '../../..');
 const host = process.env.DR_1105_BIND_IP || '127.0.0.1';
@@ -198,7 +198,7 @@ return http.createServer(async (req, res) => {
       }));
       const servers=available.filter(Boolean);let complete=true;
       if(worker){try{const response=await fetch(worker+'/gameservers',{signal:AbortSignal.timeout(5000)});if(!response.ok)throw Error('Worker unavailable');const remote=await response.json();if(!Array.isArray(remote.servers))throw Error('Invalid worker');servers.push(...remote.servers);complete=remote.complete===true;}catch{complete=false;}}
-      reply(200, { complete, servers, capacity:{running:hunts.size-launching.size,pending:launching.size,limit:maxHunts,draining:HuntsDraining()} }); return;
+      reply(200, { complete, servers, capacity:{running:hunts.size-launching.size,pending:launching.size,limit:maxHunts,draining:HuntsDraining(),cpu:cpuAdmission.status()} }); return;
     }
     if (req.method !== 'POST' || req.url !== '/api/matchmaker/handle-matchmaking-for-player') { reply(404, {}); return; }
     let text = '';

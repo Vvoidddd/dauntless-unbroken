@@ -10,6 +10,13 @@ export function webhookUrl(value) {
 
 export function publicWatchdog(value,now=Date.now()) {
   const at=Date.parse(value?.at);
+  if(value?.kind==='realm-supervisor'){
+    if(!Number.isFinite(at)||now-at>90000||at>now+5000||!Number.isSafeInteger(value.errors)||value.errors<0||!Array.isArray(value.tasks))return null;
+    const names={'Realm allocator':'Allocator','Realm backend':'Backend link','Realm game access':'Game access','Realm dashboard':'Dashboard'},services={};
+    for(const t of value.tasks)if(Object.hasOwn(names,t.name))services[names[t.name]]=t.state==='Running';
+    if(Object.keys(services).length!==4)return null;
+    return {at,kind:'realm-supervisor',errors:value.errors,services};
+  }
   if(!Number.isFinite(at)||now-at>45000||at>now+5000||![value.retired,value.errors].every(n=>Number.isSafeInteger(n)&&n>=0)||!Array.isArray(value.tasks)||!value.tasks.length)return null;
   const names={'Dauntless Unbroken stack':'Game stack','Dauntless Unbroken key bot':'Key bot','Dauntless Unbroken private tunnel':'Private link','Dauntless Unbroken allowlist':'Game access','Dauntless Unbroken dashboard':'Dashboard'};
   const services={};
@@ -34,8 +41,8 @@ export function payload(sample, now = Date.now(), fleet = null) {
     const admission=!c?'Unknown':c.draining===true?'Draining · new hunts paused':c.blocked===true?'Waiting for CPU headroom':c.limit!==null&&c.running+c.pending>=c.limit?'Hunt limit reached':c.blocked===false?(c.draining===false?'Below CPU/count limits':'CPU/count headroom · drain state unknown'):'CPU status unknown';
     const huntInfo=r.id===2?'Key distribution · no hunt hosting':`Hunts: ${Number.isInteger(r.hunts)?r.hunts:'Unknown'} / ${c?.limit??'Unknown'} · starting ${c?.pending??'Unknown'}\nAdmission: ${admission}${c?.blocked&&c.resume!==null&&c.resume!==undefined?` (resume ≤${num(c.resume,'%')})`:''}\nHunt sample: ${Number.isFinite(r.huntAt)?`<t:${Math.floor(r.huntAt/1000)}:R>`:'Unknown'}`;
     const health=r.watchdog;
-    const watchdogInfo=health?`\nWatchdog: ${health.errors?'⚠️ check failed':'🟢 running'} · ${health.retired} fallback cleanups\n${Object.entries(health.services).map(([name,up])=>`${name}: ${up?'🟢':'⚠️'}`).join(' · ')}`:'\nWatchdog: Unknown';
-    const backupInfo=r.id===2?`\nLast verified DB copy: ${Number.isFinite(Date.parse(r.backup))?`<t:${Math.floor(Date.parse(r.backup)/1000)}:R>`:'Unknown'}`:'';
+    const watchdogInfo=health?`\n${health.kind==='realm-supervisor'?'Supervisor':'Watchdog'}: ${health.errors?'⚠️ check failed':'🟢 running'}${health.kind==='realm-supervisor'?` · checked <t:${Math.floor(health.at/1000)}:R>`:` · ${health.retired} fallback cleanups`}\n${Object.entries(health.services).map(([name,up])=>`${name}: ${up?'🟢':'⚠️'}`).join(' · ')}`:'\nSupervisor health: Unknown';
+    const backupInfo=r.id===2?`\nLast verified DB copy: ${Number.isFinite(Date.parse(r.backup))?`${now-Date.parse(r.backup)>7*86400000?'⚠️ overdue · ':''}<t:${Math.floor(Date.parse(r.backup)/1000)}:R>`:'Unknown'}`:'';
     const ramPercent=Number.isFinite(r.ramUsedMB)&&r.ramTotalMB>0?num(r.ramUsedMB/r.ramTotalMB*100,'%'):'Unknown';
     fields.push({name,inline:true,value:r?.online
       ? `🟢 Host reporting\n${huntInfo}\nCPU: ${num(r.cpu,'%')}\nRAM: ${num(r.ramUsedMB===null?null:r.ramUsedMB/1024)} / ${num(r.ramTotalMB===null?null:r.ramTotalMB/1024)} GB (${ramPercent})\n${age}${watchdogInfo}${backupInfo}${r.hunts===null&&r.id!==2?'\nHunt telemetry unavailable':''}`
