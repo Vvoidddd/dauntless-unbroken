@@ -1019,9 +1019,6 @@ function Build-DRApp {
     $npmCli = Join-Path (Split-Path $NodeExe -Parent) 'node_modules\npm\bin\npm-cli.js'
     if (-not (Test-Path -LiteralPath $npmCli)) { Stop-DR "npm not found next to $NodeExe" }
     $built = @()
-    $buildJobs = @()
-    $buildLogDir = Join-Path $Paths.Logs 'install'
-    New-Item -ItemType Directory -Force -Path $buildLogDir | Out-Null
     foreach ($pkg in $script:DRPackages) {
         $dir = Join-Path $appNew $pkg
         if (-not (Test-Path -LiteralPath (Join-Path $dir 'package.json'))) {
@@ -1029,52 +1026,26 @@ function Build-DRApp {
             Write-DRWarn "this code version has no $pkg; skipping it"
             continue
         }
+        # NODE_ENV=production would make npm ci skip the TypeScript compiler.
+        $envs = Get-DRBuildEnvironment $NodeExe
         Write-DRInfo "npm ci + build: $pkg (a few minutes) ..."
-        $buildJobs += Start-Job -ScriptBlock {
-            param($Pkg, $Dir, $Node, $Npm, $LogDir)
-            $env:NODE_ENV = 'development'
-            $env:npm_config_update_notifier = 'false'
-            $env:npm_config_fund = 'false'
-            $env:npm_config_audit = 'false'
-            $env:Path = "$(Split-Path $Node -Parent);$env:Path"
-            $log = Join-Path $LogDir "npm-build-$Pkg"
-            "=== $Pkg ===" | Set-Content -LiteralPath $log
-            & $Node $Npm ci --no-audit --no-fund *>> $log
-            if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ Pkg = $Pkg; Success = $false; Log = $log; Error = "npm ci failed in $Pkg" } }
-            & $Node $Npm run build *>> $log
-            if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ Pkg = $Pkg; Success = $false; Log = $log; Error = "the build failed in $Pkg" } }
-            if ($Pkg -in 'DauntlessUnbrokenMetagame', 'DauntlessUnbrokenDeployServer') {
-                $probe = "const d=require('better-sqlite3')(':memory:');if(d.pragma('quick_check',{simple:true})!=='ok')throw Error('SQLite native check failed');d.close();"
-                & $Node -e $probe *>> $log
-                if ($LASTEXITCODE -ne 0) { return [pscustomobject]@{ Pkg = $Pkg; Success = $false; Log = $log; Error = "better-sqlite3 cannot open an in-memory database in $Pkg" } }
-            }
-            [pscustomobject]@{ Pkg = $Pkg; Success = $true; Log = $log; Error = $null }
-        } -ArgumentList $pkg, $dir, $NodeExe, $npmCli, $buildLogDir
-    }
-    $buildFailures = @()
-    foreach ($job in $buildJobs) {
-        Wait-Job -Job $job | Out-Null
-        $result = @(Receive-Job -Job $job -ErrorAction SilentlyContinue | Select-Object -Last 1)
-        $state = $job.State
-        Remove-Job -Job $job -Force
-        if ($state -ne 'Completed' -or $result.Count -ne 1 -or -not $result[0].Success) {
-            $buildFailures += if ($result.Count -eq 1) { $result[0] } else { [pscustomobject]@{ Log = $null; Error = "background build job ended in state $state" } }
-            continue
-        }
-        $pkg = $result[0].Pkg
-        $dir = Join-Path $appNew $pkg
+        $code = Invoke-DRNative -FilePath $NodeExe -Arguments @($npmCli, 'ci', '--no-audit', '--no-fund') -WorkingDirectory $dir -LogBase (Join-Path $Paths.Logs "install\npm-ci-$pkg") -Environment $envs -LowPriority
+        if ($code -ne 0) { Show-DRLogTail (Join-Path $Paths.Logs "install\npm-ci-$pkg"); Stop-DR "npm ci failed in $pkg" }
+        $code = Invoke-DRNative -FilePath $NodeExe -Arguments @($npmCli, 'run', 'build') -WorkingDirectory $dir -LogBase (Join-Path $Paths.Logs "install\npm-build-$pkg") -Environment $envs -LowPriority
+        if ($code -ne 0) { Show-DRLogTail (Join-Path $Paths.Logs "install\npm-build-$pkg"); Stop-DR "the build failed in $pkg" }
         foreach ($c in $script:DRComponents.Keys) {
             $cd = $script:DRComponents[$c]
             if ($cd.Dir -eq $pkg -and -not (Test-Path -LiteralPath (Join-Path $dir $cd.Script))) { Stop-DR "the build of $pkg has no $($cd.Script) ($($cd.Label))" }
         }
+        if ($pkg -in 'DauntlessUnbrokenMetagame', 'DauntlessUnbrokenDeployServer') {
+            # SQLite 13 bundles Node-API prebuilds instead of build\Release. Check
+            # the actual host binding, including its ABI, without touching player data.
+            $probe = "const d=require('better-sqlite3')(':memory:');if(d.pragma('quick_check',{simple:true})!=='ok')throw Error('SQLite native check failed');d.close();"
+            $code = Invoke-DRNative -FilePath $NodeExe -Arguments @('-e', $probe) -WorkingDirectory $dir -Environment $envs -LogBase (Join-Path $Paths.Logs "install\native-check-$pkg")
+            if ($code -ne 0) { Show-DRLogTail (Join-Path $Paths.Logs "install\native-check-$pkg"); Stop-DR "better-sqlite3 cannot open an in-memory database in $pkg" }
+        }
         Write-DROk "$pkg built"
         $built += $pkg
-    }
-    if ($buildFailures.Count) {
-        foreach ($failure in $buildFailures) {
-            if ($failure.Log) { Show-DRLogTail $failure.Log }
-        }
-        Stop-DR (($buildFailures | Select-Object -First 1).Error)
     }
     Write-DRText -Path (Join-Path $appNew 'VERSION.json') -Text ($Version | ConvertTo-Json)
     return ,$built
