@@ -48,7 +48,31 @@ test('copy rate limit, unlink and key rotation fail closed',async()=>{
   assert.equal(CopyLinkedAccountKey(unlinked.id).key,undefined);
   const rotated=await fixture();ProveRecoveryLink(rotated.id,rotated.key);
   const replacement=CompleteKeyRecovery(rotated.id,BeginKeyRecovery(rotated.id)!);
-  assert.ok(replacement);assert.equal(CopyLinkedAccountKey(rotated.id).key,undefined);
+  assert.ok(replacement);assert.equal(CopyLinkedAccountKey(rotated.id).key,replacement);
+ }finally{if(old===undefined)delete process.env.ACCOUNT_KEY_RECOVERY;else process.env.ACCOUNT_KEY_RECOVERY=old;}
+});
+
+test('confirmed resend preserves the key/session, requires the correct actor and rejects replay or a ban',async()=>{
+ const old=process.env.ACCOUNT_KEY_RECOVERY;process.env.ACCOUNT_KEY_RECOVERY='1';
+ try{
+  const p=await fixture(),other=await fixture();const now=Date.now(),jwt=SignMetagameJWTForUid(p.UserId);
+  ProveRecoveryLink(p.id,p.key,now);
+  const challenge=BeginKeyRecovery(p.id,now)!;
+  assert.equal(CompleteKeyRecovery(other.id,challenge,now,true),null);
+  assert.equal(CompleteKeyRecovery(p.id,challenge,now,true),p.key);
+  assert.equal(CompleteKeyRecovery(p.id,challenge,now,true),null);
+  assert.equal(await GetUserIDForAPIKey(p.key),p.UserId);
+  assert.doesNotThrow(()=>ValidateMetagameJWTAndGetPayload(jwt));
+  const banned=await fixture();ProveRecoveryLink(banned.id,banned.key,now);
+  const bannedChallenge=BeginKeyRecovery(banned.id,now)!;
+  SetAccountBan(banned.UserId,'test restriction',true,null,'test');
+  assert.equal(CompleteKeyRecovery(banned.id,bannedChallenge,now,true),null);
+  const missing=await fixture();ProveRecoveryLink(missing.id,missing.key,now);
+  GetDb().$client.prepare('DELETE FROM accountkeyrecovery WHERE userId=?').run(missing.UserId);
+  const replacement=CompleteKeyRecovery(missing.id,BeginKeyRecovery(missing.id,now)!,now,true);
+  assert.ok(replacement&&replacement!==missing.key);
+  assert.equal(await GetUserIDForAPIKey(missing.key),undefined);
+  assert.equal(CopyLinkedAccountKey(missing.id,now).key,replacement);
  }finally{if(old===undefined)delete process.env.ACCOUNT_KEY_RECOVERY;else process.env.ACCOUNT_KEY_RECOVERY=old;}
 });
 test('verified recovery rotates atomically, revokes old key and JWT, and refuses replay',async()=>{

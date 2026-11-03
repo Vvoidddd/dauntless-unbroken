@@ -60,7 +60,7 @@ export function BeginKeyRecovery(id:unknown,now=Date.now()) {
   return token;
  }).immediate();
 }
-export function CompleteKeyRecovery(id:unknown,token:unknown,now=Date.now()) {
+export function CompleteKeyRecovery(id:unknown,token:unknown,now=Date.now(),resend=false) {
  if(!valid(id)||typeof token!=='string'||! /^[a-f0-9]{64}$/.test(token))return null;
  const db=GetDb().$client;
  const result=db.transaction(()=>{
@@ -68,16 +68,24 @@ export function CompleteKeyRecovery(id:unknown,token:unknown,now=Date.now()) {
   audit(id,'confirm_attempt',now);
   const row=db.prepare('SELECT c.* FROM recoverychallenges c JOIN recoveryproofs p ON p.discordId=c.discordId AND p.userId=c.userId AND p.keyHash=c.keyHash JOIN discordlinks d ON d.discordId=p.discordId AND d.userId=p.userId JOIN userapikeys k ON k.userId=c.userId AND k.keyHash=c.keyHash JOIN users u ON u.userId=c.userId WHERE c.tokenHash=? AND c.discordId=? AND c.used=0 AND c.expiresAt>? AND u.isAdmin=0').get(hash(token),id,now) as any;
   if(!row)return null;
+  if(BanFor(row.userId)||db.prepare('SELECT 1 FROM discord_moderation WHERE discordId=? AND active=1').get(id))return null;
+  const saved=resend?RecoverAccountKey(row.userId):null;
+  if(saved){
+   db.prepare('UPDATE recoverychallenges SET used=1 WHERE tokenHash=?').run(hash(token));
+   audit(id,'copied',now);
+   return {key:saved,userId:row.userId,rotated:false};
+  }
   const key='UUK_'+randomBytes(32).toString('hex');const digest=hash(key);
   db.prepare('UPDATE userapikeys SET keyHash=? WHERE userId=? AND keyHash=?').run(digest,row.userId,row.keyHash);
   db.prepare('DELETE FROM userapikeystoregister WHERE userId=?').run(row.userId);
   db.prepare('DELETE FROM accountkeyrecovery WHERE userId=?').run(row.userId);
+  RememberAccountKey(row.userId,key);
   db.prepare('UPDATE recoveryproofs SET keyHash=? WHERE discordId=?').run(digest,id);
   db.prepare('UPDATE recoverychallenges SET used=1 WHERE tokenHash=?').run(hash(token));
   db.prepare('INSERT INTO authepochs(userId,epoch) VALUES(?,1) ON CONFLICT(userId) DO UPDATE SET epoch=epoch+1').run(row.userId);
   audit(id,'rotated',now);
-  return {key,userId:row.userId};
+  return {key,userId:row.userId,rotated:true};
  }).immediate();
- if(result)KeyRevocations.emit('revoke',result.userId);
+ if(result?.rotated)KeyRevocations.emit('revoke',result.userId);
  return result?.key ?? null;
 }

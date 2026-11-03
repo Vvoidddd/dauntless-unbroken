@@ -25,7 +25,7 @@ The bot's admin key is sent only to loopback HTTP. Configure `KEY_STATE_FILE` ou
 Run `/key link key:<your launcher account key>`. The bot verifies that key against
 the central account service and replies ephemerally, visible only to the caller.
 The metagame database stores the Discord ID, account UID and link time; it never
-stores or echoes the submitted launcher key. Existing keys and saves are unchanged.
+echoes the submitted launcher key. Recovery stores an encrypted copy when enabled. Existing keys and saves are unchanged.
 Verified links from the earlier bot state migrate automatically at startup.
 `/key status` reads the central database to confirm the account link.
 An account and Discord ID can each have only one link; conflicting changes require
@@ -37,7 +37,15 @@ the saved file, and copy the value after `Key:` into `/key link key:`. The bot a
 accepts a labelled backup or a key wrapped in Discord backticks. It never links an
 account by display name or by a shared/redeemed invite, and never replaces its key.
 
-Registration keeps `/key` available globally for DMs and registers a server copy immediately, alongside `/ban` and `/unban`. Existing command IDs and unrelated commands are preserved. Invites issued by `/key claim` are bound to the Discord user; registration atomically links the new game account to that identity. Existing accounts can use `/key link` with their saved account key.
+`/key` and `/counter` each have one global registration; obsolete guild copies are removed. `/ban` and `/unban` remain guild commands. Existing command IDs and unrelated commands are preserved. Invites issued by `/key claim` are bound to the Discord user; registration atomically links the new game account, username and recovery proof to that identity. Existing accounts can use `/key link` with their saved account key.
+
+## Recover an account
+
+The hosted backend enables `ACCOUNT_KEY_RECOVERY=1`. It saves encrypted key copies during registration, verified linking and authenticated launcher requests. Keep the backend signing secret with database backups: it also protects these copies. Enabling recovery cannot recreate keys that were never stored.
+
+Run `/key recover` without options. The bot DMs a five-minute confirmation code in a code block. Run `/key recover` again, choose `confirm`, and paste the code. No old key is needed for a verified Discord-linked account. The bot privately resends the saved key, preserving other signed-in devices. If no encrypted copy exists, it creates and saves a replacement key for the same account; the old key and sessions are revoked, but progression is unchanged. `/key resend` sends the saved key directly.
+
+If DMs are blocked, delivery falls back to the caller's private interaction, never the channel. Codes are one-use, tied to the requesting Discord user, rate-limited and checked against current ownership and bans. Historical administrator-created links alone do not establish recovery ownership: use `/key link` once or contact support if the original key is lost.
 
 ## Moderation and owner controls
 

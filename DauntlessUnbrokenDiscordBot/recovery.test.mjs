@@ -15,11 +15,24 @@ test('recovery request binds the actor and dedicated loopback authentication',as
 for(const blocked of [false,true])test(`recovery privately delivers with DMs ${blocked?'blocked':'available'}`,async()=>{
  const old=globalThis.fetch;process.env.KEY_RECOVERY_SERVICE_SECRET='test-only-'.repeat(5);
  const key='UUK_'+'b'.repeat(64);let dm;const replies=[];
- globalThis.fetch=async()=>({ok:true,json:async()=>({key})});
+ globalThis.fetch=async(url,options)=>{assert.equal(JSON.parse(options.body).resend,true);return {ok:true,json:async()=>({key})};};
  try{
   await recoverInteraction({ephemeral:true,user:{id:'123456789012345678',send:async message=>{if(blocked)throw Error('blocked');dm=message;}},options:{getString:()=> 'a'.repeat(64)},editReply:async text=>{replies.push(text);}});
   if(blocked){assert.equal(dm,undefined);assert.ok(replies.at(-1).content.includes(key));}
   else{assert.ok(dm.content.includes(key));assert.ok(!JSON.stringify(replies).includes(key));}
+ }finally{globalThis.fetch=old;delete process.env.KEY_RECOVERY_SERVICE_SECRET;}
+});
+for(const blocked of [false,true])test(`recovery confirmation code is copyable and private with DMs ${blocked?'blocked':'available'}`,async()=>{
+ const old=globalThis.fetch;process.env.KEY_RECOVERY_SERVICE_SECRET='test-only-'.repeat(5);
+ const challenge='c'.repeat(64),replies=[];let dm;
+ globalThis.fetch=async url=>{assert.ok(String(url).endsWith('/begin'));return {ok:true,json:async()=>({challenge})};};
+ try{
+  await recoverInteraction({ephemeral:true,user:{id:'123456789012345678',send:async message=>{if(blocked)throw Error('blocked');dm=message;}},options:{getString:()=>null},editReply:async reply=>replies.push(reply)});
+  const content=(blocked?replies.at(-1):dm).content;
+  assert.ok(content.includes('```\n'+challenge+'\n```'));
+  assert.match(content,/do not need your old account key/);
+  assert.match(content,/five minutes/);
+  if(!blocked)assert.ok(!JSON.stringify(replies).includes(challenge));
  }finally{globalThis.fetch=old;delete process.env.KEY_RECOVERY_SERVICE_SECRET;}
 });
 test('public interaction cannot rotate or disclose a key',async()=>{

@@ -3,7 +3,7 @@ import { PermissionFlagsBits, Routes, SlashCommandBuilder } from 'discord.js';
 export const keyCommand = new SlashCommandBuilder().setName('key').setDescription('Your Dauntless Unbroken access code')
   .setContexts(0, 1)
   .addSubcommand(option => option.setName('resend').setDescription('Privately resend your invite or verified account key for another device'))
-  .addSubcommand(option => option.setName('recover').setDescription('Privately rotate your verified linked account key').addStringOption(value=>value.setName('confirm').setDescription('Your private five-minute recovery challenge').setMinLength(64).setMaxLength(64)))
+  .addSubcommand(option => option.setName('recover').setDescription('Recover your Discord-linked account; no old key needed').addStringOption(value=>value.setName('confirm').setDescription('Paste the five-minute confirmation code the bot sends to your DMs').setMinLength(64).setMaxLength(64)))
   .addSubcommand(option => option.setName('claim').setDescription('Receive your launcher invite by direct message'))
   .addSubcommand(option => option.setName('status').setDescription('Check your account link or code redemption'))
   .addSubcommand(option => option.setName('link').setDescription('Link your existing account using its saved account key, not a Join invite')
@@ -36,11 +36,15 @@ export async function syncKeyCommands(rest, applicationId, guildIds = []) {
     else await rest.post(route,{body:keyCommand});
     changed++;
   }
-  // Guild registration is immediately available; the global copy also supports DMs.
+  // Global /key works in guilds and DMs. Remove the old guild copy to avoid duplicates.
   for (const id of new Set(guildIds)) {
     const guildRoute=Routes.applicationGuildCommands(applicationId,id);
     const commands=await rest.get(guildRoute);
-    for(const desired of [keyCommand,...moderationCommands]) {
+    for(const command of commands.filter(c=>c.name==='key' && c.type===1)) {
+      await rest.delete(`${guildRoute}/${command.id}`);
+      changed++;
+    }
+    for(const desired of moderationCommands) {
       const {contexts,...body}=desired;
       const command=commands.find(c=>c.name===desired.name && c.type===1);
       if(!command||JSON.stringify(shape(command,true))!==JSON.stringify(shape(body,true))){

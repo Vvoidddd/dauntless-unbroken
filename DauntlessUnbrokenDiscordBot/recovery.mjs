@@ -54,19 +54,19 @@ export async function recoverInteraction(interaction){
  const challenge=interaction.options.getString('confirm');
  if(!challenge){
   const result=await recoveryRequest('begin',id);
-  await interaction.editReply(result.challenge
-   ? `Recovery requires an account link previously verified with your launcher key using /key link. No username or moderator role is sufficient. Confirm within five minutes with:\n/key recover confirm:${result.challenge}\nThis revokes your old key. If you never verified a link and lost the key, contact support.`
-   : 'Recovery is unavailable or on cooldown. Try later or contact support.');
+  if(result.challenge) await sendPrivately(interaction,
+   `🔑 **Recover your Dauntless Unbroken account**\nYou do not need your old account key if your account is already linked to this Discord. Registering with your own bot invite links it automatically.\n\nYour confirmation code (expires in five minutes):\n\`\`\`\n${result.challenge}\n\`\`\`\nRun **/key recover**, select **confirm**, and paste that code. This is a confirmation code, not a launcher key.\nWe will privately send your saved account key. If no saved copy exists, recovery replaces the old key; your character and progress stay intact.\n\nIf you never linked your account, use **/key link** once with its existing key, or contact support if it is lost. Never share either code or key.`);
+  else await interaction.editReply('Recovery is unavailable or on cooldown. Wait 15 minutes and try again, or contact support.');
   return;
  }
  // Confirm the private interaction is still writable before rotating. Blocked DMs
  // are supported through this already-ephemeral acknowledgement.
  await interaction.editReply('Verifying your recovery request…');
- const result=await recoveryRequest('confirm',id,{challenge});
+ const result=await recoveryRequest('confirm',id,{challenge,resend:true});
  if(!result.key){await interaction.editReply('Recovery could not be verified or is on cooldown. Use /key link with your existing key, or contact support.');return;}
  try{
-  await sendPrivately(interaction,`🔑 **Replacement Account Key**\n\`\`\`\n${result.key}\n\`\`\`\nYour old key is revoked. Save this key and sign in again.`);
+  await sendPrivately(interaction,`🔑 **Your Account Key**\n\`\`\`\n${result.key}\n\`\`\`\nPaste this into **Account key** in the launcher to sign into your existing character. Your progress stays intact. Save it somewhere private.\n\n${KEY_SHARING_WARNING}`);
  }catch{
-  await interaction.editReply('Your old key was revoked, but Discord did not confirm delivery. Check your DMs; if missing, repeat recovery after the cooldown.');
+  await interaction.editReply('Discord did not confirm delivery. Check your DMs; if missing, use /key resend or retry recovery after the cooldown.');
  }
 }

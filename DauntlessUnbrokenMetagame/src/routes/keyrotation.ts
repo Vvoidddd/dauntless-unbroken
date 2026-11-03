@@ -21,7 +21,7 @@ keyRotationRouter.post('/internal/key-recovery/:action',AdminMutationRateLimit,K
    case 'link': res.json({verified:ProveRecoveryLink(id,req.body?.key)});return;
    case 'copy': res.json(CopyLinkedAccountKey(id));return;
    case 'begin': res.json({challenge:BeginKeyRecovery(id)});return;
-   case 'confirm': res.json({key:CompleteKeyRecovery(id,req.body?.challenge)});return;
+   case 'confirm': res.json({key:CompleteKeyRecovery(id,req.body?.challenge,Date.now(),req.body?.resend===true)});return;
    default: res.status(404).json({error:'recovery_unavailable'});
   }
  }catch{res.status(503).json({error:'recovery_unavailable'});}

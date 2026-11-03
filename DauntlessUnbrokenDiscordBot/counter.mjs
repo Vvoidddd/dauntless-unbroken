@@ -17,12 +17,15 @@ export function presenceCounts(members) {
 export const counterCommand=new SlashCommandBuilder().setName('counter').setDescription('Configure the live member counter (owner only)')
   .setContexts(0).addStringOption(o=>o.setName('category_id').setDescription('Discord category ID').setRequired(true)).toJSON();
 export async function syncCounterCommand(rest,appId,guildIds=[]) {
-  for(const route of [Routes.applicationCommands(appId),...[...new Set(guildIds)].map(id=>Routes.applicationGuildCommands(appId,id))]){
+  const route=Routes.applicationCommands(appId);
   const old=(await rest.get(route)).find(c=>c.name==='counter' && c.type===1);
-  const {contexts,...guildCommand}=counterCommand;
-  const body=route.includes('/guilds/')?guildCommand:counterCommand;
+  const body=counterCommand;
   if (!old) await rest.post(route,{body});
   else if (old.description!==counterCommand.description || old.options?.[0]?.name!=='category_id') await rest.patch(`${route}/${old.id}`,{body});
+  for(const id of new Set(guildIds)){
+    const guildRoute=Routes.applicationGuildCommands(appId,id);
+    for(const command of (await rest.get(guildRoute)).filter(c=>c.name==='counter' && c.type===1))
+      await rest.delete(`${guildRoute}/${command.id}`);
   }
 }
 export async function loadCounters(file) {
