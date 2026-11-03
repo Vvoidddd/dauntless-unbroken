@@ -397,6 +397,20 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     const unsigned char dialogBytes[] = {0x48,0x89,0x5c,0x24,0x08,0x55,0x56,0x57};
     if (memcmp(reinterpret_cast<void*>(Base+0x1369ca0), dialogBytes, sizeof(dialogBytes))) Fail("dialog_bytes_mismatch\n");
     if (!Hook(0x1369ca0, DialogNamespace, reinterpret_cast<void**>(&OriginalDialogNamespace))) Fail("dialog_hook_failed\n");
+    if (!Server) {
+        // Use the legacy EAC plugin's own -NoEAC return path. Unbroken authenticates
+        // through its launcher relay; CreateGameClient cannot initialize here.
+        auto* eacBranch = reinterpret_cast<unsigned char*>(Base + 0x13645e1);
+        const unsigned char eacExpected[] = {0x74,0x35};
+        if (memcmp(eacBranch, eacExpected, sizeof(eacExpected))) Fail("eac_skip_bytes_mismatch\n");
+        DWORD protection;
+        if (!VirtualProtect(eacBranch, sizeof(eacExpected), PAGE_EXECUTE_READWRITE, &protection)) Fail("eac_skip_write_failed\n");
+        memset(eacBranch, 0x90, sizeof(eacExpected));
+        DWORD unused;
+        if (!VirtualProtect(eacBranch, sizeof(eacExpected), protection, &unused)) Fail("eac_skip_protection_failed\n");
+        FlushInstructionCache(GetCurrentProcess(), eacBranch, sizeof(eacExpected));
+        Note("legacy_gameclient_init_skipped\n");
+    }
     if (Server) {
         RestoreAbilityDispatch();
         if (GetEnvironmentVariableW(L"DR_1105_GAMESERVER_KEY", ServerKey, 65) != 64 ||
