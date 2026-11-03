@@ -80,11 +80,7 @@ function MakeDefaultLoadoutSlot(SlotIndex: number){
             instance_id: "LT_BASIC",
             instance_data: DEFAULT_INSTANCE_DATA
         },
-        player_role: {
-            item_id: "PR_DARKNESS",
-            instance_id: "PR_DARKNESS",
-            instance_data: DEFAULT_INSTANCE_DATA
-        },
+        player_role: null,
         subweapon: null,
         appearance: "{\"CreationState\":\"EArchonCharacterCreationState::NewCharacter\",\"Data\":[],\"AssetReferences\":[],\"StringData\":[]}",
         flask: "FL_HEALING_DEFAULT",

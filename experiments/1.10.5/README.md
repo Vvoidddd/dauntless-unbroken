@@ -19,6 +19,8 @@ Old Slayer Mastery and the weapon skill shown by 1.10.5 are different systems. `
 - Empty worlds retire using fresh occupancy samples and travel reservations. Ramsgate fills available seats before another city starts.
 - Shop cards now read the same Rams price as the purchase screen. Forgemaster Hammer showed 2,500 Rams on both screens; no purchase was made.
 - Main-shop offers rotate weekly. Recruit dye stays available for the quest. Middleman recipe times are set to one hour on client and host.
+- New loadouts start without an Omnicell. Creating a loadout no longer equips an unearned Revenant; saved equipment is preserved.
+- Slayer Link pools now use the 1.10.5 reward table. The repair restored 32 missing pools across 17 links without changing their XP, dates or existing rolls. A second pass made no changes.
 - Database backups are verified before older copies are removed. Player saves happen during play, not only at backup time.
 
 ## Still being checked

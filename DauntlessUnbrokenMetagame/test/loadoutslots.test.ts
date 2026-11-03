@@ -28,6 +28,7 @@ describe("loadout slots (real mode)", () => {
         assert.equal(Payload.active_index, 0);
         assert.equal(Payload.needs_migration, false);
         assert.equal(Payload.loadouts.length, 1);
+        assert.equal(Payload.loadouts[0].player_role, null, "new players must unlock and equip their own Omnicell");
     });
 
     it("unlock/3 adds 3 (the game server sends the difference), and /all, /slotcount and the reply agree", async () => {
@@ -83,12 +84,14 @@ describe("loadout slots (real mode)", () => {
 
     it("creates the loadout row when a valid slot save arrives before the initial /all read", async () => {
         const {UserId, CharacterId} = await MakePlayer();
+        const Role = {item_id: "PR_ICEBORNE", instance_id: "PR_ICEBORNE", instance_data: "{}"};
 
-        assert.equal(SetLoadoutSlotData(UserId, CharacterId, "0", JSON.stringify({slot_index: 0, flask: "FL_EARLY"})), true);
+        assert.equal(SetLoadoutSlotData(UserId, CharacterId, "0", JSON.stringify({slot_index: 0, flask: "FL_EARLY", player_role: Role})), true);
         assert.equal(SetLoadoutSlotData(UserId, CharacterId, "persistent", JSON.stringify({banner: "BN_EARLY"})), true);
         const Payload = await AllPayload(UserId, CharacterId);
 
         assert.equal(Payload.loadouts[0].flask, "FL_EARLY");
+        assert.deepEqual(Payload.loadouts[0].player_role, Role);
         assert.equal(Payload.persistent.banner, "BN_EARLY");
     });
 
