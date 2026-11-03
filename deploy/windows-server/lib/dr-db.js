@@ -56,12 +56,15 @@ async function main(args = process.argv.slice(2)) {
         case "backup": {
             const dest = rest[0];
             if (!dest) fail("backup needs a destination file");
-            if (rest[1] === '--online' && rest[2]) {
-                const env = require(path.join(path.resolve(metaDir), 'node_modules', 'dotenv')).parse(fs.readFileSync(rest[2]));
+            if (['--online', '--realm1105'].includes(rest[1]) && rest[2]) {
+                const realm = rest[1] === '--realm1105';
+                const key = realm ? JSON.parse(fs.readFileSync(rest[2], 'utf8')).gameserverKey :
+                    require(path.join(path.resolve(metaDir), 'node_modules', 'dotenv')).parse(fs.readFileSync(rest[2])).METAGAME_API_KEY;
+                if (typeof key !== 'string' || !key) fail('Missing backup service credential');
                 let response;
                 try {
-                    response = await fetch('http://127.0.0.1:61000/internal/backup', {
-                        method: 'POST', headers: {'content-type': 'application/json', 'x-dauntless-unbroken-gameserver-apikey': env.METAGAME_API_KEY},
+                    response = await fetch(`http://127.0.0.1:${realm ? 62000 : 61000}/internal/backup`, {
+                        method: 'POST', headers: {'content-type': 'application/json', 'x-dauntless-unbroken-gameserver-apikey': key},
                         body: JSON.stringify({name: path.basename(path.dirname(dest))}), signal: AbortSignal.timeout(905000)
                     });
                 } catch (error) {
@@ -70,12 +73,20 @@ async function main(args = process.argv.slice(2)) {
                     if (error.cause?.code !== 'ECONNREFUSED') throw error;
                 }
                 if (response?.ok) { console.log(`db ${check(Database, dest)}`); return; }
-                if (response && response.status !== 404) throw new Error(`Live backup failed (${response.status})`);
+                if (response && (realm || response.status !== 404)) throw new Error(`Live backup failed (${response.status})`);
             }
             const db = open(Database, dbFile, true);
             try {
+                // Pin one WAL snapshot: writes on another connection otherwise restart
+                // every incremental step. Rollback-journal databases keep the bounded
+                // retry policy rather than holding a read lock over active writers.
+                if (db.pragma('journal_mode', { simple: true }) === 'wal') {
+                    db.exec('BEGIN');
+                    db.prepare('SELECT count(*) FROM sqlite_master').get();
+                }
                 await db.backup(dest, { progress: backupProgress() });
             } finally {
+                if (db.inTransaction) db.exec('ROLLBACK');
                 db.close();
             }
             console.log(`db ${check(Database, dest)}`);

@@ -2,7 +2,7 @@
 
 # Dauntless Unbroken
 
-A fresh community realm for **Dauntless 1.4.4**, with a purple launcher, persistent progression and on-demand hunt servers.
+Dauntless Unbroken runs **Dauntless 1.10.5** with shared accounts, saved progression and on-demand game servers.
 
 [**Download the launcher**](https://vvoidddd.github.io/dauntless-unbroken/download/) · [**Documentation**](https://vvoidddd.github.io/dauntless-unbroken/) · [**Build status**](https://github.com/Vvoidddd/dauntless-unbroken/actions)
 
@@ -10,9 +10,9 @@ A fresh community realm for **Dauntless 1.4.4**, with a purple launcher, persist
 
 ## Play
 
-Install the Unbroken launcher, add your realm invite and sign in with your personal account key. The launcher verifies game files, resumes downloads and receives updates from this repository. Offline play uses a separate save.
+Install the Unbroken launcher, add your realm invite and sign in with your account key. The launcher checks game files, resumes downloads from our Cloudflare mirror and receives updates from this repository.
 
-**This is a fresh realm. Previous accounts and progression are not imported.**
+Existing Unbroken 1.4.4 players can use their saved account key. The server imports eligible accounts into the 1.10.5 database without changing the original save. Gear, cosmetics, quests and island unlocks carry over; legacy mastery and the new weapon-level system are separate. Keep your key private. Offline 1.10.5 play is not available yet.
 
 ## Features
 
@@ -20,7 +20,7 @@ Install the Unbroken launcher, add your realm invite and sign in with your perso
 - Weekly Rams shop rotation, the once-per-account Void creator reward and Granny Strega crafting/purchases.
 - Fair matchmaking queues, resource admission and idle hunt cleanup.
 - Moderation, health monitoring, Discord key distribution and operator tooling.
-- Windows launcher installer and portable ZIP; Linux packaging and server-port checks.
+- Windows installer and portable ZIP, plus a native Linux AppImage. Steam Deck support is still being tested.
 
 ## Host or develop
 
@@ -32,7 +32,7 @@ Start with [how the server works](docs/server.md), the [Windows installation gui
 | TLS gateway and access control | `DauntlessUnbrokenGateway` |
 | Hunt allocation | `DauntlessUnbrokenDeployServer` |
 | Content distribution | `DauntlessUnbrokenContent` |
-| Native game integration | `DauntlessUnbrokenInternalServer` |
+| Native 1.10.5 integration | `experiments/1.10.5` |
 | Launcher | `DauntlessUnbrokenLauncher` |
 | Discord key bot | `DauntlessUnbrokenDiscordBot` |
 

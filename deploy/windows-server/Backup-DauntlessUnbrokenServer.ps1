@@ -17,8 +17,8 @@
         <root>\backups\yyyy-MM-dd_HHmmss\secrets\tls\gateway-cert.pem, gateway-key.pem
 
     Retention: one verified backup by default, replaced only after the next backup succeeds.
-    Runs hourly from the "Dauntless Unbroken backup" scheduled task (through backup-hidden.vbs, so no
-    window appears), and from Stack.ps1 around every start and stop.
+    Legacy installations run this from Stack.ps1 and their backup task. The 1.10.5 realm uses
+    -Realm1105 from its weekly task and the running backend's authenticated local backup endpoint.
 
     The backups contain keys. Copy them off the server only encrypted.
 
@@ -28,6 +28,7 @@
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
     [string]$Root,
+    [switch]$Realm1105,
     [ValidateRange(1, 10000)][int]$Hourly = 1,
     [ValidateRange(0, 10000)][int]$Daily = 0
 )
@@ -41,9 +42,24 @@ $cfg = $null
 if (Test-Path -LiteralPath $P.ServerJson) { $cfg = Get-DRConfig $Root }
 $node = Get-DRConfigValue $cfg 'NodePath' 'node'
 $metaDir = Join-Path $P.App 'DauntlessUnbrokenMetagame'
+if($Realm1105){
+    $state=Join-Path $Root 'backend-state'
+    $P.Db=Join-Path $state 'realm.db'
+    $P.ServerJson=Join-Path $state 'realm-config.json'
+    $P.Keys=$state
+    $P.GatewayCert=Join-Path $state 'public.crt'
+    $P.GatewayKey=Join-Path $state 'public.key'
+    $node=Join-Path $Root 'runtime/node.exe'
+    $metaDir=Join-Path $Root 'repo/DauntlessUnbrokenMetagame'
+    foreach($required in @($P.Db,$P.ServerJson,$P.GatewayCert,$P.GatewayKey,(Join-Path $state 'secrets.json'),(Join-Path $state 'hosted.json'))){
+        if(!(Test-Path -LiteralPath $required) -or (Test-DRReparsePoint $required)){throw "Missing or linked realm backup source: $required"}
+    }
+}
 
 if (-not $PSCmdlet.ShouldProcess($P.Backups, 'Back up the database and secrets')) { return }
 
+if (Test-DRReparsePoint $Root) { throw 'Backup source root must not be a link' }
+if (Test-DRReparsePoint $P.Backups) { throw 'Backup directory must not be a link' }
 New-Item -ItemType Directory -Force -Path $P.Backups | Out-Null
 # An OS-held lock covers scheduled and manual/Stack invocations, across accounts.
 # A crashed process releases it automatically; the file itself may remain.
@@ -78,7 +94,10 @@ New-Item -ItemType Directory -Force -Path $dest | Out-Null
 # 1. The database. No database yet (fresh install before the first start) is not an error.
 $dbNote = 'no database yet'
 if (Test-Path -LiteralPath $P.Db) {
-    $code = Invoke-DRNative -FilePath $node -Arguments @((Join-Path $PSScriptRoot 'lib\dr-db.js'), 'backup', $metaDir, $P.Db, (Join-Path $dest 'dauntless-unbroken.db'), '--online', $P.DeployEnv) `
+    $backupArgs=@((Join-Path $PSScriptRoot 'lib\dr-db.js'), 'backup', $metaDir, $P.Db, (Join-Path $dest 'dauntless-unbroken.db'))
+    if($Realm1105){$backupArgs+=@('--realm1105',(Join-Path $Root 'backend-state/secrets.json'))}
+    else {$backupArgs+=@('--online',$P.DeployEnv)}
+    $code = Invoke-DRNative -FilePath $node -Arguments $backupArgs `
         -WorkingDirectory $P.Root -LogBase (Join-Path $P.Logs 'backup-db')
     if ($code -ne 0) {
         Log "backup FAILED: the database copy did not pass its check (see $($P.Logs)\backup-db.err.log)"
@@ -95,9 +114,13 @@ New-Item -ItemType Directory -Force -Path $sec | Out-Null
 $copies = @(
     @($P.MetaEnv, 'metagame.env'), @($P.DeployEnv, 'deployserver.env'), @($P.ContentEnv, 'content.env'), @($P.GatewayEnv, 'gateway.env')
 )
+if($Realm1105){
+    $copies=@('secrets.json','hosted.json','launcher-policy.json','known_hosts','migration-read' | ForEach-Object {,@((Join-Path $state $_),$_)})
+}
 $skipped = @()
 foreach ($c in $copies) {
     if (Test-Path -LiteralPath $c[0]) {
+        if (Test-DRReparsePoint $c[0]) { throw "Linked backup source: $($c[0])" }
         try { Copy-Item -LiteralPath $c[0] -Destination (Join-Path $sec $c[1]) -ErrorAction Stop } catch { $skipped += $c[1] }
     }
 }

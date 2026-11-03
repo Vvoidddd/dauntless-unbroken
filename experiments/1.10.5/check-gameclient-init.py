@@ -35,4 +35,11 @@ assert 0x1364d7c + struct.unpack('<i', read(0x1364d78, 4))[0] == 0x13671b0
 block = source[source.index('    if (!Server) {'):source.index('    if (Server) {\n        RestoreAbilityDispatch();')]
 assert 'Base + 0x13645e1' in block and 'memset(eacBranch, 0x90, sizeof(eacExpected))' in block
 assert '!ExactBuild(path)' in source  # full-build guard remains in addition to the branch guard
+for rva, expected in (
+    (0x1fecc60, '48895c2418488974242055574156488d'),
+    (0x1f1cb80, '40564881ec60010000488b05d834a704'),
+    (0x3bc2f20, '488bc444884018488948085553565741'),
+):
+    assert read(rva, len(bytes.fromhex(expected))) == bytes.fromhex(expected), hex(rva)
 print('PASS: pinned client-only NoEAC exit; server and connection-error paths unchanged')
+print('PASS: pinned shop, portrait and world-tick hook entry points')
