@@ -8,7 +8,7 @@ import { logger } from "../logger";
 import { AddEncounteredContent, GetBreadcrumbsForCharacterIdAndUserId, ProgressionError, QueryEncounteredContent, SetBreadcrumbsForCharacterIdAndUserId } from "../controllers/progression";
 import { GetProgressionPath } from "../controllers/progressionrank";
 import { IsRealProgressionAccount } from "../controllers/progressionmode";
-import { ConfirmRank, GetObjectiveRecord, GetObjectiveRecords, GetTrackRecord, GetTrackRecords, GrantProgression, GrantProgressionInTrack, ResetTrack } from "../controllers/realprogression";
+import { ConfirmRank, GetObjectiveRecord, GetObjectiveRecords, GetTrackRecord, GetTrackRecords, GrantProgression, GrantProgressionInTrack, IsWeaponReforgeTrack, ResetTrack } from "../controllers/realprogression";
 import { CallerOf } from "../controllers/progressionevents";
 import { RealProgressionOnly, RefuseForeignPlayer, SendRealReply } from "../middleware/RealProgressionOnly";
 import { HasDauntlessUnbrokenAdminApiKey } from "../middleware/HasDauntlessUnbrokenAdminApiKey";
@@ -374,8 +374,7 @@ progressionRouter.get("/progression/:userId/:progressionId", RealProgressionOnly
     });
 });
 
-// Resets one track. The game server only sends it from a debug command, so it needs
-// an admin key (x-dauntless-unbroken-user-api-key), or PROGRESSION_ALLOW_DELETE=1 for game servers.
+// Weapon reforging in 1.10.5 uses DELETE too. Other resets still require explicit admin access.
 progressionRouter.delete("/progression/:userId/:progressionId", AdminMutationRateLimit, RealProgressionOnly, async (req: any, res) => {
     if(req.headers["x-dauntless-unbroken-user-api-key"] !== undefined){
         await HasDauntlessUnbrokenAdminApiKey(req, res, () => SendRealReply(res, ResetTrack(req.params.userId, req.params.progressionId, "admin")));
@@ -383,14 +382,15 @@ progressionRouter.delete("/progression/:userId/:progressionId", AdminMutationRat
     }
 
     await HasDauntlessUnbrokenMetagameAuth(req, res, () => {
-        if(!req.AuthData.IsGameserver || process.env.PROGRESSION_ALLOW_DELETE !== "1"){
+        const ReforgeOnly = process.env.PROGRESSION_ALLOW_DELETE !== "1";
+        if(!req.AuthData.IsGameserver || (ReforgeOnly && !IsWeaponReforgeTrack(req.params.progressionId))){
             logger.warn(`Refusing reset of track ${req.params.progressionId} of ${req.params.userId}: needs an admin key, or PROGRESSION_ALLOW_DELETE=1 for game servers`);
             res.status(403);
             res.send();
             return;
         }
 
-        SendRealReply(res, ResetTrack(req.params.userId, req.params.progressionId, CallerOf(req)));
+        SendRealReply(res, ResetTrack(req.params.userId, req.params.progressionId, CallerOf(req), ReforgeOnly));
     });
 });
 
