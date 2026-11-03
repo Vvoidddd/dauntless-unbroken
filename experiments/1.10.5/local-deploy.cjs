@@ -83,9 +83,12 @@ async function cleanEmptyHunts() {
     if(!stale&&Date.now()-entry.requestedAt<=90000)continue;
     retiring.add(hunt);
     const exe=path.join(root,'game/Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe').replaceAll("'","''");
-    const staleGuard=stale?` -and ((Get-Item -LiteralPath '${log.replaceAll("'","''")}').LastWriteTimeUtc -lt [DateTime]::UtcNow.AddSeconds(-180))`:'';
+    const escapedLog=log.replaceAll("'","''");
+    const sample=stale?'':`$s=@(Get-Content -LiteralPath '${escapedLog}' -Tail 60 | Select-String 'engine_tick.*clients=(\\d+)') | Select-Object -Last 1; `;
+    const staleGuard=stale?` -and ((Get-Item -LiteralPath '${escapedLog}').LastWriteTimeUtc -lt [DateTime]::UtcNow.AddSeconds(-180))`:
+      ` -and ((Get-Item -LiteralPath '${escapedLog}').LastWriteTimeUtc -gt [DateTime]::UtcNow.AddSeconds(-15)) -and $s.Matches[0].Groups[1].Value -eq '0'`;
     const stopped=await new Promise(resolve=>execFile(powershell,['-NoProfile','-NonInteractive','-Command',
-      `$p=Get-CimInstance Win32_Process -Filter 'ProcessId=${pid}'; if (!$p) {'gone'} elseif ($p.ExecutablePath -eq '${exe}' -and $p.CommandLine -match '(^|\\s)-server(\\s|$)' -and $p.CommandLine -match '(^|\\s)-port=${entry.port}(\\s|$)'${staleGuard}) { Stop-Process -Id ${pid} -ErrorAction Stop; 'stopped' }`],
+      `${sample}$p=Get-CimInstance Win32_Process -Filter 'ProcessId=${pid}'; if (!$p) {'gone'} elseif ($p.ExecutablePath -eq '${exe}' -and $p.CommandLine -match '(^|\\s)-server(\\s|$)' -and $p.CommandLine -match '(^|\\s)-port=${entry.port}(\\s|$)'${staleGuard}) { Stop-Process -Id ${pid} -Force -ErrorAction Stop; 'stopped' }`],
       {windowsHide:true,timeout:10000,env:psEnvironment},(error,out)=>resolve(!error&&/^(stopped|gone)$/.test(out.trim()))));
     if(stopped){hunts.delete(hunt);delete worlds[hunt];emptySince.delete(hunt);sessions.delete(hunt);readinessCache.delete(hunt);saveHunts();console.log(`Closed ${stale?'unresponsive':'empty'} island: ${hunt}`);}
     retiring.delete(hunt);
@@ -158,32 +161,90 @@ async function probeReady(mode) {
   if(players===undefined)return;
   return {host:publicHost,port,sessionId:sessions.get(mode).id,startedAt,players};
 }
-function createAllocator(account, readiness = ready, allocateHunt = startHunt, worker=workerUrl) {
-  // ponytail: two warm anchors per mode; the existing backend queues when both are full.
+const sharedStarting = new Set();
+async function controlShared(mode, action, sessionId) {
+  if (!['CITY','SHARED'].includes(mode)) throw Error('Invalid shared world');
+  const world = await ready(mode);
+  const {stem,port} = worlds[mode];
+  if (action === 'start') {
+    if (world || sharedStarting.has(mode)) return false;
+    // Never start a duplicate when a process exists but its telemetry is temporarily unavailable.
+    const sockets = await socketSnapshot();
+    if (!sockets || sockets.some(s=>s.LocalPort===port)) return false;
+    sharedStarting.add(mode);
+    execFile(powershell,['-NoProfile','-NonInteractive','-File',path.join(__dirname,'start-server.ps1'),
+      '-World',mode==='CITY'?'ramsgate':'dojo','-BindIp',host],
+      {windowsHide:true,timeout:60000,env:psEnvironment},error=>{
+        sharedStarting.delete(mode);readinessCache.delete(mode);socketCache=undefined;
+        if(error)console.error(`Shared world start failed: ${mode}: ${error.message}`);
+      });
+    return true;
+  }
+  if(action!=='stop'||!world||world.sessionId!==sessionId||world.players!==0||sharedStarting.has(mode))return false;
+  retiring.add(mode);
+  try {
+    const pid=sessions.get(mode).pid;
+    const exe=path.join(root,'game/Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe').replaceAll("'","''");
+    const log=path.join(root,stem+'.log').replaceAll("'","''");
+    // Recheck native occupancy and PID ownership immediately before stopping.
+    const stopped=await new Promise(resolve=>execFile(powershell,['-NoProfile','-NonInteractive','-Command',
+      `$p=Get-CimInstance Win32_Process -Filter 'ProcessId=${pid}'; $f=Get-Item -LiteralPath '${log}'; $s=@(Get-Content -LiteralPath '${log}' -Tail 60 | Select-String 'engine_tick.*clients=(\\d+)') | Select-Object -Last 1; if ($p.ExecutablePath -eq '${exe}' -and $p.CommandLine -match '(^|\\s)-server(\\s|$)' -and $p.CommandLine -match '(^|\\s)-port=${port}(\\s|$)' -and $f.LastWriteTimeUtc -gt [DateTime]::UtcNow.AddSeconds(-15) -and $s.Matches[0].Groups[1].Value -eq '0') { Stop-Process -Id ${pid} -Force -ErrorAction Stop; 'stopped' }`],
+      {windowsHide:true,timeout:10000,env:psEnvironment},(error,out)=>resolve(!error&&out.trim()==='stopped')));
+    if(stopped){sessions.delete(mode);console.log(`Closed empty shared world: ${mode}`);}
+    return stopped;
+  }finally{retiring.delete(mode);readinessCache.delete(mode);socketCache=undefined;}
+}
+function createAllocator(account, readiness = ready, allocateHunt = startHunt, worker=workerUrl, worldControl=controlShared) {
   const shared=new Map();
   for(const mode of ['CITY','SHARED']){
-    const state={list:[],byId:new Map(),lastSeen:new Map()};
-    state.pool=new CityPool(()=>state.list,async()=>{throw new CapacityUnavailable('hunts');},id=>state.byId.get(id),Date.now,()=>[mode==='CITY'?20:12,mode==='CITY'?20:12]);
+    const state={list:[],byId:new Map(),lastSeen:new Map(),queue:Promise.resolve()};
+    state.pool=new CityPool(()=>state.list,async()=>{
+      if(!state.local)await worldControl(mode,'start');
+      else if(worker&&!state.remote)await peerControl(mode,'start');
+      // Matchmaking already retries capacity responses while the new world starts.
+      throw new CapacityUnavailable('hunts');
+    },id=>state.byId.get(id),Date.now,()=>[mode==='CITY'?20:12,mode==='CITY'?20:12]);
     shared.set(mode,state);
   }
-  async function allocateShared(mode,size){
+  async function peerControl(mode,action,sessionId){
+    const response=await fetch(worker+'/shared-world',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({mode,action,sessionId}),signal:AbortSignal.timeout(15000)});
+    if(!response.ok)throw new CapacityUnavailable('hunts');
+    return (await response.json()).changed===true;
+  }
+  async function refreshShared(mode){
     const local=await readiness(mode), destinations=local?[local]:[];
+    let remote;
     if(worker){try{
       const response=await fetch(worker+'/worlds',{signal:AbortSignal.timeout(8000)});
-      if(response.ok){const body=await response.json();if(body[mode])destinations.push(body[mode]);}
+      if(response.ok){const body=await response.json();remote=body[mode];if(remote)destinations.push(remote);}
     }catch{/* Known local capacity remains usable while the peer is unavailable. */}}
     const state=shared.get(mode);
+    state.local=local;state.remote=remote;
     const now=Date.now(),fresh=new Set(destinations.map(w=>w.sessionId));
     for(const w of destinations){state.byId.set(w.sessionId,{...w,id:w.sessionId});state.lastSeen.set(w.sessionId,now);}
     for(const [id,seen] of state.lastSeen)if(now-seen>180000){state.lastSeen.delete(id);state.byId.delete(id);}
     // Keep absent worlds' traveller leases until expiry, but give them no new arrivals.
     state.list=[...state.byId.values()].map(w=>({id:w.sessionId,players:fresh.has(w.sessionId)?w.players:undefined,startedAt:fresh.has(w.sessionId)?w.startedAt||0:0}));
-    return state.pool.allocate(size);
+    return state;
   }
-return http.createServer(async (req, res) => {
+  function sharedWork(mode,run){
+    const state=shared.get(mode);
+    const work=state.queue.catch(()=>{}).then(async()=>run(await refreshShared(mode)));
+    state.queue=work;return work;
+  }
+  const allocateShared=(mode,size)=>sharedWork(mode,state=>state.pool.allocate(size));
+  const server=http.createServer(async (req, res) => {
   function reply(status, body) { res.writeHead(status, { 'content-type': 'application/json' }); res.end(JSON.stringify(body)); }
   try {
     if(req.method==='GET'&&req.url==='/worlds'){reply(200,{CITY:await readiness('CITY'),SHARED:await readiness('SHARED')});return;}
+    // Loopback-only worker control, reached through the existing SSH tunnel.
+    if(req.method==='POST'&&req.url==='/shared-world'){
+      if(worker){reply(403,{});return;}
+      let text='';for await(const chunk of req){text+=chunk;if(text.length>1024){reply(413,{});return;}}
+      const {mode,action,sessionId}=JSON.parse(text);
+      if(!['CITY','SHARED'].includes(mode)||!['start','stop'].includes(action)){reply(400,{});return;}
+      reply(200,{changed:await worldControl(mode,action,sessionId)});return;
+    }
     if (req.method === 'GET' && req.url === '/gameservers') {
       const available = await Promise.all(Object.keys(worlds).map(async mode=>{
         const world=await readiness(mode);if(!world)return;
@@ -226,6 +287,18 @@ return http.createServer(async (req, res) => {
     reply(200, destination);
   } catch(error) { if(error instanceof CapacityUnavailable)reply(503,{error:'capacity_unavailable',reason:error.reason});else reply(400,{error:'invalid_local_request'}); }
 });
+  server.reapShared=()=>Promise.all([...shared.keys()].map(mode=>sharedWork(mode,state=>state.pool.reap(async world=>{
+    const stopped=state.local?.sessionId===world.id ? await worldControl(mode,'stop',world.id) :
+      worker&&state.remote?.sessionId===world.id ? await peerControl(mode,'stop',world.id) : false;
+    if(stopped){state.byId.delete(world.id);state.lastSeen.delete(world.id);state.list=state.list.filter(w=>w.id!==world.id);}
+    return stopped;
+  }))));
+  // Only the primary allocator owns shared-world traveller leases and retirement.
+  if(require.main===module&&process.env.DR_1105_WORKER!=='1'){
+    const timer=setInterval(()=>server.reapShared().catch(error=>console.error('Shared cleanup:',error.message)),30000);
+    timer.unref();server.on('close',()=>clearInterval(timer));
+  }
+  return server;
 }
 module.exports = { createAllocator, emptyHunt, deadHunt, staleHunt, probeReady, huntKey, workerOwns };
 if (require.main === module) {

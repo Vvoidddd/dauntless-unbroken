@@ -13,6 +13,24 @@ function fixture(caps?:number[]) {
     return {pool,cities,advance:(ms:number)=>{now+=ms;}};
 }
 
+test('pack occupied worlds before older empty ones and wait for asynchronous retirement',async()=>{
+    const {pool,cities,advance}=fixture([20,12]);
+    cities.push({id:'empty',players:0,startedAt:1},{id:'busy',players:8,startedAt:2});
+    assert.equal((await pool.allocate(4)).id,'busy');
+    assert.equal((await pool.allocate()).id,'empty','the second world retains its smaller cap');
+    advance(180001);cities[1].players=12;
+    await pool.reap(()=>false);advance(CITY_RETIRE_GRACE_MS);
+    let release!:()=>void;
+    const stopped=pool.reap(async city=>{
+        assert.equal(city.id,'empty');await new Promise<void>(r=>release=r);
+        cities.splice(0,1);return true;
+    });
+    await new Promise(r=>setImmediate(r));
+    let allocated=false;const pending=pool.allocate().then(()=>{allocated=true;});
+    await new Promise(r=>setImmediate(r));assert.equal(allocated,false);
+    release();await stopped;await pending;
+});
+
 test('oldest-city reserved seats admit priority parties without overfilling or shrinking later cities',async()=>{
     process.env.PRIORITY_RESERVED_CITY_SEATS='5';
     try {

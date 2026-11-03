@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const { createAllocator, emptyHunt, deadHunt, staleHunt, huntKey } = require('./local-deploy.cjs');
+const catalog=require('./hunting-grounds.json');
 async function check() {
   assert.equal(staleHunt({launchedAt:0,requestedAt:400000},0,400001),true,'polling cannot keep a frozen worker alive');
   assert.equal(staleHunt({launchedAt:300000,requestedAt:300000},0,400001),false,'allow startup grace');
@@ -16,15 +17,16 @@ async function check() {
   assert.equal(emptyHunt({requestedAt:0},'engine_tick clients=0 frame=2',99999,100000),true);
   assert.equal(emptyHunt({requestedAt:99999},'engine_tick clients=0',99999,100000),false);
   assert.equal(emptyHunt({requestedAt:0},'engine_tick clients=1',99999,100000),false);
+  assert.equal(emptyHunt({requestedAt:0},'engine_tick clients=0\nengine_tick clients=1',99999,100000),false);
   assert.equal(emptyHunt({requestedAt:0},'engine_tick clients=0',0,100000),false);
   assert.equal(emptyHunt({requestedAt:0},'no sample',99999,100000),false);
   let dojoReady = true;
   const server = createAllocator('local-test', async mode => mode === 'SHARED' && !dojoReady ? undefined : {
     host: '127.0.0.1', port: mode === 'CITY' ? 63870 : 63871, sessionId: mode,players:0,startedAt:1,
   }, async (hunt, players) => {
-    assert.ok(['ShatteredIsles_IslandB','Tutorial'].includes(hunt));assert.deepEqual(players,['local-test']);
+    assert.ok(Object.hasOwn(catalog,hunt));assert.deepEqual(players,['local-test']);
     return {host:'127.0.0.1',port:63872,sessionId:hunt};
-  });
+  }, undefined, async()=>false);
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
   const allocate = body => fetch(base + '/api/matchmaker/handle-matchmaking-for-player', {
@@ -48,6 +50,12 @@ async function check() {
     assert.equal((await allocate({GameMode:'ISLAND',HuntId:'Tutorial'})).status,422);
     const hunt=await allocate({GameMode:'ISLAND',HuntId:'ShatteredIsles_IslandB'});
     assert.equal(hunt.status,200);assert.equal((await hunt.json()).port,63872);
+    for(const HuntId of Object.keys(catalog).filter(id=>id!=='Tutorial')){
+      for(const GameMode of ['ISLAND','SHARED']){
+        const response=await allocate({GameMode,HuntId});assert.equal(response.status,200,HuntId);
+        assert.equal((await response.json()).sessionId,HuntId);
+      }
+    }
     assert.equal((await allocate({GameMode:'ISLAND',HuntId:'constructor'})).status,422);
     assert.equal((await allocate({GameMode:'CITY',ExpectedPlayers:['local-test','local-test']})).status,403);
     assert.equal((await allocate({ GameMode: 'SHARED', HuntId: 'Other' })).status, 422);

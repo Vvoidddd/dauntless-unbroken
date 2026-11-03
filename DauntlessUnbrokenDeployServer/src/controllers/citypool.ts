@@ -4,7 +4,7 @@ export const CITY_PLAYER_LIMIT = 20;
 // Let cached health replies (5 s), their in-flight request (3 s), and a full
 // 180 s traveller lease expire before stopping a retired endpoint.
 export const CITY_RETIRE_GRACE_MS = 190000;
-// RAMSGATE_CITY_CAPS="10,10,8": at most that many cities, filled in the order they started (the oldest first),
+// RAMSGATE_CITY_CAPS="10,10,8": at most that many cities; caps follow start order,
 // each admitting up to its own cap. Unset keeps the default: cities of CITY_PLAYER_LIMIT, started on demand.
 export function CityCaps(): number[] | undefined {
     const raw = process.env.RAMSGATE_CITY_CAPS;
@@ -32,11 +32,14 @@ export class CityPool<T extends {id:string}> {
                 const cap = caps ? (caps[index] ?? 0) : CITY_PLAYER_LIMIT;
                 return !priority && index === 0 ? Math.max(0, cap - Math.min(PriorityReservedCitySeats(), Math.max(0, cap - 1))) : cap;
             };
-            let slot = 0;
             this.reconcile(cities);
             let chosen: T | undefined;
-            for (const city of cities) {
-                const limit = limitAt(slot++);
+            // Pack arrivals into occupied worlds first, retaining each world's cap.
+            const occupiedSeats = (city: City) => (city.players ?? -CITY_PLAYER_LIMIT) +
+                (this.reservations.get(city.id) ?? []).reduce((n, r) => n + r.size, 0);
+            for (const {city, index} of cities.map((city,index)=>({city,index}))
+                .sort((a,b)=>occupiedSeats(b.city)-occupiedSeats(a.city) || a.index-b.index)) {
+                const limit = limitAt(index);
                 if (this.isRetiring(city.id)) continue;
                 const leases = this.reservations.get(city.id) ?? [];
                 // Missing telemetry is not proof of free seats. For a fresh launch, all
@@ -57,7 +60,7 @@ export class CityPool<T extends {id:string}> {
                 }
             }
             // Cold starts must obey the next city's cap too, not just existing cities.
-            if (!chosen && ((caps && slot >= caps.length) || size > limitAt(slot))) throw new CapacityUnavailable('hunts');
+            if (!chosen && ((caps && cities.length >= caps.length) || size > limitAt(cities.length))) throw new CapacityUnavailable('hunts');
             chosen ??= await this.start();
             const leases = this.reservations.get(chosen.id) ?? [];
             leases.push({size, until:this.now() + 180000});
@@ -85,8 +88,8 @@ export class CityPool<T extends {id:string}> {
         }
     }
     isRetiring(id: string) { return this.retiring.has(id); }
-    reap(stop: (city:T) => boolean): Promise<void> {
-        const work = this.queue.catch(() => {}).then(() => {
+    reap(stop: (city:T) => boolean | Promise<boolean>): Promise<void> {
+        const work = this.queue.catch(() => {}).then(async () => {
             const cities = this.list();
             this.reconcile(cities);
             for (const city of cities) {
@@ -96,7 +99,7 @@ export class CityPool<T extends {id:string}> {
                     // Unknown telemetry cannot prove an uninterrupted empty interval.
                     if (city.players === 0 || this.retiring.has(city.id)) this.retiring.set(city.id, this.now());
                 } else if (this.now() - this.retiring.get(city.id)! >= CITY_RETIRE_GRACE_MS) {
-                    if (!stop(this.get(city.id))) this.retiring.set(city.id, this.now());
+                    if (!await stop(this.get(city.id))) this.retiring.set(city.id, this.now());
                 }
             }
         });

@@ -71,7 +71,8 @@ Start-LabNode 'realm-dashboard' (Join-Path $lab 'repo\tools\dashboard.mjs') 6211
 }
 if($hosted){ & (Join-Path $PSScriptRoot 'write-realm-health.ps1') }
 if($NoWorlds){return}
-foreach ($world in @('ramsgate','dojo')) {
+# The allocator owns hosted world demand and retirement; the supervisor must not respawn empty worlds.
+foreach ($world in $(if($hosted){@()}else{@('ramsgate','dojo')})) {
     $port = if ($world -eq 'dojo') {63871} else {63870}
     if (!(Get-NetUDPEndpoint -LocalPort $port -ErrorAction SilentlyContinue)) {
         & (Join-Path $PSScriptRoot 'start-server.ps1') -World $world -BindIp $ip
