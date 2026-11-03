@@ -9,7 +9,7 @@ ref: index
 
 # Dauntless Unbroken
 
-Uusi yhteisöpalvelin **Dauntless 1.4.4** -pelille. Violetti käynnistin, tallennettava eteneminen ja tarvittaessa käynnistyvät metsästyspalvelimet.
+Yhteisöpalvelin **Dauntless 1.10.5** -pelille. Käynnistin, tallennettava eteneminen ja tarvittaessa käynnistyvät metsästyspalvelimet.
 
 [**Lataa käynnistin**](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest){: .btn .btn-primary }
 [**Aloita tästä**]({{ '/fi/setup/' | relative_url }}){: .btn }
@@ -18,9 +18,9 @@ Uusi yhteisöpalvelin **Dauntless 1.4.4** -pelille. Violetti käynnistin, tallen
 
 1. Asenna Unbroken-käynnistin.
 2. Lisää palvelimen kutsu ja kirjaudu omalla tiliavaimellasi.
-3. Säilytä avain yksityisenä. Offline-peli käyttää erillistä paikallista tallennusta.
+3. Säilytä avain yksityisenä. Offline-peli ei ole vielä saatavilla versiossa 1.10.5.
 
-**Uusi palvelin tarkoittaa uusia tilejä ja etenemistä. Vanhan palvelimen tallennuksia ei tuoda automaattisesti.**
+Vanhan Unbroken 1.4.4 -tilin avainta voi käyttää. Soveltuvat tilit tuodaan 1.10.5-tietokantaan muuttamatta alkuperäistä tallennusta.
 
 ## Ylläpitäjälle
 

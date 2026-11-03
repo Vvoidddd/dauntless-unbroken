@@ -8,7 +8,7 @@ ref: setup/index
 
 # Start playing
 
-Use the Dauntless Unbroken launcher with an Unbroken realm invite and your personal account key. The supported game build is **Dauntless 1.4.4**.
+Use the Dauntless Unbroken launcher with an Unbroken realm invite and your personal account key. The current game build is **Dauntless 1.10.5**.
 
 ## 1. Install the launcher
 
@@ -25,7 +25,7 @@ Add the realm invite, then enter your existing account key or register when regi
 
 The launcher automatically saves a readable recovery file to your **Desktop** after successful registration or key sign-in. It also keeps encrypted local storage. If Desktop saving is unavailable, use **Save key backup**. Anyone who has the key can access your account, so keep the file private.
 
-The Unbroken realm started with new accounts and progression. Previous realm saves are not imported.
+Existing Unbroken 1.4.4 players can use their saved account key. Eligible accounts are imported into the 1.10.5 database without changing the original save. Gear, cosmetics, quests and island unlocks carry over; legacy mastery and the new weapon-level system are separate.
 
 ## 3. Confirm your game folder
 
@@ -34,7 +34,7 @@ The launcher checks common local folders for the supported executable before off
 - If it finds the game, it shows the location and asks whether you want to use it.
 - Confirming verifies the full file list, downloads missing or different files and installs the Unbroken DLLs.
 - Choose a different folder to keep a separate installation.
-- For an unusual location, use **I already have the game files** and browse to `BaseGame144`, its `Dauntless` folder, or the game's `Win64` folder.
+- For an unusual location, use **I already have the game files** and browse to the game folder or the game's `Win64` folder.
 
 No discovered installation is changed before confirmation. Copy an installation first if another setup still uses it.
 
@@ -42,7 +42,7 @@ No discovered installation is changed before confirmation. Copy an installation 
 
 The realm advertises its R2 game catalog through the content manifest. Downloads can resume and every completed file must match the launcher's compiled size and SHA-256.
 
-The correct folder contains `Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe`. A newer retail build cannot substitute for the pinned 1.4.4 executable.
+The correct folder contains `Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe`. Use the 1.10.5 files provided for the realm.
 
 ## 5. Play
 
@@ -52,4 +52,4 @@ For a problem, use the [troubleshooting guide]({{ '/setup/troubleshooting.html' 
 
 ## Offline play
 
-Offline mode starts local services with a separate account and database. Online and offline saves are isolated. Exporting or importing an offline save does not upload that progression to the public realm.
+Offline play for 1.10.5 is not available yet.

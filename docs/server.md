@@ -13,6 +13,8 @@ Dauntless Unbroken separates persistent account data from temporary game worlds.
 
 ## Choose a deployment
 
+The guides below describe the legacy 1.4.4 deployment paths. The current 1.10.5 integration is in [`experiments/1.10.5`](https://github.com/Vvoidddd/dauntless-unbroken/tree/1.10.5/experiments/1.10.5); do not use a 1.4.4 DLL with 1.10.5.
+
 | Deployment | Guide | Game processes |
 |:--|:--|:--|
 | Windows Server | [Windows server kit]({{ '/setup/windows-server.html' | relative_url }}) | Native Windows 1.4.4 game executable |
@@ -31,7 +33,7 @@ Use a short source path such as `C:\dr\dauntless-unbroken`. Keep the deployed in
 | `DauntlessUnbrokenGateway` | Public TLS entry point, request limits and access controls; coordinates the player UDP allowlist. |
 | `DauntlessUnbrokenMetagame` | Accounts, characters, inventory, Rams, quests, progression, loadouts, parties, friends and matchmaking. |
 | `DauntlessUnbrokenDeployServer` | Allocates ports, starts game processes, checks readiness and monitors their lifecycle. |
-| `DauntlessUnbrokenInternalServer` | Native integration loaded as `DauntlessUnbroken.dll` beside the pinned 1.4.4 game executable. |
+| Native integration | The version-matched `DauntlessUnbroken.dll` is loaded beside the game executable. The 1.10.5 integration is in `experiments/1.10.5`. |
 | `DauntlessUnbrokenContent` | Serves the file manifest and launcher content; can advertise a separate HTTPS game-download base. |
 | `DauntlessUnbrokenDiscordBot` | Account-key distribution through the backend; it does not hold a separate progression database. |
 

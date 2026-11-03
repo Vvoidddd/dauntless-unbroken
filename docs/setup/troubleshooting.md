@@ -19,6 +19,8 @@ ref: setup/troubleshooting
 # Troubleshooting
 {: .no_toc }
 
+This page records problems observed with 1.4.4; its version-specific instructions have not been verified for 1.10.5.
+
 These are the problems we actually hit while setting up Dauntless Unbroken, with their causes and fixes.
 A few entries at the end come from reading the code and haven't bitten us yet; those are marked. The
 setup itself is in [Host a server]({{ host_page.url | relative_url }}). Unless an entry says otherwise, it is about client build

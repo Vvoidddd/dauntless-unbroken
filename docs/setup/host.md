@@ -20,6 +20,8 @@ ref: setup/host
 # Host a server
 {: .no_toc }
 
+This guide describes the legacy 1.4.4 server. For the current release, start with the [server documentation]({{ '/server.html' | relative_url }}).
+
 This is how we run Dauntless Unbroken on one Windows PC. It uses the genuine **Dauntless 1.4.4** client
 (October 2020, UE4, pak v9), the native integration's server DLL, and our implementation of the native integration's metagame and deploy
 server. Everything on this page stays on `127.0.0.1`. Letting friends connect is a separate step,

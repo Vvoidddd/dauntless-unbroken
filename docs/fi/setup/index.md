@@ -25,6 +25,8 @@ locale: fi_FI
 
 # Asennus
 
+Tämän sivun vanhat ohjeet koskevat versiota 1.4.4. Nykyisen 1.10.5-version [aloitusohje on englanniksi]({{ '/setup/' | relative_url }}).
+
 Nämä sivut ovat ohjeita niille, jotka haluavat pystyttää palvelimen tai liittyä kaverin
 palvelimelle. Aito **Dauntless 1.4.4** -peliohjelma (lokakuu 2020, UE4, pak v9) keskustelee meidän
 muokatun [source provenance](https://vvoidddd.github.io/dauntless-unbroken/legal.html)-versiomme kanssa. Windows on edelleen

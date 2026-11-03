@@ -13,6 +13,8 @@ ref: setup/linux-server
 # Linux server
 {: .no_toc }
 
+This guide describes the legacy 1.4.4 game worker. Its game-specific steps have not been verified for 1.10.5.
+
 The Linux server port is separate from the Windows Server kit. It runs the metagame, deploy server,
 content server and TLS gateway **natively on Linux**, while Ramsgate, the Training Dojo and hunts use
 the original Dauntless 1.4.4 Windows x86_64 executable through **Proton or Wine**.

@@ -13,6 +13,8 @@ ref: setup/openbsd-server
 # OpenBSD server
 {: .no_toc }
 
+The linked Linux game-worker guide describes 1.4.4. Its game-specific steps have not been verified for 1.10.5.
+
 The OpenBSD port runs the **control plane natively on OpenBSD** and sends the actual Dauntless game
 processes to a separate Linux Proton/Wine worker.
 
