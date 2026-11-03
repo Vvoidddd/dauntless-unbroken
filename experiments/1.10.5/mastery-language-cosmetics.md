@@ -8,9 +8,13 @@ I repaired 558 owned legacy cosmetic entries across 48 characters using the exis
 
 Launcher 1.0.50 sends the selected game language as both `-culture` and `-epiclocale`. The 1.10.5 path previously omitted the latter. The launch-argument test covers English, German and Portuguese with a German OS default. In-game language still needs confirmation.
 
+Published [Launcher 1.0.50](https://github.com/Vvoidddd/dauntless-unbroken/releases/tag/launcher-v1.0.50) with Windows and Linux packages after CI passed. The `launcher-updates` feed contains the 1.0.50 package and `RELEASES`.
+
 ## Still under investigation
 
 - Friends bounty: the native setter exists and the friend API schema matches the 1.10.5 parser. In Hunting Grounds, the game filters the party list through accepted friendship before sending social IDs to the server. Do not replace this with credit for every party member. An actual failing party needs its client/server social cache compared with accepted friendships.
 - Disappearing Omnicell: native ability activation already sends `ClientActivateAbilitySucceed`. Adding a second acknowledgement would be wrong. No equipment-clearing hook was found. Capture role actor, charge and HUD visibility during the disappearance before changing equipment or cooldown behavior.
+
+The live database check found Nyxxie's `Bounty_Bronze_KillWithFriends` at 2/2 and ThePirahna's silver version at 1. This rules out a universal failure, but does not resolve the reported party. Across 3,494 saved loadout-history rows, no same-index `player_role.instance_id` changed from populated to empty. That check covers saved equipment only, not transient actor or HUD state during combat.
 
 Validation: 23 launcher argument tests, 16 admin reward tests, metagame TypeScript compilation and the nine-track mastery check passed. Full hunt/Escalation completion and the two intermittent reports above are not certified by those checks.
