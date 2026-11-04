@@ -19,6 +19,7 @@ eosRouter.post("/account/api/oauth/token", LoginRateLimit, async (req, res) => {
 
     if(process.env.AUTH_MODE === "NONE" && process.env.NODE_ENV !== "production"){
         const UserId = ExchangeCode;
+        if(!CheckPlayerAccess(req,res,UserId))return;
 
         logger.info(`Logging in ${UserId}!`);
 

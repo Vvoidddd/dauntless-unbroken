@@ -15,6 +15,10 @@ async function main(){
  const original=JSON.stringify({format:1,source:'live-1.4.4',readOnly:true,userId:uid,exportedAt:date,tables,social:{peers:[],tables:Object.fromEntries('friendships blocks guilds guildmembers guildinvites slayerlinkinvites slayerlinks slayerlinkstate slayerlinkpools slayerlinkxp'.split(' ').map(t=>[t,[]]))}});
  let calls=0,mode='good';const login=createLogin(db,{},async()=>{calls++;await new Promise(r=>setTimeout(r,10));if(mode==='fail')throw Error('Offline');const ex=JSON.parse(original);if(mode==='bad')ex.tables.inventories[0].characterId='foreign';return ex;});
  try{
+  process.env.MAINTENANCE_MODE='1';process.env.MAINTENANCE_ALLOWED_ACCOUNT_IDS='UID-allowed';
+  await assert.rejects(login(key,'TEST-ONCE'),/maintenance/i);assert.equal(calls,0);
+  assert.equal(db.prepare('SELECT count(*) n FROM users').get().n,0);
+  delete process.env.MAINTENANCE_MODE;delete process.env.MAINTENANCE_ALLOWED_ACCOUNT_IDS;
   await assert.rejects(login(key,''),/invite/);assert.equal(calls,0);
   db.prepare('INSERT INTO invitecodes VALUES(?,1,0)').run('TEST-ONCE');
   mode='fail';await assert.rejects(login(key,'TEST-ONCE'),/Offline/);assert.equal(db.prepare('SELECT usesRemaining n FROM invitecodes').get().n,1);
@@ -26,6 +30,10 @@ async function main(){
   assert.equal(emptyInventory.instancedItems,'[]');assert.deepEqual(JSON.parse(emptyInventory.stackedItems),[{catalogId:'CURRENCY_PJM_WEAPON',quantity:200}]);
   const tracks=db.prepare("SELECT * FROM progress_tracks WHERE progressionId LIKE 'ExperienceTrack_Weapon_%'").all();assert.equal(tracks.length,7);assert.ok(tracks.every(r=>r.progress===0&&r.confirmedFreeRank===1));
   db.prepare('UPDATE characters SET data=?').run('new-test-progress');await login(key,'');assert.equal(db.prepare('SELECT data FROM characters').get().data,'new-test-progress');assert.equal(calls,before+1);
+  process.env.MAINTENANCE_MODE='1';process.env.MAINTENANCE_ALLOWED_ACCOUNT_IDS=uid;
+  assert.equal((await login(key,'')).UserId,uid);
+  process.env.MAINTENANCE_ALLOWED_ACCOUNT_IDS='UID-other';await assert.rejects(login(key,''),/maintenance/i);
+  delete process.env.MAINTENANCE_MODE;delete process.env.MAINTENANCE_ALLOWED_ACCOUNT_IDS;
   const snapshot=JSON.parse(original);db.prepare('UPDATE users SET notes=500 WHERE userId=?').run(uid);completeExisting(db,hashKey(key),snapshot);completeExisting(db,hashKey(key),snapshot);
   assert.deepEqual(JSON.parse(db.prepare('SELECT stackedItems FROM inventories').get().stackedItems),[{catalogId:'CURRENCY_NOTES',quantity:700},{catalogId:'CURRENCY_PJM_WEAPON',quantity:217}]);
   assert.equal(db.prepare('SELECT notes FROM users WHERE userId=?').get(uid).notes,0);
