@@ -60,6 +60,25 @@ export function setSink(s: Sink): void {
   sink = s;
 }
 
+export function captureMainRejection(reason: unknown): void {
+  log.error(`unhandled main rejection: ${reason instanceof Error ? reason.stack ?? describeError(reason) : describeError(reason)}`);
+}
+
+export function captureNodeWarning(warning: Error): void {
+  log.warn(`node warning: ${warning.stack ?? describeError(warning)}`);
+}
+
+export function installProcessErrorCapture(): () => void {
+  const onUnhandledRejection = (reason: unknown) => captureMainRejection(reason);
+  const onWarning = (warning: Error) => captureNodeWarning(warning);
+  process.on("unhandledRejection", onUnhandledRejection);
+  process.on("warning", onWarning);
+  return () => {
+    process.off("unhandledRejection", onUnhandledRejection);
+    process.off("warning", onWarning);
+  };
+}
+
 function write(level: string, message: string): void {
   sink(redact(`${new Date().toISOString()} ${level} ${message}`));
 }
