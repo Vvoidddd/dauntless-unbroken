@@ -209,7 +209,7 @@
       renderWorker(result.germany,'germany');
       renderWorker(result.eu2,'eu2');
       for(const name of ['worker','aus','germany','eu2']) {const tab=document.querySelector?.(`[data-view="${name}"]`);if(tab)tab.hidden=!result[name]?.configured;}
-      el('login').hidden = true; el('data').hidden = false;
+      el('login').hidden = true; el('data').hidden = false; if (el('menuToggle')) el('menuToggle').hidden = false;
       void refreshDrain();
       void refreshFleetDrain();
       void refreshLiveHosts();
