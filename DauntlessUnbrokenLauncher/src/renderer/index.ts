@@ -2055,6 +2055,10 @@ function renderRail(): void {
   const libraryGame = $("#library-game");
   if (state.view === "play") libraryGame.setAttribute("aria-current", "page");
   else libraryGame.removeAttribute("aria-current");
+  const libraryState = $("#library-game-state");
+  const gameReady = !!snap?.install.installed && snap.install.verified && snap.install.missingFiles === 0 && snap.install.dllsOk;
+  libraryState.textContent = gameReady ? t("hint_ready") : "";
+  libraryState.classList.toggle("is-ready", gameReady);
   const chip = $("#account-chip");
   const user = snap?.account.hasKey ? snap.account.username : null;
   // Quick account switching and server selection share the existing account menu.
