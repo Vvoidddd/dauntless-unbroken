@@ -4,7 +4,7 @@ import "./setup";
 import { after, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { Server } from "node:http";
-import { DescribeGameservers, Gameserver, Gameservers, GetTrialsData, KindOfGameserver, TRIAL_POOL, TRIAL_ROTATION_START, TrialBehemothForWeek, TrialSuffixForWeek, TrialWeekAt, ValidateTrialPool } from "../src/controllers/gameservers";
+import { DescribeGameservers, Gameserver, Gameservers, GetTrialsData, KindOfGameserver, TRIAL_POOL, TRIAL_ROTATION_START, TrialBehemothForWeek, TrialSuffixForWeek, TrialWeekAt, ValidateActiveTrialsHuntId, ValidateTrialPool } from "../src/controllers/gameservers";
 import MatchmakerTable from "../src/vendor/matchmaker_hunts_table.json";
 import TrialsHardTable from "../src/vendor/trials_hard_table.json";
 import TrialsEliteTable from "../src/vendor/trials_elite_table.json";
@@ -151,6 +151,14 @@ describe("Trials weekly rotation", () => {
             if(Old === undefined) delete process.env.TRIAL_ROTATION_START;
             else process.env.TRIAL_ROTATION_START = Old;
         }
+    });
+
+    it("rejects a stale or wrong-difficulty matchmaker row instead of silently routing it to the active Trial", () => {
+        const At = new Date("2026-10-08T12:00:00.000Z");
+        const Active = GetTrialsData(false, At).TrialsHuntId;
+        assert.equal(ValidateActiveTrialsHuntId(Active, At), Active);
+        assert.throws(() => ValidateActiveTrialsHuntId("Arena_MatchmakerHunt_Hard_001", At), /not the active Trials hunt/);
+        assert.throws(() => ValidateActiveTrialsHuntId("Arena_MatchmakerHunt_Elite_001", At), /not the active Trials hunt/);
     });
 });
 
