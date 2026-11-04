@@ -43,7 +43,10 @@ const PREVIEW_SNAPSHOT = {
 const PREVIEW_API = new Proxy({}, {get:(_target, property: string) => {
   if(property === "getSnapshot") return async () => PREVIEW_SNAPSHOT;
   if(property === "getBranding") return async () => ({backgrounds:[],accent:null});
-  if(property === "getNews") return async () => [];
+  if(property === "getNews") return async () => [
+    {date:"2026-11-04T09:00:00Z", title:"Welcome to EU1", body:"The public server is online. Join the hunt, check the active worlds and keep an eye on this feed for host updates."},
+    {date:"2026-11-03T18:30:00Z", title:"Launcher update", body:"The latest launcher build adds clearer server status, safer profile pictures and a faster path from the library to PLAY."},
+  ];
   if(property === "getPurchaseHistory") return async () => null;
   if(property === "offlineStatus") return async () => ({phase:"stopped"});
   if(property === "setSettings") return async (patch: Record<string, unknown>) => {Object.assign(PREVIEW_SNAPSHOT.settings, patch);return PREVIEW_SNAPSHOT.settings;};
