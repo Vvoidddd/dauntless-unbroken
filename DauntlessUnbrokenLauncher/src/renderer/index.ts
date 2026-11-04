@@ -2133,8 +2133,10 @@ function renderRail(): void {
   else libraryGame.removeAttribute("aria-current");
   const libraryState = $("#library-game-state");
   const gameReady = !!snap?.install.installed && snap.install.verified && snap.install.missingFiles === 0 && snap.install.dllsOk;
-  libraryState.textContent = snap?.status?.maintenance ? "Maintenance" : gameReady ? t("hint_ready") : "";
+  const serverOnline = snap?.status?.online === true;
+  libraryState.textContent = snap?.status?.maintenance ? "Maintenance" : serverOnline && gameReady ? "Online · Ready" : serverOnline ? "Online" : gameReady ? t("hint_ready") : "Offline";
   libraryState.classList.toggle("is-ready", gameReady && !snap?.status?.maintenance);
+  libraryState.classList.toggle("is-online", serverOnline && !snap?.status?.maintenance);
   libraryState.classList.toggle("is-maintenance", snap?.status?.maintenance === true);
   const chip = $("#account-chip");
   const user = snap?.account.hasKey ? snap.account.username : null;

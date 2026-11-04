@@ -19,6 +19,8 @@ test("the selected library tile reflects maintenance state", () => {
   assert.match(renderer, /libraryState\.textContent = snap\?\.status\?\.maintenance/);
   assert.match(renderer, /is-maintenance/);
   assert.match(theme, /\.library-game-state\.is-maintenance/);
+  assert.match(renderer, /Online · Ready/);
+  assert.match(theme, /\.library-game-state\.is-online/);
 });
 
 test("the PLAY menu has a compact section label", () => {

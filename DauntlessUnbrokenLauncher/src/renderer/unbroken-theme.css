@@ -85,6 +85,8 @@
 .library-game-state { display: none; align-items: center; gap: 5px; min-width: 0; overflow: hidden; color: var(--dr-glow) !important; white-space: nowrap; text-overflow: ellipsis; }
 .library-game-state.is-ready { display: inline-flex; }
 .library-game-state.is-ready::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--dr-ice); box-shadow: 0 0 8px color-mix(in srgb, var(--dr-ice) 70%, transparent); }
+.library-game-state.is-online { color: var(--dr-glow) !important; }
+.library-game-state.is-online::before { background: var(--dr-glow); box-shadow: 0 0 8px color-mix(in srgb, var(--dr-glow) 70%, transparent); }
 .library-game-state.is-maintenance { display: flex; color: var(--dr-ice) !important; }
 .library-game-state.is-maintenance::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--dr-ice); }
 .nav { display: flex; flex-direction: column; gap: 4px; margin: 0; }
