@@ -161,11 +161,16 @@ const keyInput = h("input", {
   "data-fk": "key",
 });
 
-const profilePictureInput = h("input", {class:"sr-only", id:"profile-picture-input", type:"file", accept:"image/png,image/jpeg,image/webp", tabindex:"-1", "aria-hidden":"true", "data-fk":"profile-picture-input"}) as HTMLInputElement;
+const profilePictureInput = h("input", {class:"sr-only", id:"profile-picture-input", type:"file", accept:"image/png,image/jpeg", tabindex:"-1", "aria-hidden":"true", "data-fk":"profile-picture-input"}) as HTMLInputElement;
 profilePictureInput.addEventListener("change", () => {
   const file = profilePictureInput.files?.[0];
   profilePictureInput.value = "";
   if (!file) return;
+  if (file.type !== "image/png" && file.type !== "image/jpeg") {
+    state.profilePictureNote = "Choose a PNG or JPEG image.";
+    renderSettings();
+    return;
+  }
   if (file.size > 100 * 1024) {
     state.profilePictureNote = "Choose an image smaller than 100 KB.";
     renderSettings();
@@ -1677,7 +1682,7 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
     h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("div", {class:"profile-username-row"}, username, saveUsername)),
     state.profileUsernameNote ? h("p", {class:"small-print", role:"status"}, state.profileUsernameNote) : null,
     state.profilePictureNote ? h("p", {class:"small-print", role:"status"}, state.profilePictureNote) : null,
-    h("div", {class:"card-row"}, button("Choose profile picture", () => profilePictureInput.click(), {fk:"profile-picture-choose"}), profilePictureInput),
+    h("div", {class:"card-row"}, button("Choose profile picture", () => profilePictureInput.click(), {fk:"profile-picture-choose"}), h("span", {class:"small-print profile-upload-hint"}, "PNG or JPEG · 100 KB max"), profilePictureInput),
   );
 }
 
