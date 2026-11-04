@@ -111,6 +111,34 @@
 .play-home .hero-text {
   max-width: 56ch;
 }
+.play-activity {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 2px 0 0;
+  border: 1px solid var(--dr-deep);
+  background: var(--dr-deep);
+}
+.play-activity-item {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--dr-navy);
+}
+.play-activity-item span {
+  color: var(--dr-steel);
+  font-size: 10px;
+}
+.play-activity-item strong {
+  overflow: hidden;
+  color: var(--dr-frost);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .play-home .card { background: var(--dr-navy); border-color: var(--dr-deep); }
 .play-home .card:hover,
 .play-home .card:focus-within {
@@ -234,6 +262,7 @@
   .community-bar .rail-links { min-width: 0; overflow: hidden; }
 }
 @media (max-width: 520px) {
+  .play-activity { grid-template-columns: 1fr; }
   .profile-username-row { grid-template-columns: 1fr; }
   .profile-username-row button { justify-self: start; }
 }
