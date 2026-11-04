@@ -78,6 +78,14 @@ jobs:
           fi
 
           node_packages="["
+          declare -A seen_node_packages=()
+          add_node_package() {
+            local package="$1"
+            if [[ -z "${seen_node_packages[$package]+seen}" ]]; then
+              node_packages+="\"$package\","
+              seen_node_packages[$package]=1
+            fi
+          }
           launcher=false
           server_port=false
           native=false
@@ -100,20 +108,20 @@ jobs:
             case "$path" in
               .github/*|AGENTS.md) all_checks=true ;;
               CONTRIBUTING.md) docs=true ;;
-              DauntlessUnbrokenMetagame/test/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true ;;
-              DauntlessUnbrokenGateway/test/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true ;;
-              DauntlessUnbrokenContent/test/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true ;;
-              DauntlessUnbrokenDeployServer/test/*) node_packages+='"DauntlessUnbrokenDeployServer",'; server_port=true ;;
+              DauntlessUnbrokenMetagame/test/*) add_node_package 'DauntlessUnbrokenMetagame'; server_port=true ;;
+              DauntlessUnbrokenGateway/test/*) add_node_package 'DauntlessUnbrokenGateway'; server_port=true ;;
+              DauntlessUnbrokenContent/test/*) add_node_package 'DauntlessUnbrokenContent'; server_port=true ;;
+              DauntlessUnbrokenDeployServer/test/*) add_node_package 'DauntlessUnbrokenDeployServer'; server_port=true ;;
               DauntlessUnbroken*/.env.example) docs=true ;;
-              DauntlessUnbrokenMetagame/src/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true ;;
-              DauntlessUnbrokenGateway/src/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true ;;
-              DauntlessUnbrokenContent/src/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true ;;
-              DauntlessUnbrokenDeployServer/src/*) node_packages+='"DauntlessUnbrokenDeployServer",'; server_port=true ;;
-              DauntlessUnbrokenMetagame/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
-              DauntlessUnbrokenGateway/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
-              DauntlessUnbrokenContent/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
-              DauntlessUnbrokenDeployServer/*) node_packages+='"DauntlessUnbrokenDeployServer",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
-              DauntlessUnbrokenDiscordBot/*) node_packages+='"DauntlessUnbrokenDiscordBot",' ;;
+              DauntlessUnbrokenMetagame/src/*) add_node_package 'DauntlessUnbrokenMetagame'; server_port=true ;;
+              DauntlessUnbrokenGateway/src/*) add_node_package 'DauntlessUnbrokenGateway'; server_port=true ;;
+              DauntlessUnbrokenContent/src/*) add_node_package 'DauntlessUnbrokenContent'; server_port=true ;;
+              DauntlessUnbrokenDeployServer/src/*) add_node_package 'DauntlessUnbrokenDeployServer'; server_port=true ;;
+              DauntlessUnbrokenMetagame/*) add_node_package 'DauntlessUnbrokenMetagame'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenGateway/*) add_node_package 'DauntlessUnbrokenGateway'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenContent/*) add_node_package 'DauntlessUnbrokenContent'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenDeployServer/*) add_node_package 'DauntlessUnbrokenDeployServer'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenDiscordBot/*) add_node_package 'DauntlessUnbrokenDiscordBot' ;;
               DauntlessUnbrokenLauncher/*) launcher=true ;;
               deploy/linux-server/*|deploy/openbsd-server/*|deploy/unix-common/*) server_port=true ;;
               deploy/windows-server/*) server_kit=true; server_kit_sandbox=true ;;
