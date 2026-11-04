@@ -2954,6 +2954,8 @@ img {
   background: var(--dr-steel);
 }
 
+.profile-status-icon { width: 13px; height: 13px; color: currentColor; }
+
 .profile-status-approved { border-color: color-mix(in srgb, var(--dr-glow) 55%, var(--dr-deep)); color: var(--dr-glow); }
 .profile-status-approved .profile-status-dot { background: var(--dr-glow); }
 .profile-status-pending { border-color: color-mix(in srgb, var(--dr-ice) 55%, var(--dr-deep)); color: var(--dr-glow); }

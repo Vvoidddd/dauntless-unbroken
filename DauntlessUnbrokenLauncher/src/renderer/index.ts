@@ -1655,7 +1655,7 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
     }
   });
   return card("settings-section profile-card",
-    h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:`profile-status profile-status-${statusKey}`}, h("span", {class:"profile-status-dot", "aria-hidden":"true"}), status), h("p", {class:"small-print"}, "Pictures are checked automatically for unsafe content. Only accepted friends can see an approved picture."))),
+    h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:`profile-status profile-status-${statusKey}`}, statusKey === "approved" ? icon("people", "profile-status-icon") : null, h("span", {class:"profile-status-dot", "aria-hidden":"true"}), status), h("p", {class:"small-print"}, "Pictures are checked automatically for unsafe content. Only accepted friends can see an approved picture."))),
     h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("div", {class:"profile-username-row"}, username, saveUsername)),
     state.profileUsernameNote ? h("p", {class:"small-print", role:"status"}, state.profileUsernameNote) : null,
     state.profilePictureNote ? h("p", {class:"small-print", role:"status"}, state.profilePictureNote) : null,
