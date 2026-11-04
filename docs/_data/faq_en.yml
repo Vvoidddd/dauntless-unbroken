@@ -4,12 +4,12 @@
   a: >-
     Install the [latest launcher](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest),
     obtain a realm account key and follow [Start playing](setup/index.md). Dauntless Unbroken uses
-    the supported Dauntless 1.4.4 client and a community-operated backend.
+    the supported Dauntless 1.10.5 client and a community-operated backend.
 
 - id: which-version
   q: "Can I use an existing game installation?"
   a: >-
-    The launcher searches for compatible 1.4.4 installations and shows the folder for your confirmation.
+    The launcher searches for compatible 1.10.5 installations and shows the folder for your confirmation.
     Other client versions cannot use the native integration. Repair verifies the selected files;
     see [file verification](findings/verification.md).
 
@@ -28,10 +28,9 @@
     See [server architecture](server.md#hunts-and-capacity).
 
 - id: offline
-  q: "Does Offline mode affect my online save?"
+  q: "Can I play 1.10.5 offline?"
   a: >-
-    No. Offline mode uses a separate local save and does not upload it into the online realm.
-    Online accounts and progression are stored by the server.
+    Offline play for 1.10.5 is not available yet. Online accounts and progression are stored by the server.
 
 - id: how-do-i-host-my-own
   q: "How do I host a server?"

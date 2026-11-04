@@ -12,7 +12,7 @@ ref: index
     <h1>Back to<br><em>the hunt.</em></h1>
     <p class="hero-lead">Get the launcher, bring your game files, and make your way into Unbroken. Start with the essentials. The detail is here when you need it.</p>
     <div class="actions"><a class="button button-primary" href="{{ '/download/' | relative_url }}">Download launcher <span aria-hidden="true">↗</span></a><a class="text-link" href="{{ '/setup/' | relative_url }}">Read the setup guide <span aria-hidden="true">→</span></a></div>
-    <p class="compatibility">Dauntless 1.4.4 <span>·</span> Windows &amp; Linux <span>·</span> Online &amp; offline</p>
+    <p class="compatibility">Dauntless 1.10.5 <span>·</span> Windows &amp; Linux <span>·</span> Online play</p>
   </div>
   <aside class="quick-start" aria-label="Getting started">
     <img src="{{ '/assets/icon-192.png' | relative_url }}" width="72" height="72" alt="">
@@ -35,6 +35,6 @@ ref: index
 </section>
 
 <section class="home-notes">
-  <div><p class="eyebrow">YOUR PROGRESS</p><h2>A realm that remembers.</h2><p>Online accounts, quests, equipment and inventory are saved by the server. Offline play keeps a separate local save. Your online progress stays separate.</p><p>The Rams shop rotates with the Middleman reset. Granny Strega supports crafting and Rams purchases once the required progression is unlocked.</p></div>
+  <div><p class="eyebrow">YOUR PROGRESS</p><h2>A realm that remembers.</h2><p>Online accounts, quests, equipment and inventory are saved by the server. Offline play for 1.10.5 is not available yet.</p><p>The Rams shop rotates with the Middleman reset. Granny Strega supports crafting and Rams purchases once the required progression is unlocked.</p></div>
   <div><p class="eyebrow">NEED A HAND?</p><h2>Find the fix. Keep going.</h2><p>Search the guide for the message you’re seeing, or start with the common installation, connection and game-file problems.</p><a class="text-link" href="{{ '/setup/troubleshooting.html' | relative_url }}">Open troubleshooting <span aria-hidden="true">→</span></a><p class="small-print">The source repository contains the server and launcher code. Retail game assets are not included.</p></div>
 </section>

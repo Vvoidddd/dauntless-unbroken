@@ -4,7 +4,7 @@
   a: >-
     Asenna [uusin käynnistin](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest),
     hanki palvelimen tiliavain ja seuraa [aloitusohjetta](setup/index.md).
-    Dauntless Unbroken käyttää tuettua Dauntless 1.4.4 -asiakasohjelmaa.
+    Dauntless Unbroken käyttää tuettua Dauntless 1.10.5 -asiakasohjelmaa.
 
 - id: pelitiedostot
   q: "Voinko käyttää olemassa olevaa peliasennusta?"
@@ -20,9 +20,9 @@
     manuaalista vientiä. Pidä avain yksityisenä.
 
 - id: offline
-  q: "Vaikuttaako offline-pelaaminen verkkotallennukseen?"
+  q: "Voiko versiota 1.10.5 pelata offline-tilassa?"
   a: >-
-    Ei. Offline-tila käyttää erillistä paikallista tallennusta, jota ei lähetetä verkkopalvelimelle.
+    Ei vielä. Version 1.10.5 offline-peli ei ole vielä saatavilla.
 
 - id: palvelin
   q: "Miten palvelin toimii?"

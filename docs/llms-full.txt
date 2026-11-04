@@ -10557,11 +10557,11 @@ official servers shut down. Each answer links to the page with the details.
 
 ## How do I play Dauntless Unbroken?
 
-Install the [latest launcher](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest), obtain a realm account key and follow [Start playing](https://vvoidddd.github.io/dauntless-unbroken/setup/). Dauntless Unbroken uses the supported Dauntless 1.4.4 client and a community-operated backend.
+Install the [latest launcher](https://github.com/Vvoidddd/dauntless-unbroken/releases/latest), obtain a realm account key and follow [Start playing](https://vvoidddd.github.io/dauntless-unbroken/setup/). Dauntless Unbroken uses the supported Dauntless 1.10.5 client and a community-operated backend.
 
 ## Can I use an existing game installation?
 
-The launcher searches for compatible 1.4.4 installations and shows the folder for your confirmation. Other client versions cannot use the native integration. Repair verifies the selected files; see [file verification](https://vvoidddd.github.io/dauntless-unbroken/findings/verification.html).
+The launcher searches for compatible 1.10.5 installations and shows the folder for your confirmation. Other client versions cannot use the native integration. Repair verifies the selected files; see [file verification](https://vvoidddd.github.io/dauntless-unbroken/findings/verification.html).
 
 ## Where is my account key saved?
 
@@ -10571,9 +10571,9 @@ After successful online sign-in, the launcher automatically saves a recovery key
 
 The party follows its leader's selected region. A group shares one hunt instance. When capacity is unavailable, matchmaking waits for admission; repeated retries do not create more capacity. See [server architecture](https://vvoidddd.github.io/dauntless-unbroken/server.html#hunts-and-capacity).
 
-## Does Offline mode affect my online save?
+## Can I play 1.10.5 offline?
 
-No. Offline mode uses a separate local save and does not upload it into the online realm. Online accounts and progression are stored by the server.
+Offline play for 1.10.5 is not available yet. Online accounts and progression are stored by the server.
 
 ## How do I host a server?
 
@@ -10911,7 +10911,7 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/
     <h1>Back to<br><em>the hunt.</em></h1>
     <p class="hero-lead">Get the launcher, bring your game files, and make your way into Unbroken. Start with the essentials. The detail is here when you need it.</p>
     <div class="actions"><a class="button button-primary" href="https://vvoidddd.github.io/dauntless-unbroken/download/">Download launcher <span aria-hidden="true">↗</span></a><a class="text-link" href="https://vvoidddd.github.io/dauntless-unbroken/setup/">Read the setup guide <span aria-hidden="true">→</span></a></div>
-    <p class="compatibility">Dauntless 1.4.4 <span>·</span> Windows &amp; Linux <span>·</span> Online &amp; offline</p>
+    <p class="compatibility">Dauntless 1.10.5 <span>·</span> Windows &amp; Linux <span>·</span> Online play</p>
   </div>
   <aside class="quick-start" aria-label="Getting started">
     <img src="https://vvoidddd.github.io/dauntless-unbroken/assets/icon-192.png" width="72" height="72" alt="">
@@ -10934,7 +10934,7 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/
 </section>
 
 <section class="home-notes">
-  <div><p class="eyebrow">YOUR PROGRESS</p><h2>A realm that remembers.</h2><p>Online accounts, quests, equipment and inventory are saved by the server. Offline play keeps a separate local save. Your online progress stays separate.</p><p>The Rams shop rotates with the Middleman reset. Granny Strega supports crafting and Rams purchases once the required progression is unlocked.</p></div>
+  <div><p class="eyebrow">YOUR PROGRESS</p><h2>A realm that remembers.</h2><p>Online accounts, quests, equipment and inventory are saved by the server. Offline play for 1.10.5 is not available yet.</p><p>The Rams shop rotates with the Middleman reset. Granny Strega supports crafting and Rams purchases once the required progression is unlocked.</p></div>
   <div><p class="eyebrow">NEED A HAND?</p><h2>Find the fix. Keep going.</h2><p>Search the guide for the message you’re seeing, or start with the common installation, connection and game-file problems.</p><a class="text-link" href="https://vvoidddd.github.io/dauntless-unbroken/setup/troubleshooting.html">Open troubleshooting <span aria-hidden="true">→</span></a><p class="small-print">The source repository contains the server and launcher code. Retail game assets are not included.</p></div>
 </section>
 
@@ -11307,6 +11307,8 @@ Dauntless Unbroken separates persistent account data from temporary game worlds.
 
 ## Choose a deployment
 
+The guides below describe the legacy 1.4.4 deployment paths. The current 1.10.5 integration is in [`experiments/1.10.5`](https://github.com/Vvoidddd/dauntless-unbroken/tree/1.10.5/experiments/1.10.5); do not use a 1.4.4 DLL with 1.10.5.
+
 | Deployment | Guide | Game processes |
 |:--|:--|:--|
 | Windows Server | [Windows server kit](https://vvoidddd.github.io/dauntless-unbroken/setup/windows-server.html) | Native Windows 1.4.4 game executable |
@@ -11325,7 +11327,7 @@ Use a short source path such as `C:\dr\dauntless-unbroken`. Keep the deployed in
 | `DauntlessUnbrokenGateway` | Public TLS entry point, request limits and access controls; coordinates the player UDP allowlist. |
 | `DauntlessUnbrokenMetagame` | Accounts, characters, inventory, Rams, quests, progression, loadouts, parties, friends and matchmaking. |
 | `DauntlessUnbrokenDeployServer` | Allocates ports, starts game processes, checks readiness and monitors their lifecycle. |
-| `DauntlessUnbrokenInternalServer` | Native integration loaded as `DauntlessUnbroken.dll` beside the pinned 1.4.4 game executable. |
+| Native integration | The version-matched `DauntlessUnbroken.dll` is loaded beside the game executable. The 1.10.5 integration is in `experiments/1.10.5`. |
 | `DauntlessUnbrokenContent` | Serves the file manifest and launcher content; can advertise a separate HTTPS game-download base. |
 | `DauntlessUnbrokenDiscordBot` | Account-key distribution through the backend; it does not hold a separate progression database. |
 
@@ -11403,7 +11405,7 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/setup/
 
 # Start playing
 
-Use the Dauntless Unbroken launcher with an Unbroken realm invite and your personal account key. The supported game build is **Dauntless 1.4.4**.
+Use the Dauntless Unbroken launcher with an Unbroken realm invite and your personal account key. The current game build is **Dauntless 1.10.5**.
 
 ## 1. Install the launcher
 
@@ -11420,7 +11422,7 @@ Add the realm invite, then enter your existing account key or register when regi
 
 The launcher automatically saves a readable recovery file to your **Desktop** after successful registration or key sign-in. It also keeps encrypted local storage. If Desktop saving is unavailable, use **Save key backup**. Anyone who has the key can access your account, so keep the file private.
 
-The Unbroken realm started with new accounts and progression. Previous realm saves are not imported.
+Existing Unbroken 1.4.4 players can use their saved account key. Eligible accounts are imported into the 1.10.5 database without changing the original save. Gear, cosmetics, quests and island unlocks carry over; legacy mastery and the new weapon-level system are separate.
 
 ## 3. Confirm your game folder
 
@@ -11429,7 +11431,7 @@ The launcher checks common local folders for the supported executable before off
 - If it finds the game, it shows the location and asks whether you want to use it.
 - Confirming verifies the full file list, downloads missing or different files and installs the Unbroken DLLs.
 - Choose a different folder to keep a separate installation.
-- For an unusual location, use **I already have the game files** and browse to `BaseGame144`, its `Dauntless` folder, or the game's `Win64` folder.
+- For an unusual location, use **I already have the game files** and browse to the game folder or the game's `Win64` folder.
 
 No discovered installation is changed before confirmation. Copy an installation first if another setup still uses it.
 
@@ -11437,7 +11439,7 @@ No discovered installation is changed before confirmation. Copy an installation 
 
 The realm advertises its R2 game catalog through the content manifest. Downloads can resume and every completed file must match the launcher's compiled size and SHA-256.
 
-The correct folder contains `Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe`. A newer retail build cannot substitute for the pinned 1.4.4 executable.
+The correct folder contains `Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe`. Use the 1.10.5 files provided for the realm.
 
 ## 5. Play
 
@@ -11447,7 +11449,7 @@ For a problem, use the [troubleshooting guide](https://vvoidddd.github.io/dauntl
 
 ## Offline play
 
-Offline mode starts local services with a separate account and database. Online and offline saves are isolated. Exporting or importing an offline save does not upload that progression to the public realm.
+Offline play for 1.10.5 is not available yet.
 
 ================================================================================
 URL: https://vvoidddd.github.io/dauntless-unbroken/setup/admin.html
@@ -12131,6 +12133,8 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/setup/friends.html
 
 # Join as a friend
 
+This is a legacy 1.4.4 guide. For the current 1.10.5 release, use the [start playing guide](https://vvoidddd.github.io/dauntless-unbroken/setup/).
+
 This page is for someone the host has invited. You play with **your own copy of the Dauntless 1.4.4
 client** (October 2020, UE4) against the host's server. You do not need an Epic account, hosts-file
 edits or certificates. All traffic goes over a private Tailscale connection to the host's PC.
@@ -12624,6 +12628,8 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/setup/host.html
 ================================================================================
 
 # Host a server
+
+This guide describes the legacy 1.4.4 server. For the current release, start with the [server documentation](https://vvoidddd.github.io/dauntless-unbroken/server.html).
 
 This is how we run Dauntless Unbroken on one Windows PC. It uses the genuine **Dauntless 1.4.4** client
 (October 2020, UE4, pak v9), the native integration's server DLL, and our implementation of the native integration's metagame and deploy
@@ -13516,6 +13522,8 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/setup/linux-server.html
 
 # Linux server
 
+This guide describes the legacy 1.4.4 game worker. Its game-specific steps have not been verified for 1.10.5.
+
 The Linux server port is separate from the Windows Server kit. It runs the metagame, deploy server,
 content server and TLS gateway **natively on Linux**, while Ramsgate, the Training Dojo and hunts use
 the original Dauntless 1.4.4 Windows x86_64 executable through **Proton or Wine**.
@@ -14228,6 +14236,8 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/setup/openbsd-server.html
 
 # OpenBSD server
 
+The linked Linux game-worker guide describes 1.4.4. Its game-specific steps have not been verified for 1.10.5.
+
 The OpenBSD port runs the **control plane natively on OpenBSD** and sends the actual Dauntless game
 processes to a separate Linux Proton/Wine worker.
 
@@ -14545,6 +14555,8 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/setup/troubleshooting.html
 ================================================================================
 
 # Troubleshooting
+
+This page records problems observed with 1.4.4; its version-specific instructions have not been verified for 1.10.5.
 
 These are the problems we actually hit while setting up Dauntless Unbroken, with their causes and fixes.
 A few entries at the end come from reading the code and haven't bitten us yet; those are marked. The
@@ -15570,6 +15582,8 @@ URL: https://vvoidddd.github.io/dauntless-unbroken/setup/windows-server.html
 ================================================================================
 
 # Windows server kit
+
+This guide describes the legacy 1.4.4 server kit. The current 1.10.5 integration is in [`experiments/1.10.5`](https://github.com/Vvoidddd/dauntless-unbroken/tree/1.10.5/experiments/1.10.5).
 
 The folder `deploy/windows-server/` in the repository installs a complete Dauntless Unbroken server on
 a Windows Server 2019 machine, typically a rented VPS with a public IP address. You run one command on

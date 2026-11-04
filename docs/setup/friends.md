@@ -15,6 +15,8 @@ ref: setup/friends
 # Join as a friend
 {: .no_toc }
 
+This is a legacy 1.4.4 guide. For the current 1.10.5 release, use the [start playing guide]({{ '/setup/' | relative_url }}).
+
 This page is for someone the host has invited. You play with **your own copy of the Dauntless 1.4.4
 client** (October 2020, UE4) against the host's server. You do not need an Epic account, hosts-file
 edits or certificates. All traffic goes over a private Tailscale connection to the host's PC.

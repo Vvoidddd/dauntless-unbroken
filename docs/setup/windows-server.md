@@ -23,6 +23,8 @@ ref: setup/windows-server
 # Windows server kit
 {: .no_toc }
 
+This guide describes the legacy 1.4.4 server kit. The current 1.10.5 integration is in [`experiments/1.10.5`](https://github.com/Vvoidddd/dauntless-unbroken/tree/1.10.5/experiments/1.10.5).
+
 The folder `deploy/windows-server/` in the repository installs a complete Dauntless Unbroken server on
 a Windows Server 2019 machine, typically a rented VPS with a public IP address. You run one command on
 your own PC; it connects to the server over SSH, uploads everything, installs it and prints what
