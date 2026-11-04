@@ -1370,6 +1370,7 @@ function renderMods(): void {
       h("p", { class: "page-sub" }, t("mods_subtitle")),
       card(
         "mods-overview",
+        h("div", { class: "mods-cover" }, h("img", { src: behemothArt, alt: "" }), h("span", {}, "HUNT SYSTEMS")),
         h("h2", { class: "mods-title" }, t("mods_title")),
         h("p", { class: "card-text mods-intro" }, t("mods_intro")),
         h("div", { class: "mods-grid" }, ...MODS.map((m) => modCard(m.name === "mod_dm_name" || m.name === "mod_pm_name" ? "mod_dm_by" : null, m))),

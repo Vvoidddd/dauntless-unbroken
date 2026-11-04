@@ -19,3 +19,9 @@ test("news uses a bundled game item as a visual lead", () => {
   assert.match(renderer, /news-media/);
   assert.match(theme, /\.news-media/);
 });
+
+test("the mods overview keeps a game-art anchor above its feature grid", () => {
+  assert.match(renderer, /mods-cover/);
+  assert.match(renderer, /behemothArt/);
+  assert.match(theme, /\.mods-cover/);
+});
