@@ -32,7 +32,25 @@ type Modal =
   | { kind: "remove_server"; id: string; name: string }
   | { kind: "offline_restore" };
 
-const api = window.launcher;
+const PREVIEW_MODE = !window.launcher;
+const PREVIEW_SNAPSHOT = {
+  phase: "ready", busy: false, server: {mode:"public",host:"eu1.example",port:443,name:"EU1",hasShare:false,hasPendingInvite:false,loopback:false,fingerprint:null}, savedServers: [], connect:{checking:false,problem:null,tailscaleInstalled:false,lastCheckedAt:null},
+    account:{sessionOnly:false,saved:[],username:"Korone",hasKey:true,offerBackup:false,profilePicture:{status:"approved",reason:"approved by local moderation",imageDataUrl:null}},
+  install:{dir:"C:\\Games\\Dauntless Unbroken",defaultDir:"C:\\Games\\Dauntless Unbroken",installed:true,missingFiles:0,verified:true,dllsOk:true,freeBytes:120000000000,requiredBytes:0,totalBytes:0,vcRuntimeMissing:[],directXMissing:[],contentAvailable:true},
+  task:null,game:{running:false,relayPort:null},playtime:{onlineSeconds:0,offlineSeconds:0,sessions:[],totalSeconds:0},settings:{graphics:4,exposure:"game",windowed:false,language:"en",gameLanguage:"auto",showConsole:false,discordPresence:true,streamerMode:false},app:{version:"1.0.55",packaged:false,updateReady:false,platform:"win32"},status:null,availableHuntRegions:["main"],statusUnsupported:false,lastError:null,notice:null
+} as any;
+const PREVIEW_API = new Proxy({}, {get:(_target, property: string) => {
+  if(property === "getSnapshot") return async () => PREVIEW_SNAPSHOT;
+  if(property === "getBranding") return async () => ({backgrounds:[],accent:null});
+  if(property === "getNews") return async () => [];
+  if(property === "getPurchaseHistory") return async () => null;
+  if(property === "offlineStatus") return async () => ({phase:"stopped"});
+  if(property === "setSettings") return async (patch: Record<string, unknown>) => {Object.assign(PREVIEW_SNAPSHOT.settings, patch);return PREVIEW_SNAPSHOT.settings;};
+  if(property.startsWith("on")) return () => {};
+  if(property === "toggleMaximize") return async () => false;
+  return async () => ({ok:true});
+}}) as typeof window.launcher;
+const api = window.launcher ?? PREVIEW_API;
 const SESSION_KEY_NOTE = "Temporary sign-in: your key stays in memory until you close the launcher. Keep your backup; import it again next time.";
 function openBackupImport(): void {
   if (state.snap?.app.platform === "linux") showModal({kind:"paste_backup"});
@@ -46,7 +64,7 @@ const state = {
   snap: null as Snapshot | null,
   task: null as TaskProgress | null,
   lang: "en" as Language,
-  view: "play" as View,
+  view: (PREVIEW_MODE ? "settings" : "play") as View,
   inviteText: "",
   revealed: new Set<string>(), // streamer mode: the values shown with the eye, until the launcher closes
   username: "",
@@ -62,13 +80,16 @@ const state = {
   diagnosticsNote: "",
   gameRemovalNote: "",
   diagnosticsUploading: false,
+  profilePictureNote: "",
+  profileUsername: "",
+  profileUsernameNote: "",
   revivedResultDismissed:false,
   offlineSaveNote: null as string | null, // the last backup or restore that worked, shown under the row
   existingFormOpen: false,
   news: [] as NewsItem[],
   newsSeen: false,
   serverMenu: false, // the rail's server switcher is open
-  settingsTab: "game" as SettingsTab, // the Settings page's open tab
+  settingsTab: (PREVIEW_MODE ? "account" : "game") as SettingsTab, // the Settings page's open tab
   branding: { backgrounds: [], accent: null } as Branding,
   extrasFor: "",
   extrasAt: 0,
@@ -134,6 +155,29 @@ const keyInput = h("input", {
   spellcheck: "false",
   autocomplete: "off",
   "data-fk": "key",
+});
+
+const profilePictureInput = h("input", {class:"sr-only", id:"profile-picture-input", type:"file", accept:"image/png,image/jpeg,image/webp", "data-fk":"profile-picture-input"}) as HTMLInputElement;
+profilePictureInput.addEventListener("change", () => {
+  const file = profilePictureInput.files?.[0];
+  profilePictureInput.value = "";
+  if (!file) return;
+  if (file.size > 100 * 1024) {
+    state.profilePictureNote = "Choose an image smaller than 100 KB.";
+    renderSettings();
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    if (typeof reader.result !== "string") return;
+    state.profilePictureNote = "Uploading for moderation…";
+    renderSettings();
+    const result = await api.uploadProfilePicture(reader.result).catch(() => ({ok:false as const, error:{code:"server_error" as const}}));
+    state.profilePictureNote = result.ok ? "Profile picture submitted. It stays private until moderation approves it." : "The profile picture could not be submitted. Check the server connection and try again.";
+    renderSettings();
+  };
+  reader.onerror = () => {state.profilePictureNote = "The image could not be read.";renderSettings();};
+  reader.readAsDataURL(file);
 });
 
 // "I already have the game files": a path to paste (Vvoidddd, #8). The main process checks it again.
@@ -1578,12 +1622,41 @@ function savedAccountsCard(snap: Snapshot): HTMLElement | null {
   );
 }
 
+function profilePictureCard(snap: Snapshot): HTMLElement | null {
+  if (!snap.server || !snap.account.hasKey) return null;
+  const profile = snap.account.profilePicture;
+  const status = profile?.status === "approved" ? "Visible to other players" : profile?.status === "pending" ? "Waiting for moderation" : profile?.status === "rejected" ? "Rejected by moderation" : "No profile picture set";
+  const avatar = profile?.imageDataUrl
+    ? h("img", {class:"profile-avatar-image", src:profile.imageDataUrl, alt:""})
+    : h("span", {class:"profile-avatar-letter", "aria-hidden":"true"}, (snap.account.username ?? "?").slice(0,1).toUpperCase());
+  const username = h("input", {class:"input", type:"text", maxlength:"16", value:state.profileUsername || snap.account.username || "", autocomplete:"off", spellcheck:"false", "aria-label":"Username", "data-fk":"profile-username"}) as HTMLInputElement;
+  username.addEventListener("input", () => {state.profileUsername=username.value;});
+  const saveUsername = button("Save username", async () => {
+    state.profileUsernameNote = "Saving username…";
+    renderSettings();
+    const result = await api.renameProfileUsername(state.profileUsername.trim()).catch(() => ({ok:false as const,error:{code:"server_error" as const}}));
+    if(result.ok){state.profileUsername="";state.profileUsernameNote="Username saved. It passed the automatic name checks.";}
+    else if(result.error.code === "username_taken") state.profileUsernameNote="That username is already taken.";
+    else if(result.error.code === "username_invalid") state.profileUsernameNote="Use 3–16 letters, numbers, or underscores.";
+    else if(result.error.code === "rate_limited") state.profileUsernameNote="Username changes are temporarily limited. Try again later.";
+    else state.profileUsernameNote="The username could not be saved. Check the server connection and try again.";
+    renderSettings();
+  }, {fk:"profile-username-save"});
+  return card("settings-section profile-card",
+    h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:"profile-status"}, status), h("p", {class:"small-print"}, "Pictures are checked automatically for unsafe content. Other players only see approved pictures."))),
+    h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("div", {class:"profile-username-row"}, username, saveUsername)),
+    state.profileUsernameNote ? h("p", {class:"small-print", role:"status"}, state.profileUsernameNote) : null,
+    state.profilePictureNote ? h("p", {class:"small-print", role:"status"}, state.profilePictureNote) : null,
+    h("div", {class:"card-row"}, button("Choose profile picture", () => profilePictureInput.click(), {fk:"profile-picture-choose"}), profilePictureInput),
+  );
+}
+
 
 function renderSettings(): void {
   const container = $("#view-settings");
   const snap = state.snap;
   if (!snap) return;
-  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, state.purchaseHistory, state.purchaseHistoryFor, state.purchaseHistoryBusy, state.purchaseHistoryNote, state.diagnosticsNote, state.gameRemovalNote, snap.revived, state.revivedResultDismissed, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
+  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, state.purchaseHistory, state.purchaseHistoryFor, state.purchaseHistoryBusy, state.purchaseHistoryNote, state.diagnosticsNote, state.gameRemovalNote, state.profilePictureNote, state.profileUsernameNote, snap.revived, state.revivedResultDismissed, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
   renderRegion(container, sig, () => {
     const busy = snap.busy || snap.task !== null || snap.game.running;
 
@@ -1776,7 +1849,7 @@ function renderSettings(): void {
     const panels: Record<SettingsTab, (HTMLElement | null)[]> = {
       game: [game],
       graphics: [graphics],
-      account: [savedAccountsCard(snap), account, purchaseHistoryCard(snap), playtimeCard(snap), h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
+      account: [profilePictureCard(snap), savedAccountsCard(snap), account, purchaseHistoryCard(snap), playtimeCard(snap), h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
       launcher: [language, offlineCard, troubleshooting, streaming, about],
     };
     const tabs = h("div", { class: "settings-tabs", role: "tablist", "aria-label": t("set_title") });
@@ -2471,6 +2544,7 @@ function initChrome(): void {
   min.addEventListener("click", () => void api.minimize());
   max.addEventListener("click", () => void api.toggleMaximize());
   close.addEventListener("click", () => void api.close());
+  if(PREVIEW_MODE) return;
   api.onWindowState((maximized) => {
     state.maximized = maximized;
     max.replaceChildren(icon(maximized ? "restore" : "maximize"));
@@ -2701,13 +2775,14 @@ async function main(): Promise<void> {
   api.onOfflineStatus(onOfflineStatus);
   initPlayMenu();
   onSnapshot(await api.getSnapshot());
+  setView(state.view);
   onOfflineStatus(await api.offlineStatus());
   void api.setStatusPolling(!document.hidden);
   await checkInviteLink();
 }
 
-window.addEventListener('error',event=>{void api.reportRendererError(String(event.error?.stack??event.message)).catch(()=>undefined);});
-window.addEventListener('unhandledrejection',event=>{void api.reportRendererError('Unhandled rejection: '+String(event.reason?.stack??event.reason)).catch(()=>undefined);});
+window.addEventListener('error',event=>{if(!PREVIEW_MODE)void api.reportRendererError(String(event.error?.stack??event.message)).catch(()=>undefined);});
+window.addEventListener('unhandledrejection',event=>{if(!PREVIEW_MODE)void api.reportRendererError('Unhandled rejection: '+String(event.reason?.stack??event.reason)).catch(()=>undefined);});
 void main();
 const stopControllerNavigation=installControllerNavigation();
 window.addEventListener("beforeunload",stopControllerNavigation,{once:true});

@@ -178,6 +178,26 @@ export interface PurchaseHistory {
   limit:number;
 }
 
+export type ProfilePictureStatus = 'pending' | 'approved' | 'rejected';
+export interface ProfilePictureInfo {
+  id: string;
+  accountId: string;
+  mimeType: string;
+  width: number;
+  height: number;
+  bytes: number;
+  status: ProfilePictureStatus;
+  reason: string | null;
+  createdAt: number;
+  reviewedAt: number | null;
+  reviewerId: string | null;
+}
+export interface ProfilePictureView {
+  status: ProfilePictureStatus | null;
+  reason: string | null;
+  imageDataUrl: string | null;
+}
+
 export interface RevivedStatus {
   supported:boolean;detected:boolean;canRemove:boolean;busy:boolean;
   phase:'idle'|'removing'|'done'|'error';message:string;percent:number|null;
@@ -207,6 +227,7 @@ export interface Snapshot {
     desktopBackupPath?: string;
     backupTracked?: boolean;
     backupMissing?: boolean;
+    profilePicture?: ProfilePictureView;
   };
   install: {
     dir: string;
@@ -294,6 +315,8 @@ export const IPC = {
   exportDiagnostics: "dr:export-diagnostics",
   openLogFolder: "dr:open-log-folder",
   uploadDiagnostics: "dr:upload-diagnostics",
+  uploadProfilePicture: "dr:upload-profile-picture",
+  renameProfileUsername: "dr:rename-profile-username",
   checkRevived: "dr:check-revived",
   removeRevived: "dr:remove-revived",
   openRevivedBackup: "dr:open-revived-backup",

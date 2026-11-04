@@ -39,21 +39,18 @@ import { eq, sql } from 'drizzle-orm';
 import { GetPlaytimeSeconds } from '../controllers/playtime';
 import { IslandEventEnabled, IslandEventModeNow, SetIslandEventMode, type IslandEventMode } from '../controllers/islandevent';
 import {ApproveProfilePicture, GetApprovedProfilePicture, GetProfilePictureStatus, ListProfilePictureModeration, ModerationProfilePictureFile, RemoveProfilePicture, RejectProfilePicture, SubmitProfilePicture} from '../controllers/profilepictures';
-import {HasDauntlessUnbrokenMetagameAuth} from '../middleware/HasDauntlessUnbrokenMetagameAuth';
 
 export const unbrokenApiRouter = Router();
 
 const ProfilePictureRateLimit = rateLimit({keyGenerator: req => `profile-picture:${String((req as any).AuthData?.userId || 'unknown')}`, windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: 'draft-8', legacyHeaders: false, message: {error: 'rate_limited'}});
 
-unbrokenApiRouter.get('/ProfilePicture', HasDauntlessUnbrokenMetagameAuth, (req: any, res) => {
-    if(req.AuthData?.IsGameserver || typeof req.AuthData?.userId !== 'string'){res.status(403).json({error: 'player_auth_required'});return;}
+unbrokenApiRouter.get('/ProfilePicture', HasDauntlessUnbrokenUserApiKey, (req: any, res) => {
     res.setHeader('Cache-Control', 'no-store');
-    res.json(GetProfilePictureStatus(req.AuthData.userId));
+    res.json(GetProfilePictureStatus(req.DauntlessUnbrokenUserInfo.UserId));
 });
-unbrokenApiRouter.post('/ProfilePicture', HasDauntlessUnbrokenMetagameAuth, ProfilePictureRateLimit, async (req: any, res) => {
-    if(req.AuthData?.IsGameserver || typeof req.AuthData?.userId !== 'string'){res.status(403).json({error: 'player_auth_required'});return;}
+unbrokenApiRouter.post('/ProfilePicture', HasDauntlessUnbrokenUserApiKey, ProfilePictureRateLimit, async (req: any, res) => {
     try {
-        const result = await SubmitProfilePicture(req.AuthData.userId, req.body?.image);
+        const result = await SubmitProfilePicture(req.DauntlessUnbrokenUserInfo.UserId, req.body?.image);
         if(result.status === 'rejected'){res.status(400).json({error: 'image_rejected'});return;}
         res.status(201).json(result);
     }
@@ -63,6 +60,12 @@ unbrokenApiRouter.post('/ProfilePicture', HasDauntlessUnbrokenMetagameAuth, Prof
         if(message === 'moderation_unavailable'){res.status(503).json({error: message});return;}
         res.status(400).json({error: allowed.includes(message) ? message : 'profile_picture_failed'});
     }
+});
+unbrokenApiRouter.post('/ProfileUsername', HasDauntlessUnbrokenUserApiKey, ProfilePictureRateLimit, (req: any, res) => {
+    if(!req.body || typeof req.body !== 'object' || Array.isArray(req.body) || typeof req.body.username !== 'string' || Object.keys(req.body).length !== 1){res.status(400).json({error:'bad_request'});return;}
+    const result = RenameAccount({UserId:req.DauntlessUnbrokenUserInfo.UserId}, req.body.username);
+    if(result.ok){res.json({username:result.Username});return;}
+    res.status(result.Status).json(ErrorBody(result.Error));
 });
 unbrokenApiRouter.get('/ProfilePicture/:accountId', (req, res) => {
     const image = GetApprovedProfilePicture(String(req.params.accountId));

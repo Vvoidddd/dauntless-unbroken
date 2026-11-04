@@ -2817,6 +2817,88 @@ img {
   gap: 12px;
 }
 
+.profile-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--dr-steel);
+  background: var(--dr-deep);
+}
+
+.profile-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-letter {
+  font: 700 24px/1 var(--font-display);
+  color: var(--dr-frost);
+}
+
+.profile-copy {
+  min-width: 0;
+}
+
+.profile-copy .card-title {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--dr-frost);
+}
+
+.profile-status {
+  margin: 3px 0 0;
+  color: var(--dr-steel);
+  font-size: 12px;
+}
+
+.profile-username {
+  display: grid;
+  gap: 6px;
+  padding-top: 12px;
+}
+
+.profile-username-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.profile-card .small-print {
+  max-width: 620px;
+  margin: 4px 0 0;
+  color: var(--dr-steel);
+}
+
+.profile-card .card-row {
+  padding-top: 4px;
+}
+
+.profile-card {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.profile-username-row .input {
+  min-width: 0;
+  flex: 1;
+}
+
 .settings-row {
   display: flex;
   align-items: center;

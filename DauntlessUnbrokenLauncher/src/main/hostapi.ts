@@ -247,6 +247,66 @@ export async function fetchPlaytime(ep: Endpoint, key: string): Promise<number |
   }
 }
 
+export type ProfilePictureResult =
+  | {ok: true; picture: import('../shared/types').ProfilePictureInfo | null}
+  | {ok: false; error: 'server_unreachable' | 'key_rejected' | 'server_error' | 'rate_limited'};
+
+function parseProfilePicture(value: unknown): import('../shared/types').ProfilePictureInfo | null {
+  if(value === null) return null;
+  if(!isObject(value) || typeof value.id !== 'string' || typeof value.accountId !== 'string' || typeof value.mimeType !== 'string' || !Number.isSafeInteger(value.width) || !Number.isSafeInteger(value.height) || !Number.isSafeInteger(value.bytes) || !['pending','approved','rejected'].includes(String(value.status)) || (value.reason !== null && typeof value.reason !== 'string') || !Number.isSafeInteger(value.createdAt) || (value.reviewedAt !== null && !Number.isSafeInteger(value.reviewedAt)) || (value.reviewerId !== null && typeof value.reviewerId !== 'string')) return null;
+  return {id:value.id,accountId:value.accountId,mimeType:value.mimeType,width:Number(value.width),height:Number(value.height),bytes:Number(value.bytes),status:value.status as import('../shared/types').ProfilePictureStatus,reason:value.reason as string|null,createdAt:Number(value.createdAt),reviewedAt:value.reviewedAt as number|null,reviewerId:value.reviewerId as string|null};
+}
+
+export async function fetchProfilePicture(ep: Endpoint, key: string): Promise<ProfilePictureResult> {
+  if(!isPlausibleAccountKey(key)) return {ok:false,error:'key_rejected'};
+  try {
+    const res = await request(ep, '/unbroken/api/ProfilePicture', {headers:statusHeaders(ep,key),timeoutMs:10000,maxBytes:32*1024});
+    if(res.status === 401 || res.status === 403) return {ok:false,error:'key_rejected'};
+    if(res.status === 429) return {ok:false,error:'rate_limited'};
+    if(res.status !== 200) return {ok:false,error:'server_error'};
+    const picture = parseProfilePicture(parseJsonBody(res));
+    return {ok:true,picture};
+  } catch { return {ok:false,error:'server_unreachable'}; }
+}
+
+export async function fetchProfilePictureImage(ep: Endpoint, accountId: string): Promise<string | null> {
+  if(!/^UID-[A-Za-z0-9-]{1,128}$/.test(accountId)) return null;
+  try {
+    const res = await request(ep, `/unbroken/api/ProfilePicture/${encodeURIComponent(accountId)}`, {timeoutMs:10000,maxBytes:120*1024});
+    if(res.status !== 200) return null;
+    const type = sniffImage(res.body);
+    return type ? `data:${type};base64,${res.body.toString('base64')}` : null;
+  } catch { return null; }
+}
+
+export async function uploadProfilePicture(ep: Endpoint, key: string, image: string): Promise<{ok:true;picture:import('../shared/types').ProfilePictureInfo}|{ok:false;error:'invalid_image'|'image_too_large'|'invalid_image_dimensions'|'unsupported_image_format'|'moderation_unavailable'|'image_rejected'|'rate_limited'|'server_unreachable'|'server_error'}> {
+  if(!isPlausibleAccountKey(key)) return {ok:false,error:'server_error'};
+  try {
+    const res = await request(ep, '/unbroken/api/ProfilePicture', {method:'POST',headers:{...statusHeaders(ep,key),'content-type':'application/json'},body:JSON.stringify({image}),timeoutMs:30000,maxBytes:32*1024});
+    const body = parseJsonBody(res);
+    if(res.status === 201){const picture=parseProfilePicture(body);return picture?{ok:true,picture}:{ok:false,error:'server_error'};}
+    if(res.status === 400 && isObject(body) && ['invalid_image','image_too_large','invalid_image_dimensions','unsupported_image_format','image_rejected'].includes(String(body.error))) return {ok:false,error:body.error as 'invalid_image'|'image_too_large'|'invalid_image_dimensions'|'unsupported_image_format'|'image_rejected'};
+    if(res.status === 429)return {ok:false,error:'rate_limited'};
+    if(res.status === 503 && isObject(body) && body.error === 'moderation_unavailable')return {ok:false,error:'moderation_unavailable'};
+    if(res.status === 401 || res.status === 403)return {ok:false,error:'server_error'};
+    return {ok:false,error:'server_error'};
+  } catch {return {ok:false,error:'server_unreachable'};}
+}
+
+export async function renameProfileUsername(ep: Endpoint, key: string, username: string): Promise<{ok:true;username:string}|{ok:false;error:'username_invalid'|'username_taken'|'username_moderated'|'rate_limited'|'server_unreachable'|'server_error'}> {
+  if(!isPlausibleAccountKey(key)) return {ok:false,error:'server_error'};
+  try {
+    const res=await request(ep,'/unbroken/api/ProfileUsername',{method:'POST',headers:{...statusHeaders(ep,key),'content-type':'application/json'},body:JSON.stringify({username}),timeoutMs:10000,maxBytes:4096});
+    const body=parseJsonBody(res);
+    if(res.status===200&&isObject(body)&&typeof body.username==='string')return {ok:true,username:body.username};
+    if(res.status===409&&isObject(body)&&body.error==='username_taken')return {ok:false,error:'username_taken'};
+    if(res.status===400&&isObject(body)&&body.error==='username_moderated')return {ok:false,error:'username_moderated'};
+    if(res.status===400)return {ok:false,error:'username_invalid'};
+    if(res.status===429)return {ok:false,error:'rate_limited'};
+    return {ok:false,error:'server_error'};
+  } catch{return {ok:false,error:'server_unreachable'};}
+}
+
 // ---------------------------------------------------------------- Content server
 
 // Public mode: is the host's content server behind the gateway? (HEAD /content/v1/manifest)
