@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { GetDb } from "../db";
 import { inventory, users } from "../db/schema";
 import { GetActiveCharacter } from "./activecharacter";
+import { MAX_STACK_QUANTITY } from "./inventory";
 
 export async function GetNotesForUser(userId: string){
     let UserFromDb = await GetDb().query.users.findFirst({where: eq(users.userId, userId)});
@@ -23,9 +24,29 @@ export function GetHeldCurrencies(AccountId: string){
 
         const Row = tx.select({stackedItems: inventory.stackedItems}).from(inventory).where(eq(inventory.characterId, Character.characterId)).get();
 
-        for(const Stack of JSON.parse(Row?.stackedItems ?? "[]") as any[]){
-            if(typeof Stack?.catalogId === "string" && Stack.catalogId.startsWith("CURRENCY_") && Number.isSafeInteger(Number(Stack.quantity))){
-                Held.set(Stack.catalogId, (Held.get(Stack.catalogId) ?? 0) + Number(Stack.quantity));
+        let Stacks: unknown;
+        try{
+            Stacks = JSON.parse(Row?.stackedItems ?? "[]");
+        }
+        catch{
+            return {CharacterId: Character.characterId, Held};
+        }
+
+        if(!Array.isArray(Stacks)){
+            return {CharacterId: Character.characterId, Held};
+        }
+
+        for(const Stack of Stacks){
+            const Quantity = typeof (Stack as any)?.quantity === "string" && /^\d+$/.test((Stack as any).quantity)
+                ? Number((Stack as any).quantity)
+                : (Stack as any)?.quantity;
+
+            if(typeof (Stack as any)?.catalogId === "string" && (Stack as any).catalogId.startsWith("CURRENCY_")
+                && Number.isSafeInteger(Quantity) && Quantity >= 0 && Quantity <= MAX_STACK_QUANTITY){
+                const Total = (Held.get((Stack as any).catalogId) ?? 0) + Quantity;
+                if(Number.isSafeInteger(Total) && Total <= MAX_STACK_QUANTITY){
+                    Held.set((Stack as any).catalogId, Total);
+                }
             }
         }
 
