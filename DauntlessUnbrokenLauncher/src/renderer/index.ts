@@ -5,6 +5,7 @@
 import { $, forceRender, githubMark, h, icon, renderRegion, type IconName } from "./dom";
 
 import newsBadge from "./brand/news-badge.svg";
+import previewProfileAvatar from "./brand/emblem-64.png";
 import {installControllerNavigation} from "./controller-navigation";
 import { buildScene } from "./scene";
 import { isStringKey, translate, type StringKey } from "../shared/i18n";
@@ -35,7 +36,7 @@ type Modal =
 const PREVIEW_MODE = !window.launcher;
 const PREVIEW_SNAPSHOT = {
   phase: "ready", busy: false, server: {mode:"public",host:"eu1.example",port:443,name:"EU1",hasShare:false,hasPendingInvite:false,loopback:false,fingerprint:null}, savedServers: [], connect:{checking:false,problem:null,tailscaleInstalled:false,lastCheckedAt:null},
-    account:{sessionOnly:false,saved:[],username:"Korone",hasKey:true,offerBackup:false,profilePicture:{status:"approved",reason:"approved by local moderation",imageDataUrl:null}},
+    account:{sessionOnly:false,saved:[],username:"Korone",hasKey:true,offerBackup:false,profilePicture:{status:"approved",reason:"approved by local moderation",imageDataUrl:previewProfileAvatar}},
   install:{dir:"C:\\Games\\Dauntless Unbroken",defaultDir:"C:\\Games\\Dauntless Unbroken",installed:true,missingFiles:0,verified:true,dllsOk:true,freeBytes:120000000000,requiredBytes:0,totalBytes:0,vcRuntimeMissing:[],directXMissing:[],contentAvailable:true},
   task:null,game:{running:false,relayPort:null},playtime:{onlineSeconds:0,offlineSeconds:0,sessions:[],totalSeconds:0},settings:{graphics:4,exposure:"game",windowed:false,language:"en",gameLanguage:"auto",showConsole:false,discordPresence:true,streamerMode:false},app:{version:"1.0.55",packaged:false,updateReady:false,platform:"win32"},status:null,availableHuntRegions:["main"],statusUnsupported:false,lastError:null,notice:null
 } as any;
