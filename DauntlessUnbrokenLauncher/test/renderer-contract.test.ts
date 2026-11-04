@@ -46,3 +46,12 @@ test("the launcher navigation keeps a readable library rail", () => {
   assert.match(styles, /\.nav-item \{ display: flex; flex-direction: row;/);
   assert.match(styles, /\.nav-item\[aria-current="page"\]::before \{ left: 0;/);
 });
+
+test("the rail exposes the installed game as a library selection", () => {
+  const html = readFileSync(path.join(root, "index.html"), "utf8");
+  const source = readFileSync(path.join(root, "src/renderer/index.ts"), "utf8");
+  const styles = readFileSync(path.join(root, "src/renderer/unbroken-theme.css"), "utf8");
+  assert.match(html, /id="library-game"/);
+  assert.match(source, /#library-game/);
+  assert.match(styles, /\.library-game\s*\{/);
+});
