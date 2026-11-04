@@ -14,19 +14,33 @@ const WeeklyChallengeData = [{
     reward_amount: 100
 }];
 
-export function GetWeeklyBountyGameData(){
+const DailyChallengeData = [{
+    bounty_id: 'Challenge_Daily_Hunt',
+    enabled: true,
+    reward_amount: 100
+}];
+
+function GetChallengeBountyGameData(BountyData: typeof WeeklyChallengeData){
     return {
         max_slots: 1, num_draft_options: 1, num_spicy_options: 0,
         bounty_token_id: '', premium_bounty_token_id: '', num_tokens_hp_start: 0,
         history_length: 1, bronze_count: 1, silver_count: 0, gold_count: 0,
-        new_season_reset_bounties: false, bounty_data: WeeklyChallengeData,
+        new_season_reset_bounties: false, bounty_data: BountyData,
         item_grant_data: [], token_rollover_warning_days: 0,
         automatic_draft: true, automatic_claim: false, delete_claimed_bounties: true
     };
 }
 
-// Ordinary bounties use packaged rewards. Daily challenge content remains disabled
-// until its assignment and payout data are ready; weekly uses the verified safe row.
+export function GetWeeklyBountyGameData(){
+    return GetChallengeBountyGameData(WeeklyChallengeData);
+}
+
+export function GetDailyBountyGameData(){
+    return GetChallengeBountyGameData(DailyChallengeData);
+}
+
+// Ordinary bounties use packaged rewards. Daily and weekly challenge rows use
+// the native 1.10.5 IDs whose assignment and payout paths were verified in isolation.
 tuningRouter.get(['/game_tuning/bounty_game_data', '/game_tuning/bounty_game_data_daily', '/game_tuning/bounty_game_data_weekly'], (req, res, next) => {
     if (!Local1105Enabled()) { next('route'); return; }
     if (req.path === '/game_tuning/bounty_game_data') {
@@ -34,6 +48,9 @@ tuningRouter.get(['/game_tuning/bounty_game_data', '/game_tuning/bounty_game_dat
     }
     if (req.path.endsWith('_weekly')) {
         res.json({ code: '', message: 'OK', payload: GetWeeklyBountyGameData() }); return;
+    }
+    if (req.path.endsWith('_daily')) {
+        res.json({ code: '', message: 'OK', payload: GetDailyBountyGameData() }); return;
     }
     res.json({ code: '', message: 'OK', payload: {
         max_slots: 0, num_draft_options: 0, num_spicy_options: 0,

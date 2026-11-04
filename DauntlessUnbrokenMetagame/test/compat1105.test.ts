@@ -31,6 +31,12 @@ it('serves the 1.10.5 ordinary bounty board, real six-season state and price-arr
     assert.equal(weeklyTuning.json.payload.automatic_draft,true);
     assert.equal(weeklyTuning.json.payload.delete_claimed_bounties,true);
     assert.ok(!weeklyTuning.json.payload.bounty_data.some((row:any)=>row.bounty_id==='Challenge_Season_Break_Armour_Rock'));
+    const dailyTuning=await Call('GET','/game_tuning/bounty_game_data_daily');
+    assert.equal(dailyTuning.status,200);
+    assert.deepEqual(dailyTuning.json.payload.bounty_data,[{bounty_id:'Challenge_Daily_Hunt',enabled:true,reward_amount:100}]);
+    assert.equal(dailyTuning.json.payload.max_slots,1);
+    assert.equal(dailyTuning.json.payload.automatic_draft,true);
+    assert.equal(dailyTuning.json.payload.delete_claimed_bounties,true);
     const oldTuning=await Call('GET','/bounty/game-data',{as:player.UserId});
     assert.deepEqual(oldTuning.json.payload,tuning.json.payload);
     assert.equal(GrantKind('AR_HP07A_MONK_ARMS'),'stacked');
