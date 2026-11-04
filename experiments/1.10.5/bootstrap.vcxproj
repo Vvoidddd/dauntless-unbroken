@@ -17,6 +17,7 @@
     <ClCompile Include="$(SdkRoot)\SDK\CoreUObject_functions.cpp" />
     <ClCompile Include="$(SdkRoot)\SDK\Engine_functions.cpp" />
     <MASM Include="journey-guard.asm" />
+    <MASM Include="apex-report-guard.asm" />
     <ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\buffer.c" />
     <ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\hook.c" />
     <ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\trampoline.c" />

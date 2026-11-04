@@ -20,6 +20,7 @@
 #include "SDK/exploration_game_mode_bpc_classes.hpp"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
 extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
+extern "C" { void ApexReportGuardEarly(); void* ApexEarlyContinue = nullptr; void ApexReportGuard(); void* ApexReportContinue = nullptr; void* ApexReportNext = nullptr; }
 
 #include "endpoints.generated.h"
 
@@ -379,7 +380,9 @@ static void DumpHuntTables() {
         Note("DUMP_PH_END\n"); phDone=true;
     }
 }
+static void InstallApexReportGuard();
 static void Tick(void* self, float delta, char render) {
+    if (Server) InstallApexReportGuard();
     OriginalTick(self, delta, render);
     UpdateCellFusionTime();
     if (!Server) return; // Client must never run server stamina work or Sleep(25).
@@ -436,7 +439,7 @@ static LONG CALLBACK Exception(EXCEPTION_POINTERS* info) {
     }
     return EXCEPTION_CONTINUE_SEARCH;
 }
-static bool ExactBuild(const wchar_t* path) {
+static bool FileMatchesSha256(const wchar_t* path, const unsigned char (&expected)[32]) {
     const auto file = CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
     if (file == INVALID_HANDLE_VALUE) return false;
     BCRYPT_ALG_HANDLE algorithm = nullptr;
@@ -450,12 +453,61 @@ static bool ExactBuild(const wchar_t* path) {
         good = BCryptHashData(hash, buffer, length, 0) == 0;
     }
     if (good) good = BCryptFinishHash(hash, digest, sizeof(digest), 0) == 0;
-    constexpr unsigned char expected[] = {0x41,0xc3,0xb9,0xa9,0x29,0x67,0xb3,0xa3,0x5f,0x3b,0xc6,0xb9,0x76,0x13,0xe9,0x3d,0x99,0x01,0xc7,0x70,0x1b,0xd4,0x7e,0x9f,0x09,0xe0,0xc2,0x41,0xc9,0xcf,0x78,0xfd};
     if (good) good = memcmp(digest, expected, sizeof(expected)) == 0;
     if (hash) BCryptDestroyHash(hash);
     if (algorithm) BCryptCloseAlgorithmProvider(algorithm, 0);
     CloseHandle(file);
     return good;
+}
+static bool ExactBuild(const wchar_t* path) {
+    constexpr unsigned char expected[] = {0x41,0xc3,0xb9,0xa9,0x29,0x67,0xb3,0xa3,0x5f,0x3b,0xc6,0xb9,0x76,0x13,0xe9,0x3d,0x99,0x01,0xc7,0x70,0x1b,0xd4,0x7e,0x9f,0x09,0xe0,0xc2,0x41,0xc9,0xcf,0x78,0xfd};
+    return FileMatchesSha256(path, expected);
+}
+// Skip a damage report if its destructible was removed before or during the callback.
+static void InstallApexReportGuard() {
+    static bool finished = false;
+    static ULONGLONG retryAt = 0;
+    if (finished || GetTickCount64() < retryAt) return;
+    const auto module = GetModuleHandleW(L"Apex_Destructible_x64.dll");
+    if (!module) return;
+    wchar_t path[32768] = {};
+    const auto length = GetModuleFileNameW(module, path, 32768);
+    constexpr unsigned char expected[] = {0xcf,0xce,0x06,0x14,0xe4,0x51,0xd3,0x08,0xea,0x15,0xf8,0xdd,0x86,0xd1,0xb2,0x42,0x44,0x34,0x7a,0x8d,0xac,0x36,0x0d,0x9a,0xd9,0x85,0x23,0x0e,0x72,0x98,0x8d,0x2a};
+    const auto base = reinterpret_cast<uintptr_t>(module);
+    constexpr unsigned char early[] = {0x83,0x7b,0x2c,0x00,0x76,0x16};
+    constexpr unsigned char instruction[] = {0x48,0x83,0x7b,0x68,0x00,0x74,0x4d};
+    constexpr unsigned char next[] = {0x3b,0xbd,0xd8,0x01,0x00,0x00};
+    if (!length || length >= 32768 || !FileMatchesSha256(path, expected) ||
+        memcmp(reinterpret_cast<void*>(base + 0x72460), early, sizeof(early)) ||
+        memcmp(reinterpret_cast<void*>(base + 0x7247c), instruction, sizeof(instruction)) ||
+        memcmp(reinterpret_cast<void*>(base + 0x724df), next, sizeof(next))) {
+        Note("apex_report_guard_build_mismatch\n");
+        retryAt = GetTickCount64() + 60000;
+        return;
+    }
+    ApexReportNext = reinterpret_cast<void*>(base + 0x724df);
+    auto* earlySite = reinterpret_cast<void*>(base + 0x72460);
+    auto* site = reinterpret_cast<void*>(base + 0x7247c);
+    if (MH_CreateHook(earlySite, ApexReportGuardEarly, &ApexEarlyContinue) != MH_OK) {
+        Note("apex_report_guard_create_failed\n");
+        retryAt = GetTickCount64() + 10000;
+        return;
+    }
+    if (MH_CreateHook(site, ApexReportGuard, &ApexReportContinue) != MH_OK) {
+        MH_RemoveHook(earlySite);
+        Note("apex_report_guard_create_failed\n");
+        retryAt = GetTickCount64() + 10000;
+        return;
+    }
+    if (MH_QueueEnableHook(earlySite) != MH_OK || MH_QueueEnableHook(site) != MH_OK || MH_ApplyQueued() != MH_OK) {
+        MH_RemoveHook(site);
+        MH_RemoveHook(earlySite);
+        Note("apex_report_guard_enable_failed\n");
+        retryAt = GetTickCount64() + 10000;
+        return;
+    }
+    finished = true;
+    Note("apex_report_guard_enabled\n");
 }
 static bool Hook(uintptr_t offset, void* replacement, void** original) {
     return MH_CreateHook(reinterpret_cast<void*>(Base + offset), replacement, original) == MH_OK;
