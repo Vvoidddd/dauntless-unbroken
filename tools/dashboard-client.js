@@ -9,31 +9,31 @@
 
   const polish=document.createElement('style');
   polish.textContent=`
-  :root{color-scheme:dark;--surface:#141218;--surface-container:#211f26;--surface-high:#2b2930;--outline:#49454f;--on-surface:#e6e1e5;--on-variant:#cac4d0;--primary:#d0bcff;--primary-container:#4f378b;--error:#ffb4ab}
+  :root{color-scheme:dark;--surface:#202124;--surface-container:#292a2d;--surface-high:#303134;--outline:#5f6368;--on-surface:#e8eaed;--on-variant:#bdc1c6;--primary:#8ab4f8;--primary-container:#3c4043;--error:#f28b82}
   html{min-height:100%;background:var(--surface)}
-  body{min-height:100vh;margin:0;background:var(--surface);color:var(--on-surface);font:14px/1.5 system-ui,'Segoe UI',sans-serif;letter-spacing:.1px}
-  header{height:64px;padding:0 24px;display:flex;align-items:center;gap:16px;background:var(--surface-container);border-bottom:1px solid var(--outline);position:sticky;top:0;z-index:20}
-  header h1{font-size:22px;letter-spacing:0;font-weight:400}.eyebrow{color:var(--on-variant);font-size:10px;letter-spacing:1.6px}.badge{color:var(--primary);background:transparent;border-color:var(--outline)}
+  body{min-height:100vh;margin:0;background:var(--surface);color:var(--on-surface);font:14px/1.5 Arial,Roboto,system-ui,sans-serif;letter-spacing:0}
+  header{height:64px;padding:0 24px;display:flex;align-items:center;gap:16px;background:var(--surface);border-bottom:1px solid #3c4043;position:sticky;top:0;z-index:20}
+  header h1{font-size:20px;letter-spacing:0;font-weight:400}.eyebrow{color:var(--on-variant);font-size:10px;letter-spacing:1.4px}.badge{color:var(--primary);background:transparent;border-color:var(--outline)}
   main{width:auto;max-width:none;padding:32px 40px}.login{max-width:480px;margin:10vh auto;padding:36px!important}.login h2{font-size:28px;letter-spacing:0;font-weight:400}
   body:has(#data:not([hidden])) main{margin-left:256px;max-width:1800px}
-  .ops-sidebar{position:fixed;left:0;top:64px;bottom:0;width:256px;padding:24px 12px;background:var(--surface-container);border-right:1px solid var(--outline);display:flex;flex-direction:column;align-items:stretch;gap:20px;overflow-y:auto;z-index:10}
-  .ops-sidebar:before{content:'WORKSPACE';padding:0 16px;color:var(--on-variant);font-size:11px;letter-spacing:1.2px}
+  .ops-sidebar{position:fixed;left:0;top:64px;bottom:0;width:256px;padding:24px 12px;background:var(--surface-container);border-right:1px solid #3c4043;display:flex;flex-direction:column;align-items:stretch;gap:20px;overflow-y:auto;z-index:10}
+  .ops-sidebar:before{content:'NAVIGATION';padding:0 16px;color:var(--on-variant);font-size:11px;letter-spacing:1.2px}
   .ops-sidebar nav{display:flex;flex-direction:column;gap:4px;flex-wrap:nowrap;margin:0;padding:0;background:none;border:0;border-radius:0}
-  .ops-sidebar nav button{min-height:44px;text-align:left;padding:0 16px;background:transparent;color:var(--on-variant);border:0;border-radius:0 24px 24px 0;font-size:14px;white-space:normal}
-  .ops-sidebar nav button:before{content:'○';display:inline-block;width:28px;color:var(--on-variant)}
+  .ops-sidebar nav button{min-height:44px;text-align:left;padding:0 16px;background:transparent;color:var(--on-variant);border:0;border-radius:4px;font-size:14px;white-space:normal}
+  .ops-sidebar nav button:before{content:'';display:inline-block;width:3px;height:18px;margin:0 25px 0 0;vertical-align:middle;background:transparent;border-radius:1px}
   .ops-sidebar nav button:hover{background:#d0bcff14;color:var(--on-surface);box-shadow:none}
-  .ops-sidebar nav button[aria-pressed=true]{background:#4f378b;color:#fff;font-weight:600}
-  .ops-sidebar nav button[aria-pressed=true]:before{content:'●';color:var(--primary)}.ops-sidebar #logout{margin-top:auto;background:transparent;color:var(--on-variant);border-color:var(--outline)}
+  .ops-sidebar nav button[aria-pressed=true]{background:#3c4043;color:#fff;font-weight:600}
+  .ops-sidebar nav button[aria-pressed=true]:before{background:var(--primary)}.ops-sidebar #logout{margin-top:auto;background:transparent;color:var(--on-variant);border-color:var(--outline)}
   h2{font-size:22px;font-weight:400;letter-spacing:0}h3{font-size:13px;color:var(--on-variant);font-weight:500}p{color:var(--on-variant);font-size:14px}
-  .card{background:var(--surface-container);border:1px solid var(--outline);border-radius:16px;padding:24px;box-shadow:none;margin-bottom:24px}
+  .card{background:var(--surface-container);border:1px solid #3c4043;border-radius:8px;padding:24px;box-shadow:none;margin-bottom:24px}
   .grid{gap:20px}.metrics{gap:16px}.metric strong{font-size:34px;font-weight:400;letter-spacing:-.5px;line-height:1.3;font-variant-numeric:tabular-nums;margin:10px 0}.metric span,small{font-size:12px;color:var(--on-variant)}
-  .ops-hero{background:var(--surface-high);padding:32px!important;border-radius:24px}.ops-hero h2{font-size:32px;letter-spacing:0;font-weight:400;margin:5px 0 6px}.ops-hero .metrics{margin:26px 0 0}.ops-hero .metric{border-top:1px solid var(--outline);padding-top:18px}
+  .ops-hero{background:var(--surface-container);padding:28px!important;border-radius:8px}.ops-hero h2{font-size:24px;letter-spacing:0;font-weight:400;margin:5px 0 6px}.ops-hero .metrics{margin:26px 0 0}.ops-hero .metric{border-top:1px solid #3c4043;padding-top:18px}
   .ops-charts{margin:24px 0}.ops-charts .card{min-width:0}.ops-charts h2{font-size:16px;font-weight:500}
   button,input,select,textarea{background:var(--surface-high);color:var(--on-surface);border:1px solid var(--outline);border-radius:8px;padding:10px 14px}button{transition:background .16s,border-color .16s,color .16s}button:hover{background:#d0bcff14;border-color:var(--primary);box-shadow:none}
   .primary{background:var(--primary);color:#332e3d;border-color:var(--primary)}.primary:hover{background:#e8ddff;color:#211a2d}input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible,canvas:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
   .table-wrap{border:1px solid var(--outline);border-radius:12px}table{font-size:13px}th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;background:var(--surface-high);color:var(--on-variant)}td,th{padding:15px 16px;border-bottom:1px solid var(--outline)}tbody tr:last-child td{border:0}tbody tr:hover{background:#d0bcff0d}
   #rewardControls .grid>div{min-width:0}#rewardControls select{max-width:100%;text-overflow:ellipsis}#rewardPreview{overflow-wrap:anywhere}
-  canvas{cursor:crosshair;border-radius:12px}pre{background:var(--surface);border:1px solid var(--outline)}#freshness{color:var(--on-variant)}.footnote{color:var(--on-variant);font-size:12px}.view{animation:ops-enter .18s ease-out}
+  canvas{cursor:crosshair;border-radius:4px}pre{background:var(--surface);border:1px solid #3c4043}#freshness{color:var(--on-variant)}.footnote{color:var(--on-variant);font-size:12px}.view{animation:ops-enter .18s ease-out}
   @keyframes ops-enter{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:none}}
   .icon-button{display:none;border:0;background:transparent;font-size:22px;padding:8px;min-width:40px}
   @media(min-width:1500px){main{padding:40px 56px}.ops-hero h2{font-size:36px}}
