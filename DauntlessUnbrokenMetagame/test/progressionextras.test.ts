@@ -429,6 +429,19 @@ describe("GET /balance and POST /reconcile (BALANCE_FROM_INVENTORY)", () => {
         const Sheet = (await Call("GET", "/balance", { as: UserId })).json;
         assert.deepEqual([Sheet.CURRENCY_NOTES, Sheet.CURRENCY_PLATINUM, Sheet.CURRENCY_S20_COIN], [0, 0, 75]);
     });
+
+    it("does not display a currency whose serialized stacks exceed the native limit", async () => {
+        const { UserId, CharacterId } = await MakePlayer();
+
+        GetDb().insert(inventory).values({ characterId: CharacterId, instancedItems: "[]", stackedItems: JSON.stringify([
+            { catalogId: "CURRENCY_NOTES", quantity: 2147483647 },
+            { catalogId: "CURRENCY_NOTES", quantity: 1 }
+        ]) }).run();
+
+        const Sheet = (await Call("GET", "/balance", { as: UserId })).json;
+        assert.equal(Sheet.CURRENCY_NOTES, 0);
+        assert.equal(Sheet.id_currency_notes, 0);
+    });
 });
 
 describe("log lines", () => {

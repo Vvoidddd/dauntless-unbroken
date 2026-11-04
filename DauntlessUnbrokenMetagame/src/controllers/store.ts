@@ -11,6 +11,7 @@ export function GetHeldCurrencies(AccountId: string){
     return GetDb().transaction((tx) => {
         const Character = GetActiveCharacter(tx, AccountId);
         const Held = new Map<string, number>();
+        const InvalidCurrencies = new Set<string>();
 
         if(Character == undefined){
             return {CharacterId: undefined, Held};
@@ -37,9 +38,18 @@ export function GetHeldCurrencies(AccountId: string){
 
             if(typeof (Stack as any)?.catalogId === "string" && (Stack as any).catalogId.startsWith("CURRENCY_")
                 && Number.isSafeInteger(Quantity) && Quantity >= 0 && Quantity <= MAX_STACK_QUANTITY){
-                const Total = (Held.get((Stack as any).catalogId) ?? 0) + Quantity;
+                const CatalogId = (Stack as any).catalogId;
+                if(InvalidCurrencies.has(CatalogId)){
+                    continue;
+                }
+
+                const Total = (Held.get(CatalogId) ?? 0) + Quantity;
                 if(Number.isSafeInteger(Total) && Total <= MAX_STACK_QUANTITY){
-                    Held.set((Stack as any).catalogId, Total);
+                    Held.set(CatalogId, Total);
+                }
+                else{
+                    Held.delete(CatalogId);
+                    InvalidCurrencies.add(CatalogId);
                 }
             }
         }

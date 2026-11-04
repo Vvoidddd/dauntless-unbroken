@@ -1,4 +1,5 @@
 const LEGACY_RAMS_IDS = new Set(['rams', 'notes', 'CURRENCY_NOTES']);
+const MAX_STACK_QUANTITY = 2147483647;
 
 function ReadStacks(value, characterId){
   let parsed;
@@ -8,14 +9,14 @@ function ReadStacks(value, characterId){
   const result = [];
   const byCatalog = new Map();
   for(const item of parsed){
-    if(!item || typeof item.catalogId !== 'string' || !Number.isSafeInteger(item.quantity) || item.quantity < 0){
+    if(!item || typeof item.catalogId !== 'string' || !Number.isSafeInteger(item.quantity) || item.quantity < 0 || item.quantity > MAX_STACK_QUANTITY){
       throw Error(`Invalid stacked item in inventory for ${characterId}`);
     }
     const catalogId = LEGACY_RAMS_IDS.has(item.catalogId) ? 'CURRENCY_NOTES' : item.catalogId;
     const existing = byCatalog.get(catalogId);
     if(existing){
       existing.quantity += item.quantity;
-      if(!Number.isSafeInteger(existing.quantity)) throw Error(`Invalid Rams balance in inventory for ${characterId}`);
+      if(!Number.isSafeInteger(existing.quantity) || existing.quantity > MAX_STACK_QUANTITY) throw Error(`Invalid Rams balance in inventory for ${characterId}`);
     }
     else{
       const normalized = {...item, catalogId};
@@ -40,7 +41,7 @@ function ApplyCurrencyMigration(db, userId){
   }
 
   const user = db.prepare('SELECT notes FROM users WHERE userId=?').get(userId);
-  if(!user || !Number.isSafeInteger(user.notes) || user.notes < 0) throw Error('Invalid Rams balance in imported account');
+  if(!user || !Number.isSafeInteger(user.notes) || user.notes < 0 || user.notes > MAX_STACK_QUANTITY) throw Error('Invalid Rams balance in imported account');
   if(user.notes === 0) return;
 
   const active = ActiveCharacter(db, userId);
@@ -49,7 +50,7 @@ function ApplyCurrencyMigration(db, userId){
   const existing = stacks.find(item => item.catalogId === 'CURRENCY_NOTES');
   if(existing){
     existing.quantity += user.notes;
-    if(!Number.isSafeInteger(existing.quantity)) throw Error('Imported Rams balance is too large');
+    if(!Number.isSafeInteger(existing.quantity) || existing.quantity > MAX_STACK_QUANTITY) throw Error('Imported Rams balance is too large');
   }
   else{
     stacks.push({catalogId: 'CURRENCY_NOTES', quantity: user.notes});

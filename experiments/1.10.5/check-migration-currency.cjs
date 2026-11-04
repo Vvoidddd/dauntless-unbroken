@@ -3,6 +3,7 @@ const Database=require('../../DauntlessUnbrokenMetagame/node_modules/better-sqli
 const {drizzle}=require('../../DauntlessUnbrokenMetagame/node_modules/drizzle-orm/better-sqlite3');
 const {migrate}=require('../../DauntlessUnbrokenMetagame/node_modules/drizzle-orm/better-sqlite3/migrator');
 const {ApplyCurrencyMigration}=require('./migrate-currency.cjs');
+const MAX_STACK_QUANTITY=2147483647;
 
 function db(){
   const value=new Database(':memory:');
@@ -38,5 +39,11 @@ try{
   ]);
   assert.equal(legacyWallet.prepare('SELECT notes FROM users').get().notes,0);
 }finally{legacyWallet.close();}
+
+const overflowingInventory=db();
+try{
+  seed(overflowingInventory,0,[{catalogId:'rams',quantity:MAX_STACK_QUANTITY},{catalogId:'notes',quantity:1}]);
+  assert.throws(()=>ApplyCurrencyMigration(overflowingInventory,'UID-currency-check'),/Invalid Rams balance/);
+}finally{overflowingInventory.close();}
 
 console.log('Legacy Rams inventory IDs and users.notes balances normalize to one idempotent CURRENCY_NOTES stack.');
