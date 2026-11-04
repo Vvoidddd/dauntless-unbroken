@@ -3,12 +3,13 @@ import './authenv';
 import {after, before, it} from 'node:test';
 import assert from 'node:assert/strict';
 import {StartApp, StopApp, Call} from './appclient';
-import {MakePlayer} from './helpers';
+import {MakePlayer, StackQuantity} from './helpers';
 import {GetDb} from '../src/db';
 import {GetAllEscalationSeasons} from '../src/controllers/escalationConfig';
 import {GrantKind} from '../src/controllers/freestore';
 import {GetSelectedHuntPass} from '../src/controllers/realprogression';
 import {GetProgressionPath} from '../src/controllers/progressionrank';
+import {RunInventoryTransaction} from '../src/controllers/inventory';
 import path from 'node:path';
 
 before(async()=>{
@@ -16,6 +17,75 @@ before(async()=>{
     await StartApp();
 });
 after(async()=>{await StopApp();RemoveTestDb(()=>GetDb().$client.close());});
+it('records a game-server season coin grant once when the same transaction is retried',async()=>{
+    const player=await MakePlayer();
+    const grant=()=>RunInventoryTransaction(player.UserId,player.CharacterId,'daily-test-reward',[],[{catalogId:'CURRENCY_S17_COIN',quantity:100}],[],[],[],{Caller:'gameserver',Source:'daily-test'});
+    const first=await grant();
+    const retry=await grant();
+    assert.equal(first.success,true);
+    assert.equal(retry.success,true);
+    assert.ok(retry.data);
+    assert.equal(retry.data.replayed,true);
+    assert.equal(StackQuantity(player.CharacterId,'CURRENCY_S17_COIN'),100);
+    const balance=await Call('GET','/balance',{as:player.UserId});
+    assert.equal(balance.status,200);
+    assert.equal(balance.json.CURRENCY_S17_COIN,100);
+    assert.equal(balance.json.id_currency_s17_coin,100);
+});
+it('accepts a season coin grant from a game server but rejects a player grant',async()=>{
+    const player=await MakePlayer();
+    const body={accountId:player.UserId,characterId:player.CharacterId,transactionId:'season-coin-reward',addStackedItems:[{catalogId:'CURRENCY_S17_COIN',quantity:100}]};
+    const denied=await Call('POST','/inventory',{as:player.UserId,body});
+    assert.equal(denied.status,403);
+    assert.equal(StackQuantity(player.CharacterId,'CURRENCY_S17_COIN'),0);
+    assert.equal((await Call('POST','/inventory',{gs:true,body})).status,200);
+    assert.equal((await Call('POST','/inventory',{gs:true,body})).status,200);
+    assert.equal(StackQuantity(player.CharacterId,'CURRENCY_S17_COIN'),100);
+    const balance=await Call('GET','/balance',{as:player.UserId});
+    assert.equal(balance.json.id_currency_s17_coin,100);
+});
+it('keeps daily draft state independently from ordinary bounty drafts', async()=>{
+    const player=await MakePlayer();
+    const ordinary={current_draft_choices:['ordinary'],previous_draft_selections:[],bronze_count:1,silver_count:0,gold_count:0};
+    const daily={current_draft_choices:['Challenge_Daily_Bronze_ASInterrupts'],previous_draft_selections:[],bronze_count:1,silver_count:0,gold_count:0};
+    const weekly={current_draft_choices:['weekly'],previous_draft_selections:[],bronze_count:0,silver_count:1,gold_count:0};
+    let reply=await Call('POST',`/bounty/${player.UserId}`,{gs:true,body:{bounties:[],draft_data:ordinary,draft_data_daily:daily,draft_data_weekly:weekly}});
+    assert.equal(reply.status,200);
+    reply=await Call('GET',`/bounty/${player.UserId}`,{as:player.UserId});
+    assert.deepEqual(reply.json.payload.draft_data,ordinary);
+    assert.deepEqual(reply.json.payload.draft_data_daily,daily);
+    assert.deepEqual(reply.json.payload.draft_data_weekly,weekly);
+    await Call('POST',`/bounty/${player.UserId}`,{gs:true,body:{bounties:[],draft_data:{...ordinary,bronze_count:0}}});
+    reply=await Call('GET',`/bounty/${player.UserId}`,{as:player.UserId});
+    assert.deepEqual(reply.json.payload.draft_data_daily,daily);
+    const second=await MakePlayer();
+    reply=await Call('POST',`/bounty/${second.UserId}`,{gs:true,body:{bounties:[],draft_data_daily:daily}});
+    assert.equal(reply.status,200);
+    reply=await Call('GET',`/bounty/${second.UserId}`,{as:second.UserId});
+    assert.deepEqual(reply.json.payload.draft_data_daily,daily);
+    assert.deepEqual(reply.json.payload.draft_data.current_draft_choices,[]);
+    reply=await Call('POST',`/bounty/${second.UserId}`,{as:second.UserId,body:{bounties:[],draft_data_daily:ordinary}});
+    assert.equal(reply.status,403);
+    reply=await Call('GET',`/bounty/${second.UserId}`,{as:second.UserId});
+    assert.deepEqual(reply.json.payload.draft_data_daily,daily);
+});
+it('persists a daily stagger damage objective and later penalty without replacing weekly challenges', async()=>{
+    const player=await MakePlayer();
+    const id='Challenge_Daily_Bronze_StaggerDamageReduce';
+    const daily=(progress:number,version:number)=>({bounty_id:id,slot_index:0,objectives:[{objective_id:id,progress}],drafted_timestamp:'2026-11-03T00:00:00.000Z',update_version:version,claimed:false});
+    const weekly={bounty_id:'Challenge_Season_DamageTotal-season17-0',slot_index:0,objectives:[{objective_id:'Challenge_Season_DamageTotal',progress:12}],update_version:0};
+    let reply=await Call('POST',`/bounty/${player.UserId}`,{gs:true,body:{bounties:[weekly,daily(29999,0)]}});
+    assert.equal(reply.status,200);
+    reply=await Call('POST',`/bounty/${player.UserId}`,{gs:true,body:{bounties:[daily(30000,1)]}});
+    assert.equal(reply.status,200);
+    reply=await Call('GET',`/bounty/${player.UserId}`,{as:player.UserId});
+    assert.equal(reply.json.payload.bounties.find((b:any)=>b.bounty_id===id).objectives[0].progress,30000);
+    assert.ok(reply.json.payload.bounties.some((b:any)=>b.bounty_id===weekly.bounty_id));
+    await Call('POST',`/bounty/${player.UserId}`,{gs:true,body:{bounties:[daily(29500,2)]}});
+    await Call('POST',`/bounty/${player.UserId}`,{gs:true,body:{bounties:[daily(30000,1)]}});
+    reply=await Call('GET',`/bounty/${player.UserId}`,{as:player.UserId});
+    assert.equal(reply.json.payload.bounties.find((b:any)=>b.bounty_id===id).objectives[0].progress,29500);
+});
 it('serves the 1.10.5 ordinary bounty board, real six-season state and price-array offers',async()=>{
     const player=await MakePlayer();
     const tuning=await Call('GET','/game_tuning/bounty_game_data');
@@ -24,6 +94,19 @@ it('serves the 1.10.5 ordinary bounty board, real six-season state and price-arr
     assert.equal(tuning.json.payload.bounty_token_id,'TOKEN_BOUNTY_DRAFT');
     assert.deepEqual(tuning.json.payload.bounty_data,[]);
     assert.equal(tuning.json.payload.delete_claimed_bounties,true);
+    const weeklyTuning=await Call('GET','/game_tuning/bounty_game_data_weekly');
+    assert.equal(weeklyTuning.status,200);
+    assert.deepEqual(weeklyTuning.json.payload.bounty_data,[{bounty_id:'Challenge_Season_DamageTotal',enabled:true,reward_amount:100}]);
+    assert.equal(weeklyTuning.json.payload.max_slots,1);
+    assert.equal(weeklyTuning.json.payload.automatic_draft,true);
+    assert.equal(weeklyTuning.json.payload.delete_claimed_bounties,true);
+    assert.ok(!weeklyTuning.json.payload.bounty_data.some((row:any)=>row.bounty_id==='Challenge_Season_Break_Armour_Rock'));
+    const dailyTuning=await Call('GET','/game_tuning/bounty_game_data_daily');
+    assert.equal(dailyTuning.status,200);
+    assert.deepEqual(dailyTuning.json.payload.bounty_data,[{bounty_id:'Challenge_Daily_Hunt',enabled:true,reward_amount:100}]);
+    assert.equal(dailyTuning.json.payload.max_slots,1);
+    assert.equal(dailyTuning.json.payload.automatic_draft,true);
+    assert.equal(dailyTuning.json.payload.delete_claimed_bounties,true);
     const oldTuning=await Call('GET','/bounty/game-data',{as:player.UserId});
     assert.deepEqual(oldTuning.json.payload,tuning.json.payload);
     assert.equal(GrantKind('AR_HP07A_MONK_ARMS'),'stacked');
@@ -35,12 +118,6 @@ it('serves the 1.10.5 ordinary bounty board, real six-season state and price-arr
     assert.equal(pass.premium_rewards!.length,51);
     const lanternReward=(pass.premium_rewards as any[]).flatMap(r=>r.stacked_items).find(r=>r.catalog_id==='LT_HP09B_COMMANDO_00');
     assert.equal(lanternReward.quantity,1);
-    for(const suffix of ['_daily','_weekly']){
-        const disabled=await Call('GET','/game_tuning/bounty_game_data'+suffix);
-        assert.equal(disabled.json.payload.max_slots,0);
-        assert.deepEqual(disabled.json.payload.bounty_data,suffix==='_weekly'
-            ? [{bounty_id:'Challenge_Season_Break_Armour_Rock',enabled:false,reward_amount:0}] : []);
-    }
     const seasons=GetAllEscalationSeasons();
     assert.equal(seasons.length,6);
     assert.ok(seasons.every(s=>s.enabled&&s.levels.length===25));
