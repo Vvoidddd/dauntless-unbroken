@@ -1,4 +1,5 @@
 import { Local1105Account } from './local1105';
+import {MaintenanceAllows} from './maintenance';
 import { PlayerRegion, RegionQueueKey, HuntRegion, RegionChoice } from './huntregion';
 import { CapacityTurns } from './capacityturns';
 import { HasServerPriority } from './priorityaccess';
@@ -1106,6 +1107,8 @@ export function JoinPartyCandidateById(PlayerId: string, CandidateId: string): P
         return undefined;
     }
 
+    if(!TheParty.Members.every(MaintenanceAllows)) return undefined;
+
     const Current = TheParty.Candidate;
     const Last = TheParty.LastCandidate;
     let Candidate: PartyCandidate | undefined;
@@ -1118,7 +1121,7 @@ export function JoinPartyCandidateById(PlayerId: string, CandidateId: string): P
     }
 
     const existing = MatchmakingResultMap.get(PlayerId);
-    if(Candidate === undefined || (Candidate.Region ?? 'main') !== PlayerRegion(TheParty.LeaderId) || !Candidate.MemberIds.includes(PlayerId)
+    if(Candidate === undefined || !Candidate.MemberIds.every(MaintenanceAllows) || (Candidate.Region ?? 'main') !== PlayerRegion(TheParty.LeaderId) || !Candidate.MemberIds.includes(PlayerId)
         || (existing?.CandidateId === Candidate.CandidateId && existing.Failed)
         || (Candidate.State === 'IN_PROGRESS' && PartyNow() - (Candidate.AllocatedAt ?? Candidate.CreatedAt) >= LAST_CANDIDATE_REJOIN_MS)){
         return undefined;
@@ -1132,6 +1135,8 @@ export function JoinPartyCandidateById(PlayerId: string, CandidateId: string): P
 // "solo": not a party matter, use the solo code; true: handled; false: refused (400)
 async function HandlePartyMatchmaking(GameMode: unknown, GameArgs: unknown, HuntId: unknown, PlayerId: string, Private = false): Promise<"solo" | boolean> {
     const TheParty = PartyForMatchmaking(PlayerId);
+
+    if(TheParty !== undefined && !TheParty.Members.every(MaintenanceAllows)) return false;
 
     if(TheParty === undefined || TheParty.Members.length < 2){
         return "solo";
@@ -1147,6 +1152,7 @@ async function HandlePartyMatchmaking(GameMode: unknown, GameArgs: unknown, Hunt
     }
 
     let Rejoin = FindRejoinCandidate(TheParty, PlayerId, Mode, Hunt, IsLeader, Private);
+    if(Rejoin && !Rejoin.MemberIds.every(MaintenanceAllows)) return false;
     if (Rejoin) {
         const entry = MatchmakingResultMap.get(PlayerId);
         if (entry?.CandidateId === Rejoin.CandidateId && entry.Ready) {
@@ -1215,6 +1221,7 @@ export async function HandlePlayerMatchmaking(GameMode: string, GameArgs: string
 }
 
 async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, HuntId: string, PlayerId: string, Private = false, LauncherOnly = false){
+    if(!MaintenanceAllows(PlayerId)) return false;
     const BadInput = CheckMatchmakingInput(GameMode, GameArgs, HuntId);
 
     if(BadInput != undefined){

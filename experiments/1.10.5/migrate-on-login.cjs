@@ -70,6 +70,11 @@ function createLogin(db,config,exporter=hash=>exportRemote(config,hash)){
  return async(key,code)=>{
   if(typeof key!=='string'||!/^UUK[-_][a-f0-9]{48,64}$/i.test(key))throw Object.assign(Error('That does not look like an account key.'),{status:401});
   const hash=hashKey(key),existing=db.prepare('SELECT u.userId,u.name FROM userapikeys k JOIN users u ON u.userId=k.userId WHERE k.keyHash=?').get(hash);
+  const mode=process.env.MAINTENANCE_MODE;
+  if(mode!==undefined&&mode!=='0'){
+   const ids=typeof process.env.MAINTENANCE_ALLOWED_ACCOUNT_IDS==='string'?process.env.MAINTENANCE_ALLOWED_ACCOUNT_IDS.split(',').map(id=>id.trim()):[];
+   if(mode!=='1'||!existing||!ids.length||ids.some(id=>!/^[A-Za-z0-9_-]{1,64}$/.test(id))||new Set(ids).size!==ids.length||!ids.includes(existing.userId))throw Object.assign(Error('Maintenance is in progress.'),{status:503});
+  }
   if(existing)return {Username:existing.name,UserId:existing.userId,imported:false};
   const requireInvite=config?.requireInvite!==false;
   if(requireInvite&&(typeof code!=='string'||!/^[A-Za-z0-9-]{4,64}$/.test(code)||!db.prepare('SELECT 1 FROM invitecodes WHERE inviteCode=? AND (infiniteUses=1 OR usesRemaining>0)').get(code)))throw Error('Paste a new 1.10.5 invite to copy your live account.');

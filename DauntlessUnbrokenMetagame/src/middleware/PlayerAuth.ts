@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import { AccessFailure, ValidateMetagameJWTAndGetPayload } from "../controllers/auth";
 import { logger } from "../logger";
+import {MaintenanceActive} from '../controllers/maintenance';
 
 // Player-facing auth for the party and friends routes (roadmap 1.9).
 
@@ -49,6 +50,10 @@ export function SoftMetagameAuth(req: Request, res: Response, next: NextFunction
         }
     }
 
+    if(MaintenanceActive() && !(req as any).AuthData?.userId){
+        res.status(503).json({error:'maintenance'});
+        return;
+    }
     next();
 }
 
