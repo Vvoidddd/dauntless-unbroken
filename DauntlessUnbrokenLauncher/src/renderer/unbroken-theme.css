@@ -181,6 +181,10 @@
 .settings-panel .settings-row:hover, .settings-panel .settings-row:focus-within { background: none; border-color: var(--dr-steel); }
 .settings-panel .card-title, .settings-panel .card-title-text { font-family: var(--font-display); font-size: 10px; font-weight: 500; letter-spacing: .08em; }
 .actionbar { grid-template-columns: minmax(0, 1fr) auto; display: grid; min-height: 88px; padding: 14px 28px; gap: 18px; border: 0; border-top: 1px solid var(--dr-deep); background: var(--dr-navy); }
+.profile-card { overflow: hidden; padding: 0 24px 20px; }
+.profile-card::before { content: ""; display: block; height: 64px; margin: 0 -24px 16px; border-bottom: 1px solid var(--dr-deep); background: linear-gradient(115deg, color-mix(in srgb, var(--dr-ice) 32%, var(--dr-ink)), color-mix(in srgb, var(--dr-azure) 42%, var(--dr-navy)) 55%, var(--dr-ink)); }
+.profile-card .profile-card-head { align-items: flex-end; padding-bottom: 14px; border-bottom-color: var(--dr-deep); }
+.profile-card .profile-avatar { margin-top: -42px; border-width: 2px; border-color: var(--dr-ice); border-radius: 8px; background: var(--dr-ink); }
 .action-info { min-width: 0; }
 .launch-readiness { display: flex; align-items: center; gap: 14px; max-width: 52ch; }
 .launch-status-icon { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border: 1px solid var(--dr-deep); border-radius: 9px; color: var(--dr-ice); background: var(--dr-deep); }
