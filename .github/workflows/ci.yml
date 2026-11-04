@@ -28,11 +28,11 @@ on:
 permissions:
   contents: read
 
-# One run at a time per branch or pull request; a newer push to a pull request cancels the older run.
-# Every run on dauntless-unbroken gets its own group, so none of them is ever cancelled or replaced.
+# A push to a branch and its pull-request event share a group, so a newer commit cancels
+# the older run instead of leaving both copies consuming runners.
 concurrency:
-  group: ci-${{ github.ref }}-${{ github.ref_name == github.event.repository.default_branch && github.run_id || 'latest' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ci-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.ref_name != github.event.repository.default_branch }}
 
 jobs:
   # Keep one workflow so required checks do not remain pending when an unrelated file changes.
