@@ -25,6 +25,11 @@
 .app { grid-template-rows: var(--title-h) minmax(0, 1fr) 42px; }
 .titlebar { padding: 0 16px 0 26px; gap: 28px; background: var(--dr-ink); border-bottom: 1px solid var(--dr-deep); }
 .game-tile { display: flex; flex-shrink: 0; align-items: center; gap: 12px; padding: 0; background: none; }
+.titlebar-nav { display: flex; align-items: stretch; align-self: stretch; gap: 18px; margin-left: 12px; }
+.titlebar-nav-item { position: relative; padding: 0 2px; border: 0; background: none; color: var(--dr-steel); font-family: var(--font-display); font-size: 10px; font-weight: 600; letter-spacing: .08em; }
+.titlebar-nav-item:hover, .titlebar-nav-item:focus-visible { color: var(--dr-frost); }
+.titlebar-nav-item[aria-current="page"] { color: var(--dr-glow); }
+.titlebar-nav-item[aria-current="page"]::after { content: ""; position: absolute; right: 0; bottom: 0; left: 0; height: 2px; background: var(--dr-ice); }
 .brand-crest { width: 40px; height: 40px; object-fit: contain; flex: none; }
 .wordmark { display: grid; gap: 3px; font-family: var(--font-display); }
 .wordmark span { font-size: 8px; font-weight: 500; letter-spacing: .45em; color: var(--dr-steel); }
@@ -230,6 +235,7 @@
   :root[data-style="unbroken"] { --rail-w: 196px; --panel-w: 248px; }
   .titlebar { padding-left: 20px; gap: 16px; }
   .tile-version { display: none; }
+  .titlebar-nav { gap: 12px; margin-left: 0; }
   .rail { padding-left: 10px; padding-right: 10px; }
   .nav-item { height: 40px; font-size: 11px; }
   .nav-item[aria-current="page"]::before { left: 0; }
@@ -262,6 +268,7 @@
   .community-bar .rail-links { min-width: 0; overflow: hidden; }
 }
 @media (max-width: 520px) {
+  .titlebar-nav { display: none; }
   .play-activity { grid-template-columns: 1fr; }
   .profile-username-row { grid-template-columns: 1fr; }
   .profile-username-row button { justify-self: start; }

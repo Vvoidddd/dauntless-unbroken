@@ -2159,6 +2159,9 @@ function setView(v: View): void {
   }
   state.view = v;
   if (v === "news") state.newsSeen = true;
+  for (const nav of Array.from(document.querySelectorAll<HTMLButtonElement>("[data-titlebar-view]"))) {
+    nav.setAttribute("aria-current", nav.dataset.titlebarView === v ? "page" : "false");
+  }
   for (const view of VIEWS) $(`#view-${view}`).hidden = view !== v;
   $("#actionbar").hidden = false;
   renderAll();
@@ -2202,6 +2205,12 @@ function applyStaticI18n(): void {
   existingGameInput.placeholder = t("install_existing_placeholder");
   $("#win-max").setAttribute("aria-label", t(state.maximized ? "window_restore" : "window_maximize"));
   $("#github-btn").title = t("github_link");
+}
+
+function initTitlebarNav(): void {
+  for (const nav of Array.from(document.querySelectorAll<HTMLButtonElement>("[data-titlebar-view]"))) {
+    nav.addEventListener("click", () => setView(nav.dataset.titlebarView as View));
+  }
 }
 
 function renderAll(): void {
@@ -2811,6 +2820,7 @@ function initPlayMenu(): void {
 
 async function main(): Promise<void> {
   initChrome();
+  initTitlebarNav();
   buildScene();
   applyStaticI18n();
   renderAll();
