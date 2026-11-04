@@ -89,6 +89,8 @@ static void UpdateConnectedPlayerSnapshot() {
     const auto Now = GetTickCount64();
     static ULONGLONG NextCapture = 0;
     static std::vector<std::array<std::uintptr_t, 4>> PreviousShape;
+    static std::vector<std::array<std::uintptr_t, 4>> Shape;
+    static std::vector<UNetConnection*> Active;
     auto* World = UWorld::GetWorld();
     auto* Driver = Globals::Listening ? Networking::NetDriver : nullptr;
     if (!Driver || !World || Driver->World != World || World->NetDriver != Driver || Driver->ServerConnection) {
@@ -97,8 +99,14 @@ static void UpdateConnectedPlayerSnapshot() {
         return;
     }
 
-    std::vector<std::array<std::uintptr_t, 4>> Shape;
-    std::vector<UNetConnection*> Active;
+    Shape.clear();
+    Active.clear();
+    if (Shape.capacity() < ConnectedPlayerSnapshot::MaxConnections)
+        Shape.reserve(ConnectedPlayerSnapshot::MaxConnections);
+    if (Active.capacity() < ConnectedPlayerSnapshot::MaxConnections)
+        Active.reserve(ConnectedPlayerSnapshot::MaxConnections);
+    static UClass* PlayerControllerClass = AArchonPlayerController::StaticClass();
+    static UClass* PlayerStateClass = AArchonPlayerState::StaticClass();
     bool Complete = true;
     int ConnectionCount = 0;
     const auto Inspect = [&](UNetConnection* Connection) {
@@ -117,8 +125,8 @@ static void UpdateConnectedPlayerSnapshot() {
         Shape.push_back({reinterpret_cast<uintptr_t>(Connection), reinterpret_cast<uintptr_t>(Controller),
             reinterpret_cast<uintptr_t>(PlayerState), State});
         if (!Controller || !PlayerState
-            || !Controller->IsA(AArchonPlayerController::StaticClass())
-            || !PlayerState->IsA(AArchonPlayerState::StaticClass())) {
+            || !Controller->IsA(PlayerControllerClass)
+            || !PlayerState->IsA(PlayerStateClass)) {
             Complete = false;
             return;
         }
@@ -148,13 +156,14 @@ static void UpdateConnectedPlayerSnapshot() {
     }
     if (Now < NextCapture && Shape == PreviousShape) return;
 
-    ConnectedPlayerSnapshot::Builder Snapshot;
+    static ConnectedPlayerSnapshot::Builder Snapshot;
+    Snapshot.Reset();
     auto* GameplayStatics = Active.empty() ? nullptr : UArchonGameplayStatics::StaticClass();
     if (!Active.empty() && (!GameplayStatics
         || !GameplayStatics->GetFunction("ArchonGameplayStatics", "IsValidNetId")
         || !UArchonGameplayStatics::GetDefaultObj())) {
         ConnectedPlayers.Publish({}, Now);
-        PreviousShape = std::move(Shape);
+        PreviousShape.swap(Shape);
         NextCapture = Now + 1000;
         return;
     }
@@ -177,7 +186,7 @@ static void UpdateConnectedPlayerSnapshot() {
         Snapshot.AddConnection(3, std::wstring_view(Id.CStr(), Id.Num() - 1));
     }
     ConnectedPlayers.Publish(Snapshot.Header(), Now);
-    PreviousShape = std::move(Shape);
+    PreviousShape.swap(Shape);
     NextCapture = Now + 1000;
 }
 
@@ -565,11 +574,12 @@ void GameEngineTickHook(UGameEngine* GameEngine, float DeltaTime, char CanRender
             return;
         }
 
+        static UClass* PlayerCharacterClass = ABP_PlayerCharacter_C::StaticClass();
         for (UNetConnection* Conn : Networking::NetDriver->ClientConnections) {
             if (!Conn || !Conn->PlayerController || !Conn->PlayerController->Pawn)
                 continue;
             auto* Pawn = Conn->PlayerController->Pawn;
-            if (!Pawn->IsA(ABP_PlayerCharacter_C::StaticClass()) || Pawn->IsActorBeingDestroyed())
+            if (!Pawn->IsA(PlayerCharacterClass) || Pawn->IsActorBeingDestroyed())
                 continue;
             static_cast<ABP_PlayerCharacter_C*>(Pawn)->TickStamina(ECityExecFilter::Both, ERemoteExecFilter::All);
         }

@@ -22,8 +22,8 @@ namespace Networking {
     UNetDriver* NetDriver = nullptr;
     static uintptr_t BaseAddress = 0x0;
 
-    static std::vector<AActor*> BuildConsiderList(UWorld* World, UNetDriver* Driver) {
-        std::vector<AActor*> Actors = std::vector<AActor*>();
+    static void BuildConsiderList(UWorld* World, UNetDriver* Driver, std::vector<AActor*>& Actors) {
+        Actors.clear();
         static ReplicationCadence Cadence;
         static UWorld* PreviousWorld = nullptr;
         if (PreviousWorld != World) { Cadence.Clear();PreviousWorld = World; }
@@ -32,6 +32,9 @@ namespace Networking {
 
         for (ULevel* Level : World->Levels) {
             if (!Level) continue;
+            const auto RequiredCapacity = Actors.size() + static_cast<size_t>(Level->Actors.Num());
+            if (RequiredCapacity > Actors.capacity()) Actors.reserve(RequiredCapacity);
+            Cadence.Reserve(RequiredCapacity);
             for (AActor* Actor : Level->Actors) {
                 if (!Actor)
                     continue;
@@ -46,8 +49,10 @@ namespace Networking {
                     continue;
                 }
 
+                const auto CastFlags = Actor->Class->CastFlags;
                 const bool Urgent = Actor->bReplicateMovement || Actor->bTearOff || Actor->bNetTemporary ||
-                    Actor->IsA(APawn::StaticClass()) || Actor->IsA(AController::StaticClass());
+                    static_cast<uint64>(CastFlags & EClassCastFlags::Pawn) != 0 ||
+                    static_cast<uint64>(CastFlags & EClassCastFlags::PlayerController) != 0;
                 if (!Cadence.Due(Actor, Actor->Index, Now, Actor->NetUpdateFrequency, Urgent)) {
                     ++DR_ActorUpdatesDeferred;
                     continue;
@@ -91,13 +96,13 @@ namespace Networking {
         }
         */
 
-        return Actors;
     }
 
     using ActorChannelIndex = ChannelIndex<AActor>;
 
     static AActor* ChannelActor(UChannel* Channel) {
-        return Channel && Channel->Class == UActorChannel::StaticClass()
+        static UClass* ActorChannelClass = UActorChannel::StaticClass();
+        return Channel && Channel->Class == ActorChannelClass
             ? static_cast<UActorChannel*>(Channel)->Actor : nullptr;
     }
 
@@ -160,8 +165,8 @@ namespace Networking {
         }
     }
 
-    static ActorChannelIndex IndexActorChannels(UNetConnection* Connection) {
-        return IndexChannels<AActor>(Connection->OpenChannels.Num(),
+    static void IndexActorChannels(ActorChannelIndex& Index, UNetConnection* Connection) {
+        IndexChannelsInto(Index, Connection->OpenChannels.Num(),
             [Connection](int i) { return Connection->OpenChannels[i]; }, ChannelActor,
             DR_ChannelAssignmentTrackingEnabled != 0);
     }
@@ -230,10 +235,11 @@ namespace Networking {
     }
 
     void TickNetworking() {
-        if (!NetDriver || !UWorld::GetWorld()) return;
-        UWorld::GetWorld()->NetDriver = NetDriver;
+        auto* World = UWorld::GetWorld();
+        if (!NetDriver || !World) return;
+        World->NetDriver = NetDriver;
 
-        NetDriver->World = UWorld::GetWorld();
+        NetDriver->World = World;
 
         static ULONGLONG NextDiagnostic = 0;
         static unsigned DiagnosticCount = 0;
@@ -271,13 +277,15 @@ namespace Networking {
         }
         if (!HasReadyConnection) return;
 
-        std::vector<AActor*> Actors = BuildConsiderList(UWorld::GetWorld(), NetDriver);
+        static std::vector<AActor*> Actors;
+        BuildConsiderList(World, NetDriver, Actors);
 
+        static ActorChannelIndex Channels;
         for (UNetConnection* Connection : NetDriver->ClientConnections) {
             if (!Connection || !Connection->OwningActor || *(uint32_t*)((uintptr_t)Connection + 0x134) != 3)
                 continue;
 
-            auto Channels = IndexActorChannels(Connection);
+            IndexActorChannels(Channels, Connection);
             ChannelTrackingScope TrackAssignments(Connection, Channels);
             for (AActor* Actor : Actors) {
                 // The engine's normal relevancy pass is replaced by this loop. Preserve

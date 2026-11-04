@@ -44,10 +44,17 @@ void RebuildChannelIndex(ChannelIndex<Actor>& Index, int Count, At Get, ActorOf 
 }
 
 template<class Actor, class At, class ActorOf>
+void IndexChannelsInto(ChannelIndex<Actor>& Index, int Count, At Get, ActorOf GetActor,
+    bool AssignmentsObserved = false) {
+    Index.AssignmentsObserved = AssignmentsObserved;
+    Index.AssignmentsInProgress.clear();
+    RebuildChannelIndex(Index, Count, Get, GetActor);
+}
+
+template<class Actor, class At, class ActorOf>
 auto IndexChannels(int Count, At Get, ActorOf GetActor, bool AssignmentsObserved = false) {
     ChannelIndex<Actor> Index;
-    Index.AssignmentsObserved = AssignmentsObserved;
-    RebuildChannelIndex(Index, Count, Get, GetActor);
+    IndexChannelsInto(Index, Count, Get, GetActor, AssignmentsObserved);
     return Index;
 }
 

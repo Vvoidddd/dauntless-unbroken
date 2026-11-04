@@ -171,6 +171,21 @@ static void MissingObserverFallsBack() {
     connection.assertMatchesLiveChannels();
 }
 
+static void ReindexReusesState() {
+    Connection connection(8);
+    connection.append(0, false);
+    connection.rebuild();
+    const auto initialBuckets = connection.index.Slots.bucket_count();
+    connection.append(1, false);
+    IndexChannelsInto(connection.index, static_cast<int>(connection.channels.size()),
+        [&connection](int slot) { return connection.at(slot); },
+        [&connection](Channel* channel) { return connection.actorOf(channel); }, true);
+    assert(connection.find(0) == connection.at(0));
+    assert(connection.find(1) == connection.at(1));
+    assert(connection.index.AssignmentsInProgress.empty());
+    assert(connection.index.Slots.bucket_count() >= initialBuckets);
+}
+
 static void MixedMutations() {
     Connection connection(128);
     std::mt19937 random(0xDA017);
@@ -209,6 +224,7 @@ int main() {
     InterleavedAssignmentsStayLinear();
     ReplacementsAndIndirectAdditions();
     MissingObserverFallsBack();
+    ReindexReusesState();
     MixedMutations();
     std::cout << "channel lookup: cold joins, live mutations, freed channels and observer fallback passed\n";
 }
