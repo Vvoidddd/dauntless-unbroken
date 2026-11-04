@@ -189,6 +189,14 @@ test("news and branding parsing", () => {
   assert.equal(sniffImage(Buffer.from("<svg onload=alert(1)>")), null);
 });
 
+test("news parsing puts the newest dated item first", () => {
+  const news = parseNews({ items: [
+    { date: "2026-09-20T12:00:00Z", title: "Older", body: "Older update" },
+    { date: "2026-11-04T12:00:00Z", title: "Newer", body: "Newer update" },
+  ] });
+  assert.deepEqual(news.map((item) => item.title), ["Newer", "Older"]);
+});
+
 test("retired OCE settings migrate to US without losing the account", () => {
   const slot="a".repeat(24);
   const saved=sanitizeSettings({huntRegion:"aus",usernames:{[slot]:"MiauStyleZzツ"}},"en");

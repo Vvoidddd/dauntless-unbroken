@@ -20,6 +20,10 @@
           <div class="wordmark"><span>DAUNTLESS</span><strong>UNBROKEN</strong></div>
           <div class="tile-version" data-i18n="tile_sub">Game 1.4.4</div>
         </div>
+        <nav class="titlebar-nav" aria-label="Launcher sections">
+          <button type="button" class="titlebar-nav-item" data-titlebar-view="play" aria-current="page">LIBRARY</button>
+          <button type="button" class="titlebar-nav-item" data-titlebar-view="news">COMMUNITY<span class="titlebar-nav-badge" aria-hidden="true" hidden></span></button>
+        </nav>
         <div class="header-account"><div class="account-chip" id="account-chip"></div></div>
         <div class="titlebar-controls">
           <button type="button" class="win-btn" id="win-min" data-i18n-aria="window_minimize"></button>
@@ -37,6 +41,7 @@
               <span class="library-game-copy">
                 <strong>Dauntless Unbroken</strong>
                 <small data-i18n="tile_sub">Game 1.10.5</small>
+                <small class="library-game-state" id="library-game-state" aria-live="polite"></small>
               </span>
             </button>
           </div>

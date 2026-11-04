@@ -224,7 +224,7 @@ img {
   justify-items: center;
   gap: 6px;
   padding: 2px 0 4px;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--dr-azure) 35%, transparent), transparent);
+  background: var(--dr-navy);
 }
 
 .tile-logo {
@@ -712,6 +712,14 @@ img {
   color: var(--dr-steel);
 }
 
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
 .account-text {
   min-width: 0;
   display: grid;
@@ -938,7 +946,7 @@ img {
 }
 
 .art.show {
-  opacity: 1;
+  opacity: 0.72;
 }
 
 .hero-shade {
@@ -949,8 +957,8 @@ img {
       90deg,
       color-mix(in srgb, var(--dr-ink) 86%, transparent) 0%,
       color-mix(in srgb, var(--dr-ink) 52%, transparent) 34%,
-      color-mix(in srgb, var(--dr-ink) 8%, transparent) 56%,
-      transparent 68%
+      color-mix(in srgb, var(--dr-ink) 28%, transparent) 56%,
+      color-mix(in srgb, var(--dr-ink) 18%, transparent) 100%
     ),
     linear-gradient(
       0deg,
@@ -1298,6 +1306,34 @@ img {
   max-width: 660px;
   display: grid;
   gap: 14px;
+}
+
+/* The home page stays practical: game art sits behind the library surface instead of turning the
+   launch action into a decorative hero panel. */
+.play-content.play-home {
+  max-width: 760px;
+  gap: 12px;
+}
+
+.play-home .hero-title {
+  font-size: 32px;
+  line-height: 1.1;
+  text-shadow: none;
+}
+
+.play-home .hero-text,
+.play-home .eyebrow {
+  text-shadow: none;
+}
+
+.play-home .card {
+  border-radius: 6px;
+  padding: 14px 16px;
+  box-shadow: none;
+}
+
+.play-home .eyebrow {
+  font-size: 11px;
 }
 
 .eyebrow {
@@ -1874,10 +1910,16 @@ img {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 28px;
-  padding: 18px 40px 22px;
-  min-height: 104px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--dr-ink) 55%, transparent), color-mix(in srgb, var(--dr-ink) 88%, transparent));
+  padding: 14px 40px 16px;
+  min-height: 88px;
+  background: var(--dr-navy);
   border-top: 1px solid var(--line);
+}
+
+.actionbar .big-button {
+  height: 56px;
+  border-radius: 5px;
+  box-shadow: none;
 }
 
 /* Never drawn over the big button, whatever the language and window width. The clip margin keeps
@@ -2382,6 +2424,37 @@ img {
   }
 }
 
+/* The embedded preview and small laptop windows keep the library readable by dropping the
+   secondary server rail before the main game view becomes a narrow strip. */
+@media (max-width: 760px) {
+  :root {
+    --rail-w: 176px;
+    --panel-w: 0px;
+  }
+
+  .world {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .world .server-panel {
+    display: none;
+  }
+
+  .view {
+    padding: 20px 18px 18px;
+  }
+
+  .actionbar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px 18px 14px;
+  }
+
+  .actionbar .big-button {
+    width: 100%;
+  }
+}
+
 /* ------------------------------------------------------------------ server panel */
 
 .server-panel {
@@ -2392,7 +2465,7 @@ img {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background: linear-gradient(180deg, var(--glass), var(--glass-strong));
+  background: var(--dr-navy);
   border-left: 1px solid var(--line);
   padding: 22px 20px 18px;
   gap: 18px;
@@ -2816,6 +2889,168 @@ img {
   display: grid;
   gap: 12px;
 }
+
+.profile-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--dr-steel);
+  background: var(--dr-deep);
+}
+
+.profile-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-letter {
+  font: 700 24px/1 var(--font-display);
+  color: var(--dr-frost);
+}
+
+.profile-copy {
+  min-width: 0;
+}
+
+.profile-copy .card-title {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--dr-frost);
+}
+
+.profile-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 3px 7px;
+  border: 1px solid var(--dr-deep);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dr-ink) 58%, transparent);
+  color: var(--dr-steel);
+  font-size: 12px;
+}
+
+.profile-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dr-steel);
+}
+
+.profile-status-icon { width: 13px; height: 13px; color: currentColor; }
+
+.profile-status-approved { border-color: color-mix(in srgb, var(--dr-glow) 55%, var(--dr-deep)); color: var(--dr-glow); }
+.profile-status-approved .profile-status-dot { background: var(--dr-glow); }
+.profile-status-pending { border-color: color-mix(in srgb, var(--dr-ice) 55%, var(--dr-deep)); color: var(--dr-glow); }
+.profile-status-pending .profile-status-dot { background: var(--dr-ice); }
+.profile-status-rejected { border-color: color-mix(in srgb, var(--dr-steel) 55%, var(--dr-deep)); color: var(--dr-steel); }
+.profile-status-rejected .profile-status-dot { background: var(--dr-steel); }
+
+.profile-policy {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--dr-deep);
+}
+
+.profile-policy-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--dr-deep);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--dr-ink) 54%, transparent);
+}
+
+.profile-policy-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--dr-glow);
+}
+
+.profile-policy-item span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-policy-item strong,
+.profile-policy-item small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-policy-item strong {
+  color: var(--dr-frost);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.profile-policy-item small {
+  color: var(--dr-steel);
+  font-size: 10px;
+}
+
+.profile-username {
+  display: grid;
+  gap: 6px;
+  padding-top: 12px;
+}
+.profile-username-hint { margin: 0 !important; }
+
+.profile-username-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.profile-card .small-print {
+  max-width: 620px;
+  margin: 4px 0 0;
+  color: var(--dr-steel);
+}
+
+.profile-card .card-row {
+  padding-top: 4px;
+}
+
+.profile-card {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+@media (max-width: 520px) {
+  .profile-policy { grid-template-columns: 1fr; }
+}
+
+.profile-username-row .input {
+  min-width: 0;
+  flex: 1;
+}
+.profile-username-state { display: block; min-height: 15px; margin-top: 5px; color: var(--dr-glow); font-size: 10px; }
 
 .settings-row {
   display: flex;

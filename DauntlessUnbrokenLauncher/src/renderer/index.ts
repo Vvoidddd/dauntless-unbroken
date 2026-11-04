@@ -5,6 +5,10 @@
 import { $, forceRender, githubMark, h, icon, renderRegion, type IconName } from "./dom";
 
 import newsBadge from "./brand/news-badge.svg";
+import previewProfileAvatar from "./brand/emblem-64.png";
+import behemothArt from "./brand/behemoth-512.png";
+import trialsRepeaterArt from "./brand/trials-repeater.png";
+import heroArt from "./brand/hero-umbral-nayzaga.jpg";
 import {installControllerNavigation} from "./controller-navigation";
 import { buildScene } from "./scene";
 import { isStringKey, translate, type StringKey } from "../shared/i18n";
@@ -32,7 +36,29 @@ type Modal =
   | { kind: "remove_server"; id: string; name: string }
   | { kind: "offline_restore" };
 
-const api = window.launcher;
+const PREVIEW_MODE = !window.launcher;
+const PREVIEW_MAINTENANCE = PREVIEW_MODE && new URLSearchParams(window.location.search).get("mode") === "maintenance";
+const PREVIEW_SNAPSHOT = {
+  phase: "ready", busy: false, server: {mode:"public",host:"eu1.example",port:443,name:"EU1",hasShare:false,hasPendingInvite:false,loopback:false,fingerprint:null}, savedServers: [], connect:{checking:false,problem:null,tailscaleInstalled:false,lastCheckedAt:null},
+    account:{sessionOnly:false,saved:[],username:"Korone",hasKey:true,offerBackup:false,profilePicture:{status:"approved",reason:"approved by local moderation",imageDataUrl:previewProfileAvatar}},
+  install:{dir:"C:\\Games\\Dauntless Unbroken",defaultDir:"C:\\Games\\Dauntless Unbroken",installed:true,missingFiles:0,verified:true,dllsOk:true,freeBytes:120000000000,requiredBytes:0,totalBytes:0,vcRuntimeMissing:[],directXMissing:[],contentAvailable:true},
+  task:null,game:{running:false,relayPort:null},playtime:{onlineSeconds:0,offlineSeconds:0,sessions:[],totalSeconds:0},settings:{graphics:4,exposure:"game",windowed:false,language:"en",gameLanguage:"auto",showConsole:false,discordPresence:true,streamerMode:false},app:{version:"1.0.55",packaged:false,updateReady:false,platform:"win32"},status:{name:"EU1",online:true,maintenance:PREVIEW_MAINTENANCE || undefined,version:"1.10.5",commit:"local",sourceUrl:null,registration:"OPEN",playersOnline:3,players:[{name:"Korone",where:"city",instance:"ramsgate"},{name:"Aria",where:"hunt",instance:"hunt-01"},{name:"Moss",where:"dojo",instance:"dojo-01"}],instances:[{id:"ramsgate",kind:"city",title:"Ramsgate",map:"Ramsgate",behemoth:null,players:1,maxPlayers:100,startedAt:null},{id:"hunt-01",kind:"hunt",title:"Hunt: Nayzaga",map:"Hunt_Nayzaga",behemoth:"Nayzaga",players:1,maxPlayers:4,startedAt:null},{id:"dojo-01",kind:"dojo",title:"Training Dojo",map:"Dojo",behemoth:null,players:1,maxPlayers:4,startedAt:null}],contentPort:61002,uptimeSeconds:12345,limited:false},availableHuntRegions:["main"],statusUnsupported:false,lastError:null,notice:null
+} as any;
+const PREVIEW_API = new Proxy({}, {get:(_target, property: string) => {
+  if(property === "getSnapshot") return async () => PREVIEW_SNAPSHOT;
+  if(property === "getBranding") return async () => ({backgrounds:[],accent:null});
+  if(property === "getNews") return async () => [
+    {date:"2026-11-04T09:00:00Z", title:"Welcome to EU1", body:"The public server is online. Join the hunt, check the active worlds and keep an eye on this feed for host updates."},
+    {date:"2026-11-03T18:30:00Z", title:"Launcher update", body:"The latest launcher build adds clearer server status, safer profile pictures and a faster path from the library to PLAY."},
+  ];
+  if(property === "getPurchaseHistory") return async () => null;
+  if(property === "offlineStatus") return async () => ({phase:"stopped"});
+  if(property === "setSettings") return async (patch: Record<string, unknown>) => {Object.assign(PREVIEW_SNAPSHOT.settings, patch);return PREVIEW_SNAPSHOT.settings;};
+  if(property.startsWith("on")) return () => {};
+  if(property === "toggleMaximize") return async () => false;
+  return async () => ({ok:true});
+}}) as typeof window.launcher;
+const api = window.launcher ?? PREVIEW_API;
 const SESSION_KEY_NOTE = "Temporary sign-in: your key stays in memory until you close the launcher. Keep your backup; import it again next time.";
 function openBackupImport(): void {
   if (state.snap?.app.platform === "linux") showModal({kind:"paste_backup"});
@@ -62,13 +88,16 @@ const state = {
   diagnosticsNote: "",
   gameRemovalNote: "",
   diagnosticsUploading: false,
+  profilePictureNote: "",
+  profileUsername: "",
+  profileUsernameNote: "",
   revivedResultDismissed:false,
   offlineSaveNote: null as string | null, // the last backup or restore that worked, shown under the row
   existingFormOpen: false,
   news: [] as NewsItem[],
   newsSeen: false,
   serverMenu: false, // the rail's server switcher is open
-  settingsTab: "game" as SettingsTab, // the Settings page's open tab
+  settingsTab: (PREVIEW_MODE ? "account" : "game") as SettingsTab, // the Settings page's open tab
   branding: { backgrounds: [], accent: null } as Branding,
   extrasFor: "",
   extrasAt: 0,
@@ -134,6 +163,34 @@ const keyInput = h("input", {
   spellcheck: "false",
   autocomplete: "off",
   "data-fk": "key",
+});
+
+const profilePictureInput = h("input", {class:"sr-only", id:"profile-picture-input", type:"file", accept:"image/png,image/jpeg", tabindex:"-1", "aria-hidden":"true", "data-fk":"profile-picture-input"}) as HTMLInputElement;
+profilePictureInput.addEventListener("change", () => {
+  const file = profilePictureInput.files?.[0];
+  profilePictureInput.value = "";
+  if (!file) return;
+  if (file.type !== "image/png" && file.type !== "image/jpeg") {
+    state.profilePictureNote = "Choose a PNG or JPEG image.";
+    renderSettings();
+    return;
+  }
+  if (file.size > 100 * 1024) {
+    state.profilePictureNote = "Choose an image smaller than 100 KB.";
+    renderSettings();
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    if (typeof reader.result !== "string") return;
+    state.profilePictureNote = "Uploading for moderation…";
+    renderSettings();
+    const result = await api.uploadProfilePicture(reader.result).catch(() => ({ok:false as const, error:{code:"server_error" as const}}));
+    state.profilePictureNote = result.ok ? "Profile picture submitted. It stays private until moderation approves it, then only accepted friends can see it." : "The profile picture could not be submitted. Check the server connection and try again.";
+    renderSettings();
+  };
+  reader.onerror = () => {state.profilePictureNote = "The image could not be read.";renderSettings();};
+  reader.readAsDataURL(file);
 });
 
 // "I already have the game files": a path to paste (Vvoidddd, #8). The main process checks it again.
@@ -687,12 +744,18 @@ function newsTeaser(): HTMLElement | null {
     h(
       "div",
       { class: "news-teaser" },
+      h("div", { class: "news-teaser-media" }, h("img", { src: newsArtFor(0), alt: "" }), h("span", {}, "New")),
       item.date ? h("span", { class: "news-teaser-date" }, formatDate(item.date, state.lang)) : null,
       h("strong", {}, item.title),
       h("div", { class: "card-row" }, linkButton(t("news_read_more"), () => setView("news"), { fk: "news-more" })),
     ),
   );
   return c;
+}
+
+const NEWS_ART = [trialsRepeaterArt, heroArt, behemothArt, previewProfileAvatar] as const;
+function newsArtFor(index: number): string {
+  return NEWS_ART[index % NEWS_ART.length];
 }
 
 function backupLocationText(snap:Snapshot):string{
@@ -707,7 +770,18 @@ function backupLocationText(snap:Snapshot):string{
 
 function playReady(snap: Snapshot): HTMLElement[] {
   const user = snap.account.username;
-  const out: HTMLElement[] = [eyebrow(snap), ...heading(user ? t("ready_title", { user }) : t("ready_title_nouser"), t("ready_text"))];
+  const underMaintenance = snap.status?.maintenance === true;
+  const readyTitle = underMaintenance ? "EU1 is under maintenance" : user ? t("ready_title", { user }) : t("ready_title_nouser");
+  const readyText = underMaintenance ? "The server is offline. PLAY will return when it is back." : t("ready_text");
+  const out: HTMLElement[] = [
+    h("div", { class: "play-cover", role: "img", "aria-label": "Dauntless Unbroken" },
+      h("div", { class: "play-cover-copy" }, h("span", {}, "DAUNTLESS UNBROKEN"), h("strong", {}, serverName())),
+      h("span", { class: "play-cover-build" }, snap.status?.version ?? snap.app.version)),
+    eyebrow(snap),
+    ...heading(readyTitle, readyText),
+    playActivity(snap),
+  ];
+  if (snap.status?.maintenance) out.unshift(card("maintenance-card", h("span", { class: "maintenance-kicker" }, "Maintenance"), h("strong", { class: "maintenance-state" }, "EU1 is offline")));
   out.push(
     card(
       "",
@@ -738,6 +812,16 @@ function playReady(snap: Snapshot): HTMLElement[] {
   const teaser = newsTeaser();
   if (teaser && !snap.account.offerBackup) out.push(teaser);
   return out;
+}
+
+function playActivity(snap: Snapshot): HTMLElement {
+  const lastPlayed = snap.playtime.lastPlayedAt ? formatDate(snap.playtime.lastPlayedAt, state.lang) : "Not played yet";
+  const played = snap.playtime.onlineSeconds === null ? "—" : formatPlaytime(onlineSeconds(snap), state.lang);
+  const achievements = `${badgeProgress(onlineSeconds(snap)).unlocked.length}/${BADGE_HOURS.length}`;
+  return h("div", { class: "play-activity", "aria-label": "Game activity" },
+    h("div", { class: "play-activity-item" }, h("span", {}, "Last played"), h("strong", {}, lastPlayed)),
+    h("div", { class: "play-activity-item" }, h("span", {}, "Play time"), h("strong", {}, played)),
+    h("div", { class: "play-activity-item" }, h("span", {}, "Achievements"), h("strong", {}, achievements)));
 }
 
 function playRunning(snap: Snapshot): HTMLElement[] {
@@ -1006,8 +1090,10 @@ function renderActionBar(): void {
     return;
   }
   const b = primaryButton(snap, formState());
+  const maintenanceBlocked = snap.status?.maintenance === true && snap.status.maintenanceAllowed !== true;
   primary.textContent = t(b.labelKey);
-  primary.disabled = b.disabled;
+  primary.disabled = b.disabled || maintenanceBlocked;
+  if (maintenanceBlocked) primary.textContent = "Maintenance";
   primary.classList.toggle("is-running", b.action === "none" && snap.phase === "running");
   primary.classList.toggle("is-pause", b.action === "pause" || b.action === "resume");
   primary.classList.toggle("is-ready", b.action === "play" && !b.disabled && !reducedMotion.matches);
@@ -1021,7 +1107,7 @@ function renderActionBar(): void {
     const v = taskView(task, state.lang);
     announce(v.indeterminate ? t(v.titleKey) : `${t(v.titleKey)}: ${Math.floor(v.percent / 10) * 10} %`);
   } else {
-    renderRegion(info, JSON.stringify([state.lang, snap.phase, snap.connect.checking, snap.connect.problem, snap.install.totalBytes, playtimeText(snap)]), () => [h("div", { class: "launch-readiness" }, h("span", { class: "launch-status-icon", "aria-hidden": "true" }, icon(snap.phase === "ready" || snap.phase === "running" ? "check" : "play")), h("span", { class: "action-hint" }, actionHint(snap))), playtimeLine(snap)]);
+    renderRegion(info, JSON.stringify([state.lang, snap.phase, snap.connect.checking, snap.connect.problem, snap.install.totalBytes, snap.status?.maintenance === true, playtimeText(snap)]), () => [h("div", { class: "launch-readiness" }, h("span", { class: "launch-status-icon", "aria-hidden": "true" }, icon(snap.phase === "ready" || snap.phase === "running" ? "check" : "play")), h("span", { class: "action-hint" }, snap.status?.maintenance ? "EU1 is in maintenance" : actionHint(snap))), playtimeLine(snap)]);
     announce(actionHint(snap));
   }
 }
@@ -1124,6 +1210,7 @@ function instanceCard(i: StatusInstance): HTMLElement {
   return h(
     "div",
     { class: `instance k-${i.kind}` },
+    i.kind === "hunt" ? h("img", { class: "instance-behemoth", src: behemothArt, alt: "" }) : null,
     h("div", { class: "instance-icon" }, icon(KIND_ICON[i.kind])),
     h("div", { class: "instance-title", title: instanceTitle(i) }, instanceTitle(i)),
     h(
@@ -1138,6 +1225,8 @@ function instanceCard(i: StatusInstance): HTMLElement {
 
 function playerList(status: ServerStatus, max: number): HTMLElement {
   const byId = new Map(status.instances.map((i) => [i.id, i]));
+  const approvedAvatar = state.snap?.account.profilePicture?.status === "approved" ? state.snap.account.profilePicture.imageDataUrl : null;
+  const currentUser = state.snap?.account.username;
   const shown = status.players.slice(0, max);
   const items = shown.map((p) => {
     const inst = p.instance ? byId.get(p.instance) : undefined;
@@ -1145,7 +1234,7 @@ function playerList(status: ServerStatus, max: number): HTMLElement {
     return h(
       "li",
       { class: `player w-${p.where}` },
-      h("span", { class: "player-avatar", "aria-hidden": "true" }, Array.from(p.name)[0]?.toUpperCase() ?? "?"),
+      h("span", { class: "player-avatar", "aria-hidden": "true" }, p.name === currentUser && approvedAvatar ? h("img", { class: "player-avatar-image", src: approvedAvatar, alt: "" }) : Array.from(p.name)[0]?.toUpperCase() ?? "?"),
       h("span", { class: "player-text" }, h("span", { class: `player-name${streamer() ? " secret-blur" : ""}` }, streamer() ? filler(p.name) : p.name), h("span", { class: "player-where" }, where)),
     );
   });
@@ -1169,7 +1258,7 @@ function renderPanel(): void {
     }
     const status = snap.status;
     const reachable = snap.phase !== "connect";
-    const online = reachable && (status ? status.online : true);
+    const online = reachable && (status ? status.online && !status.maintenance : true);
     const head = h(
       "div",
       { class: "sp-head" },
@@ -1185,6 +1274,13 @@ function renderPanel(): void {
     }
     if (!status) {
       return [head, h("p", { class: "sp-empty" }, reachable && snap.statusUnsupported ? t("sp_unsupported") : t("sp_waiting")), panelFoot(null)];
+    }
+    if (status.maintenance) {
+      return [
+        head,
+        card("maintenance-worlds", h("span", { class: "maintenance-kicker" }, "Maintenance"), h("strong", { class: "maintenance-state" }, "EU1 is offline"), h("p", { class: "card-text" }, "Players and worlds will return when the server is back.")),
+        panelFoot(status),
+      ];
     }
     // The server shows who is online to registered players only: say so instead of an empty list
     // (and no "0 players", no "no worlds running", which would not be true).
@@ -1250,11 +1346,20 @@ function renderNews(): void {
     if (!snap?.server) body.push(card("", h("p", { class: "card-text" }, t("news_offline"))));
     else if (state.news.length === 0) body.push(card("", h("p", { class: "card-text" }, t("news_empty"))));
     else {
-      for (const n of state.news) {
+      if (snap.status?.maintenance) body.push(card("community-maintenance", h("span", { class: "maintenance-kicker" }, "Maintenance"), h("strong", { class: "maintenance-state" }, "EU1 is offline"), h("p", { class: "card-text" }, "New posts will appear here when the server returns.")));
+      const latest = state.news[0];
+      body.push(h("div", { class: "community-cover" },
+        h("img", { src: newsArtFor(0), alt: "" }),
+        h("div", { class: "community-cover-copy" },
+          h("span", {}, "LATEST POST"),
+          h("strong", {}, latest.title),
+          latest.date ? h("small", {}, formatDate(latest.date, state.lang)) : null)));
+      for (const [index, n] of state.news.entries()) {
         body.push(
           h(
             "article",
             { class: "card news-item" },
+            h("div", { class: "news-media" }, h("img", { src: newsArtFor(index), alt: "" }), h("span", {}, index === 0 ? "New post" : "Server post")),
             n.date ? h("time", { class: "news-date", datetime: n.date }, formatDate(n.date, state.lang)) : null,
             h("h2", { class: "news-title" }, n.title),
             h("p", { class: "news-body" }, n.body),
@@ -1301,6 +1406,7 @@ function renderMods(): void {
       h("p", { class: "page-sub" }, t("mods_subtitle")),
       card(
         "mods-overview",
+        h("div", { class: "mods-cover" }, h("img", { src: behemothArt, alt: "" }), h("span", {}, "HUNT SYSTEMS")),
         h("h2", { class: "mods-title" }, t("mods_title")),
         h("p", { class: "card-text mods-intro" }, t("mods_intro")),
         h("div", { class: "mods-grid" }, ...MODS.map((m) => modCard(m.name === "mod_dm_name" || m.name === "mod_pm_name" ? "mod_dm_by" : null, m))),
@@ -1351,11 +1457,15 @@ function renderServer(): void {
     const kv = h("dl", { class: "kv" });
     for (const [k, v] of rows) kv.append(h("dt", {}, k), h("dd", {}, v));
     const parts: HTMLElement[] = [
-      h("h1", { class: "page-title", id: "server-title" }, serverName()),
+      h("div", { class: "server-cover", role: "img", "aria-label": `${serverName()} server` },
+        h("img", { src: heroArt, alt: "" }),
+        h("div", { class: "server-cover-copy" }, h("span", {}, "DAUNTLESS UNBROKEN"), h("strong", { id: "server-title" }, serverName()), h("small", {}, status?.version ?? "Server status"), h("span", { class: `server-cover-status ${status?.maintenance ? "maintenance" : status?.online ? "online" : "offline"}` }, status?.maintenance ? "Maintenance" : status?.online ? "Online" : "Offline"))),
       h("p", { class: "page-sub" }, t("server_auto")),
       card("", kv, h("div", { class: "card-row", style: undefined }, button(t("sp_refresh"), () => void api.refreshStatus(), { icon: "refresh", fk: "srv-refresh" }), status?.sourceUrl ? linkButton(t("sp_source"), () => open("server_source"), { icon: "external", fk: "srv-source" }) : null)),
     ];
-    if (status?.limited) {
+    if (status?.maintenance) {
+      parts.push(card("maintenance-worlds", h("span", { class: "maintenance-kicker" }, "Maintenance"), h("h2", { class: "card-title" }, "EU1 is offline"), h("p", { class: "card-text" }, "Worlds and player activity will return when the server is back.")));
+    } else if (status?.limited) {
       parts.push(card("", h("h2", { class: "card-title" }, t("server_players")), h("p", { class: "card-text" }, t("sp_signin"))));
     } else if (status) {
       const instances = sortInstances(status.instances);
@@ -1578,12 +1688,67 @@ function savedAccountsCard(snap: Snapshot): HTMLElement | null {
   );
 }
 
+function profilePictureCard(snap: Snapshot): HTMLElement | null {
+  if (!snap.server || !snap.account.hasKey) return null;
+  const profile = snap.account.profilePicture;
+  const statusKey = profile?.status ?? "empty";
+  const status = statusKey === "approved" ? "Approved" : statusKey === "pending" ? "Waiting for moderation" : statusKey === "rejected" ? "Rejected by moderation" : "No profile picture set";
+  const pictureNote = statusKey === "pending" && profile?.imageDataUrl
+    ? "Current picture stays visible · replacement pending"
+    : statusKey === "rejected" && profile?.imageDataUrl
+      ? "Current picture stays visible · replacement rejected"
+      : "Friends only · Automatic check";
+  const avatar = profile?.imageDataUrl
+    ? h("img", {class:"profile-avatar-image", src:profile.imageDataUrl, alt:""})
+    : h("span", {class:"profile-avatar-letter", "aria-hidden":"true"}, (snap.account.username ?? "?").slice(0,1).toUpperCase());
+  const username = h("input", {class:"input", type:"text", maxlength:"16", value:state.profileUsername || snap.account.username || "", autocomplete:"off", spellcheck:"false", "aria-label":"Username", "data-fk":"profile-username"}) as HTMLInputElement;
+  const usernameState = h("span", {class:"profile-username-state", role:"status"});
+  let saveUsername: HTMLButtonElement;
+  const updateUsernameState = (): void => {
+    const check = checkUsername(username.value.trim());
+    const valid = check === "ok";
+    username.setAttribute("aria-invalid", valid ? "false" : "true");
+    usernameState.textContent = valid ? "Ready" : "Invalid format";
+    if (saveUsername) saveUsername.disabled = !valid;
+  };
+  username.addEventListener("input", () => {state.profileUsername=username.value; updateUsernameState();});
+  saveUsername = button("Save username", async () => {
+    state.profileUsernameNote = "Saving username…";
+    renderSettings();
+    const result = await api.renameProfileUsername(state.profileUsername.trim()).catch(() => ({ok:false as const,error:{code:"server_error" as const}}));
+    if(result.ok){state.profileUsername="";state.profileUsernameNote="Username saved. It passed the automatic name checks.";}
+    else if(result.error.code === "username_taken") state.profileUsernameNote="That username is already taken.";
+    else if(result.error.code === "username_invalid") state.profileUsernameNote="Use 3–16 letters, numbers, or underscores.";
+    else if(result.error.code === "username_moderated") state.profileUsernameNote="That username is not available.";
+    else if(result.error.code === "rate_limited") state.profileUsernameNote="Username changes are temporarily limited. Try again later.";
+    else state.profileUsernameNote="The username could not be saved. Check the server connection and try again.";
+    renderSettings();
+  }, {fk:"profile-username-save"});
+  username.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      saveUsername.click();
+    }
+  });
+  updateUsernameState();
+  return card("settings-section profile-card",
+    h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:`profile-status profile-status-${statusKey}`}, statusKey === "approved" ? icon("check", "profile-status-icon") : null, h("span", {class:"profile-status-dot", "aria-hidden":"true"}), status), h("p", {class:"small-print"}, pictureNote))),
+    h("div", {class:"profile-policy"},
+      h("div", {class:"profile-policy-item"}, icon("people", "profile-policy-icon"), h("span", {}, h("strong", {}, "Audience"), h("small", {}, "Friends only"))),
+      h("div", {class:"profile-policy-item"}, icon("shield", "profile-policy-icon"), h("span", {}, h("strong", {}, "Safety"), h("small", {}, "Automatic check")))),
+    h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("p", {class:"small-print profile-username-hint"}, "3–16 letters, numbers, or underscores · automatic name checks"), h("div", {class:"profile-username-row"}, username, saveUsername), usernameState),
+    state.profileUsernameNote ? h("p", {class:"small-print", role:"status"}, state.profileUsernameNote) : null,
+    state.profilePictureNote ? h("p", {class:"small-print", role:"status"}, state.profilePictureNote) : null,
+    h("div", {class:"card-row"}, button("Choose profile picture", () => profilePictureInput.click(), {fk:"profile-picture-choose"}), h("span", {class:"small-print profile-upload-hint"}, "PNG or JPEG · 100 KB max"), profilePictureInput),
+  );
+}
+
 
 function renderSettings(): void {
   const container = $("#view-settings");
   const snap = state.snap;
   if (!snap) return;
-  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, state.purchaseHistory, state.purchaseHistoryFor, state.purchaseHistoryBusy, state.purchaseHistoryNote, state.diagnosticsNote, state.gameRemovalNote, snap.revived, state.revivedResultDismissed, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
+  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, state.purchaseHistory, state.purchaseHistoryFor, state.purchaseHistoryBusy, state.purchaseHistoryNote, state.diagnosticsNote, state.gameRemovalNote, state.profilePictureNote, state.profileUsernameNote, snap.revived, state.revivedResultDismissed, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
   renderRegion(container, sig, () => {
     const busy = snap.busy || snap.task !== null || snap.game.running;
 
@@ -1776,7 +1941,7 @@ function renderSettings(): void {
     const panels: Record<SettingsTab, (HTMLElement | null)[]> = {
       game: [game],
       graphics: [graphics],
-      account: [savedAccountsCard(snap), account, purchaseHistoryCard(snap), playtimeCard(snap), h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
+      account: [profilePictureCard(snap), savedAccountsCard(snap), account, purchaseHistoryCard(snap), playtimeCard(snap), h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
       launcher: [language, offlineCard, troubleshooting, streaming, about],
     };
     const tabs = h("div", { class: "settings-tabs", role: "tablist", "aria-label": t("set_title") });
@@ -1957,6 +2122,8 @@ function renderRail(): void {
   const snap = state.snap;
   const nav = $("#nav");
   const unread = state.news.length > 0 && !state.newsSeen;
+  const titlebarNews = document.querySelector<HTMLElement>('[data-titlebar-view="news"] .titlebar-nav-badge');
+  if (titlebarNews) titlebarNews.hidden = !unread;
   renderRegion(nav, JSON.stringify([state.lang, state.view, unread]), () =>
     NAV.map((n) => {
       const b = h(
@@ -1973,6 +2140,13 @@ function renderRail(): void {
   const libraryGame = $("#library-game");
   if (state.view === "play") libraryGame.setAttribute("aria-current", "page");
   else libraryGame.removeAttribute("aria-current");
+  const libraryState = $("#library-game-state");
+  const gameReady = !!snap?.install.installed && snap.install.verified && snap.install.missingFiles === 0 && snap.install.dllsOk;
+  const serverOnline = snap?.status?.online === true;
+  libraryState.textContent = snap?.status?.maintenance ? "Maintenance" : serverOnline && gameReady ? "Online · Ready" : serverOnline ? "Online" : gameReady ? t("hint_ready") : "Offline";
+  libraryState.classList.toggle("is-ready", gameReady && !snap?.status?.maintenance);
+  libraryState.classList.toggle("is-online", serverOnline && !snap?.status?.maintenance);
+  libraryState.classList.toggle("is-maintenance", snap?.status?.maintenance === true);
   const chip = $("#account-chip");
   const user = snap?.account.hasKey ? snap.account.username : null;
   // Quick account switching and server selection share the existing account menu.
@@ -1981,9 +2155,11 @@ function renderRail(): void {
   const locked = !snap || snap.busy || snap.task !== null || snap.game.running || offlineActive();
   const hasMenu = !!snap?.server || others.length > 0;
   if (!hasMenu || locked) state.serverMenu = false;
-  renderRegion(chip, JSON.stringify([state.lang, user, snap?.server?.name ?? null, snap?.status?.name ?? null, others, accounts, locked, state.serverMenu]), () => {
+  const approvedAvatar = snap?.account.profilePicture?.status === "approved" ? snap.account.profilePicture.imageDataUrl : null;
+  renderRegion(chip, JSON.stringify([state.lang, user, approvedAvatar, snap?.server?.name ?? null, snap?.status?.name ?? null, others, accounts, locked, state.serverMenu]), () => {
+    const avatar = h("span", { class: `avatar${user ? "" : " empty"}`, "aria-hidden": "true" }, approvedAvatar ? h("img", {class:"avatar-image", src:approvedAvatar, alt:""}) : user ? Array.from(user)[0].toUpperCase() : "?");
     const inner = [
-      h("span", { class: `avatar${user ? "" : " empty"}`, "aria-hidden": "true" }, user ? Array.from(user)[0].toUpperCase() : "?"),
+      h("span", { class: "avatar-wrap" }, avatar, approvedAvatar ? h("span", { class: "avatar-audience", title: "Visible to accepted friends", "aria-hidden": "true" }, icon("people")) : null),
       h(
         "span",
         { class: "account-text" },
@@ -1992,16 +2168,24 @@ function renderRail(): void {
       ),
     ];
     if (!hasMenu) return inner;
-    const toggle = h("button", { type: "button", class: "account-switch", "data-fk": "server-switch", "aria-haspopup": "menu", "aria-expanded": state.serverMenu ? "true" : "false", title: "Switch account or server", disabled: locked }, ...inner);
+    const toggle = h("button", { type: "button", class: "account-switch", "data-fk": "server-switch", "aria-haspopup": "menu", "aria-controls": "account-menu", "aria-expanded": state.serverMenu ? "true" : "false", title: "Switch account or server", disabled: locked }, ...inner);
     toggle.addEventListener("click", () => {
       state.serverMenu = !state.serverMenu;
       renderRail();
     });
     const manage = h("button", {type: "button", class: "server-menu-item", role: "menuitem", "data-fk": "manage-accounts"}, "Manage accounts…");
     manage.addEventListener("click", () => {state.serverMenu = false; state.settingsTab = "account"; setView("settings");});
+    const serverStatusClass = snap?.status?.maintenance ? "maintenance" : snap?.status?.online ? "online" : "offline";
+    const serverStatusText = snap?.status?.maintenance ? "Maintenance" : snap?.status?.online ? `Online · ${snap.server?.mode === "public" ? "Public" : "Private"}` : "Offline";
+    const profileStatus = snap?.account.profilePicture?.status === "approved" ? "Approved" : snap?.account.profilePicture?.status === "pending" ? "Waiting for moderation" : "No picture set";
     const menu = h(
       "ul",
-      { class: "server-menu", role: "menu", "aria-label": "Accounts and servers", hidden: !state.serverMenu },
+      { class: "server-menu", id: "account-menu", role: "menu", "aria-label": "Accounts and servers", hidden: !state.serverMenu },
+      h("li", { class: "server-menu-current", role: "presentation" },
+        h("span", { class: "server-menu-current-kicker" }, "CONNECTED"),
+        h("strong", {}, serverName()),
+        h("span", { class: "server-menu-current-sub" }, h("i", { class: `server-menu-status-dot ${serverStatusClass}`, "aria-hidden": "true" }), serverStatusText),
+        h("span", { class: "server-menu-profile" }, h("span", {}, "Profile"), h("strong", {}, "Friends only"), h("span", {}, profileStatus))),
       h("li", { class: "server-menu-head", role: "presentation" }, "Switch account"),
       ...accounts.map(account => {
         const item = h("button", {type: "button", class: "server-menu-item", role: "menuitem", "data-fk": "quick-account-" + account.id}, secret(account.username, "quick-account-name-" + account.id));
@@ -2020,6 +2204,19 @@ function renderRail(): void {
         return h("li", { role: "none" }, item);
       }),
     );
+    menu.addEventListener("keydown", (event) => {
+      const items = Array.from(menu.querySelectorAll<HTMLButtonElement>("[role=\"menuitem\"]"));
+      if (!items.length) return;
+      const current = items.indexOf(document.activeElement as HTMLButtonElement);
+      let next = current;
+      if (event.key === "ArrowDown") next = current < items.length - 1 ? current + 1 : 0;
+      else if (event.key === "ArrowUp") next = current > 0 ? current - 1 : items.length - 1;
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = items.length - 1;
+      else return;
+      event.preventDefault();
+      items[next].focus();
+    });
     return [toggle, menu];
   });
   for (const b of Array.from(document.querySelectorAll<HTMLButtonElement>("#lang-switch .lang-btn"))) {
@@ -2038,6 +2235,10 @@ function setView(v: View): void {
   }
   state.view = v;
   if (v === "news") state.newsSeen = true;
+  for (const nav of Array.from(document.querySelectorAll<HTMLButtonElement>("[data-titlebar-view]"))) {
+    if (nav.dataset.titlebarView === v) nav.setAttribute("aria-current", "page");
+    else nav.removeAttribute("aria-current");
+  }
   for (const view of VIEWS) $(`#view-${view}`).hidden = view !== v;
   $("#actionbar").hidden = false;
   renderAll();
@@ -2081,6 +2282,12 @@ function applyStaticI18n(): void {
   existingGameInput.placeholder = t("install_existing_placeholder");
   $("#win-max").setAttribute("aria-label", t(state.maximized ? "window_restore" : "window_maximize"));
   $("#github-btn").title = t("github_link");
+}
+
+function initTitlebarNav(): void {
+  for (const nav of Array.from(document.querySelectorAll<HTMLButtonElement>("[data-titlebar-view]"))) {
+    nav.addEventListener("click", () => setView(nav.dataset.titlebarView as View));
+  }
 }
 
 function renderAll(): void {
@@ -2333,7 +2540,7 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   if (e.key === "Tab") {
-    const focusable = Array.from(document.querySelectorAll<HTMLElement>("#modal-root button:not(:disabled)"));
+    const focusable = Array.from(document.querySelectorAll<HTMLElement>("#modal-root button:not(:disabled), #modal-root input:not(:disabled), #modal-root textarea:not(:disabled), #modal-root select:not(:disabled), #modal-root [href], #modal-root [tabindex]:not([tabindex=\"-1\"])"));
     if (focusable.length === 0) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
@@ -2471,6 +2678,7 @@ function initChrome(): void {
   min.addEventListener("click", () => void api.minimize());
   max.addEventListener("click", () => void api.toggleMaximize());
   close.addEventListener("click", () => void api.close());
+  if(PREVIEW_MODE) return;
   api.onWindowState((maximized) => {
     state.maximized = maximized;
     max.replaceChildren(icon(maximized ? "restore" : "maximize"));
@@ -2678,7 +2886,7 @@ function renderPlayMenu(): void {
     ? h("button", { type: "button", class: "play-menu-item", role: "menuitem", "data-fk": "play-online" }, icon("globe"), h("span", { class: "play-menu-label" }, t("off_menu_online")))
     : h("button", { type: "button", class: "play-menu-item", role: "menuitem", "data-fk": "play-offline" }, icon("tunnel"), h("span", { class: "play-menu-label" }, t("off_menu_offline")));
   item.addEventListener("click", () => (state.offlineView ? leaveOffline() : void startOffline()));
-  playMenu.replaceChildren(item);
+  playMenu.replaceChildren(h("div", { class: "play-menu-kicker" }, "PLAY OPTIONS"), item);
 }
 
 function initPlayMenu(): void {
@@ -2689,6 +2897,7 @@ function initPlayMenu(): void {
 
 async function main(): Promise<void> {
   initChrome();
+  initTitlebarNav();
   buildScene();
   applyStaticI18n();
   renderAll();
@@ -2701,13 +2910,14 @@ async function main(): Promise<void> {
   api.onOfflineStatus(onOfflineStatus);
   initPlayMenu();
   onSnapshot(await api.getSnapshot());
+  setView(state.view);
   onOfflineStatus(await api.offlineStatus());
   void api.setStatusPolling(!document.hidden);
   await checkInviteLink();
 }
 
-window.addEventListener('error',event=>{void api.reportRendererError(String(event.error?.stack??event.message)).catch(()=>undefined);});
-window.addEventListener('unhandledrejection',event=>{void api.reportRendererError('Unhandled rejection: '+String(event.reason?.stack??event.reason)).catch(()=>undefined);});
+window.addEventListener('error',event=>{if(!PREVIEW_MODE)void api.reportRendererError(String(event.error?.stack??event.message)).catch(()=>undefined);});
+window.addEventListener('unhandledrejection',event=>{if(!PREVIEW_MODE)void api.reportRendererError('Unhandled rejection: '+String(event.reason?.stack??event.reason)).catch(()=>undefined);});
 void main();
 const stopControllerNavigation=installControllerNavigation();
 window.addEventListener("beforeunload",stopControllerNavigation,{once:true});

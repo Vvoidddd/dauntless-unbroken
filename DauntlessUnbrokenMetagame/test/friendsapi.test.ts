@@ -13,6 +13,7 @@ import { GetOnlinePlayerActivity } from "../src/controllers/unbrokenapi";
 import { GetPlaytimeSeconds } from "../src/controllers/playtime";
 import { FakeDeployServer, StartFakeDeployServer, ThreeServers } from "./fakedeploy";
 import { FRIENDS_API_PORT, FRIENDS_DEPLOYSERVER_PORT } from "./friendsenv";
+import { ApproveProfilePicture, SubmitProfilePicture } from "../src/controllers/profilepictures";
 
 // The account routes and ServerStatus over HTTP, as the launcher and host scripts call them.
 // The app listens on a spare loopback port; the deploy server is a fake on another.
@@ -71,6 +72,13 @@ after(async () => {
 });
 
 let Friend: { key: string, token: string, userId: string };
+
+const PROFILE_PICTURE = 'data:image/png;base64,' + Buffer.concat([
+    Buffer.from('\x89PNG\r\n\x1a\n', 'binary'),
+    Buffer.from([0,0,0,13]), Buffer.from('IHDR'),
+    Buffer.from([0,0,0,32,0,0,0,32,8,6,0,0,0]),
+    Buffer.alloc(4),
+]).toString('base64');
 
 describe("POST /unbroken/api/Register", () => {
     it("answers 200 {UUK} and nothing else for a valid new name", async () => {
@@ -197,6 +205,29 @@ describe("POST /unbroken/api/RenameUser", () => {
             delete process.env.ACCOUNT_DISPLAY_NAME;
         }
     });
+});
+
+it("profile pictures are visible to the owner and accepted friends only", async () => {
+    const PreviousMode = process.env.PROFILE_PICTURE_MODERATION;
+    process.env.PROFILE_PICTURE_MODERATION = "manual";
+    try {
+        const Pending = await SubmitProfilePicture(Friend.userId, PROFILE_PICTURE);
+        await ApproveProfilePicture(Pending.id, "UID-admin");
+
+        assert.equal((await Call("GET", `/unbroken/api/ProfilePicture/${Friend.userId}`)).status, 401);
+        assert.equal((await Call("GET", `/unbroken/api/ProfilePicture/${Friend.userId}`, { key: ADMIN_KEY })).status, 404);
+        const OwnImage = await Call("GET", `/unbroken/api/ProfilePicture/${Friend.userId}`, { key: Friend.key });
+        assert.equal(OwnImage.status, 200);
+        assert.equal(OwnImage.headers.get("cache-control"), "private, no-store");
+
+        const AdminToken = await Login(ADMIN_KEY);
+        assert.equal((await Call("POST", `/friends/api/public/friends/${Friend.userId}/UID-admin`, { token: Friend.token })).status, 204);
+        assert.equal((await Call("POST", `/friends/api/public/friends/UID-admin/${Friend.userId}`, { token: AdminToken })).status, 204);
+        assert.equal((await Call("GET", `/unbroken/api/ProfilePicture/${Friend.userId}`, { key: ADMIN_KEY })).status, 200);
+    } finally {
+        if(PreviousMode === undefined) delete process.env.PROFILE_PICTURE_MODERATION;
+        else process.env.PROFILE_PICTURE_MODERATION = PreviousMode;
+    }
 });
 
 const STATUS_KEYS = ["name", "online", "version", "commit", "sourceUrl", "registration", "playersOnline", "players", "instances", "contentPort", "uptimeSeconds", "limited"];

@@ -22,7 +22,7 @@ import { OFFLINE_KEY_SLOT, type OfflineSaveRuntime } from "./offline-save";
 import { parseInvite, isLoopbackHost, type Invite } from "../shared/invite";
 import { checkUsername, extractAccountKey } from "../shared/username";
 import { limitedView, type ServerStatus } from "../shared/status";
-import { saveHuntRegion, fetchHuntRegions, endPlaying } from './hostapi';
+import { saveHuntRegion, fetchHuntRegions, endPlaying, fetchProfilePicture, fetchProfilePictureImage, uploadProfilePicture, renameProfileUsername } from './hostapi';
 import type {
   ActionResult,
   Branding,
@@ -192,6 +192,8 @@ export class Controller {
   private serverPlaytime: { sid: string; gen: number; seconds: number } | null = null;
   private playtimeCheckedAt = 0;
   private playtimeChecking = false;
+  private profilePicture: import('../shared/types').ProfilePictureView = {status:null,reason:null,imageDataUrl:null};
+  private profilePictureBusy = false;
 
   private reachable: boolean | null = null;
   private checking = false;
@@ -397,6 +399,7 @@ export class Controller {
         backupTracked: !!(sid && this.hasKey && !this.keyRejected && this.desktopBackups.has(sid)),
         backupMissing: !!(sid && this.hasKey && !this.keyRejected && this.desktopBackups.get(sid)?.missing),
         offerBackup: sid !== null && this.hasKey && !this.keyRejected && !this.keys.isSession(this.slot()!) && this.s.backupOffered[sid] !== true,
+        profilePicture: sid && this.hasKey && !this.keyRejected ? this.profilePicture : {status:null,reason:null,imageDataUrl:null},
       },
       install: {
         dir: this.installDir,
@@ -724,6 +727,7 @@ export class Controller {
           s.usernames[sid] = info.info.username;
         });
       }
+      void this.refreshProfilePicture(gen, ep, key, info.info.userId);
     } else if (info.error === "account_banned") {
       this.keyRejected = true;
       this.lastError = {code:'account_banned',detail:info.detail};
@@ -732,6 +736,52 @@ export class Controller {
       this.lastError = { code: "key_rejected" };
       log.warn("the server does not accept the stored key");
     }
+  }
+
+  private async refreshProfilePicture(gen: number, ep: Endpoint, key: string, accountId: string): Promise<void> {
+    const result = await fetchProfilePicture(ep, key);
+    if(gen !== this.statusGen || this.endpoint()?.host !== ep.host) return;
+    if(!result.ok){this.profilePicture={status:null,reason:null,imageDataUrl:null};this.publish();return;}
+    if(!result.picture){this.profilePicture={status:null,reason:null,imageDataUrl:null};this.publish();return;}
+    const imageDataUrl = await fetchProfilePictureImage(ep, accountId, key);
+    if(gen !== this.statusGen || this.endpoint()?.host !== ep.host) return;
+    this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl};
+    this.publish();
+  }
+
+  async uploadProfilePicture(image: string): Promise<ActionResult> {
+    if(this.profilePictureBusy) return err('busy');
+    const ep=this.endpoint(),slot=this.slot();
+    if(!ep||!slot||!this.hasKey||this.keyRejected)return err('server_unreachable');
+    if(typeof image !== 'string' || !/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(image) || image.length > 145000)return err('folder_invalid');
+    this.profilePictureBusy=true;this.publish();
+    try{
+      const key=await this.keys.load(slot);if(!key)return err('key_rejected');
+      const result=await uploadProfilePicture(ep,key,image);
+      if(!result.ok){
+        const code=result.error==='invalid_image'||result.error==='image_too_large'||result.error==='invalid_image_dimensions'||result.error==='unsupported_image_format'||result.error==='image_rejected'||result.error==='moderation_unavailable'?'server_error':result.error;
+        return err(code);
+      }
+      this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl:null};
+      const imageDataUrl=await fetchProfilePictureImage(ep,result.picture.accountId,key);
+      this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl};
+      return OK;
+    }finally{this.profilePictureBusy=false;this.publish();}
+  }
+
+  async renameProfileUsername(username: string): Promise<ActionResult> {
+    const ep=this.endpoint(),slot=this.slot(),sid=this.sid();
+    if(!ep||!slot||!sid||!this.hasKey||this.keyRejected)return err('server_unreachable');
+    const value=username.trim();
+    if(!/^[A-Za-z0-9_]{3,16}$/.test(value))return err('username_invalid');
+    try{
+      const key=await this.keys.load(slot);if(!key)return err('key_rejected');
+      const result=await renameProfileUsername(ep,key,value);
+      if(!result.ok)return err(result.error==='username_taken'?'username_taken':result.error==='username_moderated'?'username_moderated':result.error==='rate_limited'?'rate_limited':result.error==='server_unreachable'?'server_unreachable':'username_invalid');
+      await this.settings.update(s=>{s.usernames[sid]=result.username;});
+      this.publish();
+      return OK;
+    }catch{return err('server_error');}
   }
 
   async getPurchaseHistory():Promise<import('../shared/types').PurchaseHistory|null> {

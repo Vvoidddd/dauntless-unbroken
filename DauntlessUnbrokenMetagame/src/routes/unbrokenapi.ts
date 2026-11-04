@@ -11,7 +11,7 @@ import {AckDiscordBan,CreateDiscordInvite,DiscordAccess,PendingDiscordBans,SetDi
 import {ManageAccountAccess} from '../controllers/accountaccess';
 
 import { Router } from "express";
-import { DeleteInviteCode, GetAllUserIds, GetInviteCodes, GetRecentPlayerData, IsRegistrationMode, RegisterInviteCode, REGISTRATION_MODE, SetRegistrationMode } from "../controllers/unbrokenapi";
+import { DeleteInviteCode, GetAllUserIds, GetInviteCodes, GetRecentPlayerData, GetUserInfoForApiKey, IsRegistrationMode, RegisterInviteCode, REGISTRATION_MODE, SetRegistrationMode } from "../controllers/unbrokenapi";
 import { HasDauntlessUnbrokenUserApiKey } from "../middleware/HasDauntlessUnbrokenUserApiKey";
 import { HasDauntlessUnbrokenAdminApiKey } from "../middleware/HasDauntlessUnbrokenAdminApiKey";
 import { SignMetagameJWTForUid } from "../controllers/auth";
@@ -25,10 +25,11 @@ import { DoesAccountExist, RecordProgressionEvent } from "../controllers/progres
 import { GetDb } from "../db";
 import { CleanInviteNote, ErrorBody, GenerateInviteCode, IsUsernameTaken, IsValidUsername, LogInviteCreated, MAX_INVITE_USES, RegisterAccount, RenameAccount, TrimUsername } from "../controllers/accounts";
 import { GetServerStatus } from "../controllers/serverstatus";
+import { MaintenanceAllows } from "../controllers/maintenance";
 import { logger } from "../logger";
 import { FindAccount } from "../controllers/login";
 import { InviteToParty } from "../controllers/party";
-import { SendOrAcceptFriendRequest } from "../controllers/friends";
+import { AreFriends, SendOrAcceptFriendRequest } from "../controllers/friends";
 import { DisbandGuildAsAdmin, GuildNameOf, InviteToGuild, ListGuilds } from "../controllers/guild";
 import { RefuseAdminKeyThroughProxy } from "../middleware/RequestOrigin";
 import { IsSoftRegisteredCaller, SoftAccountAuth } from "../middleware/SoftAccountAuth";
@@ -38,8 +39,70 @@ import { discordlinks, userapikeys, users } from '../db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { GetPlaytimeSeconds } from '../controllers/playtime';
 import { IslandEventEnabled, IslandEventModeNow, SetIslandEventMode, type IslandEventMode } from '../controllers/islandevent';
+import {ApproveProfilePicture, GetApprovedProfilePicture, GetProfilePictureStatus, ListProfilePictureModeration, ModerationProfilePictureFile, RemoveProfilePicture, RejectProfilePicture, SubmitProfilePicture} from '../controllers/profilepictures';
 
 export const unbrokenApiRouter = Router();
+
+const ProfilePictureRateLimit = rateLimit({keyGenerator: req => `profile-picture:${String((req as any).DauntlessUnbrokenUserInfo?.UserId || 'unknown')}`, windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: 'draft-8', legacyHeaders: false, message: {error: 'rate_limited'}});
+
+unbrokenApiRouter.get('/ProfilePicture', HasDauntlessUnbrokenUserApiKey, (req: any, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(GetProfilePictureStatus(req.DauntlessUnbrokenUserInfo.UserId));
+});
+unbrokenApiRouter.post('/ProfilePicture', HasDauntlessUnbrokenUserApiKey, ProfilePictureRateLimit, async (req: any, res) => {
+    try {
+        const result = await SubmitProfilePicture(req.DauntlessUnbrokenUserInfo.UserId, req.body?.image);
+        if(result.status === 'rejected'){res.status(400).json({error: 'image_rejected'});return;}
+        res.status(201).json(result);
+    }
+    catch(error){
+        const message = error instanceof Error ? error.message : '';
+        const allowed = ['invalid_image','image_too_large','invalid_image_dimensions','unsupported_image_format','account_not_found'];
+        if(message === 'moderation_unavailable'){res.status(503).json({error: message});return;}
+        res.status(400).json({error: allowed.includes(message) ? message : 'profile_picture_failed'});
+    }
+});
+unbrokenApiRouter.post('/ProfileUsername', HasDauntlessUnbrokenUserApiKey, ProfilePictureRateLimit, (req: any, res) => {
+    if(!req.body || typeof req.body !== 'object' || Array.isArray(req.body) || typeof req.body.username !== 'string' || Object.keys(req.body).length !== 1){res.status(400).json({error:'bad_request'});return;}
+    const result = RenameAccount({UserId:req.DauntlessUnbrokenUserInfo.UserId}, req.body.username);
+    if(result.ok){res.json({username:result.Username});return;}
+    res.status(result.Status).json(ErrorBody(result.Error));
+});
+unbrokenApiRouter.get('/ProfilePicture/:accountId', HasDauntlessUnbrokenUserApiKey, ProfilePictureRateLimit, (req: any, res) => {
+    const accountId = String(req.params.accountId);
+    const callerId = String(req.DauntlessUnbrokenUserInfo.UserId);
+    if(callerId !== accountId && !AreFriends(callerId, accountId)){res.status(404).end();return;}
+    const image = GetApprovedProfilePicture(accountId);
+    if(!image){res.status(404).end();return;}
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.type(image.mimeType).sendFile(image.filePath);
+});
+unbrokenApiRouter.get('/ProfilePictureModeration', HasDauntlessUnbrokenAdminApiKey, (req, res) => {
+    const status = req.query.status === undefined ? 'pending' : String(req.query.status);
+    if(!['pending','approved','rejected','all'].includes(status)){res.status(400).json({error:'invalid_status'});return;}
+    try {res.setHeader('Cache-Control','no-store');res.json(ListProfilePictureModeration(status as any, Number(req.query.offset ?? 0)));}
+    catch {res.status(400).json({error:'invalid_offset'});}
+});
+unbrokenApiRouter.get('/ProfilePictureReview/:id', HasDauntlessUnbrokenAdminApiKey, AdminMutationRateLimit, (req, res) => {
+    const image = ModerationProfilePictureFile(String(req.params.id));
+    if(!image){res.status(404).end();return;}
+    res.setHeader('Cache-Control','no-store');
+    res.type(image.mimeType).sendFile(image.filePath);
+});
+unbrokenApiRouter.post('/ProfilePictureModeration', HasDauntlessUnbrokenAdminApiKey, AdminMutationRateLimit, (req: any, res) => {
+    const id = typeof req.body?.id === 'string' ? req.body.id : '';
+    const action = req.body?.action;
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason : '';
+    try {
+        const actor = req.DauntlessUnbrokenUserInfo.UserId;
+        const result = action === 'approve' ? ApproveProfilePicture(id, actor) : action === 'reject' ? RejectProfilePicture(id, actor, reason) : action === 'remove' ? RemoveProfilePicture(id, actor, reason) : null;
+        if(!result){res.status(400).json({error:'invalid_action'});return;}
+        res.json(result);
+    } catch(error){
+        const message = error instanceof Error ? error.message : '';
+        res.status(message === 'not_found' ? 404 : 400).json({error: ['not_found','already_reviewed'].includes(message) ? message : 'profile_picture_moderation_failed'});
+    }
+});
 import { SendAnnouncement, ValidAnnouncement } from '../realtime/announcement';
 unbrokenApiRouter.post('/Announcement',HasDauntlessUnbrokenAdminApiKey,AdminMutationRateLimit,(req:any,res)=>{
     res.setHeader('Cache-Control','no-store');
@@ -420,12 +483,18 @@ unbrokenApiRouter.post("/RenameUser", HasDauntlessUnbrokenAdminApiKey, async (re
 // launcher can read it before registering. Each variant is cached 5 s.
 unbrokenApiRouter.get("/ServerStatus", SoftAccountAuth, async (req, res) => {
     const Status = await GetServerStatus(IsSoftRegisteredCaller(req) ? "full" : "limited");
+    const ApiKey = req.headers["x-dauntless-unbroken-user-api-key"];
+    let MaintenanceAllowed: boolean | undefined;
+    if (Status.maintenance && typeof ApiKey === "string") {
+        try { MaintenanceAllowed = MaintenanceAllows((await GetUserInfoForApiKey(ApiKey))?.UserId); }
+        catch { MaintenanceAllowed = false; }
+    }
 
     res.status(200);
     res.set("Cache-Control", "no-store");
     res.vary("x-dauntless-unbroken-user-api-key");
     res.vary("authorization");
-    res.json(Status);
+    res.json(MaintenanceAllowed === undefined ? Status : {...Status, maintenanceAllowed: MaintenanceAllowed});
 });
 
 unbrokenApiRouter.get("/GetUserInfo", HasDauntlessUnbrokenUserApiKey, async (req: any, res) => {

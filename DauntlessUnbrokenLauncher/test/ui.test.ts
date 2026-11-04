@@ -31,6 +31,7 @@ const ERROR_CODES: Record<ErrorCode, true> = {
   invite_invalid_format: true,
   invite_invalid: true,
   username_invalid: true,
+  username_moderated: true,
   username_taken: true,
   registration_closed: true,
   bad_request: true,

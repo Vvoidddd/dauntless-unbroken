@@ -422,6 +422,8 @@ function registerIpc(c: Controller): void {
     const error=await shell.openPath(dir);return error?{ok:false,error:{code:'unknown'}}:{ok:true};
   });
   handle(IPC.uploadDiagnostics,(_event,name)=>c.uploadDiagnostics(typeof name==='string'?name.slice(0,32):''));
+  handle(IPC.uploadProfilePicture,(_event,image)=>c.uploadProfilePicture(typeof image==='string'?image:''));
+  handle(IPC.renameProfileUsername,(_event,username)=>c.renameProfileUsername(typeof username==='string'?username.slice(0,32):''));
   let rendererErrorsAt=0,rendererErrorCount=0;
   handle(IPC.reportRendererError,(_event,message)=>{
     if(Date.now()-rendererErrorsAt>60000){rendererErrorsAt=Date.now();rendererErrorCount=0;}
