@@ -1225,7 +1225,7 @@ async function HandlePlayerMatchmakingOnce(GameMode: string, GameArgs: string, H
 
     // 1.10.5 Hunting Grounds use SHARED on the wire. Normalize before party
     // selection so parties and solo hunters use the same hunt/roster path.
-    if(GameMode === 'SHARED' && HuntId && HuntIdRequiresMatchmaking(HuntId) && Local1105Account(PlayerId)) GameMode = 'ISLAND';
+    if(GameMode === 'SHARED' && HuntId && HuntIdRequiresMatchmaking(HuntId)) GameMode = 'ISLAND';
 
     if(MATCHMAKING_MODE === "DISABLED"){
         logger.warn("Matchmaking is disabled, refusing MM!");

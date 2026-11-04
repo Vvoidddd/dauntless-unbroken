@@ -113,6 +113,27 @@ for (const [hunt,mode] of [['ShatteredIsles_IslandA','ISLAND'],['ShatteredIsles_
     });
 }
 
+it('hosted 1.10.5 party Escalation normalizes SHARED to an island roster', async () => {
+    const oldHost=process.env.BIND_HOST, oldRealm=process.env.LOCAL_1105_REALM;
+    process.env.BIND_HOST='100.64.0.2';delete process.env.LOCAL_1105_REALM;
+    try {
+        for(const id of [A,B]) {
+            await HandlePlayerMatchmaking('CITY','','',id);
+            assert.equal((await DecideCandidateStatus(id)).Kind,'travel');
+        }
+        await formParty();posts=[];
+        deploy=async body=>body.ExpectedPlayers?.length===2?ready(8792):json({},403);
+        assert.equal(await HandlePlayerMatchmaking('SHARED','', 'CR19_PlayerHunt_Escalation_Funguy_Easy', A),true);
+        await flush();
+        assert.equal(posts.length,1);
+        assert.equal(posts[0].GameMode,'ISLAND');
+        assert.deepEqual(posts[0].ExpectedPlayers,[A,B]);
+    } finally {
+        if(oldHost===undefined)delete process.env.BIND_HOST;else process.env.BIND_HOST=oldHost;
+        if(oldRealm===undefined)delete process.env.LOCAL_1105_REALM;else process.env.LOCAL_1105_REALM=oldRealm;
+    }
+});
+
 for (const phase of ['headers', 'body'] as const) {
     it(`an unanswered deploy ${phase} reaches FAILED, aborts, and ignores a late success without retrying`, async t => {
         t.mock.timers.enable({apis: ['setTimeout']});
