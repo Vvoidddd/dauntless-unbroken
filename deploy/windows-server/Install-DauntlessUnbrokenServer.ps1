@@ -521,7 +521,7 @@ try {
     # ---------------------------------------------------------------------------------------------
     Write-DRStep 'Folders'
     # ---------------------------------------------------------------------------------------------
-    foreach ($d in @($P.Root, $P.Bin, $P.Data, $P.Config, $P.Keys, $P.Tls, $P.Logs, $P.Run, $P.Branding, $P.Backups, $P.Downloads, (Join-Path $P.Logs 'install'), (Join-Path $P.Data 'allowlist'), (Join-Path $P.Data 'dashboard-control'))) {
+    foreach ($d in @($P.Root, $P.Bin, $P.Data, $P.Config, $P.Keys, $P.Tls, $P.Logs, $P.Run, $P.Branding, $P.Backups, $P.Downloads, (Join-Path $P.Logs 'install'), (Join-Path $P.Data 'allowlist'))) {
         if (-not (Test-Path -LiteralPath $d)) {
             if (Test-Do $d 'Create folder') { New-Item -ItemType Directory -Force -Path $d | Out-Null }
         }
@@ -1161,8 +1161,6 @@ try {
         if (Test-Path -LiteralPath $P.AllowlistEnv) { Set-DRAcl $P.AllowlistEnv $sys }
         $alDir = Join-Path $P.Data 'allowlist'
         if (Test-Path -LiteralPath $alDir) { $alAcl = $full.Clone(); $alAcl[$svcSid] = $(if ($Sandbox) { 'FullControl' } else { 'ReadAndExecute' }); Set-DRAcl $alDir $alAcl }
-        $dashboardControl = Join-Path $P.Data 'dashboard-control'
-        if (Test-Path -LiteralPath $dashboardControl) { $controlAcl = $full.Clone(); $controlAcl[$svcSid] = $(if ($Sandbox) { 'FullControl' } else { 'Modify' }); Set-DRAcl $dashboardControl $controlAcl }
     }
     if (-not $svcSid) { Write-DRInfo '(what-if: permissions are set once the service account exists)' }
     elseif (Test-Do $Root 'Restrict permissions to Administrators, SYSTEM and the service account') {
