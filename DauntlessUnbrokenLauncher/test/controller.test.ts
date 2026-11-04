@@ -686,14 +686,17 @@ test('saved disabled region still launches and resets preference to Automatic', 
 });
 
 test("game language: automatic by default, stored when chosen, an unknown value changes nothing, sent as -epiclocale at PLAY", async () => {
-  const hx = harness();
+  const hx = harness(RELAY_PORT, undefined, undefined, undefined, undefined, undefined, undefined, undefined, { systemLocale: "de-DE" });
   await hx.c.init();
   assert.deepEqual(await hx.c.submitInvite(invite(cert.fingerprint, "GAMELANG-CODE")), { ok: true });
   assert.deepEqual(await hx.c.register("GameLang_1"), { ok: true, username: "GameLang_1" });
   assert.deepEqual(await hx.c.startInstall(), { ok: true });
   assert.equal(hx.last().settings.gameLanguage, "auto");
 
+  assert.equal((await hx.c.setSettings({ language: "en" })).gameLanguage, "en-US");
+
   assert.equal((await hx.c.setSettings({ gameLanguage: "es-ES" })).gameLanguage, "es-ES");
+  assert.equal((await hx.c.setSettings({ language: "de" })).gameLanguage, "es-ES", "an explicit game language is not overwritten");
   assert.equal((await hx.c.setSettings({ gameLanguage: "xx-XX" } as never)).gameLanguage, "es-ES", "an unknown value is ignored");
   assert.equal(JSON.parse(readFileSync(path.join(hx.userData, "settings.json"), "utf8")).gameLanguage, "es-ES");
 

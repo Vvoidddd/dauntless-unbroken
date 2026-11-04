@@ -69,7 +69,7 @@ import { dllStatus, installPinnedDlls, DllError, win64Dir } from "./dlls";
 import { installClientMods } from "./client-mods";
 import { applyGameConfig } from "./engineini";
 import { locateExistingGame } from "./game-folder";
-import { buildLaunchArgs, describeLaunch, GameProcess, gameLocale, type LaunchRuntime, type SpawnFn } from "./launch";
+import { buildLaunchArgs, describeLaunch, GameProcess, gameLocale, gameLocaleForLauncherLanguage, type LaunchRuntime, type SpawnFn } from "./launch";
 import { createRelayOwnerCheck } from "./relay-owner";
 import {removeGameFiles} from './game-removal';
 import { backupFileText, backupServer, saveDesktopKey, desktopKeyPath, keyBackupId, matchesKeyBackup, KeyStore, KeyStoreError, serverId, type Encryptor, type KeySlot } from "./keystore";
@@ -2114,7 +2114,10 @@ export class Controller {
         if (typeof p.streamerMode === "boolean") s.streamerMode = p.streamerMode;
         if (typeof p.showConsole === "boolean") s.showConsole = p.showConsole;
         if (p.huntRegion === 'auto' || p.huntRegion === 'main' || p.huntRegion === 'ger' || p.huntRegion === 'us') s.huntRegion = p.huntRegion;
-        if (LANGUAGES.includes(p.language as Language)) s.language = p.language as Language;
+        if (LANGUAGES.includes(p.language as Language)) {
+          s.language = p.language as Language;
+          if (s.gameLanguage === "auto") s.gameLanguage = gameLocaleForLauncherLanguage(s.language);
+        }
         if (GAME_LANGUAGES.includes(p.gameLanguage as GameLanguage)) s.gameLanguage = p.gameLanguage as GameLanguage;
       });
     }
