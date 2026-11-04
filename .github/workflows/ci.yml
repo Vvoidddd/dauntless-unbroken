@@ -118,6 +118,7 @@ jobs:
               deploy/linux-server/*|deploy/openbsd-server/*|deploy/unix-common/*) server_port=true ;;
               deploy/windows-server/*) server_kit=true; server_kit_sandbox=true ;;
               DauntlessUnbrokenInternalServer/*|tests/client-mods/*) native=true ;;
+              experiments/1.10.5/bootstrap.cpp|experiments/1.10.5/bootstrap.vcxproj|experiments/1.10.5/apex-report-guard.asm|experiments/1.10.5/apex-test-driver.asm|experiments/1.10.5/test-apex-report.cpp|experiments/1.10.5/test-apex-report.vcxproj) native=true ;;
               docs/*|tools/*) docs=true ;;
             esac
           done <<< "$files"
@@ -510,6 +511,16 @@ jobs:
           )
           "@ | Set-Content -LiteralPath $script -Encoding ascii
           & $script
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Test 1.10.5 APEX report guard
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          if (-not $msbuild) { throw 'MSBuild not found' }
+          & $msbuild experiments\1.10.5\test-apex-report.vcxproj /m /t:Build /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /v:minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & experiments\1.10.5\bin\test-apex-report.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Verify DLL output

@@ -1,0 +1,17 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations"><ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration></ItemGroup>
+  <PropertyGroup Label="Globals"><ProjectGuid>{4397D173-418C-4EC4-A108-2540819F9751}</ProjectGuid><WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration"><ConfigurationType>Application</ConfigurationType><PlatformToolset>v143</PlatformToolset></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+  <PropertyGroup><OutDir>$(ProjectDir)bin\</OutDir><IntDir>$(ProjectDir)obj\apex-test\</IntDir></PropertyGroup>
+  <ItemDefinitionGroup><ClCompile><LanguageStandard>stdcpp20</LanguageStandard><RuntimeLibrary>MultiThreaded</RuntimeLibrary><AdditionalIncludeDirectories>$(ProjectDir)..\..\DauntlessUnbrokenInternalServer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories></ClCompile></ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="test-apex-report.cpp" />
+    <MASM Include="apex-test-driver.asm" /><MASM Include="apex-report-guard.asm" />
+    <ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\buffer.c" /><ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\hook.c" /><ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\trampoline.c" /><ClCompile Include="..\..\DauntlessUnbrokenInternalServer\MinHook\hde\hde64.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+</Project>
