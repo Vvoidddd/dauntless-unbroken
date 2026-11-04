@@ -64,6 +64,8 @@ node experiments/1.10.5/local-deploy.cjs
 node experiments/1.10.5/start-client.cjs --debug
 ```
 
+The client command keeps audio enabled so attack and other gameplay sounds can be checked. The dedicated server uses `-nosound` because it has no local audio output.
+
 For travel debugging, add `--trace-travel` to the client command. Attach CDB to the isolated server PID with `-cf experiments/1.10.5/trace-server-return.cdb` to capture the initiating call stack. Run CDB from this checkout so that relative command-file path resolves. Trace logs must remain outside Git.
 
 The loading return was caused by Bounty initialization asking for season17's missing dates. Supplying the local fixture fixed that return. The native Journey save callback ignores HTTP status, so a rejected save still needs native retry handling; server-side validation alone doesn't resolve that client behavior.
