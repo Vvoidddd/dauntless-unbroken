@@ -70,11 +70,6 @@ function Board(tx: Tx, AccountId: string){
     });
 
     const Draft = tx.select().from(bountydraft).where(eq(bountydraft.accountId, AccountId)).get();
-    const ChallengeDrafts = Local1105Enabled() ? tx.select().from(challengedrafts).where(eq(challengedrafts.accountId, AccountId)).all() : [];
-    const ChallengeDraft = (kind: string) => {
-        const row = ChallengeDrafts.find(entry => entry.kind === kind);
-        return row ? JSON.parse(row.data) : {...DEFAULT_DRAFT_DATA};
-    };
     let DraftData: Record<string, any> = {...DEFAULT_DRAFT_DATA};
     if(Draft != undefined){
         try {

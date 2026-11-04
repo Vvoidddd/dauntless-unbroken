@@ -67,6 +67,25 @@ it('hides malformed imported bounty JSON without changing the preserved rows', a
     assert.equal((db.prepare('SELECT data FROM bountydraft WHERE accountId=?').get(UserId) as any).data, '{not-json');
 });
 
+it('returns a default for malformed challenge drafts without overwriting saved data', async () => {
+    const {UserId} = await MakePlayer();
+    const db = GetDb().$client;
+    db.prepare('INSERT INTO challengedrafts (accountId,kind,data,updatedDate) VALUES (?,?,?,?)')
+        .run(UserId, 'daily', '{not-json', '2026-11-03T00:00:00Z');
+    db.prepare('INSERT INTO challengedrafts (accountId,kind,data,updatedDate) VALUES (?,?,?,?)')
+        .run(UserId, 'weekly', '[]', '2026-11-03T00:00:00Z');
+    process.env.BIND_HOST='127.0.0.1'; process.env.LOCAL_1105_REALM='1';
+    try {
+        const board = GetBountyReply(UserId).payload;
+        const empty = {current_draft_choices: [], previous_draft_selections: [], bronze_count: 0, silver_count: 0, gold_count: 0};
+        assert.deepEqual(board.draft_data_daily, empty);
+        assert.deepEqual(board.draft_data_weekly, empty);
+        assert.deepEqual(db.prepare('SELECT kind,data FROM challengedrafts WHERE accountId=? ORDER BY kind').all(UserId), [
+            {kind: 'daily', data: '{not-json'}, {kind: 'weekly', data: '[]'}
+        ]);
+    } finally { delete process.env.LOCAL_1105_REALM; delete process.env.BIND_HOST; }
+});
+
 it('hides non-object imported bounty JSON in both compatibility modes', async () => {
     const {UserId} = await MakePlayer();
     const db = GetDb().$client;
