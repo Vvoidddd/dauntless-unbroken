@@ -33,8 +33,9 @@ CI checks the services, native integration, launcher, deployment kits, Linux/Ope
 
 Pull requests use the changed paths between the pull request head and the target branch's merge base. A skipped job means that its inputs were not changed; it is expected and does not indicate a failed test.
 
-- Package source or build changes run the affected package checks, server-port checks and the Windows server-kit checks, including the sandbox.
+- Package source changes under a package's `src/` directory run the affected package and server-port checks. Package build/install metadata and deployment changes also run the Windows server-kit checks, including the sandbox.
 - Package test-only changes run the affected package and server-port checks without rebuilding the Windows server-kit sandbox.
+- For source-only changes, run the affected package's `npm test` locally before pushing. Run the Windows server-kit scripts locally when changing deployment behavior; CI reserves those hosted jobs for build/install and deployment changes.
 - `deploy/windows-server/` changes run all server-kit phases.
 - Changes to the CI workflow run the selector, server-kit unit and remote checks. Changes to the CodeQL workflow select the Actions analysis without running unrelated CI suites.
 - Documentation, launcher, native-server and other paths select only their corresponding checks.
