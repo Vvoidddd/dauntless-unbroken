@@ -37,9 +37,10 @@ export function HuntLimit() {
 const PENDING_BUDGET_SECONDS = 60;
 
 // While this file exists no new hunt is admitted; running ones finish normally. Create it to drain a host
-// before a restart, delete it to resume. Checked on every request, so no restart is needed to toggle it.
+// before a restart, delete it to resume. A worker pool can also set HUNT_ACCEPTING_NEW=0 when it is
+// being replaced; this keeps the pool's existing hunts alive without draining other pools.
 export function HuntsDraining() {
-    return existsSync(process.env.DRAIN_FILE || 'drain.flag');
+    return process.env.HUNT_ACCEPTING_NEW === '0' || existsSync(process.env.DRAIN_FILE || 'drain.flag');
 }
 
 export function PendingHuntLimit() {
