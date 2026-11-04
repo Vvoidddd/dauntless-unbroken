@@ -71,6 +71,7 @@ export type StatusPlayer = {
 export type ServerStatus = {
     name: string,
     online: true,
+    maintenance?: boolean,
     version: string,
     commit: string,
     sourceUrl: string,
@@ -427,6 +428,7 @@ function StatusWith(Players: StatusPlayer[], Instances: StatusInstance[], Limite
     return {
         name: Identity.name,
         online: true,
+        ...(process.env.UNBROKEN_MAINTENANCE === '1' ? { maintenance: true } : {}),
         version: Identity.version,
         commit: Identity.commit,
         sourceUrl: Identity.sourceUrl,

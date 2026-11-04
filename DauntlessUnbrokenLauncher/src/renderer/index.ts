@@ -761,6 +761,7 @@ function backupLocationText(snap:Snapshot):string{
 function playReady(snap: Snapshot): HTMLElement[] {
   const user = snap.account.username;
   const out: HTMLElement[] = [eyebrow(snap), ...heading(user ? t("ready_title", { user }) : t("ready_title_nouser"), t("ready_text")), playActivity(snap)];
+  if (snap.status?.maintenance) out.unshift(card("maintenance-card", h("span", { class: "maintenance-kicker" }, "Maintenance"), h("strong", { class: "maintenance-state" }, "EU1 is offline")));
   out.push(
     card(
       "",
@@ -1070,7 +1071,8 @@ function renderActionBar(): void {
   }
   const b = primaryButton(snap, formState());
   primary.textContent = t(b.labelKey);
-  primary.disabled = b.disabled;
+  primary.disabled = b.disabled || snap.status?.maintenance === true;
+  if (snap.status?.maintenance) primary.textContent = "Maintenance";
   primary.classList.toggle("is-running", b.action === "none" && snap.phase === "running");
   primary.classList.toggle("is-pause", b.action === "pause" || b.action === "resume");
   primary.classList.toggle("is-ready", b.action === "play" && !b.disabled && !reducedMotion.matches);
@@ -1084,7 +1086,7 @@ function renderActionBar(): void {
     const v = taskView(task, state.lang);
     announce(v.indeterminate ? t(v.titleKey) : `${t(v.titleKey)}: ${Math.floor(v.percent / 10) * 10} %`);
   } else {
-    renderRegion(info, JSON.stringify([state.lang, snap.phase, snap.connect.checking, snap.connect.problem, snap.install.totalBytes, playtimeText(snap)]), () => [h("div", { class: "launch-readiness" }, h("span", { class: "launch-status-icon", "aria-hidden": "true" }, icon(snap.phase === "ready" || snap.phase === "running" ? "check" : "play")), h("span", { class: "action-hint" }, actionHint(snap))), playtimeLine(snap)]);
+    renderRegion(info, JSON.stringify([state.lang, snap.phase, snap.connect.checking, snap.connect.problem, snap.install.totalBytes, snap.status?.maintenance === true, playtimeText(snap)]), () => [h("div", { class: "launch-readiness" }, h("span", { class: "launch-status-icon", "aria-hidden": "true" }, icon(snap.phase === "ready" || snap.phase === "running" ? "check" : "play")), h("span", { class: "action-hint" }, snap.status?.maintenance ? "EU1 is in maintenance" : actionHint(snap))), playtimeLine(snap)]);
     announce(actionHint(snap));
   }
 }
@@ -1647,10 +1649,10 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
   const statusKey = profile?.status ?? "empty";
   const status = statusKey === "approved" ? "Approved" : statusKey === "pending" ? "Waiting for moderation" : statusKey === "rejected" ? "Rejected by moderation" : "No profile picture set";
   const pictureNote = statusKey === "pending" && profile?.imageDataUrl
-    ? "Your previous approved picture remains visible to accepted friends while this replacement is reviewed."
+    ? "Current picture stays visible · replacement pending"
     : statusKey === "rejected" && profile?.imageDataUrl
-      ? "That replacement was not shown. Your previous approved picture remains visible to accepted friends."
-      : "Pictures are checked automatically for unsafe content. Only accepted friends can see an approved picture.";
+      ? "Current picture stays visible · replacement rejected"
+      : "Friends only · Automatic check";
   const avatar = profile?.imageDataUrl
     ? h("img", {class:"profile-avatar-image", src:profile.imageDataUrl, alt:""})
     : h("span", {class:"profile-avatar-letter", "aria-hidden":"true"}, (snap.account.username ?? "?").slice(0,1).toUpperCase());
@@ -1677,8 +1679,8 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
   return card("settings-section profile-card",
     h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:`profile-status profile-status-${statusKey}`}, statusKey === "approved" ? icon("check", "profile-status-icon") : null, h("span", {class:"profile-status-dot", "aria-hidden":"true"}), status), h("p", {class:"small-print"}, pictureNote))),
     h("div", {class:"profile-policy"},
-      h("div", {class:"profile-policy-item"}, icon("people", "profile-policy-icon"), h("span", {}, h("strong", {}, "Audience"), h("small", {}, "Accepted friends only"))),
-      h("div", {class:"profile-policy-item"}, icon("shield", "profile-policy-icon"), h("span", {}, h("strong", {}, "Safety"), h("small", {}, "Automatic content check")))),
+      h("div", {class:"profile-policy-item"}, icon("people", "profile-policy-icon"), h("span", {}, h("strong", {}, "Audience"), h("small", {}, "Friends only"))),
+      h("div", {class:"profile-policy-item"}, icon("shield", "profile-policy-icon"), h("span", {}, h("strong", {}, "Safety"), h("small", {}, "Automatic check")))),
     h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("p", {class:"small-print profile-username-hint"}, "3–16 letters, numbers, or underscores · automatic name checks"), h("div", {class:"profile-username-row"}, username, saveUsername)),
     state.profileUsernameNote ? h("p", {class:"small-print", role:"status"}, state.profileUsernameNote) : null,
     state.profilePictureNote ? h("p", {class:"small-print", role:"status"}, state.profilePictureNote) : null,

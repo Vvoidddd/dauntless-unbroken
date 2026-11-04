@@ -5,11 +5,12 @@ import assert from "node:assert/strict";
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const renderer = readFileSync(path.join(ROOT, "src", "renderer", "index.ts"), "utf8");
+const theme = readFileSync(path.join(ROOT, "src", "renderer", "unbroken-theme.css"), "utf8");
 
 test("profile settings show the friends-only audience and automatic safety policy", () => {
   assert.match(renderer, /Audience/);
-  assert.match(renderer, /Accepted friends only/);
-  assert.match(renderer, /Automatic content check/);
+  assert.match(renderer, /Friends only/);
+  assert.match(renderer, /Automatic check/);
   assert.match(renderer, /icon\("people", "profile-policy-icon"\)/);
 });
 
@@ -28,4 +29,16 @@ test("the username field explains its automatic checks before submission", () =>
   assert.match(renderer, /profile-username-hint/);
   assert.match(renderer, /3–16 letters, numbers, or underscores/);
   assert.match(renderer, /automatic name checks/);
+});
+
+test("the profile surface uses bundled game art without exposing implementation copy", () => {
+  assert.match(theme, /hero-umbral-nayzaga\.jpg/);
+  assert.match(renderer, /Friends only/);
+  assert.match(renderer, /Automatic check/);
+});
+
+test("maintenance state disables launch and uses a compact status surface", () => {
+  assert.match(renderer, /snap\.status\?\.maintenance/);
+  assert.match(renderer, /primary\.disabled = b\.disabled \|\| snap\.status\?\.maintenance === true/);
+  assert.match(renderer, /maintenance-card/);
 });

@@ -28,6 +28,7 @@ export interface StatusInstance {
 export interface ServerStatus {
   name: string;
   online: boolean;
+  maintenance?: boolean;
   version: string;
   commit: string;
   sourceUrl: string | null; // only https URLs survive parsing
@@ -136,6 +137,7 @@ export function parseServerStatus(raw: unknown): ServerStatus | null {
   const status: ServerStatus = {
     name,
     online: raw.online === true,
+    ...(raw.maintenance === true ? { maintenance: true } : {}),
     version: cleanText(raw.version, 48) ?? "",
     commit: cleanText(raw.commit, 64) ?? "",
     sourceUrl: cleanHttpsUrl(raw.sourceUrl),
