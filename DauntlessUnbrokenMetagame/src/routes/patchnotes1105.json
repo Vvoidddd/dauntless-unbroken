@@ -1,8 +1,8 @@
 {
-  "date": "2026-11-03T00:00:00Z",
+  "date": "2026-11-03T18:00:00Z",
   "title": "Dauntless Unbroken",
-  "release_version": "1.10.5 - Public Release",
-  "description": "Dauntless Unbroken is now running 1.10.5. These notes cover our changes and the issues still being investigated.",
+  "release_version": "1.10.5 - November 3 Update",
+  "description": "Latest Unbroken fixes, account migration and known issues. Update your launcher and fully restart the game to load client fixes.",
   "language": "en",
   "permalink": "https://github.com/Vvoidddd/dauntless-unbroken/releases/latest",
   "notes": [
@@ -13,7 +13,7 @@
         {
           "type": "text",
           "title": "Welcome to 1.10.5",
-          "description": "Use your existing Unbroken account key with the current public launcher.",
+          "description": "Use your existing Unbroken account key. Update to launcher 1.0.54 or newer and fully restart the game.",
           "background": "",
           "cta": "",
           "url": "",
@@ -46,7 +46,10 @@
               "list": [
                 "Legacy cosmetic records are converted to the item format used by 1.10.5 when inventory loads.",
                 "The conversion keeps recovery records and does not reset equipment or cells.",
-                "Main-shop cosmetic offers use Rams; the displayed price is checked again when purchasing."
+                "Main-shop cosmetic offers use Rams; the displayed price is checked again when purchasing.",
+                "Launcher 1.0.53 and newer include the shop-card fix for Rams prices and icons instead of the incorrect -1 Platinum display.",
+                "Recruit dye stays in the shop for its quest. Other main-shop offers rotate weekly.",
+                "Middleman fusion recipes take one hour. Existing timers are not restarted."
               ]
             }
           ]
@@ -60,7 +63,7 @@
         {
           "type": "text",
           "title": "Reliability fixes",
-          "description": "This update addresses stale hunt servers and conflicting bounty slots.",
+          "description": "Recent updates include these corrections. Multiplayer reports still help us confirm every case.",
           "background": "",
           "cta": "",
           "url": "",
@@ -68,16 +71,13 @@
             {
               "comment": "Dauntless Unbroken",
               "list": [
-                "Hunt allocation checks fresh game activity before assigning a world.",
-                "Unresponsive hunt processes are retired after a grace period.",
-                "Ordinary bounties and seasonal challenges no longer replace each other when they use the same slot number.",
+                "Launcher 1.0.54 includes chat and friend-presence connection fixes, plus a Training Grounds hammer replication correction.",
+                "Linux package updates wait for installation to finish. Removing game content preserves extra files you added.",
+                "Reforging now permits the level-20 weapon XP reset. All seven weapon prestige tracks award Aetherhearts on subsequent reforges.",
                 "Quest dialogue and Training Grounds routing have been corrected.",
                 "Public matchmaking groups eligible requests for the same hunt; private hunts stay limited to you and your party.",
-                "Launcher 1.0.53 corrects the Rams price and currency icon on shop cards.",
-                "Main-shop offers rotate weekly, with Recruit dye always available for its quest.",
-                "Middleman fusion recipes use a one-hour wait. Existing timers are not restarted.",
-                "New loadouts no longer start with an unearned Revenant Omnicell. Existing equipment is preserved.",
-                "Slayer Links now accept the 1.10.5 reward pool, including Combat Merits and Aethersparks. Missing pools have been restored without resetting link progress or existing rewards."
+                "Ordinary bounties no longer overwrite seasonal challenge slots. Daily and weekly challenge work is still on hold.",
+                "Slayer Link reward pools accept Combat Merits and Aethersparks; missing pools are restored without resetting link progress."
               ]
             }
           ]
@@ -91,7 +91,7 @@
         {
           "type": "text",
           "title": "Issues under investigation",
-          "description": "Please upload launcher logs after an error so we can investigate your session.",
+          "description": "After a problem, use launcher Settings > Help > Export to admins. Include the hunt, item or ability name and what happened.",
           "background": "",
           "cta": "",
           "url": "",
@@ -99,10 +99,11 @@
             {
               "comment": "Dauntless Unbroken",
               "list": [
-                "Some players still report hunt timeouts or Escalation cancellations.",
-                "Weapon meters, lanterns, consumables and zero-health states still need further gameplay validation.",
-                "Missing items and bounty rewards are being checked; report the item or bounty name with your account name.",
-                "Omnicell HUD and activation reports, Lightbound Koshai effects and Slayer Link reward display are still under investigation."
+                "Hunt timeouts, Escalation cancellations and party travel still need multiplayer verification.",
+                "Weapon meters, Thrax and chain-blade recovery, consumables, projectile damage and corruption-related zero-health states remain under investigation.",
+                "Omnicell visibility and activation, Radiant Escalation effects and Lightbound Koshai bubbles still need validation.",
+                "Missing cosmetics, bounty rewards, Trials and island unlocks, and Slayer Link reward display are being checked.",
+                "Please report any reforge that charges currency without resetting weapon XP or updating its Slayer's Path requirement."
               ]
             }
           ]

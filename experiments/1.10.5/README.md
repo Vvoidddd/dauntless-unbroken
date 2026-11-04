@@ -14,6 +14,7 @@ Old Slayer Mastery and the weapon skill shown by 1.10.5 are different systems. `
 
 - Ramsgate login, Markus's first quest and its 100 Rams reward, Training Grounds travel and Rosk's dialogue passed in-game checks.
 - In a local Training Grounds test, the starter hammer appeared and worked after its equipped weapon's per-connection replication distance limit was cleared. The server change applies that correction to always-relevant equipped hammers. Multiplayer and other hammer variants have not been checked.
+- In a local hunt, equipped Revenant was charging on the server but missing on the client. Clearing its connection's replication distance made the actor and HUD icon appear. The server applies the same correction to equipped Omnicells that use their owner's relevancy; the rebuilt server and other Omnicells still need in-game checks.
 - Void entered Hunting Grounds and killed two Behemoths. The backend received inventory and weapon XP saves.
 - All 18 Escalation variants passed startup checks. DR_AGON confirmed entering one; full rounds, rewards and return travel still need completion tests.
 - Public matchmaking shares eligible hunts. Private requests keep solo players or their party separate. Reservations count the whole party against capacity.
@@ -27,6 +28,8 @@ Old Slayer Mastery and the weapon skill shown by 1.10.5 are different systems. `
 ## Still being checked
 
 Startup checks do not prove every hunt can be completed. Trials and unsupported story routes fail explicitly instead of sending players to the wrong world. Escalation completion, Slayer Link reward display and claims, some weapon abilities, zero-health states and Lightbound Koshai's invisible effects remain on the gameplay check list.
+
+An already-starting hunt waits briefly for its existing readiness checks within the allocation request. If it becomes ready in that window, the same request returns its address instead of waiting for a later matchmaking poll. The latest server heartbeat must also show an initialized replication graph; an open UDP port and a fresh heartbeat alone are not enough. The wait is bounded, preserves the existing capacity checks, and does not establish that the client finished loading.
 
 Live checks found Bastion equipped and Iceborne charging. Characters without an Omnicell actor in that sample also had an empty saved active slot. A check of 4,034 saved loadout revisions found no populated Omnicell slot being cleared. That does not explain every disappearing HUD slot; capture the active loadout, role and ability state during a failure before changing loadouts.
 
@@ -72,6 +75,9 @@ Checks to run with the local services up:
 ```powershell
 node experiments/1.10.5/check-local-backend.cjs
 node experiments/1.10.5/check-local-deploy.cjs
+node experiments/1.10.5/check-stale-readiness.cjs
+node experiments/1.10.5/test-hunt-readiness.cjs
+node experiments/1.10.5/test-hunt-start.cjs
 ./experiments/1.10.5/check-local-server.ps1
 ./experiments/1.10.5/check-local-server.ps1 -World dojo
 # After an actual client connection:

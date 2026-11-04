@@ -716,92 +716,358 @@
   {
     "progression_id": "PrestigeTrack_Weapon_Axe",
     "premium_gating_entitlement": "",
-    "progression_multiplier": 0,
+    "progression_multiplier": 1,
     "requirements": [
       {
         "rank_id": 0,
         "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 1
       }
     ],
-    "free_rewards": [],
-    "premium_rewards": []
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      }
+    ],
+    "premium_rewards": [],
+    "prestige": {
+      "xp_per_level": 1,
+      "free_rewards": {
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      },
+      "premium_rewards": {
+        "stacked_items": []
+      }
+    }
   },
   {
     "progression_id": "PrestigeTrack_Weapon_ChainBlades",
     "premium_gating_entitlement": "",
-    "progression_multiplier": 0,
+    "progression_multiplier": 1,
     "requirements": [
       {
         "rank_id": 0,
         "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 1
       }
     ],
-    "free_rewards": [],
-    "premium_rewards": []
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      }
+    ],
+    "premium_rewards": [],
+    "prestige": {
+      "xp_per_level": 1,
+      "free_rewards": {
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      },
+      "premium_rewards": {
+        "stacked_items": []
+      }
+    }
   },
   {
     "progression_id": "PrestigeTrack_Weapon_Hammer",
     "premium_gating_entitlement": "",
-    "progression_multiplier": 0,
+    "progression_multiplier": 1,
     "requirements": [
       {
         "rank_id": 0,
         "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 1
       }
     ],
-    "free_rewards": [],
-    "premium_rewards": []
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      }
+    ],
+    "premium_rewards": [],
+    "prestige": {
+      "xp_per_level": 1,
+      "free_rewards": {
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      },
+      "premium_rewards": {
+        "stacked_items": []
+      }
+    }
   },
   {
     "progression_id": "PrestigeTrack_Weapon_Repeaters",
     "premium_gating_entitlement": "",
-    "progression_multiplier": 0,
+    "progression_multiplier": 1,
     "requirements": [
       {
         "rank_id": 0,
         "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 1
       }
     ],
-    "free_rewards": [],
-    "premium_rewards": []
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      }
+    ],
+    "premium_rewards": [],
+    "prestige": {
+      "xp_per_level": 1,
+      "free_rewards": {
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      },
+      "premium_rewards": {
+        "stacked_items": []
+      }
+    }
   },
   {
     "progression_id": "PrestigeTrack_Weapon_Spear",
     "premium_gating_entitlement": "",
-    "progression_multiplier": 0,
+    "progression_multiplier": 1,
     "requirements": [
       {
         "rank_id": 0,
         "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 1
       }
     ],
-    "free_rewards": [],
-    "premium_rewards": []
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      }
+    ],
+    "premium_rewards": [],
+    "prestige": {
+      "xp_per_level": 1,
+      "free_rewards": {
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      },
+      "premium_rewards": {
+        "stacked_items": []
+      }
+    }
   },
   {
     "progression_id": "PrestigeTrack_Weapon_Strikers",
     "premium_gating_entitlement": "",
-    "progression_multiplier": 0,
+    "progression_multiplier": 1,
     "requirements": [
       {
         "rank_id": 0,
         "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 1
       }
     ],
-    "free_rewards": [],
-    "premium_rewards": []
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      }
+    ],
+    "premium_rewards": [],
+    "prestige": {
+      "xp_per_level": 1,
+      "free_rewards": {
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      },
+      "premium_rewards": {
+        "stacked_items": []
+      }
+    }
   },
   {
     "progression_id": "PrestigeTrack_Weapon_Sword",
     "premium_gating_entitlement": "",
-    "progression_multiplier": 0,
+    "progression_multiplier": 1,
     "requirements": [
       {
         "rank_id": 0,
         "xp_required": 0
+      },
+      {
+        "rank_id": 1,
+        "xp_required": 1
       }
     ],
-    "free_rewards": [],
-    "premium_rewards": []
+    "free_rewards": [
+      {
+        "rank_id": 1,
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      }
+    ],
+    "premium_rewards": [],
+    "prestige": {
+      "xp_per_level": 1,
+      "free_rewards": {
+        "stacked_items": [
+          {
+            "catalog_id": "CURRENCY_PJM_PRESTIGE_FILLED",
+            "quantity": 1,
+            "priority": 0,
+            "hidden": false
+          }
+        ],
+        "instanced_items": [],
+        "ordered_instanced_items": [],
+        "entitlements": []
+      },
+      "premium_rewards": {
+        "stacked_items": []
+      }
+    }
   }
 ]

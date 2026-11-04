@@ -598,13 +598,27 @@ export function ConfirmRank(AccountId: string, ProgressionId: string, RankRaw: s
 }
 
 // DELETE /progression/:uid/:track: back to progress 0 and ranks 0
-export function ResetTrack(AccountId: string, ProgressionId: string, Who: Caller): RealReply{
+// 1.10.5 reforging resets only a completed weapon XP track, not mastery or prestige.
+export function IsWeaponReforgeTrack(Id: string): boolean {
+    return Local1105Enabled() && /^ExperienceTrack_Weapon_(Axe|ChainBlades|Hammer|Repeaters|Spear|Strikers|Sword)$/.test(Id);
+}
+
+export function ResetTrack(AccountId: string, ProgressionId: string, Who: Caller, ReforgeOnly = false): RealReply{
     if(IsLinkTrack(ProgressionId))return {Status:409}; // Releasing a slot must preserve earned rewards.
 
     const Route = "DELETE /progression/:uid/:track";
 
     return GetDb().transaction((tx) => {
         const Current = ReadTrack(tx, AccountId, ProgressionId);
+        if(ReforgeOnly){
+            const Path = GetProgressionPath(ProgressionId);
+            if(!IsWeaponReforgeTrack(ProgressionId) || !Path || MaxRankId(Path) !== 20 ||
+                !Current || Current.progress < TotalXpToMaxRank(Path)){
+                RecordProgressionEvent(tx, {AccountId, Caller: Who, Route, Status: 409, Notes: ["reforge requires a level-20 weapon track"]});
+                return {Status: 409};
+            }
+        }
+
 
         if(Current == undefined && GetProgressionPath(ProgressionId) == undefined){
             RecordProgressionEvent(tx, {AccountId, Caller: Who, Route, Status: 404, Notes: [`track ${ProgressionId} is unknown`]});

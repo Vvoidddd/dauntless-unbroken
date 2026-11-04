@@ -3,6 +3,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { waitForHuntReady } = require('./hunt-readiness.cjs');
 const { execFile } = require('node:child_process');
 // Windows PowerShell must load its own modules, not the parent PowerShell 7 modules.
 const powershell = path.join(process.env.SystemRoot || 'C:/Windows','System32/WindowsPowerShell/v1.0/powershell.exe');
@@ -116,7 +117,7 @@ async function startHunt(hunt, players) {
       });
   }
   const entry=hunts.get(hunt); if(entry) {entry.requestedAt=Date.now();saveHunts();}
-  return ready(hunt);
+  return waitForHuntReady(() => ready(hunt));
 }
 const sessions = new Map();
 const readinessCache=new Map();
@@ -134,8 +135,11 @@ function occupancy(stem,startedAt,now=Date.now()){
     const stat=fs.statSync(file);if(now-stat.mtimeMs>15000||stat.mtimeMs<startedAt)return;
     const fd=fs.openSync(file,'r');let tail;
     try{const b=Buffer.alloc(Math.min(stat.size,8192));fs.readSync(fd,b,0,b.length,stat.size-b.length);tail=b.toString();}finally{fs.closeSync(fd);}
-    const sample=[...tail.matchAll(/engine_tick[^\r\n]*clients=(\d+)/g)].at(-1);
-    return sample?Number(sample[1]):undefined;
+    const sample=[...tail.matchAll(/engine_tick[^\r\n]*/g)].at(-1)?.[0];
+    const graph=sample?.match(/\bgraph=(?:0x)?([0-9a-f]+)/i)?.[1];
+    const players=sample?.match(/\bclients=(\d+)/)?.[1];
+    if (!graph || /^0+$/.test(graph) || players === undefined) return;
+    return Number(players);
   }catch{return;}
 }
 async function ready(mode) {
