@@ -248,7 +248,7 @@ function createWindow(): void {
   const showTimer = setTimeout(() => { if (!window.isDestroyed()) window.show(); }, 10000);
   window.once("closed", () => clearTimeout(showTimer));
   window.webContents.on("render-process-gone", (_event, details) => {
-    log.error(`launcher renderer stopped: ${details.reason}`);
+    log.error(`launcher renderer stopped: ${details.reason} (exit code ${details.exitCode})`);
     const snapshot=controller?.snapshot(),offline=controller?.offlineStatus().phase;
     if (!process.argv.includes("--safe-mode") && !snapshot?.busy && !snapshot?.task && !snapshot?.game.running && !controller?.relayActive && (!offline||offline==='stopped'||offline==='error')) {
       app.relaunch(launcherRelaunchOptions(process.platform,process.env.APPIMAGE,[...process.argv.slice(1), "--safe-mode"]));
@@ -719,6 +719,9 @@ if (!started) {
       Menu.setApplicationMenu(null);
       logToFile(path.join(app.getPath("userData"), "logs"));
       installProcessErrorCapture();
+      app.on('child-process-gone', (_event, details) => {
+        if (details.reason !== 'clean-exit') log.error(`launcher ${details.type} process stopped: ${details.reason} (exit code ${details.exitCode})`);
+      });
       process.on('uncaughtExceptionMonitor',error=>log.error('uncaught main error: '+(error.stack??describeError(error))));
       log.info(`Dauntless Unbroken Launcher ${app.getVersion()} starting`);
       localStack = makeLauncherLocalStack();
