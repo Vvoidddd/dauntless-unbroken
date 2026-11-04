@@ -13,6 +13,7 @@
 #include "equipment-replication-policy.h"
 #include "MinHook/MinHook.h"
 #include "SDK/Archon_structs.hpp"
+#include "SDK/Archon_classes.hpp"
 #include "SDK/Engine_classes.hpp"
 #include "SDK/UMG_classes.hpp"
 #include "SDK/w_store_item_bpw_classes.hpp"
@@ -20,6 +21,7 @@
 #include "SDK/ReplicationGraph_classes.hpp"
 #include "SDK/exploration_game_mode_bpc_classes.hpp"
 #include "EscalationSelectionGuard.h"
+#include "maintenance-access.h"
 #include "startup-hook-gate.h"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
 extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
@@ -57,6 +59,52 @@ static void Note(const char* text) {
     FlushFileBuffers(Log);
 }
 static void (*OriginalProcessEvent1105)(SDK::UObject*, SDK::UFunction*, void*);
+static void (*OriginalPreLogin1105)(SDK::AGameModeBase*, const SDK::FString*, const SDK::FString*,
+                                    const SDK::FUniqueNetIdRepl*, SDK::FString*);
+static bool ReadEnvironment(const wchar_t* name, wchar_t* value, DWORD capacity, std::wstring_view* result) {
+    const DWORD length = GetEnvironmentVariableW(name, value, capacity);
+    if (length == 0) {
+        if (GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
+            *result = {};
+            return true;
+        }
+        return false;
+    }
+    if (length >= capacity) return false;
+    *result = std::wstring_view(value, length);
+    return true;
+}
+static bool UniqueIdString(const SDK::FUniqueNetIdRepl* id, std::wstring* result) {
+    if (!id || !result) return false;
+    auto* object = *reinterpret_cast<void* const*>(reinterpret_cast<const uint8_t*>(id) + 8);
+    if (!object) return false;
+    auto** vtable = *reinterpret_cast<void***>(object);
+    if (!vtable || !vtable[6]) return false;
+    auto toString = reinterpret_cast<SDK::FString*(*)(void*, SDK::FString*)>(vtable[6]);
+    SDK::FString value;
+    if (!toString(object, &value) || !value.IsValid() || value.Num() < 2 || value.Num() > 65 ||
+        value.CStr()[value.Num() - 1] != L'\0') return false;
+    *result = std::wstring(value.CStr(), value.Num() - 1);
+    return true;
+}
+static bool MaintenanceDenies(const SDK::FUniqueNetIdRepl* id) {
+    wchar_t mode[8] = {}, allowlist[4096] = {};
+    std::wstring_view modeView, allowlistView;
+    if (!ReadEnvironment(L"MAINTENANCE_MODE", mode, ARRAYSIZE(mode), &modeView) ||
+        (!modeView.empty() && modeView != L"0" && modeView != L"1")) return true;
+    if (modeView.empty() || modeView == L"0") return false;
+    if (!ReadEnvironment(L"MAINTENANCE_ALLOWED_ACCOUNT_IDS", allowlist, ARRAYSIZE(allowlist), &allowlistView)) return true;
+    std::wstring accountId;
+    return !UniqueIdString(id, &accountId) || !MaintenanceAccess1105::Allows(modeView, allowlistView, accountId);
+}
+static void PreLogin1105(SDK::AGameModeBase* gameMode, const SDK::FString* options, const SDK::FString* address,
+                         const SDK::FUniqueNetIdRepl* id, SDK::FString* errorMessage) {
+    OriginalPreLogin1105(gameMode, options, address, id, errorMessage);
+    if (errorMessage && errorMessage->Num() == 1 && MaintenanceDenies(id)) {
+        *errorMessage = SDK::FString(L"Maintenance access denied");
+        Note("maintenance_native_pre_login_denied\n");
+    }
+}
 static void ProcessEvent1105(SDK::UObject* object, SDK::UFunction* function, void* parameters) {
     if (!EscalationSelectionGuard1105::Allow(object, function, parameters, Note)) return;
     OriginalProcessEvent1105(object, function, parameters);
@@ -687,6 +735,15 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
         };
         if (memcmp(reinterpret_cast<void*>(Base + 0x266ec40), processEventBytes, sizeof(processEventBytes)))
             Fail("process_event_bytes_mismatch\n");
+        const unsigned char preLoginBytes[] = {
+            0x48,0x89,0x5c,0x24,0x10,0x48,0x89,0x6c,0x24,0x18,0x48,0x89,0x74,0x24,0x20,
+            0x41,0x56,0x48,0x83,0xec,0x40,0x48,0x8b,0x74,0x24,0x70
+        };
+        if (memcmp(reinterpret_cast<void*>(Base + 0x17dbbf0), preLoginBytes, sizeof(preLoginBytes)))
+            Fail("pre_login_bytes_mismatch\n");
+        if (!Hook(0x17dbbf0, PreLogin1105, reinterpret_cast<void**>(&OriginalPreLogin1105)))
+            Fail("pre_login_hook_failed\n");
+        Note("maintenance_native_gate_enabled_at_pre_login\n");
         if (GetEnvironmentVariableW(L"DR_1105_GAMESERVER_KEY", ServerKey, 65) != 64 ||
             wcsspn(ServerKey, L"0123456789abcdef") != 64) Fail("missing_local_server_credential\n");
         const unsigned char processBytes[] = {0x40,0x55,0x53,0x41,0x54,0x41,0x56,0x41,0x57,0x48,0x8d,0x6c,0x24,0xc9,0x48,0x81,0xec,0xd0,0x00,0x00,0x00};
