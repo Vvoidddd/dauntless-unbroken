@@ -132,6 +132,7 @@ try {
         $z = [IO.Compression.ZipFile]::OpenRead($wz.FullName)
         try { $names = @($z.Entries | ForEach-Object { $_.FullName }) } finally { $z.Dispose() }
         Check 'the working tree zip has the server packages' (($names -contains 'DauntlessUnbrokenMetagame/package.json') -and ($names -contains 'deploy/windows-server/Install-DauntlessUnbrokenServer.ps1'))
+        Check 'the working tree zip has the metagame migration journal and latest migrations' (($names -contains 'DauntlessUnbrokenMetagame/src/drizzle/meta/_journal.json') -and ($names -contains 'DauntlessUnbrokenMetagame/src/drizzle/0037_daily_bounty_draft.sql') -and ($names -contains 'DauntlessUnbrokenMetagame/src/drizzle/0038_profile_picture_moderation.sql'))
         $leak = @($names | Where-Object { $_ -match '(^|/)\.env($|\.)' -and $_ -notmatch '\.env\.example$' -or $_ -match '\.(key|pem|db)$' -or $_ -match '(^|/)node_modules/' -or $_ -match '(^|/)dist/' })
         Check 'no .env, key, database, node_modules or dist in it' ($leak.Count -eq 0) (($leak | Select-Object -First 5) -join ', ')
     }
