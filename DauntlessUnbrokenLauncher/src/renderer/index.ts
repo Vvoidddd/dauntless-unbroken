@@ -755,7 +755,7 @@ function renderPlay(): void {
     renderRegion(container, "loading", () => [h("div", { class: "play-content" }, h("div", { class: "card-row" }, h("div", { class: "spinner" }), t("loading")))]);
     return;
   }
-  const playClass = state.offlineView ? "play-offline" : snap.phase === "ready" || snap.phase === "running" ? "play-home" : "";
+  const playClass = state.offlineView ? "play-offline" : snap.phase === "join" || snap.phase === "connect" ? "" : "play-home";
   const sig = JSON.stringify([
     state.lang,
     snap.phase,
