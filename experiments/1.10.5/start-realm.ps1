@@ -3,9 +3,6 @@ $ErrorActionPreference = 'Stop'
 $lab = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
 $node = if(Test-Path (Join-Path $lab 'runtime/node.exe')){Join-Path $lab 'runtime/node.exe'}elseif(Test-Path 'C:/DauntlessUnbrokenBot/runtime/nodejs/node.exe'){'C:/DauntlessUnbrokenBot/runtime/nodejs/node.exe'}else{(Get-Command node.exe).Source}
 $node=[IO.Path]::GetFullPath($node)
-. (Join-Path $PSScriptRoot 'maintenance-config.ps1')
-$maintenance = Get-DRMaintenanceEnvironment (Join-Path $lab 'backend-state\maintenance.json')
-foreach ($name in $maintenance.Keys) { Set-Item -Path "Env:$name" -Value ([string]$maintenance[$name]) }
 $hostedFile=Join-Path $lab 'backend-state\hosted.json'
 if(Test-Path -LiteralPath $hostedFile){
  $hosted=Get-Content -LiteralPath $hostedFile -Raw | ConvertFrom-Json
