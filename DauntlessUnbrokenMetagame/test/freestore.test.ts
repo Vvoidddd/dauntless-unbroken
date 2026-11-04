@@ -165,6 +165,19 @@ it('native Rams wire purchase charges Rams once and rejects another account usin
     });
 });
 
+it('a redeemed purchase token still rejects retries through the wrong currency', async () => {
+    const A = await MakePlayer();
+    await WithEnv({STORE_RAMS_TEST_ACCOUNT: A.UserId}, () => {
+        GetDb().insert(inventory).values({characterId: A.CharacterId, instancedItems: '[]', stackedItems: JSON.stringify([{catalogId: 'CURRENCY_NOTES', quantity: 1500}])}).run();
+        const token = CreateStorePurchase(A.UserId, 'notes', SKU).purchaseToken;
+
+        RedeemStorePurchase(A.UserId, 'notes', token);
+        assert.throws(() => RedeemStorePurchase(A.UserId, 'platinum', token), {Status: 400});
+        assert.equal(StackQuantity(A.CharacterId, 'CURRENCY_NOTES'), 750);
+        assert.equal(StackQuantity(A.CharacterId, ITEM), 1);
+    });
+});
+
 it('production Rams shop requires updated clients and charges every account through the native bridge',async()=>{
     const A=await MakePlayer(), B=await MakePlayer();
     await WithEnv({STORE_RAMS:'1',STORE_RAMS_TEST_ACCOUNT:undefined,STORE_RAMS_EVENT_TRANSPORT:'1',STORE_WEEKLY_ROTATION:'1'},async()=>{

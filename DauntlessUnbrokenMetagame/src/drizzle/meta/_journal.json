@@ -263,9 +263,16 @@
     },
     {
       "idx": 37,
+      "version": "6",
+      "when": 1793577600000,
+      "tag": "0037_daily_bounty_draft",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
       "version": "7",
       "when": 1794000000000,
-      "tag": "0037_profile_picture_moderation",
+      "tag": "0038_profile_picture_moderation",
       "breakpoints": true
     }
   ]

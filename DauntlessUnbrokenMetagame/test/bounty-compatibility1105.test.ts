@@ -42,3 +42,71 @@ it('restores supported bounties without destroying quarantined migration progres
     } finally { delete process.env.LOCAL_1105_REALM; delete process.env.BIND_HOST; }
     assert.equal(GetBountyReply(UserId).payload.bounties.length,2);
 });
+
+it('hides malformed imported bounty JSON without changing the preserved rows', async () => {
+    const {UserId} = await MakePlayer();
+    const db = GetDb().$client;
+    db.prepare('INSERT INTO bounties (accountId,bountyId,slotIndex,updateVersion,data,updatedDate) VALUES (?,?,?,?,?,?)')
+        .run(UserId, 'Bounty_Bronze_ASInterrupts', 0, 1, '{not-json', '2026-11-03T00:00:00Z');
+    db.prepare('INSERT INTO bountydraft (accountId,data,updatedDate) VALUES (?,?,?)')
+        .run(UserId, '{not-json', '2026-11-03T00:00:00Z');
+
+    process.env.BIND_HOST='127.0.0.1'; process.env.LOCAL_1105_REALM='1';
+    try {
+        const board = GetBountyReply(UserId).payload;
+        assert.deepEqual(board.bounties, []);
+        assert.deepEqual(board.draft_data, {
+            current_draft_choices: [], previous_draft_selections: [],
+            bronze_count: 0, silver_count: 0, gold_count: 0
+        });
+        assert.equal(SetBounties(UserId, {bounties: []}, 'gameserver').Status, 200);
+        assert.equal(DeleteBounties(UserId, {bounty_ids: []}, 'gameserver').Status, 200);
+    } finally { delete process.env.LOCAL_1105_REALM; delete process.env.BIND_HOST; }
+
+    assert.equal((db.prepare('SELECT data FROM bounties WHERE accountId=?').get(UserId) as any).data, '{not-json');
+    assert.equal((db.prepare('SELECT data FROM bountydraft WHERE accountId=?').get(UserId) as any).data, '{not-json');
+});
+
+it('returns a default for malformed challenge drafts without overwriting saved data', async () => {
+    const {UserId} = await MakePlayer();
+    const db = GetDb().$client;
+    db.prepare('INSERT INTO challengedrafts (accountId,kind,data,updatedDate) VALUES (?,?,?,?)')
+        .run(UserId, 'daily', '{not-json', '2026-11-03T00:00:00Z');
+    db.prepare('INSERT INTO challengedrafts (accountId,kind,data,updatedDate) VALUES (?,?,?,?)')
+        .run(UserId, 'weekly', '[]', '2026-11-03T00:00:00Z');
+    process.env.BIND_HOST='127.0.0.1'; process.env.LOCAL_1105_REALM='1';
+    try {
+        const board = GetBountyReply(UserId).payload;
+        const empty = {current_draft_choices: [], previous_draft_selections: [], bronze_count: 0, silver_count: 0, gold_count: 0};
+        assert.deepEqual(board.draft_data_daily, empty);
+        assert.deepEqual(board.draft_data_weekly, empty);
+        assert.deepEqual(db.prepare('SELECT kind,data FROM challengedrafts WHERE accountId=? ORDER BY kind').all(UserId), [
+            {kind: 'daily', data: '{not-json'}, {kind: 'weekly', data: '[]'}
+        ]);
+    } finally { delete process.env.LOCAL_1105_REALM; delete process.env.BIND_HOST; }
+});
+
+it('hides non-object imported bounty JSON in both compatibility modes', async () => {
+    const {UserId} = await MakePlayer();
+    const db = GetDb().$client;
+    db.prepare('INSERT INTO bounties (accountId,bountyId,slotIndex,updateVersion,data,updatedDate) VALUES (?,?,?,?,?,?)')
+        .run(UserId, 'Bounty_Bronze_AxeInterrupts', 0, 1, 'null', '2026-11-03T00:00:00Z');
+    db.prepare('INSERT INTO bountydraft (accountId,data,updatedDate) VALUES (?,?,?)')
+        .run(UserId, '[]', '2026-11-03T00:00:00Z');
+
+    try {
+        for (const local of [true, false]) {
+            if (local) { process.env.BIND_HOST='127.0.0.1'; process.env.LOCAL_1105_REALM='1'; }
+            else { delete process.env.LOCAL_1105_REALM; delete process.env.BIND_HOST; }
+            const board = GetBountyReply(UserId).payload;
+            assert.deepEqual(board.bounties, []);
+            assert.deepEqual(board.draft_data, {
+                current_draft_choices: [], previous_draft_selections: [],
+                bronze_count: 0, silver_count: 0, gold_count: 0
+            });
+        }
+    } finally { delete process.env.LOCAL_1105_REALM; delete process.env.BIND_HOST; }
+
+    assert.equal((db.prepare('SELECT data FROM bounties WHERE accountId=?').get(UserId) as any).data, 'null');
+    assert.equal((db.prepare('SELECT data FROM bountydraft WHERE accountId=?').get(UserId) as any).data, '[]');
+});

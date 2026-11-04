@@ -583,6 +583,20 @@ export function RedeemStorePurchase(AccountId: string, Currency: string, Token: 
         }
 
         if(Purchase.redeemedDate != null){
+            // A receipt retry is idempotent, but the endpoint still has to match the offer's
+            // current payment currency. If the offer disappeared or changed shape, preserve the
+            // stored-receipt retry behavior instead of attempting to grant it again.
+            const CurrentOffer = FindOffer(Purchase.skuId, AccountId);
+            if(CurrentOffer != undefined){
+                try{
+                    if(ResolveOfferPricing(CurrentOffer).Currency !== Currency){
+                        throw new StoreError(400, "Offer is not sold in that currency");
+                    }
+                }
+                catch(error){
+                    if(error instanceof StoreError && error.Status === 400) throw error;
+                }
+            }
             return {Replayed: true, SkuId: Purchase.skuId, CharacterId: Purchase.characterId, Items: 0, Entitlements: 0};
         }
 

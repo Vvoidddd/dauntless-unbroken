@@ -66,15 +66,39 @@ async function check() {
   assert.equal((await fetch('http://127.0.0.1:62000/pjm/' + selected.userId, { headers: serverHeaders })).status, 200);
   assert.equal((await fetch('http://127.0.0.1:62000/pjm/UID-local-foreign-account', { headers: serverHeaders })).status, 403);
   assert.equal((await fetch('http://127.0.0.1:62000/pjm/' + selected.userId, { headers: { 'x-dauntless-unbroken-gameserver-apikey': 'invalid' } })).status, 401);
+  const expectedChallengeTuning = {
+    '': {
+      max_slots: 4,
+      bounty_data: [],
+      delete_claimed_bounties: true,
+      bounty_token_id: 'TOKEN_BOUNTY_DRAFT',
+    },
+    '_daily': {
+      max_slots: 1,
+      bounty_data: [{ bounty_id: 'Challenge_Daily_Hunt', enabled: true, reward_amount: 100 }],
+      automatic_draft: true,
+      automatic_claim: false,
+      delete_claimed_bounties: true,
+    },
+    '_weekly': {
+      max_slots: 1,
+      bounty_data: [{ bounty_id: 'Challenge_Season_DamageTotal', enabled: true, reward_amount: 100 }],
+      automatic_draft: true,
+      automatic_claim: false,
+      delete_claimed_bounties: true,
+    },
+  };
   for (const suffix of ['', '_daily', '_weekly']) {
     const reply = await fetch('http://127.0.0.1:62000/game_tuning/bounty_game_data' + suffix);
     assert.equal(reply.status, 200);
     const data = await reply.json();
     assert.equal(data.code, '');
-    assert.equal(data.payload.max_slots, suffix ? 0 : 4);
-    assert.deepEqual(data.payload.bounty_data, []);
-    assert.equal(data.payload.delete_claimed_bounties, !!suffix);
-    if (!suffix) assert.equal(data.payload.bounty_token_id, 'TOKEN_BOUNTY_DRAFT');
+    for (const [key, value] of Object.entries(expectedChallengeTuning[suffix])) {
+      assert.deepEqual(data.payload[key], value, `Unexpected ${key} for ${suffix || 'ordinary'} bounty tuning`);
+    }
+    if (suffix === '_weekly') {
+      assert.equal(data.payload.bounty_data.some(entry => entry.bounty_id === 'Challenge_Season_Break_Armour_Rock'), false);
+    }
   }
   console.log('Local backend: auth, persisted Journey snapshot and login fixtures checked.');
   // Opt in while the game is closed: joining a candidate changes the active travel request.

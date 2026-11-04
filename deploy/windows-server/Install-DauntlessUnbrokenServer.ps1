@@ -999,6 +999,8 @@ try {
     $meta['BIND_HOST'] = $BindIp
     $meta['AUTH_MODE'] = 'APIKEY'
     $meta['DB_FILENAME'] = & $fwd $P.Db
+    $dashboardControl = Join-Path $P.Data 'dashboard-control'
+    $meta['ISLAND_EVENT_CONTROL_FILE'] = & $fwd (Join-Path $dashboardControl 'island-event.json')
     $meta['BACKUP_ROOT'] = & $fwd $P.Backups
     $meta['TARGET_CHANGELIST'] = $DRPinned.Changelist
     # Public mode: every friend's launcher relays the game's traffic from its own 127.0.0.1:61000.
@@ -1028,6 +1030,7 @@ try {
     $deploy['PORT_RANGE_END'] = "$UdpEnd"
     $deploy['GAMESERVER_BINARY_PATH'] = & $fwd $exe
     $deploy['METAGAME_API_KEY'] = $gsKey
+    $deploy['DRAIN_FILE'] = & $fwd (Join-Path $dashboardControl 'drain.flag')
     if (-not $deploy['SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP']) { $deploy['SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP'] = '10' }
     if (-not $deploy.Contains('RAMSGATE_POOL')) { $deploy['RAMSGATE_POOL'] = '1' }
     if (-not $deploy.Contains('ENABLE_DOJO')) { $deploy['ENABLE_DOJO'] = '0' }

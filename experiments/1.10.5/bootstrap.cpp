@@ -19,6 +19,8 @@
 #include "SDK/GameplayAbilities_classes.hpp"
 #include "SDK/ReplicationGraph_classes.hpp"
 #include "SDK/exploration_game_mode_bpc_classes.hpp"
+#include "EscalationSelectionGuard.h"
+#include "startup-hook-gate.h"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
 extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
 extern "C" { void ApexReportGuardEarly(); void* ApexEarlyContinue = nullptr; void ApexReportGuard(); void* ApexReportContinue = nullptr; void* ApexReportNext = nullptr; }
@@ -53,6 +55,11 @@ static void Note(const char* text) {
     DWORD written;
     WriteFile(Log, text, static_cast<DWORD>(strlen(text)), &written, nullptr);
     FlushFileBuffers(Log);
+}
+static void (*OriginalProcessEvent1105)(SDK::UObject*, SDK::UFunction*, void*);
+static void ProcessEvent1105(SDK::UObject* object, SDK::UFunction* function, void* parameters) {
+    if (!EscalationSelectionGuard1105::Allow(object, function, parameters, Note)) return;
+    OriginalProcessEvent1105(object, function, parameters);
 }
 static void SetText(SDK::UTextBlock* block, const SDK::FText& value) {
     if (!block) return;
@@ -104,6 +111,7 @@ static void UpdateCellFusionTime() {
     const auto now = GetTickCount64();
     if (now < next) return;
     next = now + (table ? 30000 : 2000);
+    if (!StartupHookGate::ObjectRegistryReady(SDK::UObject::GObjects)) return;
     if (!table || SDK::UObject::GObjects->GetByIndex(index) != table) {
         table = SDK::UObject::FindObject<SDK::UDataTable>("DataTable cell_exchange_table.cell_exchange_table");
         index = table ? table->Index : -1;
@@ -396,12 +404,15 @@ static void DumpHuntTables() {
     }
 }
 static void InstallApexReportGuard();
+static void InstallEscalationSelectionGuard();
 static void Tick(void* self, float delta, char render) {
     if (Server) InstallApexReportGuard();
     OriginalTick(self, delta, render);
     UpdateCellFusionTime();
     if (!Server) return; // Client must never run server stamina work or Sleep(25).
     auto* currentWorld = SDK::UWorld::GetWorld();
+    if (currentWorld && currentWorld->PersistentLevel && currentWorld->AuthorityGameMode)
+        InstallEscalationSelectionGuard();
     auto* currentDriver = currentWorld ? currentWorld->NetDriver : nullptr;
     if (currentDriver && !currentDriver->ServerConnection) {
         for (auto* connection : currentDriver->ClientConnections) {
@@ -444,6 +455,23 @@ static void Tick(void* self, float delta, char render) {
         }
     }
     Sleep(25);
+}
+static bool EscalationSelectionGuardInstalled = false;
+static void InstallEscalationSelectionGuard() {
+    if (!StartupHookGate::ShouldInstall(SDK::UWorld::GetWorld() != nullptr, EscalationSelectionGuardInstalled)) return;
+    const auto result = MH_CreateHook(reinterpret_cast<void*>(Base + 0x266ec40), ProcessEvent1105,
+        reinterpret_cast<void**>(&OriginalProcessEvent1105));
+    if (result != MH_OK) {
+        Note("escalation_selection_guard_create_failed\n");
+        return;
+    }
+    if (MH_EnableHook(reinterpret_cast<void*>(Base + 0x266ec40)) != MH_OK) {
+        MH_RemoveHook(reinterpret_cast<void*>(Base + 0x266ec40));
+        Note("escalation_selection_guard_enable_failed\n");
+        return;
+    }
+    EscalationSelectionGuardInstalled = true;
+    Note("escalation_selection_guard_enabled guard=1105\n");
 }
 static LONG CALLBACK Exception(EXCEPTION_POINTERS* info) {
     if (info->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
@@ -553,7 +581,7 @@ static void RestoreAbilityDispatch() {
 BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     if (reason != DLL_PROCESS_ATTACH) return TRUE;
     DisableThreadLibraryCalls(module);
-    wchar_t path[32768], enabled[2];
+    static wchar_t path[32768] = {}, enabled[2] = {};
     GetModuleFileNameW(nullptr, path, 32768);
     if (GetEnvironmentVariableW(L"DR_1105_LOCAL_LAB", enabled, 2) != 1 || enabled[0] != L'1' ||
          !ExactBuild(path)) return FALSE;
@@ -566,7 +594,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     CombatProbe = Server && wcscmp(world, L"combat-probe") == 0;
     ServerPort = CombatProbe ? 63872 : Dojo ? 63871 : 63870;
     if (CombatProbe) {
-        wchar_t url[4096]={}, port[8]={};
+        static wchar_t url[4096] = {}, port[8] = {};
         const auto size=GetEnvironmentVariableW(L"DR_1105_HUNT_URL",url,4096);
         if (!size || size>=4096 || wcsncmp(url,L"/Game/Maps/islands/",18)) return FALSE;
         HuntUrl=url;
@@ -578,14 +606,14 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     }
     ProfileName=CombatProbe ? L"profile-hunt-"+std::to_wstring(ServerPort) : Dojo ? L"profile-dojo" : L"profile";
 
-    wchar_t host[64] = {};
+    static wchar_t host[64] = {};
     const DWORD hostLength = GetEnvironmentVariableW(Server ? L"DR_1105_BIND_IP" : L"DR_1105_HOST", host, 64);
     if (hostLength) {
         if (hostLength >= 64 || (!PrivateIp(host) && !(Server && wcscmp(host, L"0.0.0.0") == 0))) return FALSE;
         if (Server) BindIp = host;
         else {
             PresenceHost = host;
-            wchar_t port[8]={};
+            static wchar_t port[8] = {};
             const DWORD n=GetEnvironmentVariableW(L"DR_1105_PORT",port,8);
             unsigned number=62002;
             if(n){
@@ -597,7 +625,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
         }
     }
     if (!Server) {
-        wchar_t chatPort[8] = {};
+        static wchar_t chatPort[8] = {};
         const DWORD n = GetEnvironmentVariableW(L"DR_1105_XMPP_PORT", chatPort, 8);
         if (n) {
             if (n >= 8) return FALSE;
@@ -609,7 +637,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     }
     LocalServerCommand = L"Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -NoAsyncLoadingThread -EpicPortal -NoEAC -MULTIHOME=" + BindIp + L" -port=" + std::to_wstring(ServerPort) +
         L" -CULTURE=en-US -UserDir=C:/dr/build-1.10.5-20261030/" + ProfileName + L"/ -SaveToUserDir";
-    wchar_t clientLog[32768] = {};
+    static wchar_t clientLog[32768] = {};
     const DWORD logLength = GetEnvironmentVariableW(L"DR_1105_LOG", clientLog, 32768);
     const auto serverLog = L"C:/dr/build-1.10.5-20261030/" + (CombatProbe ? L"native-hunt-"+std::to_wstring(ServerPort) : Dojo ? std::wstring(L"native-dojo") : std::wstring(L"native-server")) + L".log";
     Log = CreateFileW(!Server && logLength > 0 && logLength < 32768 ? clientLog : Server ? serverLog.c_str() : L"C:/dr/build-1.10.5-20261030/native-client.log", FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -653,6 +681,12 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     }
     if (Server) {
         RestoreAbilityDispatch();
+        const unsigned char processEventBytes[] = {
+            0x40,0x55,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57,
+            0x48,0x81,0xec,0xf0,0x00,0x00,0x00,0x48,0x8d,0x6c,0x24,0x30
+        };
+        if (memcmp(reinterpret_cast<void*>(Base + 0x266ec40), processEventBytes, sizeof(processEventBytes)))
+            Fail("process_event_bytes_mismatch\n");
         if (GetEnvironmentVariableW(L"DR_1105_GAMESERVER_KEY", ServerKey, 65) != 64 ||
             wcsspn(ServerKey, L"0123456789abcdef") != 64) Fail("missing_local_server_credential\n");
         const unsigned char processBytes[] = {0x40,0x55,0x53,0x41,0x54,0x41,0x56,0x41,0x57,0x48,0x8d,0x6c,0x24,0xc9,0x48,0x81,0xec,0xd0,0x00,0x00,0x00};

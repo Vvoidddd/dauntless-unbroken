@@ -34,7 +34,7 @@ import { findLinuxUpdate, installLinuxUpdate, type LinuxUpdate } from "./main/li
 import { findTailscale } from "./main/system";
 import { discoverExistingGames, fixedGameDrives } from "./main/game-discovery";
 import { createUpdateCheck, UPDATE_POLL_MS } from "./main/update-check";
-import { describeError, log, logToFile } from "./main/log";
+import { describeError, installProcessErrorCapture, log, logToFile } from "./main/log";
 import { boundedString, externalTarget, isTrustedPageUrl, relayPortOverride, settingsPatch } from "./main/ipc-validate";
 import { INVITE_SCHEME, parseInvite } from "./shared/invite";
 import { IPC, type Snapshot, type OfflineStatus, type TaskProgress } from "./shared/types";
@@ -718,6 +718,7 @@ if (!started) {
     app.whenReady().then(async () => {
       Menu.setApplicationMenu(null);
       logToFile(path.join(app.getPath("userData"), "logs"));
+      installProcessErrorCapture();
       process.on('uncaughtExceptionMonitor',error=>log.error('uncaught main error: '+(error.stack??describeError(error))));
       log.info(`Dauntless Unbroken Launcher ${app.getVersion()} starting`);
       localStack = makeLauncherLocalStack();

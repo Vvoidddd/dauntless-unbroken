@@ -3,6 +3,7 @@ import {KeyRevocations} from './keyrotation';
 import {DeviceSignalInfo,SnapshotDeviceBan} from './devicesignals';
 import {ClientAddressOf, IsLoopbackAddress, NormalizeAddress} from '../middleware/RequestOrigin';
 import type {Request, Response} from 'express';
+import {MaintenanceAllows} from './maintenance';
 
 const playingAddresses=new Map<string,{address:string,last_seen:number}>();
 export function ExpirePlayingAddresses(now=Date.now()) {
@@ -20,6 +21,7 @@ export function BanFor(accountId?: string, address?: string): {reason:string}|un
         .get(Date.now(), accountId ?? '', address ?? '',accountId??'') as {reason:string}|undefined;
 }
 export function CheckPlayerAccess(req:Request,res:Response,accountId?:string):boolean {
+    if(accountId !== undefined && !MaintenanceAllows(accountId)){res.status(503).json({error:'maintenance'});return false;}
     const address=ClientAddressOf(req);
     const publicAddress=NormalizeAddress(address) && !IsLoopbackAddress(address) ? address : undefined;
     const ban=BanFor(accountId,publicAddress);

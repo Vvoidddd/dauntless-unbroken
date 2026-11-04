@@ -1,10 +1,11 @@
 import {createHash} from 'node:crypto';
 import {and,desc,eq,like} from 'drizzle-orm';
 import {GetDb} from '../db';
-import {characters,entitlements,inventory,onetimejobs,progressionevents,users} from '../db/schema';
+import {characters,entitlements,inventory,loadouts,onetimejobs,progressionevents,users} from '../db/schema';
 import catalog from '../vendor/admin_grant_catalog.json';
 import {ApplyInventoryTransactionInTx,MAX_STACK_QUANTITY} from './inventory';
 import {RecordProgressionEvent} from './progressionevents';
+import {RecordLoadoutVersion} from './savehistory';
 import {GrantEntitlementInTx} from './entitlements';
 import {Local1105Enabled,NativeStackedCosmetic} from './local1105';
 
@@ -25,6 +26,41 @@ const Bundles=[
 ];
 const SearchText=(value:string)=>value.normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 const SearchItems=RewardItems.map(item=>({item,name:SearchText(item.name),id:SearchText(item.id),text:SearchText(`${item.name} ${item.id} ${item.category} ${(item.aliases??[]).join(' ')}`)}));
+
+function RefreshEquippedWeaponData(tx:any,CharacterId:string,Items:any[]){
+    const Row=tx.select().from(loadouts).where(eq(loadouts.characterId,CharacterId)).get();
+    if(!Row||Items.length===0)return;
+
+    let Elements:any[];
+    try{
+        Elements=JSON.parse(Row.loadouts);
+    }
+    catch{
+        return;
+    }
+    if(!Array.isArray(Elements))return;
+    let Changed=false;
+    for(const Element of Elements){
+        const Weapon=Element?.weapon;
+        if(!Weapon||typeof Weapon.item_id!=='string'||typeof Weapon.instance_id!=='string')continue;
+        const Updated=Items.find(Item=>Item.catalogId===Weapon.item_id&&Item.instanceId===Weapon.instance_id);
+        if(!Updated||typeof Updated.itemData!=='string')continue;
+        try{
+            const Data=JSON.parse(Weapon.instance_data);
+            const NewData=JSON.parse(Updated.itemData);
+            if(Data===null||typeof Data!=='object'||Array.isArray(Data)||NewData===null||typeof NewData!=='object'||Array.isArray(NewData))continue;
+            Weapon.instance_data=Updated.itemData;
+            Changed=true;
+        }
+        catch{
+            continue;
+        }
+    }
+    if(Changed){
+        const Updated=tx.update(loadouts).set({loadouts:JSON.stringify(Elements)}).where(eq(loadouts.characterId,CharacterId)).returning().get();
+        if(Updated)RecordLoadoutVersion(tx,Updated,'admin:weapon-rank');
+    }
+}
 
 export function RewardCatalog(query:unknown='',category:unknown='',offset:unknown=0){
     if(typeof query!=='string'||query.length>100||typeof category!=='string'||category.length>30)throw new RewardError(400,'Invalid catalogue search');
@@ -138,6 +174,7 @@ export function GrantReward(actorId:string,input:unknown){
             ApplyInventoryTransactionInTx(tx,{UserId:request.accountId,CharacterId:request.characterId,TransactionId:receipt,
                 StackedItemsToAdd,InstancedItemsToAdd,InstancedItemsToSave
             },{Caller:'admin',Source:`dashboard-reward:${actorId}`});
+            RefreshEquippedWeaponData(tx,request.characterId,InstancedItemsToSave);
         }
         const result={requestId:request.requestId,accountId:request.accountId,accountName:owner.name,characterId:request.characterId,characterName:character.name,catalogId:item?.id??null,itemName:bundle?.name??item!.name,added,before,after:before+added,replayed:false,...(weapon?{rankBefore,rankAfter,upgraded}:{}),...(bundle?{bundle:bundle.id,total:entries.length,upgradedCount,skipped:entries.length-added-upgradedCount}:{})};
         return finish(result);

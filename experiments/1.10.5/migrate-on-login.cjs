@@ -1,6 +1,6 @@
 const {createHash}=require('node:crypto'),fs=require('node:fs');
 const allowed=new Set('users characters userapikeys authepochs loadouts breadcrumbs encounteredcontent loadoutslots discordlinks huntregions bounties bountydraft cooldowns entitlements huntpassselection objectives progress_tracks escalationprogression escalationtalents escalationunlocks leaderboardprofiles inventories account_playtime'.split(' '));
-const social=require('./migration-social.cjs'),merits=require('./migration-merits.cjs');
+const social=require('./migration-social.cjs'),merits=require('./migration-merits.cjs'),currency=require('./migrate-currency.cjs');
 const hashKey=key=>createHash('sha256').update(key).digest('hex');
 function prepare(db){social.prepare(db);merits.prepare(db);db.exec('CREATE TABLE IF NOT EXISTS imports1105(userId TEXT PRIMARY KEY,sourceDate TEXT NOT NULL,importedAt TEXT NOT NULL)');}
 function admit(db,hash,code,ex,requireInvite=true){
@@ -28,6 +28,7 @@ function admit(db,hash,code,ex,requireInvite=true){
     db.prepare(`INSERT INTO ${table} (${names.map(k=>'"'+k+'"').join(',')}) VALUES (${names.map(()=>'?').join(',')})`).run(...Object.values(row));
    }
   }
+  currency.ApplyCurrencyMigration(db,uid);
   require('./migrate-experience.cjs').applyExperience(db,uid);
   social.apply(db,uid,ex.social);merits.grant(db,uid);
   if(requireInvite){
@@ -69,6 +70,11 @@ function createLogin(db,config,exporter=hash=>exportRemote(config,hash)){
  return async(key,code)=>{
   if(typeof key!=='string'||!/^UUK[-_][a-f0-9]{48,64}$/i.test(key))throw Object.assign(Error('That does not look like an account key.'),{status:401});
   const hash=hashKey(key),existing=db.prepare('SELECT u.userId,u.name FROM userapikeys k JOIN users u ON u.userId=k.userId WHERE k.keyHash=?').get(hash);
+  const mode=process.env.MAINTENANCE_MODE;
+  if(mode!==undefined&&mode!=='0'){
+   const ids=typeof process.env.MAINTENANCE_ALLOWED_ACCOUNT_IDS==='string'?process.env.MAINTENANCE_ALLOWED_ACCOUNT_IDS.split(',').map(id=>id.trim()):[];
+   if(mode!=='1'||!existing||!ids.length||ids.some(id=>!/^[A-Za-z0-9_-]{1,64}$/.test(id))||new Set(ids).size!==ids.length||!ids.includes(existing.userId))throw Object.assign(Error('Maintenance is in progress.'),{status:503});
+  }
   if(existing)return {Username:existing.name,UserId:existing.userId,imported:false};
   const requireInvite=config?.requireInvite!==false;
   if(requireInvite&&(typeof code!=='string'||!/^[A-Za-z0-9-]{4,64}$/.test(code)||!db.prepare('SELECT 1 FROM invitecodes WHERE inviteCode=? AND (infiniteUses=1 OR usesRemaining>0)').get(code)))throw Error('Paste a new 1.10.5 invite to copy your live account.');
@@ -81,7 +87,8 @@ function createLogin(db,config,exporter=hash=>exportRemote(config,hash)){
 function completeExisting(db,hash,ex){return db.transaction(()=>{
  const user=db.prepare('SELECT userId FROM userapikeys WHERE keyHash=?').get(hash);
  if(!user||ex?.source!=='live-1.4.4'||ex.readOnly!==true||ex.userId!==user.userId||ex.tables?.userapikeys?.length!==1||ex.tables.userapikeys[0].keyHash!==hash||ex.tables.userapikeys[0].userId!==user.userId)throw Error('Existing account proof did not match');
- social.apply(db,user.userId,ex.social);merits.grant(db,user.userId);
+ require('./migrate-experience.cjs').applyExperience(db,user.userId);
+ social.apply(db,user.userId,ex.social);merits.grant(db,user.userId);currency.ApplyCurrencyMigration(db,user.userId);
  db.prepare('INSERT OR IGNORE INTO imports1105 VALUES(?,?,?)').run(user.userId,ex.exportedAt,new Date().toISOString());
  return user.userId;
 })();}

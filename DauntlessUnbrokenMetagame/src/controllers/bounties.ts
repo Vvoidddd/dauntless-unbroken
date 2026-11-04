@@ -1,6 +1,6 @@
 import { and, asc, eq, ne } from "drizzle-orm";
 import { GetDb } from "../db";
-import { bounties, bountydraft } from "../db/schema";
+import { bounties, bountydraft, challengedrafts } from "../db/schema";
 import { logger } from "../logger";
 import { Caller, IsPlainObject, ReadField, ReadInteger, RealReply, RecordProgressionEvent } from "./progressionevents";
 import { Tx } from "./savehistory";
@@ -48,28 +48,61 @@ const DEFAULT_DRAFT_DATA = {
 };
 
 function Board(tx: Tx, AccountId: string){
-    const Bounties = tx.select().from(bounties).where(eq(bounties.accountId, AccountId)).orderBy(asc(bounties.slotIndex), asc(bounties.bountyId)).all().filter(Row => CanRestoreBounty(Row.bountyId)).map((Row) => {
-        const Element = JSON.parse(Row.data);
+    const Bounties = tx.select().from(bounties).where(eq(bounties.accountId, AccountId)).orderBy(asc(bounties.slotIndex), asc(bounties.bountyId)).all().filter(Row => CanRestoreBounty(Row.bountyId)).flatMap((Row): any[] => {
+        let Element: any;
+        try {
+            Element = JSON.parse(Row.data);
+        } catch {
+            logger.warn(`Ignoring malformed bounty data for ${AccountId} (${Row.bountyId})`);
+            return [];
+        }
+        if(!IsPlainObject(Element)){
+            logger.warn(`Ignoring non-object bounty data for ${AccountId} (${Row.bountyId})`);
+            return [];
+        }
 
         // The client zeroes every bounty member except drafted_timestamp
         if(typeof Element.drafted_timestamp !== "string"){
             Element.drafted_timestamp = Row.updatedDate;
         }
 
-        return Element;
+        return [Element];
     });
 
     const Draft = tx.select().from(bountydraft).where(eq(bountydraft.accountId, AccountId)).get();
-    const DraftData = Draft != undefined ? JSON.parse(Draft.data) : {...DEFAULT_DRAFT_DATA};
+    let DraftData: Record<string, any> = {...DEFAULT_DRAFT_DATA};
+    if(Draft != undefined){
+        try {
+            const Parsed: unknown = JSON.parse(Draft.data);
+            if(IsPlainObject(Parsed)) DraftData = Parsed;
+            else logger.warn(`Ignoring non-object bounty draft data for ${AccountId}`);
+        } catch {
+            logger.warn(`Ignoring malformed bounty draft data for ${AccountId}`);
+        }
+    }
     if (Local1105Enabled()) {
         for (const Field of ['current_draft_choices', 'previous_draft_selections']) {
             if (Array.isArray(DraftData[Field])) DraftData[Field] = DraftData[Field].filter((Id: unknown) => typeof Id === 'string' && CanRestoreBounty(Id));
         }
     }
 
+    const ChallengeDrafts = Local1105Enabled() ? tx.select().from(challengedrafts).where(eq(challengedrafts.accountId, AccountId)).all() : [];
+    const ChallengeDraft = (kind: string) => {
+        const row = ChallengeDrafts.find(entry => entry.kind === kind);
+        if (row == undefined) return {...DEFAULT_DRAFT_DATA};
+        try {
+            const Parsed: unknown = JSON.parse(row.data);
+            return IsPlainObject(Parsed) ? Parsed : {...DEFAULT_DRAFT_DATA};
+        } catch {
+            logger.warn(`Ignoring malformed ${kind} bounty draft data for ${AccountId}`);
+            return {...DEFAULT_DRAFT_DATA};
+        }
+    };
+
     return {
         bounties: Bounties,
-        draft_data: DraftData
+        draft_data: DraftData,
+        ...(Local1105Enabled() ? {draft_data_daily: ChallengeDraft("daily"), draft_data_weekly: ChallengeDraft("weekly")} : {})
     };
 }
 
@@ -144,6 +177,20 @@ export function SetBounties(AccountId: string, Body: unknown, Who: Caller): Real
             }
             else{
                 Notes.push("draft_data is not an object, ignored");
+            }
+        }
+
+        if(Local1105Enabled() && IsPlainObject(Body)){
+            for(const kind of ["daily", "weekly"] as const){
+                const field = `draft_data_${kind}`;
+                if(Body[field] === undefined) continue;
+                if(IsPlainObject(Body[field])){
+                    const data = JSON.stringify(Body[field]);
+                    tx.insert(challengedrafts).values({accountId: AccountId, kind, data, updatedDate: Now})
+                        .onConflictDoUpdate({target: [challengedrafts.accountId, challengedrafts.kind], set: {data, updatedDate: Now}}).run();
+                    Saved.push(`${kind} draft data`);
+                }
+                else Notes.push(`${field} is not an object, ignored`);
             }
         }
 

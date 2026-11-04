@@ -50,6 +50,7 @@ async function main() {
         ESCALATION_MODE: 'real', STORE: 'free', STORE_RAMS: '1', STORE_WEEKLY_ROTATION: '1',
         BACKUP_ROOT: path.join(root, 'backups'),
         CHAT: '1', CHAT_PORT: '62099', CHAT_BIND_HOST: '127.0.0.1', LOG_BODIES: '0', ACCOUNT_KEY_RECOVERY: hosted ? '1' : '0' });
+    Object.assign(env,require('./maintenance-config.cjs').readMaintenance(path.join(state,'maintenance.json')));
     const log = fs.openSync(path.join(root, 'backend.log'), 'a');
     const child = spawn(process.execPath, ['dist/server.js'], { cwd: path.join(root, 'repo/DauntlessUnbrokenMetagame'), env, windowsHide: true, stdio: ['ignore', log, log] });
     fs.closeSync(log);
