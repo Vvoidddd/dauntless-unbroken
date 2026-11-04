@@ -18,7 +18,7 @@ const existing = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive'
 if (existing) throw new Error(`The isolated client is already running (PID ${existing}). Close it before starting another.`);
 const args = ['-AUTH_LOGIN=unused', `-AUTH_PASSWORD=${account.UUK}`, '-AUTH_TYPE=exchangecode',
   '-EpicPortal', '-epicapp=Jackal', '-epicenv=Prod', `-epicusername=${account.name}`, '-epicuserid=local-lab',
-  '-NoEAC', '-windowed', '-ResX=960', '-ResY=540', '-nosound', '-culture=en',
+  '-NoEAC', '-windowed', '-ResX=960', '-ResY=540', '-culture=en',
   `-UserDir=${root.replaceAll('\\', '/')}/profile-client/`, '-SaveToUserDir'];
 const debug = process.argv.includes('--debug');
 const trace = process.argv.includes('--trace-travel');
