@@ -2073,7 +2073,7 @@ function renderRail(): void {
       ),
     ];
     if (!hasMenu) return inner;
-    const toggle = h("button", { type: "button", class: "account-switch", "data-fk": "server-switch", "aria-haspopup": "menu", "aria-expanded": state.serverMenu ? "true" : "false", title: "Switch account or server", disabled: locked }, ...inner);
+    const toggle = h("button", { type: "button", class: "account-switch", "data-fk": "server-switch", "aria-haspopup": "menu", "aria-controls": "account-menu", "aria-expanded": state.serverMenu ? "true" : "false", title: "Switch account or server", disabled: locked }, ...inner);
     toggle.addEventListener("click", () => {
       state.serverMenu = !state.serverMenu;
       renderRail();
@@ -2082,7 +2082,7 @@ function renderRail(): void {
     manage.addEventListener("click", () => {state.serverMenu = false; state.settingsTab = "account"; setView("settings");});
     const menu = h(
       "ul",
-      { class: "server-menu", role: "menu", "aria-label": "Accounts and servers", hidden: !state.serverMenu },
+      { class: "server-menu", id: "account-menu", role: "menu", "aria-label": "Accounts and servers", hidden: !state.serverMenu },
       h("li", { class: "server-menu-head", role: "presentation" }, "Switch account"),
       ...accounts.map(account => {
         const item = h("button", {type: "button", class: "server-menu-item", role: "menuitem", "data-fk": "quick-account-" + account.id}, secret(account.username, "quick-account-name-" + account.id));
@@ -2101,6 +2101,19 @@ function renderRail(): void {
         return h("li", { role: "none" }, item);
       }),
     );
+    menu.addEventListener("keydown", (event) => {
+      const items = Array.from(menu.querySelectorAll<HTMLButtonElement>("[role=\"menuitem\"]"));
+      if (!items.length) return;
+      const current = items.indexOf(document.activeElement as HTMLButtonElement);
+      let next = current;
+      if (event.key === "ArrowDown") next = current < items.length - 1 ? current + 1 : 0;
+      else if (event.key === "ArrowUp") next = current > 0 ? current - 1 : items.length - 1;
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = items.length - 1;
+      else return;
+      event.preventDefault();
+      items[next].focus();
+    });
     return [toggle, menu];
   });
   for (const b of Array.from(document.querySelectorAll<HTMLButtonElement>("#lang-switch .lang-btn"))) {
