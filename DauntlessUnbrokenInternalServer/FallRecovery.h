@@ -3,8 +3,8 @@
 #include "FallRecoveryPolicy.h"
 #include "SDK.hpp"
 #include <array>
-#include <map>
-#include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <iostream>
 
 namespace FallRecovery {
@@ -32,16 +32,17 @@ struct PendingStart {
     double Expires = 0.0;
 };
 
-inline std::map<UNetConnection*, PlayerState> Players;
-inline std::map<AArchonPlayerState*, PendingStart> Starts;
+inline std::unordered_map<UNetConnection*, PlayerState> Players;
+inline std::unordered_map<AArchonPlayerState*, PendingStart> Starts;
 inline UWorld* CurrentWorld = nullptr;
 inline ULevel* CurrentLevel = nullptr;
 inline double Clock = 0.0;
 inline double PollSeconds = 0.0;
 
 inline UWorld* ObjectWorld(UObject* Object) {
+    static UClass* WorldClass = UWorld::StaticClass();
     for (UObject* Outer = Object; Outer; Outer = Outer->Outer)
-        if (Outer->IsA(UWorld::StaticClass()))
+        if (Outer->IsA(WorldClass))
             return static_cast<UWorld*>(Outer);
     return nullptr;
 }
@@ -51,6 +52,8 @@ inline void UseWorld(UWorld* World) {
     if (World != CurrentWorld || Level != CurrentLevel) {
         Players.clear();
         Starts.clear();
+        if (Players.bucket_count() < 32) Players.reserve(32);
+        if (Starts.bucket_count() < 32) Starts.reserve(32);
         Clock = PollSeconds = 0.0;
         CurrentWorld = World;
         CurrentLevel = Level;
@@ -164,13 +167,18 @@ inline void Tick(UNetDriver* Driver, float Seconds) {
         return;
     const double Step = PollSeconds;
     PollSeconds = 0.0;
-    std::set<UNetConnection*> Active;
+    static std::unordered_set<UNetConnection*> Active;
+    Active.clear();
+    const auto ConnectionCount = static_cast<size_t>(Driver->ClientConnections.Num());
+    if (Active.bucket_count() < ConnectionCount) Active.reserve(ConnectionCount);
+    if (Players.bucket_count() < ConnectionCount) Players.reserve(ConnectionCount);
+    static UClass* PlayerCharacterClass = ABP_PlayerCharacter_C::StaticClass();
     for (UNetConnection* Connection : Driver->ClientConnections) {
         if (!Connection || !Connection->PlayerController)
             continue;
         auto* Controller = Connection->PlayerController;
         auto* Pawn = Controller->Pawn;
-        if (!Pawn || !Pawn->IsA(ABP_PlayerCharacter_C::StaticClass()) || Pawn->IsActorBeingDestroyed()
+        if (!Pawn || !Pawn->IsA(PlayerCharacterClass) || Pawn->IsActorBeingDestroyed()
             || ObjectWorld(Pawn) != CurrentWorld)
             continue;
         auto* Player = static_cast<ABP_PlayerCharacter_C*>(Pawn);
@@ -184,11 +192,13 @@ inline void Tick(UNetDriver* Driver, float Seconds) {
             State.Controller = Controller;
         }
         // Consume the native spawn once; records for failed joins expire without dereferencing their keys.
-        auto Start = Starts.find(static_cast<AArchonPlayerState*>(Controller->PlayerState));
-        if (Start != Starts.end() && (!Start->second.Controller || Start->second.Controller == Controller)) {
-            State.Spawn = Start->second.Position;
-            State.HasSpawn = true;
-            Starts.erase(Start);
+        if (!Starts.empty()) {
+            auto Start = Starts.find(static_cast<AArchonPlayerState*>(Controller->PlayerState));
+            if (Start != Starts.end() && (!Start->second.Controller || Start->second.Controller == Controller)) {
+                State.Spawn = Start->second.Position;
+                State.HasSpawn = true;
+                Starts.erase(Start);
+            }
         }
         auto* Movement = Player->CharacterMovement;
         const FVector Position = Player->K2_GetActorLocation();

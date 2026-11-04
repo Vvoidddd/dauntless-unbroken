@@ -38,6 +38,13 @@ namespace ConnectedPlayerSnapshot {
         std::unordered_set<std::wstring> Seen;
 
     public:
+        void Reset() {
+            Complete = true;
+            Connections = 0;
+            PlayerIds.clear();
+            Seen.clear();
+        }
+
         void Invalidate() { Complete = false; }
 
         void AddConnection(std::uint32_t State, std::wstring_view Id = {}) {

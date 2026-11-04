@@ -50,6 +50,16 @@ static void CompleteAndIncompleteConnections() {
     assert(MissingChild.Header().empty());
 }
 
+static void ResetReuse() {
+    Builder Reused;
+    Reused.AddConnection(3, L"old-player");
+    assert(Reused.Header() == L"[\"old-player\"]");
+    Reused.Reset();
+    assert(Reused.Header() == L"[]");
+    Reused.AddConnection(3, L"new-player");
+    assert(Reused.Header() == L"[\"new-player\"]");
+}
+
 static void JsonAndLimits() {
     Builder Escaped;
     Escaped.AddConnection(3, L"quote\"back\\slash");
@@ -114,6 +124,7 @@ static void FreshnessAndPublication() {
 int main() {
     SessionIdentity();
     CompleteAndIncompleteConnections();
+    ResetReuse();
     JsonAndLimits();
     FreshnessAndPublication();
     std::cout << "connected-player-snapshot tests passed\n";

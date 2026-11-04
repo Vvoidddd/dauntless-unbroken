@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <unordered_map>
 
 // Respect low authored update rates without delaying movement, initial actor
@@ -30,6 +31,9 @@ public:
         for (auto It=Entries.begin(); It!=Entries.end();) {
             if (Now - It->second.Seen > 1) It=Entries.erase(It);else ++It;
         }
+    }
+    void Reserve(std::size_t Count) {
+        if (Entries.bucket_count() < Count) Entries.reserve(Count);
     }
     void Clear() { Entries.clear();NextPrune=0; }
 };
