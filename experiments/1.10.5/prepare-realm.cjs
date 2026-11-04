@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const net = require('node:net');
 const Database = require('../../DauntlessUnbrokenMetagame/node_modules/better-sqlite3');
 const {applyExperience} = require('./migrate-experience.cjs');
+const {ApplyCurrencyMigration} = require('./migrate-currency.cjs');
 const state = path.resolve(__dirname, '../../../backend-state');
 const allowed = new Set('users characters userapikeys authepochs loadouts breadcrumbs encounteredcontent loadoutslots discordlinks huntregions bounties bountydraft cooldowns entitlements huntpassselection objectives progress_tracks escalationprogression escalationtalents escalationunlocks leaderboardprofiles inventories account_playtime'.split(' '));
 async function main() {
@@ -43,6 +44,7 @@ async function main() {
           assert.deepEqual(db.prepare('SELECT instancedItems,stackedItems FROM inventories WHERE characterId=?').get(row.characterId),
             {instancedItems:row.instancedItems,stackedItems:row.stackedItems});
         }
+        ApplyCurrencyMigration(db,ex.userId);
         const initialized=applyExperience(db,ex.userId);
         report.push({name:ex.tables.users[0].name,imported:!exists,weaponTracksAdded:initialized});
       }

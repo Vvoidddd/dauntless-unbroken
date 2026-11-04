@@ -3,7 +3,7 @@ import path from "node:path";
 import { Router } from "express";
 import { logger } from "../logger";
 import { HasDauntlessUnbrokenMetagameAuth } from "../middleware/HasDauntlessUnbrokenMetagameAuth";
-import { GetHeldCurrencies, GetNotesForUser, OverlayHeldCurrencies } from "../controllers/store";
+import { GetHeldCurrencies, OverlayHeldCurrencies } from "../controllers/store";
 import { PlayerTokenOnly } from "../middleware/PlayerAuth";
 import { CreateStorePurchase, GetStoreOffer, IsAnyStoreEnabled, IsKnownStoreTag, IsStoreSkuEnabled, IsStoreTagEnabled, ListStoreOffers, RedeemStorePurchase, StoreError } from "../controllers/freestore";
 import { BalanceFromInventory } from "../features";
@@ -42,7 +42,7 @@ function ApplyHeldCurrencies(AccountId: unknown, Sheet: Record<string, unknown>)
 }
 
 storeRouter.post("/reconcile", HasDauntlessUnbrokenMetagameAuth, async (req: any, res) => {
-    const Notes = await GetNotesForUser(req.AuthData.userId);
+    const Notes = GetHeldCurrencies(req.AuthData.userId).Held.get("CURRENCY_NOTES") ?? 0;
 
     logger.info(`Retrieved notes balance of ${Notes} for ${req.AuthData.userId}`);
 
@@ -97,7 +97,7 @@ storeRouter.post("/creator", CreatorRequestRateLimit, CreatorAuth, PlayerTokenOn
 storeRouter.get("/balance", HasDauntlessUnbrokenMetagameAuth, async (req: any, res) => {
     const UserId = req.AuthData.userId;
 
-    const NotesBalance = await GetNotesForUser(UserId);
+    const NotesBalance = GetHeldCurrencies(UserId).Held.get("CURRENCY_NOTES") ?? 0;
 
     logger.info(`Fetched notes balance of ${NotesBalance} for userId ${UserId}`);
 
@@ -160,7 +160,7 @@ storeRouter.get("/balance", HasDauntlessUnbrokenMetagameAuth, async (req: any, r
 
     // The pilot client still indexes its purchase balance by Event01 even when
     // Rams metadata is displayed. These are wire aliases, never separate funds.
-    if(RamsWireCurrency('event_01', UserId) === 'notes'){
+    if(BalanceFromInventory() && RamsWireCurrency('event_01', UserId) === 'notes'){
         const Rams = GetHeldCurrencies(UserId).Held.get('CURRENCY_NOTES') ?? 0;
         Sheet.CURRENCY_NOTES = Rams;
         Sheet.CURRENCY_EVENT_01 = Rams;
