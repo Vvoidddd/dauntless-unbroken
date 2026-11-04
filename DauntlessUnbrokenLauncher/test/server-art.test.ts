@@ -44,3 +44,9 @@ test("the local preview can render the maintenance state", () => {
   assert.match(renderer, /PREVIEW_MAINTENANCE/);
   assert.match(renderer, /mode.*maintenance/);
 });
+
+test("maintenance home copy does not claim the game is ready", () => {
+  assert.match(renderer, /EU1 is under maintenance/);
+  assert.match(renderer, /The server is offline/);
+  assert.match(renderer, /underMaintenance/);
+});

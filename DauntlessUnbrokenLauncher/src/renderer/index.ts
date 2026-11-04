@@ -763,12 +763,15 @@ function backupLocationText(snap:Snapshot):string{
 
 function playReady(snap: Snapshot): HTMLElement[] {
   const user = snap.account.username;
+  const underMaintenance = snap.status?.maintenance === true;
+  const readyTitle = underMaintenance ? "EU1 is under maintenance" : user ? t("ready_title", { user }) : t("ready_title_nouser");
+  const readyText = underMaintenance ? "The server is offline. PLAY will return when it is back." : t("ready_text");
   const out: HTMLElement[] = [
     h("div", { class: "play-cover", role: "img", "aria-label": "Dauntless Unbroken" },
       h("div", { class: "play-cover-copy" }, h("span", {}, "DAUNTLESS UNBROKEN"), h("strong", {}, serverName())),
       h("span", { class: "play-cover-build" }, snap.status?.version ?? snap.app.version)),
     eyebrow(snap),
-    ...heading(user ? t("ready_title", { user }) : t("ready_title_nouser"), t("ready_text")),
+    ...heading(readyTitle, readyText),
     playActivity(snap),
   ];
   if (snap.status?.maintenance) out.unshift(card("maintenance-card", h("span", { class: "maintenance-kicker" }, "Maintenance"), h("strong", { class: "maintenance-state" }, "EU1 is offline")));
