@@ -1224,6 +1224,8 @@ function instanceCard(i: StatusInstance): HTMLElement {
 
 function playerList(status: ServerStatus, max: number): HTMLElement {
   const byId = new Map(status.instances.map((i) => [i.id, i]));
+  const approvedAvatar = state.snap?.account.profilePicture?.status === "approved" ? state.snap.account.profilePicture.imageDataUrl : null;
+  const currentUser = state.snap?.account.username;
   const shown = status.players.slice(0, max);
   const items = shown.map((p) => {
     const inst = p.instance ? byId.get(p.instance) : undefined;
@@ -1231,7 +1233,7 @@ function playerList(status: ServerStatus, max: number): HTMLElement {
     return h(
       "li",
       { class: `player w-${p.where}` },
-      h("span", { class: "player-avatar", "aria-hidden": "true" }, Array.from(p.name)[0]?.toUpperCase() ?? "?"),
+      h("span", { class: "player-avatar", "aria-hidden": "true" }, p.name === currentUser && approvedAvatar ? h("img", { class: "player-avatar-image", src: approvedAvatar, alt: "" }) : Array.from(p.name)[0]?.toUpperCase() ?? "?"),
       h("span", { class: "player-text" }, h("span", { class: `player-name${streamer() ? " secret-blur" : ""}` }, streamer() ? filler(p.name) : p.name), h("span", { class: "player-where" }, where)),
     );
   });

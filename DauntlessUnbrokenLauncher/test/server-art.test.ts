@@ -43,6 +43,13 @@ test("the account popover shows the current connection before switch actions", (
   assert.match(theme, /\.server-menu-profile/);
 });
 
+test("the player roster can show the local approved avatar without exposing other pictures", () => {
+  assert.match(renderer, /player-avatar-image/);
+  assert.match(renderer, /const currentUser = state\.snap\?\.account\.username/);
+  assert.match(renderer, /p\.name === currentUser/);
+  assert.match(theme, /\.player-avatar-image/);
+});
+
 test("the server view replaces live-world data with maintenance state", () => {
   assert.match(renderer, /status\?\.maintenance/);
   assert.match(renderer, /maintenance-worlds/);
