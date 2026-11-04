@@ -2935,10 +2935,31 @@ img {
 }
 
 .profile-status {
-  margin: 3px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 3px 7px;
+  border: 1px solid var(--dr-deep);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dr-ink) 58%, transparent);
   color: var(--dr-steel);
   font-size: 12px;
 }
+
+.profile-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dr-steel);
+}
+
+.profile-status-approved { border-color: color-mix(in srgb, var(--dr-glow) 55%, var(--dr-deep)); color: var(--dr-glow); }
+.profile-status-approved .profile-status-dot { background: var(--dr-glow); }
+.profile-status-pending { border-color: color-mix(in srgb, var(--dr-ice) 55%, var(--dr-deep)); color: var(--dr-glow); }
+.profile-status-pending .profile-status-dot { background: var(--dr-ice); }
+.profile-status-rejected { border-color: color-mix(in srgb, var(--dr-steel) 55%, var(--dr-deep)); color: var(--dr-steel); }
+.profile-status-rejected .profile-status-dot { background: var(--dr-steel); }
 
 .profile-username {
   display: grid;
