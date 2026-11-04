@@ -67,7 +67,7 @@ unbrokenApiRouter.post('/ProfileUsername', HasDauntlessUnbrokenUserApiKey, Profi
     if(result.ok){res.json({username:result.Username});return;}
     res.status(result.Status).json(ErrorBody(result.Error));
 });
-unbrokenApiRouter.get('/ProfilePicture/:accountId', HasDauntlessUnbrokenUserApiKey, (req: any, res) => {
+unbrokenApiRouter.get('/ProfilePicture/:accountId', HasDauntlessUnbrokenUserApiKey, ProfilePictureRateLimit, (req: any, res) => {
     const accountId = String(req.params.accountId);
     const callerId = String(req.DauntlessUnbrokenUserInfo.UserId);
     if(callerId !== accountId && !AreFriends(callerId, accountId)){res.status(404).end();return;}
@@ -82,7 +82,7 @@ unbrokenApiRouter.get('/ProfilePictureModeration', HasDauntlessUnbrokenAdminApiK
     try {res.setHeader('Cache-Control','no-store');res.json(ListProfilePictureModeration(status as any, Number(req.query.offset ?? 0)));}
     catch {res.status(400).json({error:'invalid_offset'});}
 });
-unbrokenApiRouter.get('/ProfilePictureReview/:id', HasDauntlessUnbrokenAdminApiKey, (req, res) => {
+unbrokenApiRouter.get('/ProfilePictureReview/:id', HasDauntlessUnbrokenAdminApiKey, AdminMutationRateLimit, (req, res) => {
     const image = ModerationProfilePictureFile(String(req.params.id));
     if(!image){res.status(404).end();return;}
     res.setHeader('Cache-Control','no-store');
