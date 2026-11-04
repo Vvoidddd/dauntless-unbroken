@@ -2082,6 +2082,8 @@ function renderRail(): void {
   const snap = state.snap;
   const nav = $("#nav");
   const unread = state.news.length > 0 && !state.newsSeen;
+  const titlebarNews = document.querySelector<HTMLElement>('[data-titlebar-view="news"] .titlebar-nav-badge');
+  if (titlebarNews) titlebarNews.hidden = !unread;
   renderRegion(nav, JSON.stringify([state.lang, state.view, unread]), () =>
     NAV.map((n) => {
       const b = h(
