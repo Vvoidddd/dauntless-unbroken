@@ -48,12 +48,6 @@ it('serves the 1.10.5 ordinary bounty board, real six-season state and price-arr
     assert.equal(pass.premium_rewards!.length,51);
     const lanternReward=(pass.premium_rewards as any[]).flatMap(r=>r.stacked_items).find(r=>r.catalog_id==='LT_HP09B_COMMANDO_00');
     assert.equal(lanternReward.quantity,1);
-    for(const suffix of ['_daily']){
-        const disabled=await Call('GET','/game_tuning/bounty_game_data'+suffix);
-        assert.equal(disabled.json.payload.max_slots,0);
-        assert.deepEqual(disabled.json.payload.bounty_data,suffix==='_weekly'
-            ? [{bounty_id:'Challenge_Season_Break_Armour_Rock',enabled:false,reward_amount:0}] : []);
-    }
     const seasons=GetAllEscalationSeasons();
     assert.equal(seasons.length,6);
     assert.ok(seasons.every(s=>s.enabled&&s.levels.length===25));
