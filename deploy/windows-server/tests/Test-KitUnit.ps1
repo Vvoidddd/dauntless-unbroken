@@ -40,6 +40,12 @@ $pathBefore = $env:Path
 $buildEnv = Get-DRBuildEnvironment 'C:\Program Files\nodejs\node.exe'
 Check 'build PATH finds the configured Node in an old SSH session' ($buildEnv.Path.StartsWith('C:\Program Files\nodejs;') -and $buildEnv.NODE_ENV -eq 'development')
 Check 'build environment does not change the operator PATH' ($env:Path -ceq $pathBefore)
+$swapRoot = Join-Path $WorkDir 'app-swap'
+New-Item -ItemType Directory -Force -Path (Join-Path $swapRoot 'app'), (Join-Path $swapRoot 'app.new') | Out-Null
+[IO.File]::WriteAllText((Join-Path $swapRoot 'app\old.txt'), 'old')
+[IO.File]::WriteAllText((Join-Path $swapRoot 'app.new\new.txt'), 'new')
+Switch-DRApp ([pscustomobject]@{ App = Join-Path $swapRoot 'app' })
+Check 'app swap keeps the previous build and installs app.new' ((Test-Path -LiteralPath (Join-Path $swapRoot 'app.prev\old.txt')) -and (Test-Path -LiteralPath (Join-Path $swapRoot 'app\new.txt')) -and -not (Test-Path -LiteralPath (Join-Path $swapRoot 'app.new')))
 $fp = 'ab' * 32
 $v2 = New-DRInviteString -Mode Public -ServerHost '203.0.113.7' -Port 443 -Fingerprint $fp -Code 'ABCD-EFGH-JKLM' -Name "Alex's Ramsgate"
 Check 'v2 layout' ($v2 -ceq "dauntless-unbroken://join?v=2&mode=public&host=203.0.113.7&port=443&fp=$fp&code=ABCD-EFGH-JKLM&name=Alex's%20Ramsgate") $v2

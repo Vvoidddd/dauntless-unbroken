@@ -1087,6 +1087,23 @@ function Build-DRApp {
     return ,$built
 }
 
+# Windows can briefly keep a handle on a completed npm child process. Retry the
+# directory rename so that a transient sharing violation does not abort install.
+function Move-DRDirectoryWithRetry {
+    param([string]$Path, [string]$NewName, [int]$Attempts = 8)
+    $last = $null
+    for ($i = 1; $i -le $Attempts; $i++) {
+        try {
+            Rename-Item -LiteralPath $Path -NewName $NewName -ErrorAction Stop
+            return
+        } catch {
+            $last = $_
+            if ($i -lt $Attempts) { Start-Sleep -Milliseconds (250 * $i) }
+        }
+    }
+    throw $last
+}
+
 # app.new -> app, the old app -> app.prev. Nothing of the app may be running.
 function Switch-DRApp($Paths) {
     $appNew = "$($Paths.App).new"
@@ -1094,9 +1111,9 @@ function Switch-DRApp($Paths) {
     if (-not (Test-Path -LiteralPath $appNew)) { Stop-DR "$appNew does not exist" }
     if (Test-Path -LiteralPath $Paths.App) {
         if (Test-Path -LiteralPath $appPrev) { Remove-Item -LiteralPath $appPrev -Recurse -Force }
-        Rename-Item -LiteralPath $Paths.App -NewName (Split-Path $appPrev -Leaf)
+        Move-DRDirectoryWithRetry -Path $Paths.App -NewName (Split-Path $appPrev -Leaf)
     }
-    Rename-Item -LiteralPath $appNew -NewName (Split-Path $Paths.App -Leaf)
+    Move-DRDirectoryWithRetry -Path $appNew -NewName (Split-Path $Paths.App -Leaf)
 }
 
 # Windows' own bsdtar (System32): a tar from Git for Windows earlier on PATH cannot read zips the same way.
