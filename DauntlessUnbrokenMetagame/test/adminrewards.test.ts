@@ -14,6 +14,7 @@ import {SetLoadoutSlotData} from '../src/controllers/loadout';
 import {MakePlayer,StackQuantity} from './helpers';
 import {StartApp,StopApp,Call} from './appclient';
 import catalog from '../src/vendor/admin_grant_catalog.json';
+import nativeItemIds from '../src/vendor/item_ids_1105.json';
 before(StartApp);
 after(async()=>{await StopApp();RemoveTestDb(()=>GetDb().$client.close());});
 const request=(a:{UserId:string,CharacterId:string},id='CURRENCY_NOTES',quantity=10000)=>({accountId:a.UserId,characterId:a.CharacterId,catalogId:id,quantity,reason:'Verified event reward',requestId:randomUUID()});
@@ -277,14 +278,16 @@ test('all catalogue entries are available, including developer titles and equipm
  assert.equal(saved().filter((i:any)=>i.catalogId.startsWith('AR_')).length,2);
 });
 
-test('1.10.5 admin grants exclude legacy skins absent from native cosmetic catalogs',async()=>{
+test('1.10.5 admin grants exclude legacy items absent from native catalogs',async()=>{
  const previous={BIND_HOST:process.env.BIND_HOST,LOCAL_1105_REALM:process.env.LOCAL_1105_REALM};
  process.env.BIND_HOST='127.0.0.1';process.env.LOCAL_1105_REALM='1';
  try{
-  const a=await MakePlayer(),ids=['WP_AC_UMBRAL_PAPER_00','WP_EB_BLAZE_BUGBEAR_00','QI_SUPPLY_DROP','PART_DP_GRIP_TURRET','TOKEN_AETHER_SPARK','WP_GA_TRAINING_GROUNDS'];
+  const a=await MakePlayer(),native=new Set(nativeItemIds.map(id=>id.toUpperCase()));
+  const ids=catalog.items.filter(item=>!native.has(item.id.toUpperCase())).map(item=>item.id);
+  assert.equal(ids.length,21);
   const db=GetDb();
   GrantReward('UID-owner',request(a,'CURRENCY_NOTES',1));
-  const saved={catalogId:ids[0],instanceId:'legacy-skin',updateVersion:0};
+  const saved={catalogId:ids[0],instanceId:'legacy-item',updateVersion:0};
   db.update(inventory).set({instancedItems:JSON.stringify([saved])}).where(eq(inventory.characterId,a.CharacterId)).run();
   for(const id of ids){
    assert.equal(RewardCatalog(id).items.some(i=>i.id===id),false);
