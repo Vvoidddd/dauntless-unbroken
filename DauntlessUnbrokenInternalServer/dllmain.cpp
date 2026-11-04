@@ -21,6 +21,7 @@
 #include <ranges>
 #include <cwchar>
 #include <map>
+#include <unordered_set>
 #include <array>
 
 #include "framework.h"
@@ -871,6 +872,57 @@ bool DidDoTravelReset = false;
 
 void* OrigProcessEvent = nullptr;
 
+// The native claim callback is the authoritative reward list for 1.10.5.
+static void GrantNativeBountyItems(UObject* Object, void* Parms) {
+    if (!Globals::AmServer || !Object || !Parms || !Object->IsA(UPlayerEventModeComponent::StaticClass()))
+        return;
+
+    const auto& Items = reinterpret_cast<Params::PlayerEventModeComponent_OnBountyItemsGranted*>(Parms)->ItemsGranted;
+    if (!Items.IsValid() || Items.Num() <= 0 || Items.Num() > 32)
+        return;
+
+    auto* Component = static_cast<UPlayerEventModeComponent*>(Object);
+    auto* Owner = Component->GetOwner();
+    auto* Controller = Owner && Owner->IsA(AArchonPlayerController::StaticClass())
+        ? static_cast<AArchonPlayerController*>(Owner) : nullptr;
+    auto* Inventory = Controller ? Controller->GetInventory() : nullptr;
+    if (!Inventory)
+        return;
+
+    static std::unordered_set<std::wstring> GrantedEvents;
+    std::unordered_set<std::wstring> BatchEvents;
+    std::unordered_set<std::wstring> RejectedEvents;
+    TArray<FGiveItemInfo> Grants;
+    for (const auto& Item : Items) {
+        if (!Item.ItemId.IsValid() || Item.ItemId.Num() < 2 || Item.ItemId.Num() > 256 || Item.Amount <= 0)
+            continue;
+
+        const auto EventId = Item.EventID.IsValid() && Item.EventID.Num() > 1
+            ? std::wstring(Item.EventID.CStr(), Item.EventID.Num() - 1) : std::wstring{};
+        if (!EventId.empty()) {
+            const bool NewBatchEvent = BatchEvents.insert(EventId).second;
+            if (NewBatchEvent) {
+                if (GrantedEvents.size() >= 4096)
+                    GrantedEvents.clear();
+                if (!GrantedEvents.insert(EventId).second)
+                    RejectedEvents.insert(EventId);
+            }
+            if (RejectedEvents.contains(EventId))
+                continue;
+        }
+
+        FGiveItemInfo Grant{};
+        Grant.Item = UKismetStringLibrary::Conv_StringToName(Item.ItemId);
+        Grant.Amount = Item.Amount;
+        Grants.Add(Grant);
+    }
+
+    if (Grants.Num() <= 0)
+        return;
+
+    Inventory->ServerGrantItems(Grants, FString(L"bounty_claim"));
+}
+
 void ProcessEventHook(UObject* Object, UFunction* Function, void* Parms) {
     // Server-only domain validation. Reject duplicate amp choices without bans.
     if (!EscalationSelectionGuard::Allow(Object, Function, Parms)) return;
@@ -912,6 +964,12 @@ void ProcessEventHook(UObject* Object, UFunction* Function, void* Parms) {
     }
 
     reinterpret_cast<void(*)(UObject*, UFunction*, void*)>(OrigProcessEvent)(Object, Function, Parms);
+
+    static UFunction* OnBountyItemsGranted = nullptr;
+    if (Function == OnBountyItemsGranted || (Function && (!OnBountyItemsGranted && Function->GetFullName().contains("PlayerEventModeComponent.OnBountyItemsGranted")))) {
+        OnBountyItemsGranted = Function;
+        GrantNativeBountyItems(Object, Parms);
+    }
 }
 
 void* OrigConfigCacheIniGetString = nullptr;
