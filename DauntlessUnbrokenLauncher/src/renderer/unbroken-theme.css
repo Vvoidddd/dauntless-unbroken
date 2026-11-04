@@ -225,6 +225,7 @@
   .launch-readiness { max-width: none; }
 }
 .play-menu { bottom: calc(100% + 14px); border-radius: 10px; background: var(--dr-navy); border-color: var(--dr-steel); }
+.play-menu-kicker { padding: 5px 10px 7px; color: var(--dr-steel); font-family: var(--font-display); font-size: 9px; letter-spacing: .12em; }
 .progress { gap: 8px; }
 .progress-title { font-family: var(--font-display); font-size: 12px; font-weight: 500; }
 .progress-percent { font-family: var(--font-display); font-size: 25px; letter-spacing: -.045em; font-weight: 500; }

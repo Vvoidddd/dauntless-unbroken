@@ -2838,7 +2838,7 @@ function renderPlayMenu(): void {
     ? h("button", { type: "button", class: "play-menu-item", role: "menuitem", "data-fk": "play-online" }, icon("globe"), h("span", { class: "play-menu-label" }, t("off_menu_online")))
     : h("button", { type: "button", class: "play-menu-item", role: "menuitem", "data-fk": "play-offline" }, icon("tunnel"), h("span", { class: "play-menu-label" }, t("off_menu_offline")));
   item.addEventListener("click", () => (state.offlineView ? leaveOffline() : void startOffline()));
-  playMenu.replaceChildren(item);
+  playMenu.replaceChildren(h("div", { class: "play-menu-kicker" }, "PLAY OPTIONS"), item);
 }
 
 function initPlayMenu(): void {

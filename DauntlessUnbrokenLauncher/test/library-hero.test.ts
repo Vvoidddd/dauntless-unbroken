@@ -19,3 +19,9 @@ test("the selected library tile reflects maintenance state", () => {
   assert.match(renderer, /is-maintenance/);
   assert.match(theme, /\.library-game-state\.is-maintenance/);
 });
+
+test("the PLAY menu has a compact section label", () => {
+  assert.match(renderer, /play-menu-kicker/);
+  assert.match(renderer, /PLAY OPTIONS/);
+  assert.match(theme, /\.play-menu-kicker/);
+});
