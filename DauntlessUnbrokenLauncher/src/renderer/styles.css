@@ -3019,6 +3019,7 @@ img {
   gap: 6px;
   padding-top: 12px;
 }
+.profile-username-hint { margin: 0 !important; }
 
 .profile-username-row {
   display: flex;

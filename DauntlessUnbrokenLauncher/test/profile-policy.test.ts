@@ -23,3 +23,9 @@ test("the account chip marks an approved avatar as friends-only", () => {
   assert.match(renderer, /avatar-audience/);
   assert.match(renderer, /Visible to accepted friends/);
 });
+
+test("the username field explains its automatic checks before submission", () => {
+  assert.match(renderer, /profile-username-hint/);
+  assert.match(renderer, /3–16 letters, numbers, or underscores/);
+  assert.match(renderer, /automatic name checks/);
+});

@@ -1679,7 +1679,7 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
     h("div", {class:"profile-policy"},
       h("div", {class:"profile-policy-item"}, icon("people", "profile-policy-icon"), h("span", {}, h("strong", {}, "Audience"), h("small", {}, "Accepted friends only"))),
       h("div", {class:"profile-policy-item"}, icon("shield", "profile-policy-icon"), h("span", {}, h("strong", {}, "Safety"), h("small", {}, "Automatic content check")))),
-    h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("div", {class:"profile-username-row"}, username, saveUsername)),
+    h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("p", {class:"small-print profile-username-hint"}, "3–16 letters, numbers, or underscores · automatic name checks"), h("div", {class:"profile-username-row"}, username, saveUsername)),
     state.profileUsernameNote ? h("p", {class:"small-print", role:"status"}, state.profileUsernameNote) : null,
     state.profilePictureNote ? h("p", {class:"small-print", role:"status"}, state.profilePictureNote) : null,
     h("div", {class:"card-row"}, button("Choose profile picture", () => profilePictureInput.click(), {fk:"profile-picture-choose"}), h("span", {class:"small-print profile-upload-hint"}, "PNG or JPEG · 100 KB max"), profilePictureInput),
