@@ -52,8 +52,10 @@ and must be checked before retrying. A missing host is not included automaticall
 The control does not restart servers.
 
 Set `DASHBOARD_LIVE_STATUS_FILE` to the local read-only status snapshot used by the
-live-server table. It is optional; when unset, the table reports that live readings
-are unavailable.
+live-server table. With [PR #85](https://github.com/Vvoidddd/dauntless-unbroken/pull/85),
+when the file is unset the table uses the existing fleet monitor instead. Offline or
+stale hosts remain unavailable, and the key-bot-only host is omitted from this game-host
+table. A configured snapshot remains the source when present.
 
 ### Island event schedule
 
