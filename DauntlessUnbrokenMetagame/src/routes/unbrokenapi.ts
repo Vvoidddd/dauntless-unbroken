@@ -73,7 +73,7 @@ unbrokenApiRouter.get('/ProfilePicture/:accountId', HasDauntlessUnbrokenUserApiK
     if(callerId !== accountId && !AreFriends(callerId, accountId)){res.status(404).end();return;}
     const image = GetApprovedProfilePicture(accountId);
     if(!image){res.status(404).end();return;}
-    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+    res.setHeader('Cache-Control', 'private, no-store');
     res.type(image.mimeType).sendFile(image.filePath);
 });
 unbrokenApiRouter.get('/ProfilePictureModeration', HasDauntlessUnbrokenAdminApiKey, (req, res) => {

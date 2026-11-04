@@ -216,7 +216,9 @@ it("profile pictures are visible to the owner and accepted friends only", async 
 
         assert.equal((await Call("GET", `/unbroken/api/ProfilePicture/${Friend.userId}`)).status, 401);
         assert.equal((await Call("GET", `/unbroken/api/ProfilePicture/${Friend.userId}`, { key: ADMIN_KEY })).status, 404);
-        assert.equal((await Call("GET", `/unbroken/api/ProfilePicture/${Friend.userId}`, { key: Friend.key })).status, 200);
+        const OwnImage = await Call("GET", `/unbroken/api/ProfilePicture/${Friend.userId}`, { key: Friend.key });
+        assert.equal(OwnImage.status, 200);
+        assert.equal(OwnImage.headers.get("cache-control"), "private, no-store");
 
         const AdminToken = await Login(ADMIN_KEY);
         assert.equal((await Call("POST", `/friends/api/public/friends/${Friend.userId}/UID-admin`, { token: Friend.token })).status, 204);
