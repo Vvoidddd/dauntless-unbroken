@@ -12,7 +12,7 @@ const en = {
   window_close: "Close",
   nav_label: "Main",
   nav_play: "Play",
-  nav_news: "News",
+  nav_news: "Posts",
   nav_server: "Server",
   nav_settings: "Settings",
 
@@ -280,10 +280,10 @@ const en = {
   reg_mode_INVITECODE: "Invite only",
   reg_mode_NONE: "Registration closed",
 
-  news_title: "News from {name}",
-  news_title_generic: "News",
+  news_title: "Posts from {name}",
+  news_title_generic: "Posts",
   news_empty: "No news yet. Your host can post updates here.",
-  news_offline: "News shows up here once you've joined a server.",
+  news_offline: "Posts show up here once you've joined a server.",
 
   server_players: "Players",
   server_worlds: "Worlds and hunts",

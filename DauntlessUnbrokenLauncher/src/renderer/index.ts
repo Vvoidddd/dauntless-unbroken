@@ -1338,11 +1338,12 @@ function renderNews(): void {
     if (!snap?.server) body.push(card("", h("p", { class: "card-text" }, t("news_offline"))));
     else if (state.news.length === 0) body.push(card("", h("p", { class: "card-text" }, t("news_empty"))));
     else {
+      if (snap.status?.maintenance) body.push(card("community-maintenance", h("span", { class: "maintenance-kicker" }, "Maintenance"), h("strong", { class: "maintenance-state" }, "EU1 is offline"), h("p", { class: "card-text" }, "New posts will appear here when the server returns.")));
       const latest = state.news[0];
       body.push(h("div", { class: "community-cover" },
         h("img", { src: newsArtFor(0), alt: "" }),
         h("div", { class: "community-cover-copy" },
-          h("span", {}, "LATEST UPDATE"),
+          h("span", {}, "LATEST POST"),
           h("strong", {}, latest.title),
           latest.date ? h("small", {}, formatDate(latest.date, state.lang)) : null)));
       for (const [index, n] of state.news.entries()) {
@@ -1350,7 +1351,7 @@ function renderNews(): void {
           h(
             "article",
             { class: "card news-item" },
-            h("div", { class: "news-media" }, h("img", { src: newsArtFor(index), alt: "" }), h("span", {}, index === 0 ? "New update" : "Server update")),
+            h("div", { class: "news-media" }, h("img", { src: newsArtFor(index), alt: "" }), h("span", {}, index === 0 ? "New post" : "Server post")),
             n.date ? h("time", { class: "news-date", datetime: n.date }, formatDate(n.date, state.lang)) : null,
             h("h2", { class: "news-title" }, n.title),
             h("p", { class: "news-body" }, n.body),

@@ -27,6 +27,8 @@ test("the news page keeps long updates in a readable branded surface", () => {
   const source = readFileSync(path.join(root, "src/renderer/index.ts"), "utf8");
   const styles = readFileSync(path.join(root, "src/renderer/styles.css"), "utf8");
   assert.match(source, /class: "page news-page"/);
+  assert.match(source, /LATEST POST/);
+  assert.match(source, /New post/);
   assert.match(styles, /\.news-page\s*\{/);
   assert.match(styles, /\.news-page \.news-item::before\s*\{/);
 });
