@@ -29,6 +29,9 @@ async function main(){
   const snapshot=JSON.parse(original);completeExisting(db,hashKey(key),snapshot);completeExisting(db,hashKey(key),snapshot);
   assert.equal(JSON.parse(db.prepare('SELECT stackedItems FROM inventories').get().stackedItems)[1].quantity,217);
   assert.equal(JSON.parse(db.prepare('SELECT stackedItems FROM inventories WHERE characterId=?').get(emptyCharacter).stackedItems)[0].quantity,200);
+  db.prepare("DELETE FROM progress_tracks WHERE progressionId LIKE 'ExperienceTrack_Weapon_%'").run();
+  completeExisting(db,hashKey(key),snapshot);
+  assert.equal(db.prepare("SELECT count(*) n FROM progress_tracks WHERE progressionId LIKE 'ExperienceTrack_Weapon_%'").get().n,7);
   assert.equal(db.prepare('SELECT count(*) n FROM imports1105').get().n,1);assert.equal(db.pragma('integrity_check',{simple:true}),'ok');
   console.log('Invite admission, source failure, foreign-row rollback, duplicate requests, non-admin import, zero weapon XP, inventory/quest preservation and no overwrite passed.');
  }finally{db.close();}
