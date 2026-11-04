@@ -491,7 +491,7 @@ command line; see [HTTP API]({{ api_page.url | relative_url }}).
 - Ramsgate starts together with the deploy server. The Dojo starts the first time someone is sent
   there, unless `ENABLE_DOJO=1` starts it at boot too (the kit writes `ENABLE_DOJO=0`). A hunt server
   starts for each matchmaking request.
-- Starts are queued, `SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP` apart (the kit writes 10).
+- Starts are queued, `SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP` apart (the kit writes 2).
 - The DLL opens a console window for every server. Ramsgate and the Dojo are started with their
   window visible ("Running as a server!"). Hunt servers are started with their window hidden, so a
   new window does not flash up for every hunt. **Closing a visible console window ends that server**

@@ -10,7 +10,9 @@ can return `IN_PROGRESS`. `GAMESERVER_READY_DIR` may override the marker directo
 Launches retain their configured spacing and memory reservations, but one cold
 world no longer blocks every following launch. Client queue/status requests wait
 at most 1.5 seconds for an allocation (the party leader's initial join allows 2.5
-seconds), then keep reporting matching until it ends.
+seconds), then keep reporting matching until it ends. Candidate join and status
+responses advertise a one-second polling interval while the client waits for the
+hunt to become ready.
 Temporary worlds allow 180 seconds for the first player to finish connecting.
 After a player connects, the native empty-world timer resets and allows 30 seconds after
 the last player leaves. Unavailable host capacity still has a bounded one-minute
