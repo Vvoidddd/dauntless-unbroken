@@ -20,16 +20,29 @@ export function IsValidUsername(Value: unknown): Value is string {
     return typeof Value === "string" && USERNAME_RULE.test(Value);
 }
 
+const RESERVED_USERNAMES = new Set(["admin", "administrator", "moderator", "mod", "owner", "support", "system", "staff"]);
+
+// The server applies this before an account is created or renamed. Operators can
+// add local terms with USERNAME_AUTOMOD_BLOCKLIST without changing the build.
+export function IsUsernameAutomaticallyBlocked(Value: unknown): boolean {
+    if(typeof Value !== "string") return false;
+    const Name = Value.toLowerCase();
+    if(RESERVED_USERNAMES.has(Name)) return true;
+    const Terms = (process.env.USERNAME_AUTOMOD_BLOCKLIST || "").split(",").map(Term => Term.trim().toLowerCase()).filter(Term => /^[a-z0-9_]{3,32}$/.test(Term));
+    return Terms.some(Term => Name === Term || Name.startsWith(`${Term}_`));
+}
+
 // The name as it will be stored: surrounding whitespace dropped. Non-strings stay as they are.
 export function TrimUsername(Value: unknown){
     return typeof Value === "string" ? Value.trim() : Value;
 }
 
 // Error codes of the /unbroken/api account routes: {"error": <code>, "message": <text>}
-export type AccountError = "username_invalid" | "registration_closed" | "bad_request" | "invite_invalid" | "username_taken" | "not_found";
+export type AccountError = "username_invalid" | "username_moderated" | "registration_closed" | "bad_request" | "invite_invalid" | "username_taken" | "not_found";
 
 const MESSAGES: Record<AccountError, string> = {
     username_invalid: "Usernames are 3-16 characters: letters, numbers and underscore.",
+    username_moderated: "That username is not available.",
     registration_closed: "Registration is closed on this server.",
     bad_request: "The request body is not JSON, or a field is missing or of the wrong type.",
     invite_invalid: "That invite code is not valid or has already been used.",
@@ -87,6 +100,10 @@ export function RegisterAccount(Mode: RegistrationMode, RequestedUsername: unkno
 
     if(!IsValidUsername(Username)){
         return Failure(400, "username_invalid");
+    }
+
+    if(IsUsernameAutomaticallyBlocked(Username)){
+        return Failure(400, "username_moderated");
     }
 
     const Code = typeof InviteCode === "string" ? InviteCode.trim() : "";
@@ -147,6 +164,10 @@ export function RenameAccount(Who: { UserId?: unknown, Username?: unknown }, Req
 
     if(!IsValidUsername(NewUsername)){
         return Failure(400, "username_invalid");
+    }
+
+    if(IsUsernameAutomaticallyBlocked(NewUsername)){
+        return Failure(400, "username_moderated");
     }
 
     const ByUserId = typeof Who.UserId === "string" && Who.UserId.length > 0;

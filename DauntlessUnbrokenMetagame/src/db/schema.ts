@@ -411,6 +411,26 @@ export const leaderboardprofiles = sqliteTable("leaderboardprofiles", {
     updatedDate: text("updatedDate").notNull()
 });
 
+// User-submitted profile images stay private until moderation approves them. The
+// image bytes live on disk; this table is the moderation history.
+export const profilepicturesubmissions = sqliteTable("profilepicturesubmissions", {
+    id: text("id").notNull().primaryKey(),
+    accountId: text("accountId").notNull(),
+    fileName: text("fileName").notNull(),
+    mimeType: text("mimeType").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    bytes: integer("bytes").notNull(),
+    status: text("status").notNull(),
+    reason: text("reason"),
+    createdAt: integer("createdAt").notNull(),
+    reviewedAt: integer("reviewedAt"),
+    reviewerId: text("reviewerId")
+}, (table) => [
+    index("profilepicturesubmissions_account").on(table.accountId),
+    index("profilepicturesubmissions_queue").on(table.status, table.createdAt)
+]);
+
 export const trialruns = sqliteTable("trialruns", {
     id: integer("id").notNull().primaryKey({autoIncrement: true}),
     trialId: text("trialId").notNull(),

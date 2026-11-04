@@ -260,6 +260,13 @@
       "when": 1793491200000,
       "tag": "0036_player_journey",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1794000000000,
+      "tag": "0037_profile_picture_moderation",
+      "breakpoints": true
     }
   ]
 }

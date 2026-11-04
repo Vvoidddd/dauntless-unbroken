@@ -38,8 +38,64 @@ import { discordlinks, userapikeys, users } from '../db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { GetPlaytimeSeconds } from '../controllers/playtime';
 import { IslandEventEnabled, IslandEventModeNow, SetIslandEventMode, type IslandEventMode } from '../controllers/islandevent';
+import {ApproveProfilePicture, GetApprovedProfilePicture, GetProfilePictureStatus, ListProfilePictureModeration, ModerationProfilePictureFile, RemoveProfilePicture, RejectProfilePicture, SubmitProfilePicture} from '../controllers/profilepictures';
+import {HasDauntlessUnbrokenMetagameAuth} from '../middleware/HasDauntlessUnbrokenMetagameAuth';
 
 export const unbrokenApiRouter = Router();
+
+const ProfilePictureRateLimit = rateLimit({keyGenerator: req => `profile-picture:${String((req as any).AuthData?.userId || 'unknown')}`, windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: 'draft-8', legacyHeaders: false, message: {error: 'rate_limited'}});
+
+unbrokenApiRouter.get('/ProfilePicture', HasDauntlessUnbrokenMetagameAuth, (req: any, res) => {
+    if(req.AuthData?.IsGameserver || typeof req.AuthData?.userId !== 'string'){res.status(403).json({error: 'player_auth_required'});return;}
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(GetProfilePictureStatus(req.AuthData.userId));
+});
+unbrokenApiRouter.post('/ProfilePicture', HasDauntlessUnbrokenMetagameAuth, ProfilePictureRateLimit, async (req: any, res) => {
+    if(req.AuthData?.IsGameserver || typeof req.AuthData?.userId !== 'string'){res.status(403).json({error: 'player_auth_required'});return;}
+    try {
+        const result = await SubmitProfilePicture(req.AuthData.userId, req.body?.image);
+        if(result.status === 'rejected'){res.status(400).json({error: 'image_rejected'});return;}
+        res.status(201).json(result);
+    }
+    catch(error){
+        const message = error instanceof Error ? error.message : '';
+        const allowed = ['invalid_image','image_too_large','invalid_image_dimensions','unsupported_image_format','account_not_found'];
+        if(message === 'moderation_unavailable'){res.status(503).json({error: message});return;}
+        res.status(400).json({error: allowed.includes(message) ? message : 'profile_picture_failed'});
+    }
+});
+unbrokenApiRouter.get('/ProfilePicture/:accountId', (req, res) => {
+    const image = GetApprovedProfilePicture(String(req.params.accountId));
+    if(!image){res.status(404).end();return;}
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+    res.type(image.mimeType).sendFile(image.filePath);
+});
+unbrokenApiRouter.get('/ProfilePictureModeration', HasDauntlessUnbrokenAdminApiKey, (req, res) => {
+    const status = req.query.status === undefined ? 'pending' : String(req.query.status);
+    if(!['pending','approved','rejected','all'].includes(status)){res.status(400).json({error:'invalid_status'});return;}
+    try {res.setHeader('Cache-Control','no-store');res.json(ListProfilePictureModeration(status as any, Number(req.query.offset ?? 0)));}
+    catch {res.status(400).json({error:'invalid_offset'});}
+});
+unbrokenApiRouter.get('/ProfilePictureReview/:id', HasDauntlessUnbrokenAdminApiKey, (req, res) => {
+    const image = ModerationProfilePictureFile(String(req.params.id));
+    if(!image){res.status(404).end();return;}
+    res.setHeader('Cache-Control','no-store');
+    res.type(image.mimeType).sendFile(image.filePath);
+});
+unbrokenApiRouter.post('/ProfilePictureModeration', HasDauntlessUnbrokenAdminApiKey, AdminMutationRateLimit, (req: any, res) => {
+    const id = typeof req.body?.id === 'string' ? req.body.id : '';
+    const action = req.body?.action;
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason : '';
+    try {
+        const actor = req.DauntlessUnbrokenUserInfo.UserId;
+        const result = action === 'approve' ? ApproveProfilePicture(id, actor) : action === 'reject' ? RejectProfilePicture(id, actor, reason) : action === 'remove' ? RemoveProfilePicture(id, actor, reason) : null;
+        if(!result){res.status(400).json({error:'invalid_action'});return;}
+        res.json(result);
+    } catch(error){
+        const message = error instanceof Error ? error.message : '';
+        res.status(message === 'not_found' ? 404 : 400).json({error: ['not_found','already_reviewed'].includes(message) ? message : 'profile_picture_moderation_failed'});
+    }
+});
 import { SendAnnouncement, ValidAnnouncement } from '../realtime/announcement';
 unbrokenApiRouter.post('/Announcement',HasDauntlessUnbrokenAdminApiKey,AdminMutationRateLimit,(req:any,res)=>{
     res.setHeader('Cache-Control','no-store');
