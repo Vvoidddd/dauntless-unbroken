@@ -54,6 +54,7 @@
 - [Text chat](https://vvoidddd.github.io/dauntless-unbroken/findings/chat.html): How the Dauntless 1.4.4 client does text chat against our server, read from the executable: why the first chat server showed UID-... instead of names, the room nickname and how we check it, which rooms exist and who may join them, and what is still unconfirmed.
 - [The in-game store](https://vvoidddd.github.io/dauntless-unbroken/findings/store.html): How the Dauntless 1.4.4 client's store buys an item, read from the executable, and the free store we built from the source integration's codebase: the four routes and the purchase token, the catalogue and its tabs, stacked and instanced grants, which character gets the item, and the switches.
 - [Escalation](https://vvoidddd.github.io/dauntless-unbroken/findings/escalation.html): How Dauntless 1.4.4 saves Escalation progress, and the real Escalation saves we built from the source integration's codebase: the season registry read from the client, the rules every save must pass and the ones that only warn, the old stub, and what players see when it is switched on.
+- [Weapon meters in 1.10.5](https://vvoidddd.github.io/dauntless-unbroken/findings/weapon-meters-1105.html): What the 1.10.5 server build exposes for axe determination, sword charges and chain-blade meter gain, and what is still unverified.
 
 ## Project
 

@@ -5166,6 +5166,7 @@ addresses and short snippets, and only as much as each explanation needs.
 | [The in-game store](https://vvoidddd.github.io/dauntless-unbroken/findings/store.html) | 1.4.4 | How the store screen lists and buys an offer, and the free store built from the source integration's codebase: the purchase token, the catalogue and its tabs, stacked and instanced grants, and which character gets the item. |
 | [Escalation](https://vvoidddd.github.io/dauntless-unbroken/findings/escalation.html) | 1.4.4 | How Escalation progress is saved, the season registry read from the client, the rules every save must pass, and what players see when real saves are switched on. |
 | [Feature integrations](https://vvoidddd.github.io/dauntless-unbroken/findings/feature-integrations.html) | 1.4.4 | What we took from the earlier 1.4.4 implementation and what we kept of our own, feature by feature, with the reason for every choice. |
+| [Weapon meters in 1.10.5](https://vvoidddd.github.io/dauntless-unbroken/findings/weapon-meters-1105.html) | 1.10.5 | The axe, sword and chain-blade meter paths present in the target build, and the evidence still needed before changing gameplay code. |
 
 The scripts used for most of the static analysis are described on
 [Tools](https://vvoidddd.github.io/dauntless-unbroken/tools.html).
@@ -10496,6 +10497,56 @@ an unknown account, and the audit row.
 | Which season ids 1.4.4 asks for (2.1.1 asks up to `ESC_SEASON_6`, which the registry does not have) | unknown | The request log of one city load in real mode. |
 | The soft rules match the game | S for the tier gate and the point count (B), G for the rest | No "breaks a soft rule" line in the test. |
 | When to switch it on | the owner's decision | After the test and an announcement. |
+
+================================================================================
+URL: https://vvoidddd.github.io/dauntless-unbroken/findings/weapon-meters-1105.html
+================================================================================
+
+# Weapon meters in 1.10.5
+
+Weapon-meter reports need a 1.10.5 hunt reproduction. The older 1.4.4 guides and community
+descriptions are not enough to decide whether a meter is working in the current target build.
+
+## What the target build contains
+
+The generated 1.10.5 server SDK contains the gameplay paths for all three reports:
+
+| Report | 1.10.5 class or data | What it exposes |
+|---|---|---|
+| Axe determination | `ArchonAxeAttributeSet` | Replicated `DeterminationMeter` and `DeterminationMeterMax` attributes. |
+| Sword meter | `BP_EB_Weapon` and `weapon_meter_bpc` | The shared meter component, sword-charge state, meter-gain timers and sword-charge generation/removal. |
+| Chain blades | `weapon_meter_bpc` and `FWeaponPowerTableData` | The shared meter component and the `CBlade_MeterGainScale` tuning field. |
+
+`weapon_meter_bpc` has separate authoritative functions for increasing, decreasing, filling,
+emptying and decaying the meter. `BP_EB_Weapon` also has `HandleMeterGain`,
+`StartMeterGainTimer`, `ResetMeterGain` and the replicated sword-charge fields. These are game
+Blueprint functions in the 1.10.5 build; the native DLL does not replace them with a server-side
+formula.
+
+## What this does not prove
+
+The headers prove that the target build has the meter state and callable gameplay paths. They do
+not prove that a particular attack reaches those paths, that a tuning value is nonzero at runtime,
+or that the HUD receives the replicated value. No local game installation was available for a
+controlled axe, sword and chain-blade hunt, so this investigation did not reproduce the report and
+does not claim a fix.
+
+The repository's current 1.10.5 patch notes therefore keep weapon meters under investigation.
+That status is more accurate than carrying over 1.4.4 assumptions such as a specific hit count,
+charge amount or decay rate.
+
+## Evidence needed for a code fix
+
+Use a disposable account and record one weapon per hunt:
+
+1. weapon and weapon part, hunt map and whether the hunt is Training Grounds or a live hunt;
+2. attack or special used, target hit, and the meter value before and after the event;
+3. whether the HUD changed, whether the special became available, and whether the value decayed;
+4. exported support logs and the exact client/server build hashes.
+
+A code change should follow a captured failure through the authoritative meter function. Until that
+evidence exists, changing the native DLL or inventing 1.4.4-era meter constants would risk masking
+the actual asset, replication or attack-tag problem.
 
 ================================================================================
 URL: https://vvoidddd.github.io/dauntless-unbroken/roadmap.html
