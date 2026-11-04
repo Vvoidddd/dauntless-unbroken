@@ -34,6 +34,9 @@ test('maintenance restricts existing and fresh player credentials without blocki
     process.env.MAINTENANCE_MODE='1';process.env.MAINTENANCE_ALLOWED_ACCOUNT_IDS=allowed;
     assert.equal((await api('/unbroken/api/GetUserInfo',{'x-dauntless-unbroken-user-api-key':allowedKey})).status,200);
     assert.equal((await api('/unbroken/api/GetUserInfo',{'x-dauntless-unbroken-user-api-key':deniedKey})).status,503);
+    const maintenanceStatus=await api('/unbroken/api/ServerStatus',{'x-dauntless-unbroken-user-api-key':allowedKey});
+    assert.equal(maintenanceStatus.status,200);
+    assert.equal((await maintenanceStatus.json()).maintenance,true);
     assert.equal((await api('/account/api/oauth/token',{}, {exchange_code:deniedKey})).status,503);
     assert.equal((await api('/account/api/oauth/token',{}, {exchange_code:allowedKey})).status,200);
     assert.equal((await api('/accountinfo',{authorization:'Bearer '+oldToken})).status,503);

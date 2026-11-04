@@ -7,6 +7,7 @@ import { users } from "../db/schema";
 import { logger } from "../logger";
 import { GetOnlinePlayerActivity, IsRegistrationMode, REGISTRATION_MODE } from "./unbrokenapi";
 import { GetLastMatchmakingResult } from "./matchmaking";
+import { MaintenanceActive } from "./maintenance";
 
 // GET /unbroken/api/ServerStatus: who is online and which game servers run, for the
 // friend launcher. Nothing in it may identify an account beyond its username: no
@@ -429,7 +430,7 @@ function StatusWith(Players: StatusPlayer[], Instances: StatusInstance[], Limite
     return {
         name: Identity.name,
         online: true,
-        ...(process.env.UNBROKEN_MAINTENANCE === '1' ? { maintenance: true } : {}),
+        ...(MaintenanceActive() ? { maintenance: true } : {}),
         version: Identity.version,
         commit: Identity.commit,
         sourceUrl: Identity.sourceUrl,
