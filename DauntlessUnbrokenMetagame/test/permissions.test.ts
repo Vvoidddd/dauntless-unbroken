@@ -362,7 +362,7 @@ const EXPECTED_ROUTES = [
     "GET /unbroken/api/ProfilePicture [HasDauntlessUnbrokenUserApiKey]",
     "POST /unbroken/api/ProfilePicture [HasDauntlessUnbrokenUserApiKey]",
     "POST /unbroken/api/ProfileUsername [HasDauntlessUnbrokenUserApiKey]",
-    "GET /unbroken/api/ProfilePicture/:accountId []",
+    "GET /unbroken/api/ProfilePicture/:accountId [HasDauntlessUnbrokenUserApiKey]",
     "GET /unbroken/api/ProfilePictureModeration [HasDauntlessUnbrokenAdminApiKey]",
     "GET /unbroken/api/ProfilePictureReview/:id [HasDauntlessUnbrokenAdminApiKey]",
     "POST /unbroken/api/ProfilePictureModeration [HasDauntlessUnbrokenAdminApiKey]",

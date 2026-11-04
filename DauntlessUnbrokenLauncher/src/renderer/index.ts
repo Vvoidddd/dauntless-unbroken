@@ -1630,7 +1630,7 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
   if (!snap.server || !snap.account.hasKey) return null;
   const profile = snap.account.profilePicture;
   const statusKey = profile?.status ?? "empty";
-  const status = statusKey === "approved" ? "Visible to other players" : statusKey === "pending" ? "Waiting for moderation" : statusKey === "rejected" ? "Rejected by moderation" : "No profile picture set";
+  const status = statusKey === "approved" ? "Visible to accepted friends" : statusKey === "pending" ? "Waiting for moderation" : statusKey === "rejected" ? "Rejected by moderation" : "No profile picture set";
   const avatar = profile?.imageDataUrl
     ? h("img", {class:"profile-avatar-image", src:profile.imageDataUrl, alt:""})
     : h("span", {class:"profile-avatar-letter", "aria-hidden":"true"}, (snap.account.username ?? "?").slice(0,1).toUpperCase());
@@ -1655,7 +1655,7 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
     }
   });
   return card("settings-section profile-card",
-    h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:`profile-status profile-status-${statusKey}`}, h("span", {class:"profile-status-dot", "aria-hidden":"true"}), status), h("p", {class:"small-print"}, "Pictures are checked automatically for unsafe content. Other players only see approved pictures."))),
+    h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:`profile-status profile-status-${statusKey}`}, h("span", {class:"profile-status-dot", "aria-hidden":"true"}), status), h("p", {class:"small-print"}, "Pictures are checked automatically for unsafe content. Only accepted friends can see an approved picture."))),
     h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("div", {class:"profile-username-row"}, username, saveUsername)),
     state.profileUsernameNote ? h("p", {class:"small-print", role:"status"}, state.profileUsernameNote) : null,
     state.profilePictureNote ? h("p", {class:"small-print", role:"status"}, state.profilePictureNote) : null,

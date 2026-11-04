@@ -269,10 +269,11 @@ export async function fetchProfilePicture(ep: Endpoint, key: string): Promise<Pr
   } catch { return {ok:false,error:'server_unreachable'}; }
 }
 
-export async function fetchProfilePictureImage(ep: Endpoint, accountId: string): Promise<string | null> {
+export async function fetchProfilePictureImage(ep: Endpoint, accountId: string, key: string): Promise<string | null> {
+  if(!isPlausibleAccountKey(key)) return null;
   if(!/^UID-[A-Za-z0-9-]{1,128}$/.test(accountId)) return null;
   try {
-    const res = await request(ep, `/unbroken/api/ProfilePicture/${encodeURIComponent(accountId)}`, {timeoutMs:10000,maxBytes:120*1024});
+    const res = await request(ep, `/unbroken/api/ProfilePicture/${encodeURIComponent(accountId)}`, {headers:statusHeaders(ep,key),timeoutMs:10000,maxBytes:120*1024});
     if(res.status !== 200) return null;
     const type = sniffImage(res.body);
     return type ? `data:${type};base64,${res.body.toString('base64')}` : null;

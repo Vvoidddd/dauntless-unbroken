@@ -28,7 +28,7 @@ import { GetServerStatus } from "../controllers/serverstatus";
 import { logger } from "../logger";
 import { FindAccount } from "../controllers/login";
 import { InviteToParty } from "../controllers/party";
-import { SendOrAcceptFriendRequest } from "../controllers/friends";
+import { AreFriends, SendOrAcceptFriendRequest } from "../controllers/friends";
 import { DisbandGuildAsAdmin, GuildNameOf, InviteToGuild, ListGuilds } from "../controllers/guild";
 import { RefuseAdminKeyThroughProxy } from "../middleware/RequestOrigin";
 import { IsSoftRegisteredCaller, SoftAccountAuth } from "../middleware/SoftAccountAuth";
@@ -67,8 +67,11 @@ unbrokenApiRouter.post('/ProfileUsername', HasDauntlessUnbrokenUserApiKey, Profi
     if(result.ok){res.json({username:result.Username});return;}
     res.status(result.Status).json(ErrorBody(result.Error));
 });
-unbrokenApiRouter.get('/ProfilePicture/:accountId', (req, res) => {
-    const image = GetApprovedProfilePicture(String(req.params.accountId));
+unbrokenApiRouter.get('/ProfilePicture/:accountId', HasDauntlessUnbrokenUserApiKey, (req: any, res) => {
+    const accountId = String(req.params.accountId);
+    const callerId = String(req.DauntlessUnbrokenUserInfo.UserId);
+    if(callerId !== accountId && !AreFriends(callerId, accountId)){res.status(404).end();return;}
+    const image = GetApprovedProfilePicture(accountId);
     if(!image){res.status(404).end();return;}
     res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
     res.type(image.mimeType).sendFile(image.filePath);

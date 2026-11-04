@@ -136,6 +136,10 @@ export function AreFriendsInTx(tx: Tx, A: string, B: string){
     return tx.select({ status: friendships.status }).from(friendships).where(PairCondition(A, B)).get()?.status === "ACCEPTED";
 }
 
+export function AreFriends(A: string, B: string){
+    return GetDb().transaction((tx) => AreFriendsInTx(tx, A, B));
+}
+
 // The Slayer Link invites between the two that still wait for an answer (slayerlinks.ts reads the table).
 // One update per direction: SQLite's planner fails on an UPDATE of the partial index's column with an OR
 // of the two directions and RETURNING ("internal query planner error").
