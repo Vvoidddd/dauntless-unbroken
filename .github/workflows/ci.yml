@@ -1,4 +1,4 @@
-# Checks every push and pull request:
+# Checks selected by changed paths on every push and pull request:
 #  - the four server packages: npm ci, build, unit tests; Discord bot: npm ci and unit tests
 #  - the launcher: typecheck, unit tests and the Windows installer, kept as a download for 7 days
 #  - the separate Linux and OpenBSD server ports (native Node services, Wine/SSH game launch wrappers, nftables/PF)
@@ -35,19 +35,121 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Keep one workflow so required checks do not remain pending when an unrelated file changes.
+  changes:
+    name: Select checks
+    runs-on: ubuntu-latest
+    outputs:
+      node_packages: ${{ steps.paths.outputs.node_packages }}
+      launcher: ${{ steps.paths.outputs.launcher }}
+      server_port: ${{ steps.paths.outputs.server_port }}
+      native: ${{ steps.paths.outputs.native }}
+      server_kit: ${{ steps.paths.outputs.server_kit }}
+      server_kit_phases: ${{ steps.paths.outputs.server_kit_phases }}
+      docs: ${{ steps.paths.outputs.docs }}
+      all_checks: ${{ steps.paths.outputs.all_checks }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Find affected checks
+        id: paths
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = workflow_dispatch ]; then
+            files="*"
+          elif [ "$EVENT" = pull_request ]; then
+            # Compare the PR head with the merge base, not the synthetic merge commit. The
+            # target branch may have advanced since the PR was opened.
+            files="$(git diff --name-only "$BASE...$HEAD")"
+          elif [ -n "${BEFORE//0/}" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            files="$(git diff --name-only "$BEFORE" "$SHA")"
+          else
+            files="*"
+          fi
+
+          node_packages="["
+          launcher=false
+          server_port=false
+          native=false
+          server_kit=false
+          server_kit_sandbox=false
+          server_kit_phases='[]'
+          docs=false
+          all_checks=false
+          if [ "$EVENT" = workflow_dispatch ] || [ "$files" = "*" ]; then all_checks=true; fi
+
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            if [ "$path" = ".github/workflows/ci.yml" ]; then
+              server_kit=true
+              continue
+            fi
+            if [ "$path" = ".github/workflows/codeql.yml" ]; then
+              continue
+            fi
+            case "$path" in
+              .github/*|AGENTS.md|CONTRIBUTING.md) all_checks=true ;;
+              DauntlessUnbrokenMetagame/test/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true ;;
+              DauntlessUnbrokenGateway/test/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true ;;
+              DauntlessUnbrokenContent/test/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true ;;
+              DauntlessUnbrokenDeployServer/test/*) node_packages+='"DauntlessUnbrokenDeployServer",'; server_port=true ;;
+              DauntlessUnbrokenMetagame/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenGateway/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenContent/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenDeployServer/*) node_packages+='"DauntlessUnbrokenDeployServer",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenDiscordBot/*) node_packages+='"DauntlessUnbrokenDiscordBot",' ;;
+              DauntlessUnbrokenLauncher/*) launcher=true ;;
+              deploy/linux-server/*|deploy/openbsd-server/*|deploy/unix-common/*) server_port=true ;;
+              deploy/windows-server/*) server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenInternalServer/*|tests/client-mods/*) native=true ;;
+              docs/*|tools/*) docs=true ;;
+            esac
+          done <<< "$files"
+
+          node_packages="${node_packages%,}]"
+          if [ "$all_checks" = true ]; then
+            node_packages='["DauntlessUnbrokenMetagame","DauntlessUnbrokenGateway","DauntlessUnbrokenContent","DauntlessUnbrokenDeployServer","DauntlessUnbrokenDiscordBot"]'
+            launcher=true; server_port=true; native=true; server_kit=true; server_kit_sandbox=true; docs=true
+          fi
+
+          if [ "$server_kit" = true ]; then
+            if [ "$server_kit_sandbox" = true ]; then
+              server_kit_phases='["unit","remote","sandbox"]'
+            else
+              server_kit_phases='["unit","remote"]'
+            fi
+          fi
+
+          {
+            echo "node_packages=$node_packages"
+            echo "launcher=$launcher"
+            echo "server_port=$server_port"
+            echo "native=$native"
+            echo "server_kit=$server_kit"
+            echo "server_kit_phases=$server_kit_phases"
+            echo "docs=$docs"
+            echo "all_checks=$all_checks"
+          } >> "$GITHUB_OUTPUT"
+
   node-packages:
     name: ${{ matrix.package }}
+    needs: changes
+    if: needs.changes.outputs.node_packages != '[]'
     runs-on: windows-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        package:
-          - DauntlessUnbrokenMetagame
-          - DauntlessUnbrokenGateway
-          - DauntlessUnbrokenContent
-          - DauntlessUnbrokenDeployServer
-          - DauntlessUnbrokenDiscordBot
+        package: ${{ fromJSON(needs.changes.outputs.node_packages) }}
     defaults:
       run:
         shell: pwsh
@@ -77,6 +179,8 @@ jobs:
 
   launcher:
     name: Launcher
+    needs: changes
+    if: needs.changes.outputs.launcher == 'true'
     runs-on: windows-2022
     timeout-minutes: 30
     defaults:
@@ -133,6 +237,8 @@ jobs:
 
   launcher-linux:
     name: Launcher (Linux x64)
+    needs: changes
+    if: needs.changes.outputs.launcher == 'true'
     runs-on: ubuntu-24.04 # RPM maker expects the pre-RPM-6 build directory layout.
     timeout-minutes: 30
     defaults:
@@ -181,6 +287,8 @@ jobs:
 
   server-port-linux:
     name: Server port (Linux)
+    needs: changes
+    if: needs.changes.outputs.server_port == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -201,10 +309,33 @@ jobs:
       - name: Build and test the native server services on Linux
         run: |
           set -euo pipefail
+          build_logs="$(mktemp -d)"
+          pids=""
           for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
-            echo "::group::$pkg"
-            (cd "$pkg" && npm ci --no-audit --no-fund && npm run build && npm test)
-            echo "::endgroup::"
+            (
+              set -eu
+              cd "$pkg"
+              npm ci --no-audit --no-fund
+              npm run build
+            ) >"$build_logs/$pkg.log" 2>&1 &
+            pids="$pids $!"
+          done
+          build_failed=0
+          for pid in $pids; do
+            if ! wait "$pid"; then build_failed=1; fi
+          done
+          if [ "$build_failed" -ne 0 ]; then
+            for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
+              echo "=== $pkg build ==="
+              cat "$build_logs/$pkg.log"
+            done
+            exit 1
+          fi
+          rm -rf "$build_logs"
+          # The build phase is independent; tests stay serial because several fixtures use fixed ports.
+          for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
+            echo "=== $pkg tests ==="
+            (cd "$pkg" && npm test)
           done
 
       - name: Test the Unix game-worker and platform config ports
@@ -223,6 +354,8 @@ jobs:
 
   server-port-openbsd:
     name: Server port (OpenBSD 7.9)
+    needs: changes
+    if: needs.changes.outputs.server_port == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -246,9 +379,33 @@ jobs:
             set -eu
             node --version
             npm --version
+            build_logs="$(mktemp -d)"
+            pids=""
             for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
-              echo "=== $pkg ==="
-              (cd "$pkg" && npm ci --no-audit --no-fund && npm run build && npm test)
+              (
+                set -eu
+                cd "$pkg"
+                npm ci --no-audit --no-fund
+                npm run build
+              ) >"$build_logs/$pkg.log" 2>&1 &
+              pids="$pids $!"
+            done
+            build_failed=0
+            for pid in $pids; do
+              if ! wait "$pid"; then build_failed=1; fi
+            done
+            if [ "$build_failed" -ne 0 ]; then
+              for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
+                echo "=== $pkg build ==="
+                cat "$build_logs/$pkg.log"
+              done
+              exit 1
+            fi
+            rm -rf "$build_logs"
+            # The build phase is independent; tests stay serial because several fixtures use fixed ports.
+            for pkg in DauntlessUnbrokenMetagame DauntlessUnbrokenGateway DauntlessUnbrokenContent DauntlessUnbrokenDeployServer; do
+              echo "=== $pkg tests ==="
+              (cd "$pkg" && npm test)
             done
             node --test deploy/linux-server/tests/game-runner.test.mjs
             for file in deploy/openbsd-server/*.ksh deploy/openbsd-server/rc.d/*; do
@@ -275,6 +432,8 @@ jobs:
 
   native-regressions:
     name: Native server regression tests
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -307,6 +466,8 @@ jobs:
 
   internal-server-dll:
     name: Server DLL (Windows x64)
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
     runs-on: windows-latest
     timeout-minutes: 20
     defaults:
@@ -363,10 +524,16 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  server-kit:
-    name: Server kit (Windows PowerShell 5.1)
+  server-kit-work:
+    name: Server kit (${{ matrix.phase }})
+    needs: changes
+    if: needs.changes.outputs.server_kit == 'true'
     runs-on: windows-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        phase: ${{ fromJSON(needs.changes.outputs.server_kit_phases) }}
     defaults:
       run:
         shell: powershell
@@ -377,6 +544,7 @@ jobs:
 
       # The sandbox test builds all four server packages with npm ci, so their lockfiles key the cache.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: matrix.phase != 'remote'
         with:
           node-version: 24
           cache: npm
@@ -387,6 +555,7 @@ jobs:
             DauntlessUnbrokenDeployServer/package-lock.json
 
       - name: Every PowerShell script parses in Windows PowerShell 5.1
+        if: matrix.phase == 'unit'
         run: |
           $files = @(git ls-files -- '*.ps1')
           $bad = 0
@@ -400,6 +569,7 @@ jobs:
 
       # PSScriptAnalyzer comes with the runner image; it is never installed from the gallery here.
       - name: PSScriptAnalyzer (errors only)
+        if: matrix.phase == 'unit'
         shell: pwsh
         run: |
           if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
@@ -419,33 +589,38 @@ jobs:
           Write-Output "PSScriptAnalyzer $((Get-Module PSScriptAnalyzer).Version): no errors in $($files.Count) scripts"
 
       - name: Install the gateway's dependencies (Test-KitUnit uses its certificate tool)
+        if: matrix.phase == 'unit'
         shell: pwsh
         working-directory: DauntlessUnbrokenGateway
         run: npm ci --no-audit --no-fund
 
       - name: Fleet watchdog safety regressions
+        if: matrix.phase == 'unit'
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy/windows-server/Test-FleetWatchdog.ps1
 
 
       - name: Unit checks (Test-KitUnit.ps1)
+        if: matrix.phase == 'unit'
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-KitUnit.ps1 -WorkDir "$env:RUNNER_TEMP\dr-kit-unit"
 
       - name: Remote deployment against a local folder (Test-DeployRemote.ps1)
+        if: matrix.phase == 'remote'
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-DeployRemote.ps1 -WorkDir "$env:RUNNER_TEMP\dr-deploy-test"
 
       - name: End-to-end sandbox install (Test-Sandbox.ps1)
+        if: matrix.phase == 'sandbox'
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File deploy\windows-server\tests\Test-Sandbox.ps1 -SandboxDir "$env:RUNNER_TEMP\dr-sandbox"
 
       # Test-Sandbox.ps1 leaves its log in %TEMP%. The sandbox's keys and secrets were made for this run
       # and deleted with it, and the kit never prints them.
       - name: Find the sandbox log
-        if: failure()
+        if: failure() && matrix.phase == 'sandbox'
         run: |
           $log = Join-Path $env:TEMP 'dr-sandbox-test.log'
           if (Test-Path -LiteralPath $log) { Copy-Item -LiteralPath $log -Destination $env:RUNNER_TEMP }
 
       - name: Keep the sandbox log
-        if: failure()
+        if: failure() && matrix.phase == 'sandbox'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sandbox-test-log
@@ -453,8 +628,21 @@ jobs:
           if-no-files-found: ignore
           retention-days: 5
 
+  server-kit:
+    name: Server kit (Windows PowerShell 5.1)
+    needs: [changes, server-kit-work]
+    if: always() && needs.changes.outputs.server_kit == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every server-kit phase
+        env:
+          RESULT: ${{ needs.server-kit-work.result }}
+        run: test "$RESULT" = success
+
   docs:
     name: Docs site
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -551,10 +739,14 @@ jobs:
   # On by default; the repository variable LAUNCHER_AUTO_RELEASE=false pauses it (see the top of this file).
   release-check:
     name: Launcher release needed?
-    needs: [node-packages, launcher, launcher-linux, server-port-linux, server-port-openbsd, native-regressions, internal-server-dll, server-kit, docs, repo-hygiene]
+    needs: [changes, node-packages, launcher, launcher-linux, server-port-linux, server-port-openbsd, native-regressions, internal-server-dll, server-kit, docs, repo-hygiene]
     if: >-
+      always() &&
       github.event_name == 'push' && github.ref_name == github.event.repository.default_branch &&
-      github.repository == 'Vvoidddd/dauntless-unbroken' && vars.LAUNCHER_AUTO_RELEASE != 'false'
+      github.repository == 'Vvoidddd/dauntless-unbroken' && vars.LAUNCHER_AUTO_RELEASE != 'false' &&
+      needs.changes.outputs.launcher == 'true' &&
+      needs.launcher.result == 'success' && needs.launcher-linux.result == 'success' &&
+      needs.repo-hygiene.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:

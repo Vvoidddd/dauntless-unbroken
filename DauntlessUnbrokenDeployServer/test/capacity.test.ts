@@ -159,3 +159,20 @@ test('a drain file stops new hunts and lets running ones finish',()=>{
         saved===undefined?delete process.env.DRAIN_FILE:process.env.DRAIN_FILE=saved;
     }
 });
+
+test('a worker-pool admission flag drains only that pool without a drain file',()=>{
+    const saved=process.env.HUNT_ACCEPTING_NEW;
+    delete process.env.DRAIN_FILE;
+    process.env.HUNT_ACCEPTING_NEW='0';
+    try{
+        const slots=new HuntAdmission(()=>1,()=>4);
+        assert.equal(HuntsDraining(),true);
+        assert.equal(slots.status().draining,true);
+        assert.throws(()=>slots.reserve(),CapacityUnavailable);
+        process.env.HUNT_ACCEPTING_NEW='1';
+        assert.equal(HuntsDraining(),false);
+        slots.reserve()();
+    } finally {
+        saved===undefined?delete process.env.HUNT_ACCEPTING_NEW:process.env.HUNT_ACCEPTING_NEW=saved;
+    }
+});
