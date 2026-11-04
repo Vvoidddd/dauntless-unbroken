@@ -553,7 +553,7 @@ se mitä puuttuva arvo tarkoittaa ja kuka kunkin asettaa, ovat [asetusten viites
 | `LOG_BODIES`, `BODY_LOG_FILE` | pois, `bodies.log` | `1` kirjoittaa keskeneräisten tallennusreittien pyyntöjen sisällön tiedostoon (8 kt kukin, tavaroilla 64 kt, tunnisteet poistettuina). Kehitysapu; se tallentaa, mitä pelaajat lähettävät. |
 | `MATCHMAKING_CANCEL` | pois | `1` vastaa peliohjelman jonon perumiseen. Pois päältä, koska peliohjelma lähettää perumisen heti jokaisen jonoon liittymisen jälkeen, ja metsästykset alkavat vain siksi, että perumiseen vastataan 404. |
 | `PROGRESSION_ALLOW_DELETE` | pois | `1` antaa pelipalvelimien nollata etenemisradan (vianetsintäkomento). Ylläpitäjän avaimella se onnistuu aina. |
-| `PROGRESSION_GRANT_CAP` | `5000` | Suurin kokemuspistemäärä (XP), jonka yksi pyyntö voi lisätä yhdelle radalle. |
+| `PROGRESSION_GRANT_CAP` | `5000` | Suurin kokemuspistemäärä (XP), jonka yksi pyyntö voi lisätä tavalliselle radalle. Tunnetut 1.10.5-aseiden kokemusradat sallivat vähintään ladatun tason 20 kokonaismäärän (27 775 XP mukana toimitetuissa tiedoissa). |
 | `SAVE_HISTORY_KEEP`, `SAVE_HISTORY_HOURLY`, `SAVE_HISTORY_DAILY` | `100`, `48`, `30` | Hahmon ja varustesarjojen versiot, jotka säilytetään palautuksia varten: uusimmat, sitten yksi tunnissa, sitten yksi päivässä. |
 | `INVENTORY_REPORT_REMOVALS`, `MISC_ROUTES`, `STATUS_EXTRA`, `ACCOUNT_DISPLAY_NAME` (`0`), `PROGRESSION_CONFIRM` (`off`) | päällä | Sulkeissa oleva arvo palauttaa yhden osan alkuperäisen projektin vanhasta toiminnasta vertailuja varten. Jätä ne asettamatta. |
 

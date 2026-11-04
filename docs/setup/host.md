@@ -512,7 +512,7 @@ what an unset value means and who sets it, is on [Configuration]({{ config_page.
 | `LOG_BODIES`, `BODY_LOG_FILE` | off, `bodies.log` | `1` appends the request bodies of unfinished save routes to the file (8 KB each, 64 KB for inventory, tokens removed). A development aid; it records what players send. |
 | `MATCHMAKING_CANCEL` | off | `1` answers the client's matchmaking cancel. Off because the client sends a cancel right after every queued join, and hunts only start because that cancel is answered 404. |
 | `PROGRESSION_ALLOW_DELETE` | off | `1` lets game servers reset a progression track (a debug command). An admin key can always do it. |
-| `PROGRESSION_GRANT_CAP` | `5000` | The most XP one request may add to one track. |
+| `PROGRESSION_GRANT_CAP` | `5000` | The most XP one request may add to a normal track. Known 1.10.5 weapon tracks use at least their loaded rank-20 total (27,775 XP in the bundled data). |
 | `SAVE_HISTORY_KEEP`, `SAVE_HISTORY_HOURLY`, `SAVE_HISTORY_DAILY` | `100`, `48`, `30` | Character and loadout versions kept for rollbacks: the newest ones, then one per hour, then one per day. |
 | `INVENTORY_REPORT_REMOVALS`, `MISC_ROUTES`, `STATUS_EXTRA`, `ACCOUNT_DISPLAY_NAME` (`0`), `PROGRESSION_CONFIRM` (`off`) | on | Each value in brackets puts back one piece of upstream's old behaviour, for comparisons. Leave them unset. |
 
