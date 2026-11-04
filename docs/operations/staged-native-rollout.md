@@ -1,5 +1,7 @@
 # Staged native server rollout
 
+The pool-level admission switch used below is implemented in [PR #48](https://github.com/Vvoidddd/dauntless-unbroken/pull/48), merged into `1.10.5`. This guide applies to a deployment built from that branch or a later one. The merge and its passing checks do not mean that any live host has been updated; complete the rollout and in-game verification separately.
+
 Use separate deploy-server pools when replacing a native DLL. A DLL already loaded by a game process does not change when the file on disk is replaced.
 
 1. Start a new pool from a separate game root with the candidate DLL. Verify its executable and DLL hashes before admitting players.
