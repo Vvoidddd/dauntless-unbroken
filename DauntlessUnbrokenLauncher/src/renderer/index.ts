@@ -1439,7 +1439,9 @@ function renderServer(): void {
     const kv = h("dl", { class: "kv" });
     for (const [k, v] of rows) kv.append(h("dt", {}, k), h("dd", {}, v));
     const parts: HTMLElement[] = [
-      h("h1", { class: "page-title", id: "server-title" }, serverName()),
+      h("div", { class: "server-cover", role: "img", "aria-label": `${serverName()} server` },
+        h("img", { src: heroArt, alt: "" }),
+        h("div", { class: "server-cover-copy" }, h("span", {}, "DAUNTLESS UNBROKEN"), h("strong", { id: "server-title" }, serverName()), h("small", {}, status?.version ?? "Server status"))),
       h("p", { class: "page-sub" }, t("server_auto")),
       card("", kv, h("div", { class: "card-row", style: undefined }, button(t("sp_refresh"), () => void api.refreshStatus(), { icon: "refresh", fk: "srv-refresh" }), status?.sourceUrl ? linkButton(t("sp_source"), () => open("server_source"), { icon: "external", fk: "srv-source" }) : null)),
     ];

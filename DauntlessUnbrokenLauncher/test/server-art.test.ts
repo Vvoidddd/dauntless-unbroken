@@ -45,7 +45,9 @@ test("the account popover shows the current connection before switch actions", (
 test("the server view replaces live-world data with maintenance state", () => {
   assert.match(renderer, /status\?\.maintenance/);
   assert.match(renderer, /maintenance-worlds/);
+  assert.match(renderer, /server-cover/);
   assert.match(theme, /\.maintenance-worlds/);
+  assert.match(theme, /\.server-cover/);
 });
 
 test("the local preview can render the maintenance state", () => {
