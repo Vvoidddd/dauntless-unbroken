@@ -24,6 +24,13 @@ it('serves the 1.10.5 ordinary bounty board, real six-season state and price-arr
     assert.equal(tuning.json.payload.bounty_token_id,'TOKEN_BOUNTY_DRAFT');
     assert.deepEqual(tuning.json.payload.bounty_data,[]);
     assert.equal(tuning.json.payload.delete_claimed_bounties,true);
+    const weeklyTuning=await Call('GET','/game_tuning/bounty_game_data_weekly');
+    assert.equal(weeklyTuning.status,200);
+    assert.deepEqual(weeklyTuning.json.payload.bounty_data,[{bounty_id:'Challenge_Season_DamageTotal',enabled:true,reward_amount:100}]);
+    assert.equal(weeklyTuning.json.payload.max_slots,1);
+    assert.equal(weeklyTuning.json.payload.automatic_draft,true);
+    assert.equal(weeklyTuning.json.payload.delete_claimed_bounties,true);
+    assert.ok(!weeklyTuning.json.payload.bounty_data.some((row:any)=>row.bounty_id==='Challenge_Season_Break_Armour_Rock'));
     const oldTuning=await Call('GET','/bounty/game-data',{as:player.UserId});
     assert.deepEqual(oldTuning.json.payload,tuning.json.payload);
     assert.equal(GrantKind('AR_HP07A_MONK_ARMS'),'stacked');
@@ -35,7 +42,7 @@ it('serves the 1.10.5 ordinary bounty board, real six-season state and price-arr
     assert.equal(pass.premium_rewards!.length,51);
     const lanternReward=(pass.premium_rewards as any[]).flatMap(r=>r.stacked_items).find(r=>r.catalog_id==='LT_HP09B_COMMANDO_00');
     assert.equal(lanternReward.quantity,1);
-    for(const suffix of ['_daily','_weekly']){
+    for(const suffix of ['_daily']){
         const disabled=await Call('GET','/game_tuning/bounty_game_data'+suffix);
         assert.equal(disabled.json.payload.max_slots,0);
         assert.deepEqual(disabled.json.payload.bounty_data,suffix==='_weekly'
