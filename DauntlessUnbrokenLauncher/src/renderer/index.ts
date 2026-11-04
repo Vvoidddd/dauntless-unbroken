@@ -1257,7 +1257,7 @@ function renderPanel(): void {
     }
     const status = snap.status;
     const reachable = snap.phase !== "connect";
-    const online = reachable && (status ? status.online : true);
+    const online = reachable && (status ? status.online && !status.maintenance : true);
     const head = h(
       "div",
       { class: "sp-head" },
@@ -1273,6 +1273,13 @@ function renderPanel(): void {
     }
     if (!status) {
       return [head, h("p", { class: "sp-empty" }, reachable && snap.statusUnsupported ? t("sp_unsupported") : t("sp_waiting")), panelFoot(null)];
+    }
+    if (status.maintenance) {
+      return [
+        head,
+        card("maintenance-worlds", h("span", { class: "maintenance-kicker" }, "Maintenance"), h("strong", { class: "maintenance-state" }, "EU1 is offline"), h("p", { class: "card-text" }, "Players and worlds will return when the server is back.")),
+        panelFoot(status),
+      ];
     }
     // The server shows who is online to registered players only: say so instead of an empty list
     // (and no "0 players", no "no worlds running", which would not be true).
