@@ -50,6 +50,9 @@
 .server-menu-current-kicker { color: var(--dr-steel); font-family: var(--font-display); font-size: 9px; letter-spacing: .12em; }
 .server-menu-current strong { color: var(--dr-frost); font-family: var(--font-display); font-size: 13px; font-weight: 550; }
 .server-menu-current-sub { color: var(--dr-glow); font-size: 10px; }
+.server-menu-status-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: var(--dr-steel); }
+.server-menu-status-dot.online { background: var(--dr-glow); box-shadow: 0 0 8px color-mix(in srgb, var(--dr-glow) 70%, transparent); }
+.server-menu-status-dot.maintenance { background: var(--dr-ice); }
 .titlebar-controls { height: 36px; gap: 3px; }
 .win-btn { width: 36px; height: 36px; border-radius: 7px; }
 .win-btn .icon { width: 14px; height: 14px; }

@@ -32,6 +32,8 @@ test("the account popover shows the current connection before switch actions", (
   assert.match(renderer, /Online · \$\{/);
   assert.match(renderer, /"Public"/);
   assert.match(theme, /\.server-menu-current/);
+  assert.match(renderer, /server-menu-status-dot/);
+  assert.match(theme, /\.server-menu-status-dot/);
 });
 
 test("the server view replaces live-world data with maintenance state", () => {
