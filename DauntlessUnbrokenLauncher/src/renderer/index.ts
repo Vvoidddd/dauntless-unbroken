@@ -1336,6 +1336,13 @@ function renderNews(): void {
     if (!snap?.server) body.push(card("", h("p", { class: "card-text" }, t("news_offline"))));
     else if (state.news.length === 0) body.push(card("", h("p", { class: "card-text" }, t("news_empty"))));
     else {
+      const latest = state.news[0];
+      body.push(h("div", { class: "community-cover" },
+        h("img", { src: newsArtFor(0), alt: "" }),
+        h("div", { class: "community-cover-copy" },
+          h("span", {}, "LATEST UPDATE"),
+          h("strong", {}, latest.title),
+          latest.date ? h("small", {}, formatDate(latest.date, state.lang)) : null)));
       for (const [index, n] of state.news.entries()) {
         body.push(
           h(
