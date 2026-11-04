@@ -46,6 +46,7 @@ test("the server view replaces live-world data with maintenance state", () => {
   assert.match(renderer, /status\?\.maintenance/);
   assert.match(renderer, /maintenance-worlds/);
   assert.match(renderer, /server-cover/);
+  assert.match(renderer, /server-cover-status/);
   assert.match(theme, /\.maintenance-worlds/);
   assert.match(theme, /\.server-cover/);
 });

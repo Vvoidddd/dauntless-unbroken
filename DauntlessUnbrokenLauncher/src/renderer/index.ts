@@ -1441,7 +1441,7 @@ function renderServer(): void {
     const parts: HTMLElement[] = [
       h("div", { class: "server-cover", role: "img", "aria-label": `${serverName()} server` },
         h("img", { src: heroArt, alt: "" }),
-        h("div", { class: "server-cover-copy" }, h("span", {}, "DAUNTLESS UNBROKEN"), h("strong", { id: "server-title" }, serverName()), h("small", {}, status?.version ?? "Server status"))),
+        h("div", { class: "server-cover-copy" }, h("span", {}, "DAUNTLESS UNBROKEN"), h("strong", { id: "server-title" }, serverName()), h("small", {}, status?.version ?? "Server status"), h("span", { class: `server-cover-status ${status?.maintenance ? "maintenance" : status?.online ? "online" : "offline"}` }, status?.maintenance ? "Maintenance" : status?.online ? "Online" : "Offline"))),
       h("p", { class: "page-sub" }, t("server_auto")),
       card("", kv, h("div", { class: "card-row", style: undefined }, button(t("sp_refresh"), () => void api.refreshStatus(), { icon: "refresh", fk: "srv-refresh" }), status?.sourceUrl ? linkButton(t("sp_source"), () => open("server_source"), { icon: "external", fk: "srv-source" }) : null)),
     ];
