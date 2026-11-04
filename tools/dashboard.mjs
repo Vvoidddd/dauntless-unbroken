@@ -181,7 +181,8 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
       }
       try{
         const response=await fetcher(new URL('/unbroken/api/IslandEventControl',target),{method:islandEventMutation?'POST':'GET',headers:{'x-dauntless-unbroken-user-api-key':key,'content-type':'application/json'},...(islandEventMutation?{body:text}:{}),signal:AbortSignal.timeout(10000),redirect:'error'});
-        res.writeHead(response.status).end(JSON.stringify(await response.json()));
+        const result = await response.json();
+        res.writeHead(response.status).end(JSON.stringify(result));
       }catch{res.writeHead(503).end(JSON.stringify({error:'Island event control unavailable.'}));}
       return;
     }
