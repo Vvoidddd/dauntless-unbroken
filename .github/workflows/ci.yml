@@ -1,4 +1,4 @@
-# Checks selected by changed paths on every push and pull request:
+# Checks selected by changed paths on pull requests and release-branch pushes:
 #  - the four server packages: npm ci, build, unit tests; Discord bot: npm ci and unit tests
 #  - the launcher: typecheck, unit tests and the Windows installer, kept as a download for 7 days
 #  - the separate Linux and OpenBSD server ports (native Node services, Wine/SSH game launch wrappers, nftables/PF)
@@ -21,7 +21,8 @@ name: CI
 on:
   push:
     branches:
-      - "**"
+      - main
+      - 1.10.5
   pull_request:
   workflow_dispatch:
 
