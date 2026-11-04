@@ -1090,9 +1090,10 @@ function renderActionBar(): void {
     return;
   }
   const b = primaryButton(snap, formState());
+  const maintenanceBlocked = snap.status?.maintenance === true && snap.status.maintenanceAllowed !== true;
   primary.textContent = t(b.labelKey);
-  primary.disabled = b.disabled || snap.status?.maintenance === true;
-  if (snap.status?.maintenance) primary.textContent = "Maintenance";
+  primary.disabled = b.disabled || maintenanceBlocked;
+  if (maintenanceBlocked) primary.textContent = "Maintenance";
   primary.classList.toggle("is-running", b.action === "none" && snap.phase === "running");
   primary.classList.toggle("is-pause", b.action === "pause" || b.action === "resume");
   primary.classList.toggle("is-ready", b.action === "play" && !b.disabled && !reducedMotion.matches);

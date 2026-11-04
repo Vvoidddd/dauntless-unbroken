@@ -72,6 +72,7 @@ export type ServerStatus = {
     name: string,
     online: true,
     maintenance?: boolean,
+    maintenanceAllowed?: boolean,
     version: string,
     commit: string,
     sourceUrl: string,

@@ -11,7 +11,7 @@ import {AckDiscordBan,CreateDiscordInvite,DiscordAccess,PendingDiscordBans,SetDi
 import {ManageAccountAccess} from '../controllers/accountaccess';
 
 import { Router } from "express";
-import { DeleteInviteCode, GetAllUserIds, GetInviteCodes, GetRecentPlayerData, IsRegistrationMode, RegisterInviteCode, REGISTRATION_MODE, SetRegistrationMode } from "../controllers/unbrokenapi";
+import { DeleteInviteCode, GetAllUserIds, GetInviteCodes, GetRecentPlayerData, GetUserInfoForApiKey, IsRegistrationMode, RegisterInviteCode, REGISTRATION_MODE, SetRegistrationMode } from "../controllers/unbrokenapi";
 import { HasDauntlessUnbrokenUserApiKey } from "../middleware/HasDauntlessUnbrokenUserApiKey";
 import { HasDauntlessUnbrokenAdminApiKey } from "../middleware/HasDauntlessUnbrokenAdminApiKey";
 import { SignMetagameJWTForUid } from "../controllers/auth";
@@ -25,6 +25,7 @@ import { DoesAccountExist, RecordProgressionEvent } from "../controllers/progres
 import { GetDb } from "../db";
 import { CleanInviteNote, ErrorBody, GenerateInviteCode, IsUsernameTaken, IsValidUsername, LogInviteCreated, MAX_INVITE_USES, RegisterAccount, RenameAccount, TrimUsername } from "../controllers/accounts";
 import { GetServerStatus } from "../controllers/serverstatus";
+import { MaintenanceAllows } from "../controllers/maintenance";
 import { logger } from "../logger";
 import { FindAccount } from "../controllers/login";
 import { InviteToParty } from "../controllers/party";
@@ -482,12 +483,18 @@ unbrokenApiRouter.post("/RenameUser", HasDauntlessUnbrokenAdminApiKey, async (re
 // launcher can read it before registering. Each variant is cached 5 s.
 unbrokenApiRouter.get("/ServerStatus", SoftAccountAuth, async (req, res) => {
     const Status = await GetServerStatus(IsSoftRegisteredCaller(req) ? "full" : "limited");
+    const ApiKey = req.headers["x-dauntless-unbroken-user-api-key"];
+    let MaintenanceAllowed: boolean | undefined;
+    if (Status.maintenance && typeof ApiKey === "string") {
+        try { MaintenanceAllowed = MaintenanceAllows((await GetUserInfoForApiKey(ApiKey))?.UserId); }
+        catch { MaintenanceAllowed = false; }
+    }
 
     res.status(200);
     res.set("Cache-Control", "no-store");
     res.vary("x-dauntless-unbroken-user-api-key");
     res.vary("authorization");
-    res.json(Status);
+    res.json(MaintenanceAllowed === undefined ? Status : {...Status, maintenanceAllowed: MaintenanceAllowed});
 });
 
 unbrokenApiRouter.get("/GetUserInfo", HasDauntlessUnbrokenUserApiKey, async (req: any, res) => {

@@ -41,6 +41,7 @@ test("the profile surface uses bundled game art without exposing implementation 
 
 test("maintenance state disables launch and uses a compact status surface", () => {
   assert.match(renderer, /snap\.status\?\.maintenance/);
-  assert.match(renderer, /primary\.disabled = b\.disabled \|\| snap\.status\?\.maintenance === true/);
+  assert.match(renderer, /const maintenanceBlocked = snap\.status\?\.maintenance === true && snap\.status\.maintenanceAllowed !== true/);
+  assert.match(renderer, /primary\.disabled = b\.disabled \|\| maintenanceBlocked/);
   assert.match(renderer, /maintenance-card/);
 });
