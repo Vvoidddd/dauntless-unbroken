@@ -18,11 +18,11 @@ const root = path.join(__dirname, "..");
 const docs = path.join(root, "docs");
 const SITE = "https://vvoidddd.github.io/dauntless-unbroken";
 const REPO = "https://github.com/Vvoidddd/dauntless-unbroken";
-const SUMMARY = "Dauntless Unbroken is an independent community realm and self-hosted server stack for the Dauntless 1.4.4 client. These guides cover playing, server architecture, configuration and operations.";
+const SUMMARY = "Dauntless Unbroken is an independent community realm and self-hosted server stack for the Dauntless 1.10.5 client. These guides cover playing, server architecture, configuration and operations.";
 const FACTS = [
     "The launcher checks existing game folders before offering a download, verifies pinned files and supports resumable HTTPS game downloads.",
     "Account keys are saved automatically to the Desktop after successful sign-in. Keep these recovery files private.",
-    "The metagame persists online progression; Offline mode uses a separate local save.",
+    "The metagame persists online progression; offline play for 1.10.5 is not available yet.",
     "Game processes start on demand, with queues, resource admission and empty-hunt cleanup.",
     "There are no hosting-provider partnerships. Build results do not establish every in-game scenario.",
     "Retail game assets are not included in the source repository. Required licenses and source provenance are documented on the legal page.",
