@@ -8,6 +8,7 @@ import newsBadge from "./brand/news-badge.svg";
 import previewProfileAvatar from "./brand/emblem-64.png";
 import behemothArt from "./brand/behemoth-512.png";
 import trialsRepeaterArt from "./brand/trials-repeater.png";
+import heroArt from "./brand/hero-umbral-nayzaga.jpg";
 import {installControllerNavigation} from "./controller-navigation";
 import { buildScene } from "./scene";
 import { isStringKey, translate, type StringKey } from "../shared/i18n";
@@ -751,6 +752,11 @@ function newsTeaser(): HTMLElement | null {
   return c;
 }
 
+const NEWS_ART = [trialsRepeaterArt, heroArt, behemothArt, previewProfileAvatar] as const;
+function newsArtFor(index: number): string {
+  return NEWS_ART[index % NEWS_ART.length];
+}
+
 function backupLocationText(snap:Snapshot):string{
   const file=snap.account.desktopBackupPath;
   const shown=snap.settings.streamerMode?'••••••':file;
@@ -1334,7 +1340,7 @@ function renderNews(): void {
           h(
             "article",
             { class: "card news-item" },
-            index === 0 ? h("div", { class: "news-media" }, h("img", { src: trialsRepeaterArt, alt: "" }), h("span", {}, "Featured gear")) : null,
+            h("div", { class: "news-media" }, h("img", { src: newsArtFor(index), alt: "" }), h("span", {}, index === 0 ? "New update" : "Server update")),
             n.date ? h("time", { class: "news-date", datetime: n.date }, formatDate(n.date, state.lang)) : null,
             h("h2", { class: "news-title" }, n.title),
             h("p", { class: "news-body" }, n.body),

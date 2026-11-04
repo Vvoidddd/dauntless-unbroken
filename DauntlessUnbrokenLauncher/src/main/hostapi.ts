@@ -351,7 +351,12 @@ export function parseNews(raw: unknown): NewsItem[] {
     const t = typeof item.date === "string" ? Date.parse(item.date) : NaN;
     items.push({ date: Number.isFinite(t) ? new Date(t).toISOString() : null, title, body });
   }
-  return items;
+  return items.sort((a, b) => {
+    if (a.date === null && b.date === null) return 0;
+    if (a.date === null) return 1;
+    if (b.date === null) return -1;
+    return Date.parse(b.date) - Date.parse(a.date);
+  });
 }
 
 export async function fetchNews(ep: Endpoint, fallback: NewsItem[] = []): Promise<NewsItem[]> {
