@@ -820,7 +820,7 @@ jobs:
   release-launcher:
     name: Publish launcher ${{ needs.release-check.outputs.version }}
     needs: release-check
-    if: ${{ needs.release-check.result == 'success' && needs.release-check.outputs.publish == 'true' }}
+    if: ${{ needs.release-check.outputs.publish == 'true' }}
     # What launcher-release.yml's jobs need: releases and tags, and the signed build provenance attestation.
     permissions:
       contents: write
