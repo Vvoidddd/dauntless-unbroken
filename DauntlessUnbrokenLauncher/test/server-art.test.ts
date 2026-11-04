@@ -25,3 +25,11 @@ test("the mods overview keeps a game-art anchor above its feature grid", () => {
   assert.match(renderer, /behemothArt/);
   assert.match(theme, /\.mods-cover/);
 });
+
+test("the account popover shows the current connection before switch actions", () => {
+  assert.match(renderer, /server-menu-current/);
+  assert.match(renderer, /CONNECTED/);
+  assert.match(renderer, /Online · \$\{/);
+  assert.match(renderer, /"Public"/);
+  assert.match(theme, /\.server-menu-current/);
+});

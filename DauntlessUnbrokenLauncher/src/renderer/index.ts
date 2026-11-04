@@ -2123,6 +2123,10 @@ function renderRail(): void {
     const menu = h(
       "ul",
       { class: "server-menu", id: "account-menu", role: "menu", "aria-label": "Accounts and servers", hidden: !state.serverMenu },
+      h("li", { class: "server-menu-current", role: "presentation" },
+        h("span", { class: "server-menu-current-kicker" }, "CONNECTED"),
+        h("strong", {}, serverName()),
+        h("span", { class: "server-menu-current-sub" }, snap?.status?.maintenance ? "Maintenance" : snap?.status?.online ? `Online · ${snap.server?.mode === "public" ? "Public" : "Private"}` : "Offline")),
       h("li", { class: "server-menu-head", role: "presentation" }, "Switch account"),
       ...accounts.map(account => {
         const item = h("button", {type: "button", class: "server-menu-item", role: "menuitem", "data-fk": "quick-account-" + account.id}, secret(account.username, "quick-account-name-" + account.id));
