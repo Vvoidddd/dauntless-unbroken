@@ -18,6 +18,7 @@ test("news uses a bundled game item as a visual lead", () => {
   assert.match(renderer, /trials-repeater\.png/);
   assert.match(renderer, /hero-umbral-nayzaga\.jpg/);
   assert.match(renderer, /newsArtFor/);
+  assert.match(renderer, /news-teaser-media/);
   assert.match(renderer, /news-media/);
   assert.match(theme, /\.news-media/);
 });

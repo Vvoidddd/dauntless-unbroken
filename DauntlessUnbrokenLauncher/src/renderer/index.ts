@@ -744,6 +744,7 @@ function newsTeaser(): HTMLElement | null {
     h(
       "div",
       { class: "news-teaser" },
+      h("div", { class: "news-teaser-media" }, h("img", { src: newsArtFor(0), alt: "" }), h("span", {}, "New")),
       item.date ? h("span", { class: "news-teaser-date" }, formatDate(item.date, state.lang)) : null,
       h("strong", {}, item.title),
       h("div", { class: "card-row" }, linkButton(t("news_read_more"), () => setView("news"), { fk: "news-more" })),
