@@ -29,6 +29,18 @@ Build the Jekyll site and check links, code blocks, tables and mobile styles. Th
 
 CI checks the services, native integration, launcher, deployment kits, Linux/OpenBSD paths, documentation and repository hygiene. Required checks must pass before a launcher release. Its version is in `DauntlessUnbrokenLauncher/package.json`.
 
+### Which CI checks run
+
+Pull requests use the changed paths between the pull request head and the target branch's merge base. A skipped job means that its inputs were not changed; it is expected and does not indicate a failed test.
+
+- Package source or build changes run the affected package checks, server-port checks and the Windows server-kit checks, including the sandbox.
+- Package test-only changes run the affected package and server-port checks without rebuilding the Windows server-kit sandbox.
+- `deploy/windows-server/` changes run all server-kit phases.
+- Changes to the CI workflow run the selector, server-kit unit and remote checks. Changes to the CodeQL workflow select the Actions analysis without running unrelated CI suites.
+- Documentation, launcher, native-server and other paths select only their corresponding checks.
+
+Pushes to `main` and scheduled CodeQL analysis run the full analysis set. On a pull request, CodeQL analyzes only languages affected by the changed files.
+
 Use a test environment for in-game verification. Ordinary deployments must not maximize player accounts.
 
 ## Licensing
