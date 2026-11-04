@@ -81,6 +81,7 @@ function createLogin(db,config,exporter=hash=>exportRemote(config,hash)){
 function completeExisting(db,hash,ex){return db.transaction(()=>{
  const user=db.prepare('SELECT userId FROM userapikeys WHERE keyHash=?').get(hash);
  if(!user||ex?.source!=='live-1.4.4'||ex.readOnly!==true||ex.userId!==user.userId||ex.tables?.userapikeys?.length!==1||ex.tables.userapikeys[0].keyHash!==hash||ex.tables.userapikeys[0].userId!==user.userId)throw Error('Existing account proof did not match');
+ require('./migrate-experience.cjs').applyExperience(db,user.userId);
  social.apply(db,user.userId,ex.social);merits.grant(db,user.userId);
  db.prepare('INSERT OR IGNORE INTO imports1105 VALUES(?,?,?)').run(user.userId,ex.exportedAt,new Date().toISOString());
  return user.userId;
