@@ -45,6 +45,7 @@ jobs:
       server_port: ${{ steps.paths.outputs.server_port }}
       native: ${{ steps.paths.outputs.native }}
       server_kit: ${{ steps.paths.outputs.server_kit }}
+      server_kit_sandbox: ${{ steps.paths.outputs.server_kit_sandbox }}
       docs: ${{ steps.paths.outputs.docs }}
       all_checks: ${{ steps.paths.outputs.all_checks }}
     steps:
@@ -80,6 +81,7 @@ jobs:
           server_port=false
           native=false
           server_kit=false
+          server_kit_sandbox=false
           docs=false
           all_checks=false
           if [ "$EVENT" = workflow_dispatch ] || [ "$files" = "*" ]; then all_checks=true; fi
@@ -92,14 +94,14 @@ jobs:
             fi
             case "$path" in
               .github/*|AGENTS.md|CONTRIBUTING.md) all_checks=true ;;
-              DauntlessUnbrokenMetagame/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true; server_kit=true ;;
-              DauntlessUnbrokenGateway/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true; server_kit=true ;;
-              DauntlessUnbrokenContent/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true; server_kit=true ;;
-              DauntlessUnbrokenDeployServer/*) node_packages+='"DauntlessUnbrokenDeployServer",'; server_port=true; server_kit=true ;;
+              DauntlessUnbrokenMetagame/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenGateway/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenContent/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
+              DauntlessUnbrokenDeployServer/*) node_packages+='"DauntlessUnbrokenDeployServer",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
               DauntlessUnbrokenDiscordBot/*) node_packages+='"DauntlessUnbrokenDiscordBot",' ;;
               DauntlessUnbrokenLauncher/*) launcher=true ;;
               deploy/linux-server/*|deploy/openbsd-server/*|deploy/unix-common/*) server_port=true ;;
-              deploy/windows-server/*) server_kit=true ;;
+              deploy/windows-server/*) server_kit=true; server_kit_sandbox=true ;;
               DauntlessUnbrokenInternalServer/*|tests/client-mods/*) native=true ;;
               docs/*|tools/*) docs=true ;;
             esac
@@ -108,7 +110,7 @@ jobs:
           node_packages="${node_packages%,}]"
           if [ "$all_checks" = true ]; then
             node_packages='["DauntlessUnbrokenMetagame","DauntlessUnbrokenGateway","DauntlessUnbrokenContent","DauntlessUnbrokenDeployServer","DauntlessUnbrokenDiscordBot"]'
-            launcher=true; server_port=true; native=true; server_kit=true; docs=true
+            launcher=true; server_port=true; native=true; server_kit=true; server_kit_sandbox=true; docs=true
           fi
 
           {
@@ -117,6 +119,7 @@ jobs:
             echo "server_port=$server_port"
             echo "native=$native"
             echo "server_kit=$server_kit"
+            echo "server_kit_sandbox=$server_kit_sandbox"
             echo "docs=$docs"
             echo "all_checks=$all_checks"
           } >> "$GITHUB_OUTPUT"
@@ -499,7 +502,7 @@ jobs:
   server-kit-work:
     name: Server kit (${{ matrix.phase }})
     needs: changes
-    if: needs.changes.outputs.server_kit == 'true'
+    if: needs.changes.outputs.server_kit == 'true' && (matrix.phase != 'sandbox' || needs.changes.outputs.server_kit_sandbox == 'true')
     runs-on: windows-latest
     timeout-minutes: 45
     strategy:

@@ -8,8 +8,66 @@ on:
 permissions:
   contents: read
 jobs:
+  changes:
+    name: Select CodeQL languages
+    runs-on: ubuntu-latest
+    outputs:
+      languages: ${{ steps.paths.outputs.languages }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Find affected languages
+        id: paths
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = schedule ] || [ "$EVENT" = push ]; then
+            files="*"
+          elif [ "$EVENT" = pull_request ]; then
+            files="$(git diff --name-only "$BASE...$HEAD")"
+          elif [ -n "${BEFORE//0/}" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            files="$(git diff --name-only "$BEFORE" "$SHA")"
+          else
+            files="*"
+          fi
+
+          actions=false
+          javascript=false
+          python=false
+          if [ "$files" = "*" ]; then
+            actions=true
+            javascript=true
+            python=true
+          else
+            while IFS= read -r path; do
+              [ -n "$path" ] || continue
+              case "$path" in
+                .github/workflows/*) actions=true ;;
+                *.yaml) actions=true ;;
+                *.js|*.cjs|*.mjs|*.ts|*.tsx) javascript=true ;;
+                *.py) python=true ;;
+              esac
+            done <<< "$files"
+          fi
+
+          languages="["
+          [ "$actions" = true ] && languages+='"actions",'
+          [ "$javascript" = true ] && languages+='"javascript-typescript",'
+          [ "$python" = true ] && languages+='"python",'
+          languages="${languages%,}]"
+          [ "$languages" = "[]" ] && languages='["none"]'
+          echo "languages=$languages" >> "$GITHUB_OUTPUT"
+
   analyze:
     name: Analyze (${{ matrix.language }})
+    needs: changes
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -18,15 +76,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [actions, javascript-typescript, python]
+        language: ${{ fromJSON(needs.changes.outputs.languages) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370
+        if: matrix.language != 'none'
         with:
           languages: ${{ matrix.language }}
           build-mode: none
       - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370
+        if: matrix.language != 'none'
         with:
           category: '/language:${{ matrix.language }}'
