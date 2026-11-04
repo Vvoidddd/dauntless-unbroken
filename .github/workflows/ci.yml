@@ -92,6 +92,9 @@ jobs:
               server_kit=true
               continue
             fi
+            if [ "$path" = ".github/workflows/codeql.yml" ]; then
+              continue
+            fi
             case "$path" in
               .github/*|AGENTS.md|CONTRIBUTING.md) all_checks=true ;;
               DauntlessUnbrokenMetagame/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
