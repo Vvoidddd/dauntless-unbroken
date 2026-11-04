@@ -1,11 +1,12 @@
 import http from 'node:http';
 import os from 'node:os';
 import { statfs, readFile, lstat } from 'node:fs/promises';
-import {createHash} from 'node:crypto';
+import {createHash, timingSafeEqual} from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
-import { resolve } from 'node:path';
+import { resolve, isAbsolute } from 'node:path';
+import { startDrain, stopDrain } from './dashboard-maintenance.mjs';
 const exec = promisify(execFile);
 const cpuTimes = () => os.cpus().reduce((a,c) => ({idle:a.idle+c.times.idle,total:a.total+Object.values(c.times).reduce((x,y)=>x+y,0)}),{idle:0,total:0});
 
@@ -34,8 +35,9 @@ export function processSample(current, previous, cores) {
     netOutKbit:seconds>0 ? Math.max(0,(current.sentBytes-previous.sentBytes)*8/1000/seconds) : null};
 }
 
-export async function startWorkerHealth({port=61111,root=process.cwd(),allowlistSecret,fetcher=fetch,collect,storageOnly=false,deployPort=61001,backendPort=61000}={}) {
+export async function startWorkerHealth({port=61111,root=process.cwd(),allowlistSecret,fetcher=fetch,collect,storageOnly=false,deployPort=61001,backendPort=61000,drainFile=null,controlSecret=null}={}) {
   if (![deployPort,backendPort].every(n=>Number.isInteger(n)&&n>0&&n<=65535)) throw Error('Invalid monitor ports');
+  if ((drainFile !== null || controlSecret !== null) && (storageOnly || typeof drainFile !== 'string' || !isAbsolute(drainFile) || typeof controlSecret !== 'string' || controlSecret.length < 32)) throw Error('Invalid worker drain configuration');
   const gather=collect || (async()=> {
     const {stdout}=await exec(`${process.env.SystemRoot || 'C:/Windows'}/System32/WindowsPowerShell/v1.0/powershell.exe`,
       ['-NoProfile','-NonInteractive','-File',fileURLToPath(new URL('./worker-processes.ps1',import.meta.url))],{windowsHide:true,timeout:20000,maxBuffer:65536});
@@ -76,9 +78,29 @@ export async function startWorkerHealth({port=61111,root=process.cwd(),allowlist
   void scan(); await poll();
   const timer=setInterval(()=>void poll(),5000), scanner=setInterval(()=>void scan(),60000);
   timer.unref();scanner.unref();
-  const server=http.createServer((req,res)=>{
+  let controlBusy=false;
+  const server=http.createServer(async (req,res)=>{
     res.setHeader('Cache-Control','no-store');
     if(!['127.0.0.1','::1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress) || req.headers['x-forwarded-for'] || req.headers.forwarded){res.writeHead(403).end();return;}
+    if(req.method==='POST' && req.url==='/drain'){
+      if(!drainFile || !controlSecret){res.writeHead(503).end();return;}
+      if(req.headers.origin){res.writeHead(403).end();return;}
+      const supplied=req.headers['x-worker-control-key'];
+      const hash=value=>createHash('sha256').update(value).digest();
+      if(typeof supplied!=='string' || !timingSafeEqual(hash(supplied),hash(controlSecret))){res.writeHead(401).end();return;}
+      if(req.headers['content-type']!=='application/json'){res.writeHead(415).end();return;}
+      if(controlBusy){res.writeHead(409).end();return;}
+      controlBusy=true;
+      try{
+        let text='';for await(const chunk of req){text+=chunk.toString('utf8');if(Buffer.byteLength(text)>256){res.writeHead(413).end();return;}}
+        let body;try{body=JSON.parse(text);}catch{res.writeHead(400).end();return;}
+        if(!body || Object.keys(body).length!==1 || !['start','stop'].includes(body.action)){res.writeHead(400).end();return;}
+        const state=body.action==='start'?await startDrain(drainFile):await stopDrain(drainFile);
+        res.setHeader('Content-Type','application/json');res.end(JSON.stringify({state}));
+      }catch(error){res.writeHead(error.message==='Drain belongs to another controller'?409:503).end();}
+      finally{controlBusy=false;}
+      return;
+    }
     if(storageOnly&&req.method==='GET'&&req.url==='/bot-claims'){
       res.setHeader('Content-Type','application/json');
       void botClaimSnapshot(resolve(root,'data/key-state.json')).then(value=>res.end(JSON.stringify(value))).catch(()=>res.writeHead(503).end(JSON.stringify({error:'Bot claims unavailable'})));
@@ -93,5 +115,9 @@ export async function startWorkerHealth({port=61111,root=process.cwd(),allowlist
   return server;
 }
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  startWorkerHealth({root:process.env.WORKER_ROOT || process.cwd(),allowlistSecret:process.env.ALLOWLIST_SECRET,storageOnly:process.env.WORKER_STORAGE_ONLY==='1',deployPort:Number(process.env.WORKER_DEPLOY_PORT||61001),backendPort:Number(process.env.WORKER_BACKEND_PORT||61000)}).then(()=>console.log('Worker health ready')).catch(()=>{console.error('Worker health startup failed');process.exitCode=1;});
+  (async()=>{
+    const controlSecret=process.env.WORKER_CONTROL_KEY_FILE?(await readFile(process.env.WORKER_CONTROL_KEY_FILE,'utf8')).trim():null;
+    await startWorkerHealth({root:process.env.WORKER_ROOT || process.cwd(),allowlistSecret:process.env.ALLOWLIST_SECRET,storageOnly:process.env.WORKER_STORAGE_ONLY==='1',deployPort:Number(process.env.WORKER_DEPLOY_PORT||61001),backendPort:Number(process.env.WORKER_BACKEND_PORT||61000),drainFile:process.env.WORKER_DRAIN_FILE||null,controlSecret});
+    console.log('Worker health ready');
+  })().catch(()=>{console.error('Worker health startup failed');process.exitCode=1;});
 }

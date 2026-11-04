@@ -9,7 +9,8 @@ import WebSocket, { RawData, WebSocketServer } from "ws";
 import { ValidateMetagameJWTAndGetPayload } from "../controllers/auth";
 import { AddFriendshipListener, BlockersAmong, IsBlockedEitherWay, ListFriends } from "../controllers/friends";
 import { IsGuildMember } from "../controllers/guild";
-import { FindUsernameForUserId, IsAccountIdShape } from "../controllers/login";
+import { AnnouncementIdentityAvailable, FindUsernameForUserId, IsAccountIdShape } from "../controllers/login";
+import { ANNOUNCEMENT_ID, ValidAnnouncement } from "./announcement";
 import { GetPartyOf } from "../controllers/party";
 import { ChatPresence, ParseOnOff } from "../features";
 import { logger } from "../logger";
@@ -230,6 +231,19 @@ export class ChatServer {
     get port(): number {
         const address = this.http.address();
         return typeof address === "object" && address !== null ? address.port : 0;
+    }
+
+    Announce(Text: string): number {
+        if(!ValidAnnouncement(Text)) throw new Error("Invalid announcement");
+        if(!AnnouncementIdentityAvailable()) throw new Error("Announcement identity is in use");
+        let attempted = 0;
+        for(const Session of this.clients){
+            if(Session.Ended || !Session.Uid || !Session.Resource || Session.Socket.readyState !== WebSocket.OPEN || this.isBacklogged(Session)) continue;
+            const from = `${ANNOUNCEMENT_ID}@${Session.Domain}/server`;
+            this.send(Session, `<message xmlns="${NS.CLIENT}" type="chat" from="${EscapeXml(from)}" to="${EscapeXml(FullJidOf(Session))}"><body>${EscapeXml(Text)}</body></message>`);
+            attempted++;
+        }
+        return attempted;
     }
 
     // The most unsent output any one connection holds, in bytes (tests)
@@ -734,6 +748,10 @@ export class ChatServer {
         }
 
         const Uid = Fields[1];
+        if(Uid === ANNOUNCEMENT_ID && AnnouncementIdentityAvailable()){
+            this.refuseLogin(Session, "no-account", Uid);
+            return;
+        }
         const UidUntil = this.throttledUids.get(Uid);
 
         if(UidUntil !== undefined && UidUntil > Now){

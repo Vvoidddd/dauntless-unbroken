@@ -2,9 +2,51 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {processSample,startWorkerHealth} from './worker-health.mjs';
 import {startDashboard} from './dashboard.mjs';
-import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+
+test('worker drain requires its control secret and never clears another controller', async () => {
+ const root=await mkdtemp(join(tmpdir(),'worker-drain-'));
+ const flag=join(root,'drain.flag'), secret='worker-control-secret-for-test-only-long';
+ const server=await startWorkerHealth({root,port:0,drainFile:flag,controlSecret:secret,
+  collect:async()=>({at:new Date().toISOString(),processes:[],receivedBytes:0,sentBytes:0}),fetcher:async()=>Response.json({servers:[]})});
+ try {
+  const url=`http://127.0.0.1:${server.address().port}/drain`;
+  const send=(action,headers={})=>fetch(url,{method:'POST',headers:{'content-type':'application/json',...headers},body:JSON.stringify({action})});
+  assert.equal((await send('start')).status,401);
+  assert.equal((await send('start',{'x-worker-control-key':secret,'x-forwarded-for':'203.0.113.1'})).status,403);
+  assert.equal((await send('start',{'x-worker-control-key':secret})).status,200);
+  await writeFile(flag,'external maintenance');
+  assert.equal((await send('stop',{'x-worker-control-key':secret})).status,409);
+ } finally {await new Promise(resolve=>server.close(resolve));await rm(root,{recursive:true,force:true});}
+});
+
+test('dashboard drains and resumes two local workers', async () => {
+ const root=await mkdtemp(join(tmpdir(),'fleet-drain-'));
+ const workerKey='worker-key-for-local-test-0123456789';
+ const opts={root,port:0,controlSecret:workerKey,collect:async()=>({at:new Date().toISOString(),processes:[],receivedBytes:0,sentBytes:0}),fetcher:async()=>Response.json({servers:[]})};
+ const flags=[join(root,'one.flag'),join(root,'two.flag')];
+ const workers=[];let dashboard;
+ try {
+  for(const drainFile of flags)workers.push(await startWorkerHealth({...opts,drainFile}));
+  const fleetControls=workers.map((worker,i)=>({name:`host ${i+1}`,url:`http://127.0.0.1:${worker.address().port}`,key:workerKey}));
+  const owner='dashboard-owner-key-for-local-test';
+  dashboard=await startDashboard({key:owner,port:0,backend:'http://127.0.0.1:61000',fleetControls,
+   fetcher:async(url,options)=>url.pathname==='/drain'?fetch(url,options):Response.json({Users:[],players:[],instances:[],playersOnline:0})});
+  const base=`http://127.0.0.1:${dashboard.address().port}`;
+  for(const action of ['start','stop']){
+   const reply=await fetch(base+'/api/fleet-drain',{method:'POST',headers:{'x-dashboard-key':owner,'content-type':'application/json',origin:base},body:JSON.stringify({action})});
+   assert.equal(reply.status,200);
+   assert.deepEqual((await reply.json()).hosts.map(host=>host.state),[action==='start'?'dashboard':'open',action==='start'?'dashboard':'open']);
+   if(action==='start')for(const flag of flags)assert.equal(await readFile(flag,'utf8'),'Dauntless dashboard maintenance');
+  }
+ } finally {
+  if(dashboard)await new Promise(resolve=>dashboard.close(resolve));
+  for(const worker of workers)await new Promise(resolve=>worker.close(resolve));
+  await rm(root,{recursive:true,force:true});
+ }
+});
 
 test('1.10.5 monitor reads the current supervisor instead of the legacy watchdog',async()=>{
  const root=await mkdtemp(join(tmpdir(),'unbroken-realm-health-'));

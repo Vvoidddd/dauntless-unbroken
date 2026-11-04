@@ -1,6 +1,7 @@
 import { eq, inArray, sql } from "drizzle-orm";
 import { GetDb } from "../db";
 import { users } from "../db/schema";
+import { ANNOUNCEMENT_ID, ANNOUNCEMENT_NAME } from "../realtime/announcement";
 
 export async function GetUsernameForUserId(userId: string){
     let UserFromDb = await GetDb().query.users.findFirst({where: eq(users.userId, userId)});
@@ -42,7 +43,12 @@ export function FindUsernameForUserId(UserId: unknown): string | undefined {
         return undefined;
     }
 
-    return GetDb().select({ name: users.name }).from(users).where(eq(users.userId, UserId)).get()?.name;
+    const actual = GetDb().select({ name: users.name }).from(users).where(eq(users.userId, UserId)).get()?.name;
+    return actual ?? (UserId === ANNOUNCEMENT_ID ? ANNOUNCEMENT_NAME : undefined);
+}
+
+export function AnnouncementIdentityAvailable(): boolean {
+    return GetDb().select({id: users.userId}).from(users).where(eq(users.userId, ANNOUNCEMENT_ID)).get() === undefined;
 }
 
 // Names of several accounts at once; unknown ids are left out of the map
@@ -57,6 +63,8 @@ export function FindUsernames(UserIds: string[]): Map<string, string> {
     for(const Row of GetDb().select({ userId: users.userId, name: users.name }).from(users).where(inArray(users.userId, Ids)).all()){
         Names.set(Row.userId, Row.name);
     }
+
+    if(Ids.includes(ANNOUNCEMENT_ID) && !Names.has(ANNOUNCEMENT_ID)) Names.set(ANNOUNCEMENT_ID, ANNOUNCEMENT_NAME);
 
     return Names;
 }

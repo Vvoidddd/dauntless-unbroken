@@ -15,6 +15,7 @@ import { CreateCharacterForUid } from "../src/controllers/character";
 import { CheckMatchmakingInput } from "../src/controllers/matchmaking";
 import { CheckGatewayConfig, ClientAddressOf, DescribeOrigin, IsDirectLocalRequest, IsProxiedRequest, IsTrustedGatewayRequest } from "../src/middleware/RequestOrigin";
 import { Count, ReadCharacter } from "./helpers";
+import { SetAnnouncementSender } from "../src/realtime/announcement";
 
 // Permission audit (C:\dr\data\plans\route-audit.md): every route is listed with its auth,
 // a player's token only ever reaches its own account and characters, game-server-only
@@ -31,6 +32,22 @@ const A = "UID-real-a", B = "UID-real-b", C = "UID-stub-c", ADMIN = "UID-admin";
 
 type Player = { UserId: string, Key: string, Token: string, CharacterId: string };
 const Players: Record<string, Player> = {};
+
+it('announcements require a direct administrator key and valid message', async () => {
+    const sent:string[]=[];
+    SetAnnouncementSender(text=>{sent.push(text);return 2;});
+    try {
+        const path='/unbroken/api/Announcement', body={message:'Restart in five minutes'};
+        assert.equal((await Call('POST',path,{body})).status,401);
+        assert.equal((await Call('POST',path,{key:Players[A].Key,body})).status,403);
+        assert.equal((await Call('POST',path,{key:Players[ADMIN].Key,headers:VIA_GATEWAY,body})).status,403);
+        assert.equal((await Call('POST',path,{key:Players[ADMIN].Key,body:{message:' '}})).status,400);
+        const result=await Call('POST',path,{key:Players[ADMIN].Key,body});
+        assert.equal(result.status,200);assert.equal(result.json.attempted,2);
+        assert.deepEqual(sent,[body.message]);
+    } finally {SetAnnouncementSender(undefined);}
+    assert.equal((await Call('POST','/unbroken/api/Announcement',{key:Players[ADMIN].Key,body:{message:'hello'}})).status,503);
+});
 
 it('device reports require an account key, reject supplied identities and limit requests', async () => {
     process.env.DEVICE_SIGNAL_HMAC_KEY='cd'.repeat(32);
@@ -342,6 +359,9 @@ const EXPECTED_ROUTES = [
     "POST /loadout/:userId/:characterId/active/:index [RealProgressionOnly, HasDauntlessUnbrokenMetagameAuth]",
     "GET /loadout/:userId/:characterId/all [HasDauntlessUnbrokenMetagameAuth]",
     "POST /loadout/:userId/:characterId/:index [HasDauntlessUnbrokenMetagameAuth]",
+    "POST /unbroken/api/Announcement [HasDauntlessUnbrokenAdminApiKey]",
+    "GET /unbroken/api/IslandEventControl [HasDauntlessUnbrokenAdminApiKey]",
+    "POST /unbroken/api/IslandEventControl [HasDauntlessUnbrokenAdminApiKey]",
     "GET /unbroken/api/PurchaseHistory [HasDauntlessUnbrokenUserApiKey]",
     "POST /unbroken/api/Admission [HasDauntlessUnbrokenUserApiKey]",
     "GET /unbroken/api/Admission [HasDauntlessUnbrokenUserApiKey]",
