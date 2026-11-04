@@ -10,7 +10,7 @@ Unreal class/world lookups in the native dedicated-server DLL. It does not lower
 the configured server frame limit, change replication cadence rules, or change
 the live fleet.
 
-The implementation is kept in [a separate pull request](https://github.com/FxckingAngel/dauntless-unbroken/pull/3).
+The implementation is kept in [a separate pull request](https://github.com/Vvoidddd/dauntless-unbroken/pull/56).
 That pull request must be reviewed and merged before this documentation is
 treated as a description of released behavior.
 
