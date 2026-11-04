@@ -380,7 +380,7 @@ describe("GET /balance and POST /reconcile (BALANCE_FROM_INVENTORY)", () => {
 
         const Fixed = await WithEnv({ BALANCE_FROM_INVENTORY: "0" }, async () => (await Call("GET", "/balance", { as: UserId })).json);
         assert.deepEqual(Object.keys(Sheet), Object.keys(Fixed), "no key added, removed or moved");
-        assert.deepEqual(Object.keys(Sheet).filter((Key) => Sheet[Key] !== Fixed[Key]).sort(), ["CURRENCY_NOTES", "CURRENCY_PLATINUM", "id_currency_notes", "id_currency_platinum"]);
+        assert.deepEqual(Object.keys(Sheet).filter((Key) => Sheet[Key] !== Fixed[Key]).sort(), ["CURRENCY_PLATINUM", "id_currency_platinum"]);
 
         const Reconciled = (await Call("POST", "/reconcile", { as: UserId, body: {} })).json;
         assert.deepEqual(Reconciled, { balances: { id_currency_notes: 1260, CURRENCY_NOTES: 1260 }, refreshInventory: true });
@@ -391,8 +391,8 @@ describe("GET /balance and POST /reconcile (BALANCE_FROM_INVENTORY)", () => {
             const { UserId } = await Holding([{ catalogId: "CURRENCY_NOTES", quantity: 1260 }, { catalogId: "CURRENCY_PLATINUM", quantity: 75 }]);
 
             const Sheet = (await Call("GET", "/balance", { as: UserId })).json;
-            assert.deepEqual([Sheet.CURRENCY_NOTES, Sheet.CURRENCY_PLATINUM, Sheet.CURRENCY_WEAPON_TOKEN], [0, 0, 25]);
-            assert.deepEqual((await Call("POST", "/reconcile", { as: UserId, body: {} })).json.balances, { id_currency_notes: 0, CURRENCY_NOTES: 0 });
+            assert.deepEqual([Sheet.CURRENCY_NOTES, Sheet.CURRENCY_PLATINUM, Sheet.CURRENCY_WEAPON_TOKEN], [1260, 0, 25]);
+            assert.deepEqual((await Call("POST", "/reconcile", { as: UserId, body: {} })).json.balances, { id_currency_notes: 1260, CURRENCY_NOTES: 1260 });
         });
     });
 

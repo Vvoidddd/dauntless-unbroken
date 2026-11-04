@@ -1,6 +1,6 @@
 import { and, asc, eq, ne } from "drizzle-orm";
 import { GetDb } from "../db";
-import { bounties, bountydraft } from "../db/schema";
+import { bounties, bountydraft, challengedrafts } from "../db/schema";
 import { logger } from "../logger";
 import { Caller, IsPlainObject, ReadField, ReadInteger, RealReply, RecordProgressionEvent } from "./progressionevents";
 import { Tx } from "./savehistory";
@@ -86,9 +86,23 @@ function Board(tx: Tx, AccountId: string){
         }
     }
 
+    const ChallengeDrafts = Local1105Enabled() ? tx.select().from(challengedrafts).where(eq(challengedrafts.accountId, AccountId)).all() : [];
+    const ChallengeDraft = (kind: string) => {
+        const row = ChallengeDrafts.find(entry => entry.kind === kind);
+        if (row == undefined) return {...DEFAULT_DRAFT_DATA};
+        try {
+            const Parsed: unknown = JSON.parse(row.data);
+            return IsPlainObject(Parsed) ? Parsed : {...DEFAULT_DRAFT_DATA};
+        } catch {
+            logger.warn(`Ignoring malformed ${kind} bounty draft data for ${AccountId}`);
+            return {...DEFAULT_DRAFT_DATA};
+        }
+    };
+
     return {
         bounties: Bounties,
-        draft_data: DraftData
+        draft_data: DraftData,
+        ...(Local1105Enabled() ? {draft_data_daily: ChallengeDraft("daily"), draft_data_weekly: ChallengeDraft("weekly")} : {})
     };
 }
 
@@ -163,6 +177,20 @@ export function SetBounties(AccountId: string, Body: unknown, Who: Caller): Real
             }
             else{
                 Notes.push("draft_data is not an object, ignored");
+            }
+        }
+
+        if(Local1105Enabled() && IsPlainObject(Body)){
+            for(const kind of ["daily", "weekly"] as const){
+                const field = `draft_data_${kind}`;
+                if(Body[field] === undefined) continue;
+                if(IsPlainObject(Body[field])){
+                    const data = JSON.stringify(Body[field]);
+                    tx.insert(challengedrafts).values({accountId: AccountId, kind, data, updatedDate: Now})
+                        .onConflictDoUpdate({target: [challengedrafts.accountId, challengedrafts.kind], set: {data, updatedDate: Now}}).run();
+                    Saved.push(`${kind} draft data`);
+                }
+                else Notes.push(`${field} is not an object, ignored`);
             }
         }
 

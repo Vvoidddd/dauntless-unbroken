@@ -1,14 +1,8 @@
 import { eq } from "drizzle-orm";
 import { GetDb } from "../db";
-import { inventory, users } from "../db/schema";
+import { inventory } from "../db/schema";
 import { GetActiveCharacter } from "./activecharacter";
 import { MAX_STACK_QUANTITY } from "./inventory";
-
-export async function GetNotesForUser(userId: string){
-    let UserFromDb = await GetDb().query.users.findFirst({where: eq(users.userId, userId)});
-
-    return UserFromDb!.notes;
-}
 
 // The currencies the account's active character holds as inventory stacks (catalog id CURRENCY_*), with
 // the character's id; an empty map for an account without a character or inventory. Balances from the

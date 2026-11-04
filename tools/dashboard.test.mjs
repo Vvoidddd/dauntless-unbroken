@@ -8,6 +8,16 @@ import { parsePerformance, readPerformance } from './dashboard-performance.mjs';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 
+test('invalid island event backend response does not stop the dashboard', async () => {
+  const key='island-invalid-response-test-key';
+  const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',fetcher:async(url)=>url.pathname==='/unbroken/api/IslandEventControl' ? new Response('not json',{status:404}) : Response.json({Users:[],players:[],instances:[],playersOnline:0})});
+  try {
+    const base=`http://127.0.0.1:${server.address().port}`;
+    assert.equal((await fetch(base+'/api/island-event',{headers:{'x-dashboard-key':key}})).status,503);
+    assert.equal((await fetch(base+'/')).status,200);
+  } finally { await new Promise(resolve=>server.close(resolve)); }
+});
+
 test('live host snapshots require owner auth and exclude unexpected fields', async () => {
  const dir=await mkdtemp(join(tmpdir(),'dashboard-live-'));
  const file=join(dir,'live.json'),key='dashboard-read-only-test-key';
