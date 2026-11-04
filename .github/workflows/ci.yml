@@ -97,7 +97,8 @@ jobs:
               continue
             fi
             case "$path" in
-              .github/*|AGENTS.md|CONTRIBUTING.md) all_checks=true ;;
+              .github/*|AGENTS.md) all_checks=true ;;
+              CONTRIBUTING.md) docs=true ;;
               DauntlessUnbrokenMetagame/test/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true ;;
               DauntlessUnbrokenGateway/test/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true ;;
               DauntlessUnbrokenContent/test/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true ;;
