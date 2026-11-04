@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {captureMainRejection,captureNodeWarning,describeError,setSink} from '../src/main/log';
+import {captureMainRejection,captureNodeWarning,describeError,setSink,log} from '../src/main/log';
 
 test('process error capture records unhandled rejections and warnings through the redacted logger',()=>{
  const lines:string[]=[];
@@ -17,4 +17,15 @@ test('process error capture records unhandled rejections and warnings through th
 test('describeError keeps useful error names and messages without exposing keys',()=>{
  const text=describeError(new Error('bad UUK_'+'c'.repeat(48)));
  assert.equal(text,'Error: bad UUK_<hidden>');
+});
+
+test('ordinary log lines hide sensitive URL query parameters while preserving useful context',()=>{
+ const lines:string[]=[];
+ setSink(line=>lines.push(line));
+ try{
+  log.warn('download failed https://example.invalid/content?key=private-key&token=private-token&file=manifest');
+  assert.ok(!lines[0].includes('private-key'));
+  assert.ok(!lines[0].includes('private-token'));
+  assert.match(lines[0],/download failed https:\/\/example\.invalid\/content/);
+ }finally{setSink(line=>console.log(line));}
 });

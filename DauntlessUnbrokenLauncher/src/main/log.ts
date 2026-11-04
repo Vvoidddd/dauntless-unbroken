@@ -27,6 +27,7 @@ export function redact(text: string): string {
   out = out.replace(/(\b(?:[\w-]{0,64}(?:token|secret|password|api[-_]?key|invite[-_]?code)|AUTH_SIGNING_PRIVKEY_B64)["']?\s*[:=]\s*["']?)[^\s"',}]+/gi,'$1<hidden>');
   out = out.replace(/(https:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/api(?:\/v\d+)?\/webhooks\/\d+\/)[\w-]+/gi,'$1<token>');
   out = out.replace(/dauntless-unbroken:\/\/[^\s"'<>]+/gi,'<invite>');
+  out = out.replace(/([?&](?:key|token|secret|password|code|exchange_code)=)[^&\s"']+/gi,'$1<hidden>');
   return out;
 }
 
