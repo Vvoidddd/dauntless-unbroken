@@ -8,6 +8,8 @@ Each destination was started separately on EU2's loopback address, outside publi
 
 `node experiments/1.10.5/check-local-deploy.cjs` checks all catalog destinations through the allocator, including the 18 Escalations and their difficulty metadata. The launcher script also passes the cooked atmosphere path.
 
+Hosted 1.10.5 Hunting Grounds requests use `SHARED` on the client wire. The metagame normalizes non-Dojo hunt requests to the allocator's `ISLAND` party path before launch, preserving the complete party roster for group Escalations. Training Grounds remains on the `SHARED` path.
+
 This verifies routing and native initialization. Player entry, all five rounds, rewards and return travel still need end-to-end checks. Random Escalation patrols, Trials, missions and disabled/test destinations are not enabled by this change.
 
 The live progression audit found no old 99999-level/XP stub states. Across 176 migrated accounts, weapon ranks ranged from 1 to 18, depending on weapon; legitimate earned progression was left intact. Void's six season responses returned levels 2, 0, 1, 8, 0 and 0.
