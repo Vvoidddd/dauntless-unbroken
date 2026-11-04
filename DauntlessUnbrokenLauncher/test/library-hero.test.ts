@@ -1,0 +1,15 @@
+import {test} from "node:test";
+import {readFileSync} from "node:fs";
+import path from "node:path";
+import assert from "node:assert/strict";
+
+const ROOT = path.resolve(__dirname, "..", "..");
+const renderer = readFileSync(path.join(ROOT, "src", "renderer", "index.ts"), "utf8");
+const theme = readFileSync(path.join(ROOT, "src", "renderer", "unbroken-theme.css"), "utf8");
+
+test("the library home has a dedicated game banner", () => {
+  assert.match(renderer, /play-cover/);
+  assert.match(renderer, /play-cover-build/);
+  assert.match(theme, /\.play-cover/);
+  assert.match(theme, /hero-umbral-nayzaga\.jpg/);
+});

@@ -120,6 +120,11 @@
   font-size: clamp(30px, 3vw, 42px);
   text-shadow: none;
 }
+.play-cover { position: relative; display: flex; align-items: flex-end; justify-content: space-between; min-height: 116px; margin: 0 0 18px; padding: 20px 22px; overflow: hidden; border: 1px solid var(--dr-deep); border-radius: 10px; background-image: linear-gradient(90deg, color-mix(in srgb, var(--dr-ink) 88%, transparent), color-mix(in srgb, var(--dr-ink) 30%, transparent)), url("./brand/hero-umbral-nayzaga.jpg"); background-size: cover; background-position: center 58%; }
+.play-cover-copy { display: grid; gap: 5px; position: relative; z-index: 1; }
+.play-cover-copy span { color: var(--dr-ice); font-family: var(--font-display); font-size: 9px; letter-spacing: .16em; }
+.play-cover-copy strong { color: var(--dr-frost); font-family: var(--font-display); font-size: 20px; font-weight: 550; letter-spacing: -.03em; }
+.play-cover-build { position: relative; z-index: 1; color: var(--dr-frost); font-family: var(--font-display); font-size: 10px; }
 .play-home .hero-text {
   max-width: 56ch;
 }
