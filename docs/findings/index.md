@@ -21,6 +21,7 @@ ref: findings/index
 {% assign store_page = site.pages | where: "path", "findings/store.md" | first %}
 {% assign escalation_page = site.pages | where: "path", "findings/escalation.md" | first %}
 {% assign integration_page = site.pages | where: "path", "findings/feature-integrations.md" | first %}
+{% assign weapon_meters_page = site.pages | where: "path", "findings/weapon-meters-1105.md" | first %}
 {% assign tools_page = site.pages | where: "path", "tools.md" | first %}
 
 # Findings
@@ -54,6 +55,7 @@ addresses and short snippets, and only as much as each explanation needs.
 | [The in-game store]({{ store_page.url | relative_url }}) | 1.4.4 | How the store screen lists and buys an offer, and the free store built from the source integration's codebase: the purchase token, the catalogue and its tabs, stacked and instanced grants, and which character gets the item. |
 | [Escalation]({{ escalation_page.url | relative_url }}) | 1.4.4 | How Escalation progress is saved, the season registry read from the client, the rules every save must pass, and what players see when real saves are switched on. |
 | [Feature integrations]({{ integration_page.url | relative_url }}) | 1.4.4 | What we took from the earlier 1.4.4 implementation and what we kept of our own, feature by feature, with the reason for every choice. |
+| [Weapon meters in 1.10.5]({{ weapon_meters_page.url | relative_url }}) | 1.10.5 | The axe, sword and chain-blade meter paths present in the target build, and the evidence still needed before changing gameplay code. |
 
 The scripts used for most of the static analysis are described on
 [Tools]({{ tools_page.url | relative_url }}).
