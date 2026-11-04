@@ -200,7 +200,7 @@ export function ProfilePictureFile(id: string){
 
 export function ModerationProfilePictureFile(id: string){
     const row = Row(id);
-    if(!row || (row.status !== 'pending' && row.status !== 'approved')) return null;
+    if(!row || (row.status !== 'pending' && row.status !== 'approved' && row.status !== 'rejected')) return null;
     const filePath = path.join(StorageDir(), row.fileName);
     return fs.existsSync(filePath) ? {filePath, mimeType: row.mimeType, width: row.width, height: row.height} : null;
 }

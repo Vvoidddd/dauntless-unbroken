@@ -11,6 +11,7 @@ import {
     GetApprovedProfilePicture,
     GetProfilePictureStatus,
     ListProfilePictureModeration,
+    ModerationProfilePictureFile,
     ProfilePictureModerationMode,
     RejectProfilePicture,
     SubmitProfilePicture
@@ -59,6 +60,7 @@ test('profile pictures remain private until moderation approves them', async () 
     await RejectProfilePicture(replacement.id, 'UID-moderator', 'Not suitable');
     assert.equal(GetProfilePictureStatus('UID-pfp')?.status, 'rejected');
     assert.ok(GetApprovedProfilePicture('UID-pfp'));
+    assert.ok(ModerationProfilePictureFile(replacement.id), 'moderators can audit a rejected submission');
 });
 
 test('profile picture validation rejects oversized and non-image data', async () => {
