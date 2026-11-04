@@ -755,6 +755,7 @@ function renderPlay(): void {
     renderRegion(container, "loading", () => [h("div", { class: "play-content" }, h("div", { class: "card-row" }, h("div", { class: "spinner" }), t("loading")))]);
     return;
   }
+  const playClass = state.offlineView ? "play-offline" : snap.phase === "join" || snap.phase === "connect" ? "" : "play-home";
   const sig = JSON.stringify([
     state.lang,
     snap.phase,
@@ -776,7 +777,7 @@ function renderPlay(): void {
   ]);
   renderRegion(container, sig, () => {
     let parts: HTMLElement[];
-    if (state.offlineView) return [h("div", { class: "play-content" }, ...playOffline())];
+    if (state.offlineView) return [h("div", { class: `play-content ${playClass}` }, ...playOffline())];
     switch (snap.phase) {
       case "loading":
         parts = [h("div", { class: "card-row" }, h("div", { class: "spinner" }), t("loading"))];
@@ -806,7 +807,7 @@ function renderPlay(): void {
         parts = playRunning(snap);
         break;
     }
-    return [h("div", { class: "play-content" }, ...(snap.phase === "ready" || snap.phase === "running" ? [] : [renderSteps(snap)]), ...parts)];
+    return [h("div", { class: `play-content ${playClass}` }, ...(snap.phase === "ready" || snap.phase === "running" ? [] : [renderSteps(snap)]), ...parts)];
   });
 }
 
@@ -1261,7 +1262,7 @@ function renderNews(): void {
         );
       }
     }
-    return [h("div", { class: "page" }, h("h1", { class: "page-title", id: "news-title" }, title), ...body)];
+    return [h("div", { class: "page news-page" }, h("h1", { class: "page-title", id: "news-title" }, title), ...body)];
   });
 }
 
@@ -1969,6 +1970,9 @@ function renderRail(): void {
       return h("li", {}, b);
     }),
   );
+  const libraryGame = $("#library-game");
+  if (state.view === "play") libraryGame.setAttribute("aria-current", "page");
+  else libraryGame.removeAttribute("aria-current");
   const chip = $("#account-chip");
   const user = snap?.account.hasKey ? snap.account.username : null;
   // Quick account switching and server selection share the existing account menu.
@@ -2482,6 +2486,7 @@ function initChrome(): void {
   const github = $("#github-btn");
   github.appendChild(githubMark());
   github.addEventListener("click", () => open("project_source"));
+  $("#library-game").addEventListener("click", () => setView("play"));
 
   $("#discord-btn").addEventListener("click", () => open("discord"));
   $("#patreon-btn").addEventListener("click", () => open("patreon"));
