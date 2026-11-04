@@ -7,3 +7,11 @@ function Get-DRMaintenanceEnvironment([string]$File) {
     }
     return @{ MAINTENANCE_MODE = '1'; MAINTENANCE_ALLOWED_ACCOUNT_IDS = ($ids -join ',') }
 }
+
+function Set-DRMaintenanceWorkerEnvironment([hashtable]$Maintenance, [object]$Hosted) {
+    if ($Maintenance.MAINTENANCE_MODE -eq '1') {
+        Remove-Item Env:DR_1105_WORKER_URL -ErrorAction SilentlyContinue
+    } else {
+        $env:DR_1105_WORKER_URL = [string]$Hosted.workerUrl
+    }
+}
