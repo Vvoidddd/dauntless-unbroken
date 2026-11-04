@@ -104,6 +104,7 @@ jobs:
               DauntlessUnbrokenGateway/test/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true ;;
               DauntlessUnbrokenContent/test/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true ;;
               DauntlessUnbrokenDeployServer/test/*) node_packages+='"DauntlessUnbrokenDeployServer",'; server_port=true ;;
+              DauntlessUnbroken*/.env.example) docs=true ;;
               DauntlessUnbrokenMetagame/src/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true ;;
               DauntlessUnbrokenGateway/src/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true ;;
               DauntlessUnbrokenContent/src/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true ;;
