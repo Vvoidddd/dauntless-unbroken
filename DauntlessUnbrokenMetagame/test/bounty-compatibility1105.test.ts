@@ -59,6 +59,8 @@ it('hides malformed imported bounty JSON without changing the preserved rows', a
             current_draft_choices: [], previous_draft_selections: [],
             bronze_count: 0, silver_count: 0, gold_count: 0
         });
+        assert.equal(SetBounties(UserId, {bounties: []}, 'gameserver').Status, 200);
+        assert.equal(DeleteBounties(UserId, {bounty_ids: []}, 'gameserver').Status, 200);
     } finally { delete process.env.LOCAL_1105_REALM; delete process.env.BIND_HOST; }
 
     assert.equal((db.prepare('SELECT data FROM bounties WHERE accountId=?').get(UserId) as any).data, '{not-json');
