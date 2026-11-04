@@ -6,6 +6,8 @@ import { $, forceRender, githubMark, h, icon, renderRegion, type IconName } from
 
 import newsBadge from "./brand/news-badge.svg";
 import previewProfileAvatar from "./brand/emblem-64.png";
+import behemothArt from "./brand/behemoth-512.png";
+import trialsRepeaterArt from "./brand/trials-repeater.png";
 import {installControllerNavigation} from "./controller-navigation";
 import { buildScene } from "./scene";
 import { isStringKey, translate, type StringKey } from "../shared/i18n";
@@ -1189,6 +1191,7 @@ function instanceCard(i: StatusInstance): HTMLElement {
   return h(
     "div",
     { class: `instance k-${i.kind}` },
+    i.kind === "hunt" ? h("img", { class: "instance-behemoth", src: behemothArt, alt: "" }) : null,
     h("div", { class: "instance-icon" }, icon(KIND_ICON[i.kind])),
     h("div", { class: "instance-title", title: instanceTitle(i) }, instanceTitle(i)),
     h(
@@ -1315,11 +1318,12 @@ function renderNews(): void {
     if (!snap?.server) body.push(card("", h("p", { class: "card-text" }, t("news_offline"))));
     else if (state.news.length === 0) body.push(card("", h("p", { class: "card-text" }, t("news_empty"))));
     else {
-      for (const n of state.news) {
+      for (const [index, n] of state.news.entries()) {
         body.push(
           h(
             "article",
             { class: "card news-item" },
+            index === 0 ? h("div", { class: "news-media" }, h("img", { src: trialsRepeaterArt, alt: "" }), h("span", {}, "Featured gear")) : null,
             n.date ? h("time", { class: "news-date", datetime: n.date }, formatDate(n.date, state.lang)) : null,
             h("h2", { class: "news-title" }, n.title),
             h("p", { class: "news-body" }, n.body),
