@@ -3050,6 +3050,7 @@ img {
   min-width: 0;
   flex: 1;
 }
+.profile-username-state { display: block; min-height: 15px; margin-top: 5px; color: var(--dr-glow); font-size: 10px; }
 
 .settings-row {
   display: flex;

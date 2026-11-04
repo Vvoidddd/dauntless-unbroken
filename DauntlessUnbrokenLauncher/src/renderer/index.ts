@@ -1672,8 +1672,17 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
     ? h("img", {class:"profile-avatar-image", src:profile.imageDataUrl, alt:""})
     : h("span", {class:"profile-avatar-letter", "aria-hidden":"true"}, (snap.account.username ?? "?").slice(0,1).toUpperCase());
   const username = h("input", {class:"input", type:"text", maxlength:"16", value:state.profileUsername || snap.account.username || "", autocomplete:"off", spellcheck:"false", "aria-label":"Username", "data-fk":"profile-username"}) as HTMLInputElement;
-  username.addEventListener("input", () => {state.profileUsername=username.value;});
-  const saveUsername = button("Save username", async () => {
+  const usernameState = h("span", {class:"profile-username-state", role:"status"});
+  let saveUsername: HTMLButtonElement;
+  const updateUsernameState = (): void => {
+    const check = checkUsername(username.value.trim());
+    const valid = check === "ok";
+    username.setAttribute("aria-invalid", valid ? "false" : "true");
+    usernameState.textContent = valid ? "Ready" : "Invalid format";
+    if (saveUsername) saveUsername.disabled = !valid;
+  };
+  username.addEventListener("input", () => {state.profileUsername=username.value; updateUsernameState();});
+  saveUsername = button("Save username", async () => {
     state.profileUsernameNote = "Saving username…";
     renderSettings();
     const result = await api.renameProfileUsername(state.profileUsername.trim()).catch(() => ({ok:false as const,error:{code:"server_error" as const}}));
@@ -1691,12 +1700,13 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
       saveUsername.click();
     }
   });
+  updateUsernameState();
   return card("settings-section profile-card",
     h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:`profile-status profile-status-${statusKey}`}, statusKey === "approved" ? icon("check", "profile-status-icon") : null, h("span", {class:"profile-status-dot", "aria-hidden":"true"}), status), h("p", {class:"small-print"}, pictureNote))),
     h("div", {class:"profile-policy"},
       h("div", {class:"profile-policy-item"}, icon("people", "profile-policy-icon"), h("span", {}, h("strong", {}, "Audience"), h("small", {}, "Friends only"))),
       h("div", {class:"profile-policy-item"}, icon("shield", "profile-policy-icon"), h("span", {}, h("strong", {}, "Safety"), h("small", {}, "Automatic check")))),
-    h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("p", {class:"small-print profile-username-hint"}, "3–16 letters, numbers, or underscores · automatic name checks"), h("div", {class:"profile-username-row"}, username, saveUsername)),
+    h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("p", {class:"small-print profile-username-hint"}, "3–16 letters, numbers, or underscores · automatic name checks"), h("div", {class:"profile-username-row"}, username, saveUsername), usernameState),
     state.profileUsernameNote ? h("p", {class:"small-print", role:"status"}, state.profileUsernameNote) : null,
     state.profilePictureNote ? h("p", {class:"small-print", role:"status"}, state.profilePictureNote) : null,
     h("div", {class:"card-row"}, button("Choose profile picture", () => profilePictureInput.click(), {fk:"profile-picture-choose"}), h("span", {class:"small-print profile-upload-hint"}, "PNG or JPEG · 100 KB max"), profilePictureInput),

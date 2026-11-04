@@ -29,6 +29,8 @@ test("the username field explains its automatic checks before submission", () =>
   assert.match(renderer, /profile-username-hint/);
   assert.match(renderer, /3–16 letters, numbers, or underscores/);
   assert.match(renderer, /automatic name checks/);
+  assert.match(renderer, /checkUsername\(username\.value\.trim\(\)\)/);
+  assert.match(renderer, /profile-username-state/);
 });
 
 test("the profile surface uses bundled game art without exposing implementation copy", () => {
