@@ -10,6 +10,7 @@
 #include <map>
 #include <unordered_set>
 #include "presence-address.h"
+#include "equipment-replication-policy.h"
 #include "MinHook/MinHook.h"
 #include "SDK/Archon_structs.hpp"
 #include "SDK/Engine_classes.hpp"
@@ -279,7 +280,7 @@ static void FixEquipmentCull(SDK::UNetDriver* driver, SDK::UReplicationDriver* r
         if (!pawn || !pawn->IsA(SDK::AArchonCharacter::StaticClass())) continue;
         auto* character = static_cast<SDK::AArchonCharacter*>(pawn);
         auto* weapon = character->Weapon;
-        if (weapon && !weapon->IsActorBeingDestroyed() && weapon->WeaponType == SDK::EWeaponType::WeaponType_IHAMMER && weapon->bAlwaysRelevant) equipment.insert(weapon);
+        if (weapon && ShouldFixEquippedWeaponCull(weapon->IsActorBeingDestroyed(), weapon->bAlwaysRelevant)) equipment.insert(weapon);
         auto* role = PlayerRole(character);
         if (role && !role->IsActorBeingDestroyed() && role->bNetUseOwnerRelevancy) equipment.insert(role);
     }
