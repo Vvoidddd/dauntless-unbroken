@@ -3,7 +3,7 @@
    the next metagame restart. -OpenOnLogon opens the locked page for this operator,
    never a browser in the service account's session. #>
 [CmdletBinding(SupportsShouldProcess = $true)]
-param([string]$Root, [switch]$OpenOnLogon)
+param([string]$Root, [switch]$OpenOnLogon, [string]$FleetControlConfig, [string]$FleetKeyFile)
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\DauntlessUnbrokenServer.Common.ps1"
 $Root = Resolve-DRRoot $Root $PSScriptRoot
@@ -12,8 +12,10 @@ $Cfg = Get-DRConfig $Root
 if (-not $PSCmdlet.ShouldProcess($Root, 'Install private dashboard task and enable backend health')) { return }
 if (-not (Test-DRAdmin)) { throw 'Run this installer as Administrator.' }
 $dir = Join-Path $Root 'dashboard'
+$controlDir = Join-Path $P.Data 'dashboard-control'
+$drainFile = Join-Path $controlDir 'drain.flag'
 # Refuse service-writable links before making privileged copies or ACL changes.
-foreach ($path in @($Root, (Join-Path $Root 'data'), $dir, $P.Config, $P.Keys, $P.Logs, $P.OwnerKey, $P.ServerJson, $P.MetaEnv)) {
+foreach ($path in @($Root, (Join-Path $Root 'data'), $dir, $controlDir, $P.Config, $P.Keys, $P.Logs, $P.OwnerKey, $P.ServerJson, $P.MetaEnv)) {
     if (Test-DRReparsePoint $path) { throw "Refusing linked path: $path" }
 }
 $files = @('dashboard.mjs','dashboard-maintenance.mjs','dashboard-fleet-control.mjs','dashboard-performance.mjs','dashboard-fleet.mjs','dashboard-worker.mjs','dashboard-client.js','dashboard-rewards.js','dashboard-support.js','dashboard.html')
@@ -41,14 +43,38 @@ $envMap = [ordered]@{
     DASHBOARD_PORT = '61110'
     DASHBOARD_LOG_CONFIG_FILE = $logConfig.Replace('\', '/')
     DASHBOARD_PERFORMANCE_DIR = (Join-Path $P.Logs 'performance').Replace('\', '/')
+    DASHBOARD_DRAIN_FILE = $drainFile.Replace('\', '/')
 }
 if ((Get-DRMode $Cfg) -eq 'Public') { $envMap['DASHBOARD_SERVER_CONFIG'] = $P.ServerJson.Replace('\', '/') }
+if ($FleetControlConfig) {
+    if (-not [IO.Path]::IsPathRooted($FleetControlConfig)) { throw 'FleetControlConfig must be an absolute path.' }
+    $FleetControlConfig = [IO.Path]::GetFullPath($FleetControlConfig)
+    if (-not $FleetControlConfig.StartsWith("$controlDir\", [StringComparison]::OrdinalIgnoreCase)) { throw 'FleetControlConfig must be inside data\dashboard-control.' }
+    if (-not (Test-Path -LiteralPath $FleetControlConfig -PathType Leaf)) { throw "Fleet control config not found: $FleetControlConfig" }
+    if (Test-DRReparsePoint $FleetControlConfig) { throw 'Fleet control config may not be a linked file.' }
+    $envMap['DASHBOARD_FLEET_CONTROL_CONFIG'] = $FleetControlConfig.Replace('\', '/')
+}
+if ($FleetKeyFile) {
+    if (-not [IO.Path]::IsPathRooted($FleetKeyFile)) { throw 'FleetKeyFile must be an absolute path.' }
+    $FleetKeyFile = [IO.Path]::GetFullPath($FleetKeyFile)
+    if (-not $FleetKeyFile.StartsWith("$controlDir\", [StringComparison]::OrdinalIgnoreCase)) { throw 'FleetKeyFile must be inside data\dashboard-control.' }
+    if (-not (Test-Path -LiteralPath $FleetKeyFile -PathType Leaf)) { throw "Fleet control key not found: $FleetKeyFile" }
+    if (Test-DRReparsePoint $FleetKeyFile) { throw 'Fleet control key may not be a linked file.' }
+    $envMap['DASHBOARD_FLEET_KEY_FILE'] = $FleetKeyFile.Replace('\', '/')
+}
 [void](Write-DREnv (Join-Path $dir 'dashboard.env') $envMap @('Private owner dashboard. No credentials in this file.'))
 # Node resolves parent directories before reading its configuration. Grant only
 # these directories RX: no inheritance and no recursive access to other secrets.
 foreach ($path in @($Root, (Join-Path $Root 'data'), $P.Config, $P.Keys)) {
     icacls.exe $path /grant '*S-1-5-19:RX' | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'Dashboard parent directory ACL failed' }
+}
+if (-not (Test-Path -LiteralPath $controlDir)) { New-Item -ItemType Directory -Force -Path $controlDir | Out-Null }
+$serviceSid = Get-DRLocalUserSid (Get-DRConfigValue $Cfg 'ServiceUser' 'dauntless')
+if (-not $serviceSid) { throw 'The game service account could not be resolved.' }
+Set-DRAcl $controlDir @{ 'S-1-5-32-544' = 'FullControl'; 'S-1-5-18' = 'FullControl'; $serviceSid = 'Modify'; 'S-1-5-19' = 'Modify' }
+foreach ($path in @($FleetControlConfig, $FleetKeyFile)) {
+    if ($path) { Set-DRAcl $path @{ 'S-1-5-32-544' = 'FullControl'; 'S-1-5-18' = 'FullControl'; 'S-1-5-19' = 'Read' } }
 }
 foreach ($path in @($P.OwnerKey, $P.ServerJson)) {
     icacls.exe $path /grant '*S-1-5-19:R' | Out-Null
