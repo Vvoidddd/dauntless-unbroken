@@ -255,6 +255,20 @@ using ConnectionActorMap = UC::TMap<SDK::AActor*, ConnectionActorInfoRef>;
 static_assert(sizeof(ConnectionActorInfoRef) == 16);
 static_assert(offsetof(ConnectionActorInfo, CullDistance) == 8);
 static_assert(offsetof(ConnectionActorInfo, CullDistanceSquared) == 12);
+static SDK::AActor* PlayerRole(SDK::AArchonCharacter* character) {
+    if (!character || !character->Class) return nullptr;
+    static const auto roleName = SDK::BasicFilesImplUtils::StringToName(L"PlayerRole");
+    for (auto* owner = static_cast<SDK::UStruct*>(character->Class); owner; owner = owner->SuperStruct) {
+        for (auto* field = owner->ChildProperties; field; field = field->Next) {
+            if (field->Name != roleName) continue;
+            auto* property = reinterpret_cast<SDK::FProperty*>(field);
+            if (property->ArrayDim != 1 || property->ElementSize != sizeof(void*) ||
+                property->Offset < 0 || property->Offset > 0x2000) return nullptr;
+            return *reinterpret_cast<SDK::AActor**>(reinterpret_cast<uint8_t*>(character) + property->Offset);
+        }
+    }
+    return nullptr;
+}
 static void FixEquipmentCull(SDK::UNetDriver* driver, SDK::UReplicationDriver* rawGraph) {
     auto* graph = static_cast<SDK::UReplicationGraph*>(rawGraph);
     if (!graph->Connections.IsValid() || !driver->ClientConnections.IsValid() || graph->Connections.Num() > 64 || driver->ClientConnections.Num() > 64) return;
@@ -265,7 +279,7 @@ static void FixEquipmentCull(SDK::UNetDriver* driver, SDK::UReplicationDriver* r
         auto* character = static_cast<SDK::AArchonCharacter*>(pawn);
         auto* weapon = character->Weapon;
         if (weapon && !weapon->IsActorBeingDestroyed() && weapon->WeaponType == SDK::EWeaponType::WeaponType_IHAMMER && weapon->bAlwaysRelevant) equipment.insert(weapon);
-        auto* role = character->PlayerRole;
+        auto* role = PlayerRole(character);
         if (role && !role->IsActorBeingDestroyed() && role->bNetUseOwnerRelevancy) equipment.insert(role);
     }
     if (equipment.empty()) return;
