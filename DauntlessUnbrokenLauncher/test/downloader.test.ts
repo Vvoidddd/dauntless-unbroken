@@ -160,6 +160,23 @@ test("the verified-file cache lets an interrupted install skip re-hashing, but n
   rmSync(dir, { recursive: true, force: true });
 });
 
+test("the verified-file cache invalidates a changed expected hash", async () => {
+  await job().run();
+  const f = manifest.files[0];
+  const cachePath = path.join(dir, "cache-hash.json");
+  const cache = new VerifiedCache(cachePath);
+  await cache.record(dir, f);
+  await cache.save();
+  const reloaded = new VerifiedCache(cachePath);
+  const changed = { ...f, sha256: "0".repeat(64) };
+  const report = await verifyInstall(dir, [changed], {
+    fullHash: true,
+    trusted: (entry, size, mtime) => reloaded.isTrusted(dir, entry, size, mtime),
+  });
+  assert.deepEqual(report.bad.map((entry) => entry.problem), ["hash"]);
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test("pause stops all transfers and resume continues from the .part files", async () => {
   server.opts = { key: KEY, files, chunkSize: 16_384, tickMs: 5 };
   const j = job();

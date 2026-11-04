@@ -148,7 +148,7 @@ export async function removePartFiles(dir: string, files: ManifestFile[]): Promi
 // does not re-hash gigabytes it already checked. Repair ignores it and hashes everything.
 export class VerifiedCache {
   private dir: string | null = null;
-  private files = new Map<string, { size: number; mtimeMs: number }>();
+  private files = new Map<string, { size: number; mtimeMs: number; sha256: string }>();
   private dirty = false;
 
   constructor(private readonly file: string) {
@@ -156,8 +156,8 @@ export class VerifiedCache {
       const raw = JSON.parse(readFileSync(file, "utf8"));
       if (raw && typeof raw.dir === "string" && raw.files && typeof raw.files === "object") {
         this.dir = raw.dir;
-        for (const [p, v] of Object.entries(raw.files as Record<string, { size: unknown; mtimeMs: unknown }>)) {
-          if (typeof v?.size === "number" && typeof v?.mtimeMs === "number") this.files.set(p, { size: v.size, mtimeMs: v.mtimeMs });
+        for (const [p, v] of Object.entries(raw.files as Record<string, { size: unknown; mtimeMs: unknown; sha256: unknown }>)) {
+          if (typeof v?.size === "number" && typeof v?.mtimeMs === "number" && typeof v?.sha256 === "string") this.files.set(p, { size: v.size, mtimeMs: v.mtimeMs, sha256: v.sha256 });
         }
       }
     } catch {
@@ -176,14 +176,14 @@ export class VerifiedCache {
   isTrusted(dir: string, f: ManifestFile, size: number, mtimeMs: number): boolean {
     if (this.dir !== dir) return false;
     const v = this.files.get(f.path);
-    return v !== undefined && v.size === size && v.mtimeMs === mtimeMs && size === f.size;
+    return v !== undefined && v.size === size && v.mtimeMs === mtimeMs && v.sha256 === f.sha256 && size === f.size;
   }
 
   async record(dir: string, f: ManifestFile): Promise<void> {
     this.use(dir);
     try {
       const st = await fsp.stat(resolveInside(dir, f.path));
-      this.files.set(f.path, { size: st.size, mtimeMs: st.mtimeMs });
+      this.files.set(f.path, { size: st.size, mtimeMs: st.mtimeMs, sha256: f.sha256 });
       this.dirty = true;
     } catch {
       /* gone again */
