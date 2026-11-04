@@ -743,7 +743,7 @@ export class Controller {
     if(gen !== this.statusGen || this.endpoint()?.host !== ep.host) return;
     if(!result.ok){this.profilePicture={status:null,reason:null,imageDataUrl:null};this.publish();return;}
     if(!result.picture){this.profilePicture={status:null,reason:null,imageDataUrl:null};this.publish();return;}
-    const imageDataUrl = result.picture.status === 'approved' ? await fetchProfilePictureImage(ep, accountId, key) : null;
+    const imageDataUrl = await fetchProfilePictureImage(ep, accountId, key);
     if(gen !== this.statusGen || this.endpoint()?.host !== ep.host) return;
     this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl};
     this.publish();
@@ -763,10 +763,8 @@ export class Controller {
         return err(code);
       }
       this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl:null};
-      if(result.picture.status==='approved'){
-        const imageDataUrl=await fetchProfilePictureImage(ep,result.picture.accountId,key);
-        this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl};
-      }
+      const imageDataUrl=await fetchProfilePictureImage(ep,result.picture.accountId,key);
+      this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl};
       return OK;
     }finally{this.profilePictureBusy=false;this.publish();}
   }
