@@ -3,7 +3,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { and, count, eq, gt, gte, isNotNull, isNull, lt } from "drizzle-orm";
 import { GetDb } from "../db";
-import { characters, inventory, storepurchases } from "../db/schema";
+import { characters, inventory, storepurchases, users } from "../db/schema";
 import { logger } from "../logger";
 import { MiddlemanStore, StoreMode, StoreRepeatableTokens, TrialsStore } from "../features";
 import catalog from "../vendor/store_catalog.json";
@@ -313,7 +313,29 @@ function ReadStoreInventory(Value: string | undefined): any[]{
     throw new StoreError(409, "Inventory unavailable; purchase was not completed");
 }
 
-function CurrencyBalance(tx: Tx, CharacterId: string, CatalogId: string){
+function LegacyNotesBalance(tx: Tx, AccountId: string, CharacterId: string, CatalogId: string){
+    if(CatalogId !== "CURRENCY_NOTES"){
+        return undefined;
+    }
+
+    const Row = tx.select({stackedItems: inventory.stackedItems}).from(inventory).where(eq(inventory.characterId, CharacterId)).get();
+    const Stacks = ReadStoreInventory(Row?.stackedItems);
+
+    if(Stacks.some(Stack => Stack?.catalogId === CatalogId)){
+        return undefined;
+    }
+
+    const User = tx.select({notes: users.notes}).from(users).where(eq(users.userId, AccountId)).get();
+
+    return User !== undefined && Number.isSafeInteger(User.notes) && User.notes >= 0 ? User.notes : undefined;
+}
+
+function CurrencyBalance(tx: Tx, AccountId: string, CharacterId: string, CatalogId: string){
+    const LegacyNotes = LegacyNotesBalance(tx, AccountId, CharacterId, CatalogId);
+    if(LegacyNotes !== undefined){
+        return LegacyNotes;
+    }
+
     const Row = tx.select({stackedItems: inventory.stackedItems}).from(inventory).where(eq(inventory.characterId, CharacterId)).get();
 
     for(const Stack of ReadStoreInventory(Row?.stackedItems)){
@@ -523,7 +545,7 @@ export function CreateStorePurchase(AccountId: string, Currency: string, SkuId: 
                 : "You already own everything this offer grants");
         }
 
-        if(Pricing.Price > 0 && CurrencyBalance(tx, Character.characterId, Pricing.CatalogId) < Pricing.Price){
+        if(Pricing.Price > 0 && CurrencyBalance(tx, AccountId, Character.characterId, Pricing.CatalogId) < Pricing.Price){
             throw new StoreError(409, "Insufficient balance");
         }
 
@@ -613,7 +635,9 @@ export function RedeemStorePurchase(AccountId: string, Currency: string, Token: 
             throw new StoreError(409, "Already bought this week; the Middleman restocks at the weekly reset");
         }
 
-        if(Pricing.Price > 0 && CurrencyBalance(tx, Purchase.characterId, Pricing.CatalogId) < Pricing.Price){
+        const LegacyNotes = Pricing.Price > 0 ? LegacyNotesBalance(tx, AccountId, Purchase.characterId, Pricing.CatalogId) : undefined;
+
+        if(Pricing.Price > 0 && CurrencyBalance(tx, AccountId, Purchase.characterId, Pricing.CatalogId) < Pricing.Price){
             throw new StoreError(409, "Insufficient balance");
         }
 
@@ -632,7 +656,11 @@ export function RedeemStorePurchase(AccountId: string, Currency: string, Token: 
         const Instanced = ToGrant.filter((Item) => GrantKind(Item.catalogId) === "instanced")
             .map((Item) => ({catalogId: Item.catalogId, instanceId: Hash(`${TokenHash}:${Item.catalogId}`).slice(0, 32), updateVersion: 0}));
 
-        if(Stacked.length > 0 || Instanced.length > 0 || Pricing.Price > 0){
+        if(LegacyNotes !== undefined){
+            tx.update(users).set({notes: LegacyNotes - Pricing.Price}).where(eq(users.userId, AccountId)).run();
+        }
+
+        if(Stacked.length > 0 || Instanced.length > 0 || (Pricing.Price > 0 && LegacyNotes === undefined)){
             try{
                 ApplyInventoryTransactionInTx(tx, {
                     UserId: AccountId,
@@ -640,7 +668,7 @@ export function RedeemStorePurchase(AccountId: string, Currency: string, Token: 
                     TransactionId: `store:${TokenHash}`,
                     InstancedItemsToAdd: Instanced,
                     StackedItemsToAdd: Stacked,
-                    StackedItemsToRemove: Pricing.Price > 0 ? [{catalogId: Pricing.CatalogId, quantity: Pricing.Price}] : undefined
+                    StackedItemsToRemove: Pricing.Price > 0 && LegacyNotes === undefined ? [{catalogId: Pricing.CatalogId, quantity: Pricing.Price}] : undefined
                 }, {Caller: "store", Source: `store:${Purchase.skuId}`});
             }
             catch(error){
