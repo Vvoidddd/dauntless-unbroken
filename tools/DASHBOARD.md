@@ -25,6 +25,45 @@ Then open `http://127.0.0.1:61110` on your PC. No public dashboard firewall rule
 Do not publish it through the public game gateway. The owner key grants administration rights;
 only trusted server operators should use this page.
 
+### Local hunt admission
+
+The local drain control is disabled unless `DASHBOARD_DRAIN_FILE` is set to the absolute
+path of the same drain file used by the local allocator. The dashboard process needs
+permission to create and remove that file. Draining prevents new hunts on that host;
+existing hunts continue. Resume removes only a flag created by the dashboard. A flag
+owned by another controller remains in place. This control does not manage remote hosts,
+stop the stack, or restart servers.
+
+Fleet drain is separately opt-in. Each game host's worker monitor needs
+`WORKER_DRAIN_FILE` set to its allocator's absolute drain-flag path and
+`WORKER_CONTROL_KEY_FILE` set to a private file containing a random control key of at
+least 32 characters. The monitor must be allowed to manage that flag. Keep the listener
+on loopback and reach it through an SSH tunnel; do not expose it to the public gateway.
+The owner dashboard's `DASHBOARD_FLEET_CONTROL_CONFIG` points to a JSON file containing
+entries such as:
+
+```json
+[{"name":"EU 1","url":"http://127.0.0.1:61111","keyFile":"/private/path/worker-control.key"}]
+```
+
+Use a distinct loopback tunnel and private key file for each configured host. The
+dashboard reports each result separately; `unknown` means the result is uncertain
+and must be checked before retrying. A missing host is not included automatically.
+The control does not restart servers.
+
+Set `DASHBOARD_LIVE_STATUS_FILE` to the local read-only status snapshot used by the
+live-server table. It is optional; when unset, the table reports that live readings
+are unavailable.
+
+### Island event schedule
+
+Set `ISLAND_EVENT_CONTROL_FILE` in the metagame service to an absolute path owned by
+the service account. The dashboard can then select `default`, `off`, or `trials`.
+`default` follows `TRIALS_SCHEDULE`; the other modes override it for new seasonal
+schedule requests. The file contains only `{"mode":"..."}` and is written with
+owner-only permissions. Leave the control file unset when this operator control is
+not wanted.
+
 ## Windows kit autostart
 
 After updating the server code, run elevated on the VPS:
@@ -213,7 +252,7 @@ Tests: `node --test tools/dashboard.test.mjs`. The tests use a fake read-only ba
 authentication, foreign origins, log path rejection, redaction and external-backend rejection.
 # Server #2 monitoring
 
-Run `worker-health.mjs` with `worker-processes.ps1` beside it on the Windows hunt
+Run `worker-health.mjs` with `worker-processes.ps1` and `dashboard-maintenance.mjs` beside it on the Windows hunt
 worker. Load the worker's allowlist secret from its protected environment file and
 set `WORKER_ROOT` to its installation root. The monitor binds only
 `127.0.0.1:61111`; tunnel it onto the main server and set

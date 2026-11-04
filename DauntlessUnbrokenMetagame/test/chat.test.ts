@@ -90,6 +90,36 @@ after(async () => {
 });
 
 describe("experimental chat", () => {
+    it("sends a server announcement to each bound session using an identifiable sender", async () => {
+        const first = await login(A);
+        const second = await login(B);
+        const a = frame(first), b = frame(second);
+        assert.equal(server.Announce("Restart in 5 minutes & finish hunts."), 2);
+        for(const [id, stanza] of [[A, await a], [B, await b]]){
+            const model = new ChatClientModel({LocalUid: id, Resource: "game", LocalSocialName: id});
+            model.ReceiveAll([stanza]);
+            assert.deepEqual(await model.ShownWhispers(LookupFrom({"UID-UNBROKEN-SERVER":"Server"})), ["Server: Restart in 5 minutes & finish hunts."]);
+        }
+        first.close(); second.close();
+    });
+
+    it("rejects invalid announcements and an identity collision", () => {
+        for(const text of ["", "  ", "x\u0000y", "x".repeat(2049)]) assert.throws(() => server.Announce(text), /Invalid/);
+        GetDb().insert(users).values({userId:"UID-UNBROKEN-SERVER", name:"Existing", notes:0}).run();
+        try { assert.throws(() => server.Announce("Restart"), /identity is in use/); }
+        finally { GetDb().delete(users).where(eq(users.userId,"UID-UNBROKEN-SERVER")).run(); }
+    });
+
+    it("does not let a signed token log in as the virtual server sender", async () => {
+        const socket = await connect();
+        socket.send('<open xmlns="urn:ietf:params:xml:ns:xmpp-framing" to="prod.ol.epicgames.com" version="1.0"/>');
+        await frame(socket); await frame(socket);
+        const uid = "UID-UNBROKEN-SERVER";
+        const encoded = Buffer.from(`\0${uid}\0${SignMetagameJWTForUid(uid)}`).toString("base64");
+        socket.send(`<auth xmlns="urn:ietf:params:xml:ns:xmpp-sasl" mechanism="PLAIN">${encoded}</auth>`);
+        assert.match(await frame(socket), /failure/);
+        socket.close();
+    });
     it("rejects a token for another account", async () => {
         const socket = await connect();
         socket.send('<open xmlns="urn:ietf:params:xml:ns:xmpp-framing"/>');

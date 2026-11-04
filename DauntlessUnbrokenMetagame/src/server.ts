@@ -7,6 +7,7 @@ import { DescribeProgressionMode } from "./controllers/progressionmode";
 import { ProgressionUpgradeNotice } from "./controllers/realprogression";
 import { CheckGatewayConfig } from "./middleware/RequestOrigin";
 import { StartChat } from "./realtime/chat";
+import { SetAnnouncementSender } from "./realtime/announcement";
 import { DescribeFeatures } from "./features";
 import { PruneExpiredStorePurchases } from "./controllers/freestore";
 import { CheckProgressionConfig } from "./controllers/progressionconfig";
@@ -84,6 +85,8 @@ const Startup = DrainAndRegisterAPIKeys().then(async () => {
   Chat = await StartChat();
   if (Stopping) return;
 
+  SetAnnouncementSender(Chat === undefined ? undefined : (text) => Chat!.Announce(text));
+
   if (Chat !== undefined) {
     // Ctrl+C or a stop signal: tell the chat sessions first (at most 1 s), then stop as before
     for (const Signal of ["SIGINT", "SIGTERM"] as const) {
@@ -131,6 +134,7 @@ export function shutdown(): Promise<void> {
   Stopping = true;
   return Shutdown ??= (async () => {
     await Startup;
+    SetAnnouncementSender(undefined);
     const Closing = Server === undefined ? Promise.resolve() : new Promise<void>((Resolve, Reject) => {
       const Http = Server!;
       // Give in-flight requests a chance to finish, but stay within the runner's stop deadline.

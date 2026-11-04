@@ -3,10 +3,29 @@ import os from 'node:os';
 import { readFile, open, lstat } from 'node:fs/promises';
 import { timingSafeEqual, createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { resolve } from 'node:path';
+import { resolve, isAbsolute } from 'node:path';
 import { readPerformance } from './dashboard-performance.mjs';
 import { fleetSummary } from './dashboard-fleet.mjs';
 import { monitorWorker } from './dashboard-worker.mjs';
+import { drainStatus, startDrain, stopDrain } from './dashboard-maintenance.mjs';
+import { drainFleet } from './dashboard-fleet-control.mjs';
+
+export async function readFleetControls(file, reader = readFile) {
+  if (file === null || file === undefined || file === '') return [];
+  if (typeof file !== 'string' || !isAbsolute(file)) throw new Error('Fleet control configuration must be an absolute path');
+  const value = JSON.parse(await reader(file, 'utf8'));
+  if (!Array.isArray(value) || value.length > 16) throw new Error('Invalid fleet control configuration');
+  const names = new Set();
+  return Promise.all(value.map(async entry => {
+    if (!entry || typeof entry.name !== 'string' || !entry.name || names.has(entry.name) || typeof entry.url !== 'string' || typeof entry.keyFile !== 'string' || !isAbsolute(entry.keyFile)) throw new Error('Invalid fleet control configuration');
+    const target = new URL(entry.url);
+    if (target.protocol !== 'http:' || target.hostname !== '127.0.0.1' || !target.port || target.username || target.password || target.pathname !== '/' || target.search || target.hash) throw new Error('Invalid fleet control configuration');
+    names.add(entry.name);
+    const key = (await reader(entry.keyFile, 'utf8')).trim();
+    if (key.length < 32) throw new Error('Invalid fleet control configuration');
+    return {name: entry.name, url: entry.url, key};
+  }));
+}
 
 export function scrubLog(text) {
   return text.split(/\r?\n/).slice(-150).map(line => {
@@ -38,13 +57,15 @@ const cpuTimes = () => os.cpus().reduce((sum, cpu) => {
   return sum;
 }, {idle: 0, total: 0});
 
-export async function startDashboard({key, backend, port = 61110, logs = {}, serverConfig = null, performanceDir = null, fleetUrl = null, fleetKey = key, workerUrl = null, ausUrl = null, germanyUrl = null, eu2Url = null, fetcher = fetch}) {
+export async function startDashboard({key, backend, port = 61110, logs = {}, serverConfig = null, performanceDir = null, fleetUrl = null, fleetKey = key, workerUrl = null, ausUrl = null, germanyUrl = null, eu2Url = null, drainFile = null, fleetControls = [], liveStatusFile = null, previewMode = false, fetcher = fetch}) {
   if (typeof key !== 'string' || key.length < 16) throw new Error('An owner key of at least 16 characters is required');
+  if (drainFile !== null && (typeof drainFile !== 'string' || !isAbsolute(drainFile))) throw new Error('Drain file must be an absolute path');
   const target = new URL(backend);
   if (target.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(target.hostname) || target.username || target.password) throw new Error('Backend must be loopback HTTP');
   const fleetTarget = fleetUrl ? new URL(fleetUrl) : null;
   if (fleetTarget && (fleetTarget.protocol !== 'http:' || fleetTarget.hostname !== '127.0.0.1' || fleetTarget.username || fleetTarget.password || fleetTarget.pathname !== '/' || fleetTarget.search || fleetTarget.hash || Number(fleetTarget.port) === port)) throw new Error('Fleet source must be a different loopback HTTP listener');
-  const page = await readFile(new URL('./dashboard.html', import.meta.url));
+  const rawPage = await readFile(new URL('./dashboard.html', import.meta.url), 'utf8');
+  const page = previewMode ? rawPage.replace('<main>', '<main><p class="card" role="status">Local test preview: live status is read-only. All controls use simulated hosts.</p>') : rawPage;
   const testRealm = serverConfig?.Mode === 'Local1105' && /^100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}$/.test(serverConfig?.PublicHost || '') && serverConfig?.Ports?.gateway === 62002;
   if (serverConfig && !testRealm && (serverConfig.Mode !== 'Public' || !/^[a-z0-9.-]+$/i.test(serverConfig.PublicHost || '') || !Number.isInteger(serverConfig.Ports?.gateway) || serverConfig.Ports.gateway < 1 || serverConfig.Ports.gateway > 65535 || !/^[a-f0-9]{64}$/i.test(serverConfig.CertFingerprint || ''))) throw new Error('Invalid server configuration');
   const [workerMonitor,ausMonitor,germanyMonitor,eu2Monitor] = await Promise.all([monitorWorker(workerUrl,'Server #2',fetcher),monitorWorker(ausUrl,'Server #3',fetcher),monitorWorker(germanyUrl,'Server #4',fetcher),monitorWorker(eu2Url,'Server #5',fetcher)]);
@@ -109,6 +130,7 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
   timer.unref();
   let requests = 0, windowStart = Date.now(), readingLog = false, inviting = false;
   let inviteCount = 0, inviteWindow = Date.now();
+  let drainBusy = false;
   let readingAccounts = false;
   const server = http.createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -120,7 +142,11 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
     const accessAction=req.method==='POST' && ['/api/account-access','/api/discord-moderation'].includes(req.url);
     const rewardGrant=req.method==='POST'&&req.url==='/api/reward-grant';
     const supportMutation=req.method==='POST'&&/^\/api\/support-reports\/[0-9a-f-]{36}\/(review|delete)$/i.test(req.url??'');
-    if (req.method !== 'GET' && !createInvite && !moderate && !accessAction && !rewardGrant && !supportMutation) { res.writeHead(405).end(); return; }
+    const drainMutation = req.method === 'POST' && req.url === '/api/drain';
+    const fleetDrainMutation = req.method === 'POST' && req.url === '/api/fleet-drain';
+    const announcementMutation = req.method === 'POST' && req.url === '/api/announcement';
+    const islandEventMutation = req.method === 'POST' && req.url === '/api/island-event';
+    if (req.method !== 'GET' && !createInvite && !moderate && !accessAction && !rewardGrant && !supportMutation && !drainMutation && !fleetDrainMutation && !announcementMutation && !islandEventMutation) { res.writeHead(405).end(); return; }
     if (Date.now() - windowStart > 60000) { requests = 0; windowStart = Date.now(); }
     if (++requests > 300) { res.writeHead(429).end(); return; }
     if (req.url === '/') { res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.end(page); return; }
@@ -130,6 +156,78 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
     const supplied = req.headers['x-dashboard-key'];
     if (typeof supplied !== 'string' || !timingSafeEqual(digest(supplied), digest(key))) { res.writeHead(401).end(); return; }
     res.setHeader('Content-Type', 'application/json');
+    if(req.method === 'GET' && req.url === '/api/live-hosts'){
+      if(!liveStatusFile){res.writeHead(503).end(JSON.stringify({error:'Live status is not configured.'}));return;}
+      try{
+        const stat=await lstat(liveStatusFile);
+        if(!stat.isFile() || stat.isSymbolicLink() || stat.size>16384)throw Error('invalid status');
+        const value=JSON.parse(await readFile(liveStatusFile,'utf8'));
+        if(!Array.isArray(value.hosts) || value.hosts.length>16 || !Number.isFinite(Date.parse(value.at)))throw Error('invalid status');
+        const number=x=>typeof x==='number' && Number.isFinite(x) && x>=0 ? x:null;
+        const hosts=value.hosts.map(host=>({name:typeof host.name==='string'?host.name.slice(0,64):'Unknown',online:host.online===true,
+          at:typeof host.at==='string'?host.at:null,cpu:number(host.cpu),memoryUsedMB:number(host.memoryUsedMB),memoryTotalMB:number(host.memoryTotalMB),running:number(host.running),pending:number(host.pending),limit:number(host.limit),draining:typeof host.draining==='boolean'?host.draining:null}));
+        res.end(JSON.stringify({at:value.at,hosts}));
+      }catch{res.writeHead(503).end(JSON.stringify({error:'Live status unavailable.'}));}
+      return;
+    }
+    if(req.url === '/api/island-event'){
+      let text = '';
+      if(islandEventMutation){
+        if(req.headers.origin !== `http://${req.headers.host}`){res.writeHead(403).end();return;}
+        if(req.headers['content-type'] !== 'application/json'){res.writeHead(415).end();return;}
+        for await(const chunk of req){text+=chunk.toString('utf8');if(Buffer.byteLength(text)>256){res.writeHead(413).end();return;}}
+        let body;try{body=JSON.parse(text);}catch{res.writeHead(400).end();return;}
+        if(!body || typeof body!=='object' || Array.isArray(body) || Object.keys(body).length!==1 || !['default','off','trials'].includes(body.mode)){res.writeHead(400).end(JSON.stringify({error:'Invalid island event mode.'}));return;}
+      }
+      try{
+        const response=await fetcher(new URL('/unbroken/api/IslandEventControl',target),{method:islandEventMutation?'POST':'GET',headers:{'x-dauntless-unbroken-user-api-key':key,'content-type':'application/json'},...(islandEventMutation?{body:text}:{}),signal:AbortSignal.timeout(10000),redirect:'error'});
+        res.writeHead(response.status).end(JSON.stringify(await response.json()));
+      }catch{res.writeHead(503).end(JSON.stringify({error:'Island event control unavailable.'}));}
+      return;
+    }
+    if(req.method === 'GET' && req.url === '/api/fleet-drain'){res.end(JSON.stringify({hosts:fleetControls.map(host=>host.name)}));return;}
+    if(fleetDrainMutation || announcementMutation){
+      if(req.headers.origin !== `http://${req.headers.host}`){res.writeHead(403).end();return;}
+      if(req.headers['content-type'] !== 'application/json'){res.writeHead(415).end();return;}
+      if(fleetDrainMutation && !fleetControls.length){res.writeHead(503).end(JSON.stringify({error:'Fleet controls are not configured.'}));return;}
+      if(fleetDrainMutation && drainBusy){res.writeHead(409).end();return;}
+      if(fleetDrainMutation)drainBusy=true;
+      try{
+        let text='';for await(const chunk of req){text+=chunk.toString('utf8');if(Buffer.byteLength(text)>8192){res.writeHead(413).end();return;}}
+        let body;try{body=JSON.parse(text);}catch{res.writeHead(400).end();return;}
+        if(!body || typeof body!=='object' || Array.isArray(body) || Object.keys(body).length!==1){res.writeHead(400).end();return;}
+        if(fleetDrainMutation){
+          if(!['start','stop'].includes(body.action)){res.writeHead(400).end();return;}
+          res.end(JSON.stringify({hosts:await drainFleet(body.action,fleetControls,fetcher)}));return;
+        }
+        if(typeof body.message!=='string' || !body.message.trim() || [...body.message].length>2048 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/.test(body.message)){res.writeHead(400).end();return;}
+        const response=await fetcher(new URL('/unbroken/api/Announcement',target),{method:'POST',headers:{'x-dauntless-unbroken-user-api-key':key,'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(10000),redirect:'error'});
+        if(!response.ok){res.writeHead(response.status===400?400:503).end(JSON.stringify({error:'Announcement unavailable.'}));return;}
+        const result=await response.json();if(!Number.isSafeInteger(result.attempted)||result.attempted<0)throw Error('invalid response');
+        res.end(JSON.stringify({attempted:result.attempted}));
+      }catch{res.writeHead(503).end(JSON.stringify({error:'Result unknown; check before retrying.'}));}
+      finally{if(fleetDrainMutation)drainBusy=false;}
+      return;
+    }
+    if(req.url === '/api/drain'){
+      if(!drainFile){res.writeHead(503).end(JSON.stringify({error:'Drain control is not configured.'}));return;}
+      if(drainMutation && req.headers.origin !== `http://${req.headers.host}`){res.writeHead(403).end();return;}
+      if(drainBusy){res.writeHead(409).end(JSON.stringify({error:'Another drain operation is running.'}));return;}
+      drainBusy = true;
+      try{
+        if(!drainMutation){res.end(JSON.stringify({state:await drainStatus(drainFile)}));return;}
+        if(req.headers['content-type'] !== 'application/json'){res.writeHead(415).end();return;}
+        let text='';for await(const chunk of req){text+=chunk.toString('utf8');if(Buffer.byteLength(text)>256){res.writeHead(413).end();return;}}
+        let body;try{body=JSON.parse(text);}catch{res.writeHead(400).end();return;}
+        if(!body || Object.keys(body).length !== 1 || !['start','stop'].includes(body.action)){res.writeHead(400).end();return;}
+        const state = body.action === 'start' ? await startDrain(drainFile) : await stopDrain(drainFile);
+        res.end(JSON.stringify({state}));
+      }catch(error){
+        if(error.message === 'Drain belongs to another controller') res.writeHead(409).end(JSON.stringify({error:'Drain is controlled elsewhere.'}));
+        else res.writeHead(503).end(JSON.stringify({error:'Drain control unavailable.'}));
+      }finally{drainBusy = false;}
+      return;
+    }
     if(req.url==='/api/support-reports'||req.url?.startsWith('/api/support-reports?')||/^\/api\/support-reports\/[0-9a-f-]{36}(\/(?:review|delete))?$/i.test(req.url??'')){
       if(supportMutation&&req.headers.origin!==`http://${req.headers.host}`){res.writeHead(403).end();return;}
       const input=new URL(req.url,'http://localhost'),match=/^\/api\/support-reports\/([0-9a-f-]{36})(\/(?:review|delete))?$/i.exec(input.pathname);
@@ -329,7 +427,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const port = Number(process.env.DASHBOARD_PORT || 61110);
     if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid dashboard port');
     const serverConfig = process.env.DASHBOARD_SERVER_CONFIG ? JSON.parse(await readFile(process.env.DASHBOARD_SERVER_CONFIG, 'utf8')) : null;
-    await startDashboard({key, backend: process.env.DASHBOARD_BACKEND || 'http://127.0.0.1:61000', port, logs, serverConfig, fleetUrl: process.env.DASHBOARD_FLEET_URL || null, fleetKey: process.env.DASHBOARD_FLEET_KEY_FILE ? (await readFile(process.env.DASHBOARD_FLEET_KEY_FILE,'utf8')).trim() : key, performanceDir: process.env.DASHBOARD_PERFORMANCE_DIR || null, workerUrl: process.env.DASHBOARD_WORKER_URL || null, ausUrl: process.env.DASHBOARD_AUS_URL || null, germanyUrl: process.env.DASHBOARD_GERMANY_URL || null, eu2Url: process.env.DASHBOARD_EU2_URL || null});
+    const fleetControls = await readFleetControls(process.env.DASHBOARD_FLEET_CONTROL_CONFIG || null);
+    await startDashboard({key, backend: process.env.DASHBOARD_BACKEND || 'http://127.0.0.1:61000', port, logs, serverConfig, fleetUrl: process.env.DASHBOARD_FLEET_URL || null, fleetKey: process.env.DASHBOARD_FLEET_KEY_FILE ? (await readFile(process.env.DASHBOARD_FLEET_KEY_FILE,'utf8')).trim() : key, performanceDir: process.env.DASHBOARD_PERFORMANCE_DIR || null, workerUrl: process.env.DASHBOARD_WORKER_URL || null, ausUrl: process.env.DASHBOARD_AUS_URL || null, germanyUrl: process.env.DASHBOARD_GERMANY_URL || null, eu2Url: process.env.DASHBOARD_EU2_URL || null, drainFile: process.env.DASHBOARD_DRAIN_FILE || null, fleetControls, liveStatusFile: process.env.DASHBOARD_LIVE_STATUS_FILE || null});
     console.log(`Owner dashboard: http://127.0.0.1:${port} (use an SSH tunnel remotely)`);
   })().catch(() => { console.error('Dashboard startup failed. Check owner key file, settings and port.'); process.exitCode = 1; });
 }

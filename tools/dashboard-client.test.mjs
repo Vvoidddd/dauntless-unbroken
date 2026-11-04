@@ -46,3 +46,10 @@ test('overview and individual server panels remain separate in the HTML',async()
  }
  assert.equal(current.length,0);assert.equal(panels.length,5);
 });
+
+test('live host table is rendered from the authenticated snapshot', async () => {
+  const source = await readFile(new URL('./dashboard-client.js', import.meta.url), 'utf8');
+  assert.match(source, /function renderLiveHosts\(value\)/);
+  assert.match(source, /void refreshLiveHosts\(\)/);
+  assert.match(source, /liveHostRows/);
+});

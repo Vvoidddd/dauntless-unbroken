@@ -4,6 +4,7 @@ import { logger } from "../logger";
 import { TrialsSchedule } from "../features";
 import { TrialIdForWeek, TrialWeekAt, TrialsWindowForWeek } from "../controllers/trials";
 import { GetBountyGameData, QuarantinedChallenge } from '../controllers/bounties';
+import { IslandEventEnabled } from '../controllers/islandevent';
 
 export const tuningRouter = Router();
 
@@ -68,7 +69,7 @@ function OneTimeSchedule(Id: string, StartTime: string, EndTime: string): Schedu
 }
 
 export function GetSeasonalEventSchedule(At: Date = new Date()){
-    if(!TrialsSchedule()){
+    if(!IslandEventEnabled()){
         return {
             code: null,
             message: "OK",

@@ -1,5 +1,6 @@
 (() => {
   let key = '', busy = false, lastSample = null, lastWorker = null, lastAus = null, lastGermany = null, lastEu2 = null, accountPage = [], accountOffset = 0, nextOffset = null, accountsBusy = false;
+  let fleetDrainResult = '';
   window.setupDashboardRewards?.(()=>key,get);
   const support=window.setupDashboardSupport?.(()=>key,get);
   const el = id => document.getElementById(id);
@@ -53,6 +54,12 @@
     }
     const charts=Array.from(overview.children).find(node=>node.classList.contains('grid')&&node.querySelector('canvas'));
     if(charts&&hero){charts.classList.add('ops-charts');hero.after(charts);}
+  }
+  if(overview && !document.getElementById('applyIslandEvent')){
+    const card=document.createElement('section');
+    card.className='card';
+    card.innerHTML='<h2>Island event schedule</h2><p>Controls the seasonal island schedule returned by the metagame. Changes apply to new schedule requests.</p><label for="islandEventMode">Mode</label><select id="islandEventMode"><option value="default">Default server setting</option><option value="off">Off</option><option value="trials">Trials active</option></select> <button id="applyIslandEvent">Apply island event mode</button><p id="islandEventStatus" role="status">Checking availability...</p>';
+    overview.append(card);
   }
 
   const fleetHistory=[];
@@ -116,6 +123,25 @@
     el('botStatsStatus').textContent=stats ? `${stats.error || 'Counts from the central account database and bot claim history.'} Updated ${new Date(stats.at).toLocaleTimeString()}` : 'Bot statistics unavailable.';
   }
 
+  function renderLiveHosts(value) {
+    if (!value || !Array.isArray(value.hosts)) throw new Error('Invalid live host response');
+    table('liveHostRows', value.hosts.map(host => [
+      host.name,
+      host.online ? 'Online' : 'Unavailable / stale',
+      host.running ?? '—',
+      host.pending ?? '—',
+      number(host.cpu, '%'),
+      `${number(host.memoryUsedMB)} / ${number(host.memoryTotalMB)} MB`,
+      host.draining === true ? 'Draining' : host.draining === false ? 'Open' : 'Unknown'
+    ]));
+    el('liveHostStatus').textContent = `Last live reading: ${Number.isFinite(Date.parse(value.at)) ? new Date(value.at).toLocaleString() : 'time unavailable'}`;
+  }
+
+  async function refreshLiveHosts() {
+    try { renderLiveHosts(await get('/api/live-hosts')); }
+    catch { el('liveHostStatus').textContent = 'Live server readings unavailable.'; }
+  }
+
 
   function renderFleet(fleet) {
     if (!fleet) return;
@@ -175,6 +201,10 @@
       renderWorker(result.eu2,'eu2');
       for(const name of ['worker','aus','germany','eu2']) {const tab=document.querySelector?.(`[data-view="${name}"]`);if(tab)tab.hidden=!result[name]?.configured;}
       el('login').hidden = true; el('data').hidden = false;
+      void refreshDrain();
+      void refreshFleetDrain();
+      void refreshLiveHosts();
+      void refreshIslandEvent();
       void support?.refresh();
       el('invites').hidden = !result.invitesEnabled;
       el('invitesUnavailable').hidden = result.invitesEnabled;
@@ -210,10 +240,82 @@
     } catch (error) { el('connection').textContent = 'Disconnected · readings stale'; el('error').textContent = `${error.message} Displayed readings may be stale.`; }
     finally { busy = false; }
   }
+  async function refreshDrain() {
+    try {
+      const state = (await get('/api/drain')).state;
+      el('drainStatus').textContent = state === 'dashboard' ? 'Draining this host.' : state === 'external' ? 'This host is draining under another controller.' : 'No maintenance drain is active on this host.';
+      el('startDrain').disabled = state !== 'open';
+      el('stopDrain').disabled = state !== 'dashboard';
+    } catch {
+      el('drainStatus').textContent = 'Local drain control is not configured or unavailable.';
+      el('startDrain').disabled = true; el('stopDrain').disabled = true;
+    }
+  }
+  async function refreshFleetDrain() {
+    try {
+      const hosts = (await get('/api/fleet-drain')).hosts;
+      el('fleetDrainStatus').textContent = fleetDrainResult || (hosts.length ? `Configured: ${hosts.join(', ')}. Results appear after an action.` : 'Fleet drain is not configured.');
+      el('startFleetDrain').disabled = !hosts.length; el('stopFleetDrain').disabled = !hosts.length;
+    } catch {
+      el('fleetDrainStatus').textContent = 'Fleet drain control is unavailable.';
+      el('startFleetDrain').disabled = true; el('stopFleetDrain').disabled = true;
+    }
+  }
+  async function refreshIslandEvent() {
+    try {
+      const result = await get('/api/island-event');
+      el('islandEventStatus').textContent = result.configured ? `Mode: ${result.mode}. ${result.enabled ? 'Island events are advertised.' : 'Island events are not advertised.'}` : 'Island event control is not configured.';
+      el('islandEventMode').value = result.mode || 'default';
+      el('applyIslandEvent').disabled = !result.configured;
+    } catch { el('islandEventStatus').textContent = 'Island event control unavailable.'; el('applyIslandEvent').disabled = true; }
+  }
+  el('applyIslandEvent').onclick = async () => {
+    if (!key || !confirm('Apply the selected island event schedule?')) return;
+    el('applyIslandEvent').disabled = true;
+    try {
+      const response = await fetch('/api/island-event', {method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json'},body:JSON.stringify({mode:el('islandEventMode').value}),signal:AbortSignal.timeout(10000)});
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Island event control unavailable.');
+      await refreshIslandEvent();
+    } catch (error) { el('islandEventStatus').textContent = error.message; el('applyIslandEvent').disabled = false; }
+  };
+  for (const [id, action] of [['startFleetDrain','start'], ['stopFleetDrain','stop']]) el(id).onclick = async () => {
+    if (!key || !confirm(action === 'start' ? 'Drain all configured game hosts?' : 'Resume admission on all configured game hosts?')) return;
+    el('startFleetDrain').disabled = true; el('stopFleetDrain').disabled = true;
+    try {
+      const response = await fetch('/api/fleet-drain', {method:'POST', headers:{'x-dashboard-key':key,'content-type':'application/json'}, body:JSON.stringify({action}), signal:AbortSignal.timeout(15000)});
+      if (!response.ok) throw new Error('Fleet action failed; check each host before retrying.');
+      const result = await response.json();
+      fleetDrainResult = result.hosts.map(host=>`${host.name}: ${host.state}`).join(' · ');
+      el('fleetDrainStatus').textContent = fleetDrainResult;
+    } catch (error) { fleetDrainResult = error.message; el('fleetDrainStatus').textContent = fleetDrainResult; }
+    finally { el('startFleetDrain').disabled = false; el('stopFleetDrain').disabled = false; }
+  };
+  for (const [id, action] of [['startDrain','start'], ['stopDrain','stop']]) el(id).onclick = async () => {
+    if (!key || !confirm(action === 'start' ? 'Stop admitting new hunts on this host?' : 'Resume hunt admission on this host?')) return;
+    el('startDrain').disabled = true; el('stopDrain').disabled = true;
+    try {
+      const response = await fetch('/api/drain', {method:'POST', headers:{'x-dashboard-key':key,'content-type':'application/json'}, body:JSON.stringify({action}), signal:AbortSignal.timeout(10000)});
+      if (!response.ok) throw new Error('Drain change failed; check status before retrying.');
+      await refreshDrain();
+    } catch (error) { el('drainStatus').textContent = error.message; }
+  };
   el('connect').onclick = () => { key = el('key').value.trim(); el('key').value = ''; refresh(); };
   el('key').onkeydown = event => { if (event.key === 'Enter') el('connect').click(); };
   el('keyFile').onchange = async () => { const file = el('keyFile').files[0]; if (!file) return; if (file.size > 4096) { el('error').textContent = 'Select the small owner.key text file, not a backup archive.'; return; } key = (await file.text()).trim(); el('keyFile').value = ''; refresh(); };
   el('logout').onclick = () => { key = ''; location.reload(); };
+  el('sendAnnouncement').onclick = async () => {
+    const message = el('announcementText').value.trim();
+    if (!key || !message || !confirm('Send this message to all connected chat sessions?')) return;
+    el('sendAnnouncement').disabled = true;
+    try {
+      const response=await fetch('/api/announcement',{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json'},body:JSON.stringify({message}),signal:AbortSignal.timeout(15000)});
+      const result=await response.json();
+      if(!response.ok)throw new Error(result.error || 'Announcement unavailable.');
+      el('announcementStatus').textContent = `Sent to ${result.attempted} chat sessions. In-game display has not been verified.`;
+    } catch(error) { el('announcementStatus').textContent = error.message || 'Result unknown; check before retrying.'; }
+    finally {el('sendAnnouncement').disabled = false;}
+  };
   for (const button of document.querySelectorAll('[data-view]')) button.onclick = () => {
     for (const panel of document.querySelectorAll('.view')) panel.hidden = panel.id !== button.dataset.view;
     for (const tab of document.querySelectorAll('[data-view]')) tab.setAttribute('aria-pressed', String(tab === button));

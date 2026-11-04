@@ -37,8 +37,33 @@ import { BackendHealthEnabled, BackendRuntimeHealth } from '../middleware/Backen
 import { discordlinks, userapikeys, users } from '../db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { GetPlaytimeSeconds } from '../controllers/playtime';
+import { IslandEventEnabled, IslandEventModeNow, SetIslandEventMode, type IslandEventMode } from '../controllers/islandevent';
 
 export const unbrokenApiRouter = Router();
+import { SendAnnouncement, ValidAnnouncement } from '../realtime/announcement';
+unbrokenApiRouter.post('/Announcement',HasDauntlessUnbrokenAdminApiKey,AdminMutationRateLimit,(req:any,res)=>{
+    res.setHeader('Cache-Control','no-store');
+    if(!req.body || typeof req.body !== 'object' || Array.isArray(req.body) || Object.keys(req.body).length !== 1 || !ValidAnnouncement(req.body.message)){
+        res.status(400).json({error:'invalid_message'});return;
+    }
+    try {
+        const attempted=SendAnnouncement(req.body.message);
+        if(attempted === undefined){res.status(503).json({error:'chat_unavailable'});return;}
+        logger.info(`Announcement requested by ${req.DauntlessUnbrokenUserInfo.UserId}; attempted sessions=${attempted}`);
+        res.json({attempted});
+    } catch {res.status(503).json({error:'announcement_unavailable'});}
+});
+unbrokenApiRouter.get('/IslandEventControl',HasDauntlessUnbrokenAdminApiKey,HealthReadRateLimit,(_req,res)=>{
+    try {
+        const mode = IslandEventModeNow();
+        res.setHeader('Cache-Control','no-store').json({configured:typeof process.env.ISLAND_EVENT_CONTROL_FILE==='string' && process.env.ISLAND_EVENT_CONTROL_FILE.length>0,mode,enabled:IslandEventEnabled()});
+    } catch { res.status(503).json({error:'island_event_control_unavailable'}); }
+});
+unbrokenApiRouter.post('/IslandEventControl',HasDauntlessUnbrokenAdminApiKey,AdminMutationRateLimit,(req:any,res)=>{
+    if(!req.body || typeof req.body !== 'object' || Array.isArray(req.body) || Object.keys(req.body).length !== 1 || !['default','off','trials'].includes(req.body.mode)) { res.status(400).json({error:'invalid_mode'}); return; }
+    try { const mode = SetIslandEventMode(req.body.mode as IslandEventMode); res.setHeader('Cache-Control','no-store').json({mode,enabled:IslandEventEnabled()}); }
+    catch(error) { res.status(error instanceof Error && error.message.includes('not configured') ? 503 : 409).json({error:'island_event_control_unavailable'}); }
+});
 import {PurchaseHistory} from '../controllers/purchasehistory';
 const PurchaseHistoryRateLimit=rateLimit({keyGenerator:req=>'purchases:'+((req as any).DauntlessUnbrokenUserInfo.UserId),windowMs:60000,limit:20,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'rate_limited'}});
 unbrokenApiRouter.get('/PurchaseHistory',HasDauntlessUnbrokenUserApiKey,PurchaseHistoryRateLimit,(req:any,res)=>{

@@ -1,12 +1,117 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { startDashboard, scrubLog, tailLog } from './dashboard.mjs';
+import { startDashboard, scrubLog, tailLog, readFleetControls } from './dashboard.mjs';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parsePerformance, readPerformance } from './dashboard-performance.mjs';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
+
+test('live host snapshots require owner auth and exclude unexpected fields', async () => {
+ const dir=await mkdtemp(join(tmpdir(),'dashboard-live-'));
+ const file=join(dir,'live.json'),key='dashboard-read-only-test-key';
+ await writeFile(file,JSON.stringify({at:new Date().toISOString(),hosts:[{name:'EU 1',online:true,cpu:25,memoryUsedMB:10,memoryTotalMB:20,running:1,pending:0,limit:5,draining:false,secret:'do not expose'}]}));
+ const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',liveStatusFile:file,fetcher:async()=>Response.json({Users:[],players:[],instances:[],playersOnline:0})});
+ try {
+  const url=`http://127.0.0.1:${server.address().port}/api/live-hosts`;
+  assert.equal((await fetch(url)).status,401);
+  const data=await(await fetch(url,{headers:{'x-dashboard-key':key}})).json();
+  assert.equal(data.hosts[0].name,'EU 1');assert.equal(data.hosts[0].cpu,25);
+  assert.equal(data.hosts[0].secret,undefined);
+ } finally {await new Promise(resolve=>server.close(resolve));await rm(dir,{recursive:true,force:true});}
+});
+
+test('fleet control configuration loads private worker keys without exposing key files', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'dashboard-fleet-config-'));
+  try {
+    const config = join(dir, 'fleet.json'), keyFile = join(dir, 'worker.key');
+    await writeFile(keyFile, 'worker-control-key-that-is-long-enough-123456');
+    await writeFile(config, JSON.stringify([{name: 'EU 1', url: 'http://127.0.0.1:61111', keyFile}]));
+    assert.deepEqual(await readFleetControls(config), [{name: 'EU 1', url: 'http://127.0.0.1:61111', key: 'worker-control-key-that-is-long-enough-123456'}]);
+    await writeFile(config, JSON.stringify([{name: 'bad', url: 'https://127.0.0.1:61111', keyFile}]));
+    await assert.rejects(readFleetControls(config), /configuration/);
+  } finally { await rm(dir, {recursive: true, force: true}); }
+});
+
+test('announcements require owner authentication and are sent once', async () => {
+  const key='announcement-owner-test-key', writes=[];
+  const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',fetcher:async(url,options)=>{
+    if(url.pathname==='/unbroken/api/Announcement'){writes.push(JSON.parse(options.body));return Response.json({attempted:2});}
+    return Response.json({Users:[],players:[],instances:[],playersOnline:0});
+  }});
+  try {
+    const base=`http://127.0.0.1:${server.address().port}`,body=JSON.stringify({message:'Restart soon'});
+    assert.equal((await fetch(base+'/api/announcement',{method:'POST',body})).status,401);
+    assert.equal((await fetch(base+'/api/announcement',{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json'},body})).status,403);
+    const reply=await fetch(base+'/api/announcement',{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json',origin:base},body});
+    assert.equal(reply.status,200);assert.equal((await reply.json()).attempted,2);assert.deepEqual(writes,[{message:'Restart soon'}]);
+  } finally {await new Promise(resolve=>server.close(resolve));}
+});
+
+test('island event controls proxy only the validated modes to the backend', async () => {
+  const key='island-event-owner-test-key', writes=[];
+  const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',fetcher:async(url,options)=>{
+    if(url.pathname==='/unbroken/api/IslandEventControl'){
+      if(options.method==='POST') writes.push(JSON.parse(options.body));
+      return Response.json({configured:true,mode:options.method==='POST'?JSON.parse(options.body).mode:'default',enabled:false});
+    }
+    return Response.json({Users:[],players:[],instances:[],playersOnline:0});
+  }});
+  try {
+    const base=`http://127.0.0.1:${server.address().port}`;
+    assert.equal((await fetch(base+'/api/island-event',{headers:{'x-dashboard-key':key}})).status,200);
+    const send=(mode,origin=base)=>fetch(base+'/api/island-event',{method:'POST',headers:{'x-dashboard-key':key,origin,'content-type':'application/json'},body:JSON.stringify({mode})});
+    assert.equal((await send('bad')).status,400);
+    assert.equal((await send('trials')).status,200);
+    assert.deepEqual(writes,[{mode:'trials'}]);
+  } finally {await new Promise(resolve=>server.close(resolve));}
+});
+
+test('fleet drain is owner-only and reports remote failures', async () => {
+  const key='fleet-owner-key-for-test', calls=[];
+  const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',
+    fleetControls:[{name:'EU 1',url:'http://127.0.0.1:61111',key:'fleet-worker-control-test-key-123456'}],
+    fetcher:async(url, options)=>{
+      if(url.pathname==='/drain'){calls.push(options);return Response.json({state:'dashboard'});}
+      return Response.json({Users:[],players:[],instances:[],playersOnline:0});
+    }});
+  try {
+    const base=`http://127.0.0.1:${server.address().port}`;
+    const body=JSON.stringify({action:'start'});
+    assert.equal((await fetch(base+'/api/fleet-drain',{method:'POST',body})).status,401);
+    assert.equal((await fetch(base+'/api/fleet-drain',{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json'},body})).status,403);
+    const response=await fetch(base+'/api/fleet-drain',{method:'POST',headers:{'x-dashboard-key':key,'content-type':'application/json',origin:base},body});
+    assert.equal(response.status,200);
+    assert.deepEqual((await response.json()).hosts,[{name:'EU 1',state:'dashboard'}]);
+    assert.equal(calls.length,1);
+  } finally {await new Promise(resolve=>server.close(resolve));}
+});
+
+test('drain actions require owner authentication and same-origin requests', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'dashboard-drain-'));
+  const flag = join(dir, 'drain.flag');
+  const key = 'test-drain-owner-key';
+  const server = await startDashboard({key, port: 0, backend: 'http://127.0.0.1:61000', drainFile: flag,
+    fetcher: async () => Response.json({Users: [], players: [], instances: [], playersOnline: 0})});
+  try {
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const send = (action, headers = {}) => fetch(base + '/api/drain', {method: 'POST', headers: {'content-type': 'application/json', ...headers}, body: JSON.stringify({action})});
+    assert.equal((await send('start')).status, 401);
+    assert.equal((await send('start', {'x-dashboard-key': key})).status, 403);
+    const auth = {'x-dashboard-key': key, origin: base};
+    assert.equal((await send('unexpected', auth)).status, 400);
+    assert.equal((await send('start', auth)).status, 200);
+    assert.equal(await readFile(flag, 'utf8'), 'Dauntless dashboard maintenance');
+    assert.equal((await send('stop', auth)).status, 200);
+    await writeFile(flag, 'external maintenance');
+    assert.equal((await send('stop', auth)).status, 409);
+    assert.equal(await readFile(flag, 'utf8'), 'external maintenance');
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+    await rm(dir, {recursive: true, force: true});
+  }
+});
 
 test('account and Discord controls require owner auth, same origin, bounded JSON and no forged Discord operator',async()=>{
  const key='test-access-owner-key';const writes=[];
