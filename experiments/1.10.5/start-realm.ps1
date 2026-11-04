@@ -15,7 +15,7 @@ if(Test-Path -LiteralPath $hostedFile){
  $env:DR_1105_PUBLIC_HOST=if($hosted.gameHost){$hosted.gameHost}else{$hosted.host}
  $env:DR_1105_MAX_HUNTS=if($hosted.maxHunts){[string]$hosted.maxHunts}else{'4'}
  $env:DR_1105_WORKER=if($hosted.role -eq 'worker'){'1'}else{'0'}
- $env:DR_1105_WORKER_URL=$hosted.workerUrl
+ Set-DRMaintenanceWorkerEnvironment $maintenance $hosted
  $env:GAMESERVER_CPU_GUARD='1'
  $env:GAMESERVER_CPU_LIMIT_PERCENT=if($hosted.cpuLimit){[string]$hosted.cpuLimit}else{'80'}
  $env:GAMESERVER_CPU_RESUME_PERCENT=if($hosted.cpuResume){[string]$hosted.cpuResume}else{'65'}
