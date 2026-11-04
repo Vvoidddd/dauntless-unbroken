@@ -46,15 +46,23 @@ export type SeedMode = "grandfather" | "fresh";
 
 const DEFAULT_CONFIRMED_DATE = "1970-01-01T00:00:00.000Z";
 const DEFAULT_GRANT_CAP = 5000;
+const WEAPON_EXPERIENCE_TRACK = /^ExperienceTrack_Weapon_(Axe|ChainBlades|Hammer|Repeaters|Spear|Strikers|Sword)$/;
 
 type TrackRow = typeof progresstracks.$inferSelect;
 type ObjectiveRow = typeof objectives.$inferSelect;
 
 // Largest amount one request may add to one track; anything above is cut and logged
-export function GetGrantCap(){
+export function GetGrantCap(ProgressionId?: string){
     const Cap = Number(process.env.PROGRESSION_GRANT_CAP);
+    const ConfiguredCap = Number.isInteger(Cap) && Cap > 0 ? Cap : DEFAULT_GRANT_CAP;
 
-    return Number.isInteger(Cap) && Cap > 0 ? Cap : DEFAULT_GRANT_CAP;
+    if(ProgressionId !== undefined && WEAPON_EXPERIENCE_TRACK.test(ProgressionId)){
+        const Path = GetProgressionPath(ProgressionId);
+
+        return Math.max(ConfiguredCap, Path === undefined ? ConfiguredCap : TotalXpToMaxRank(Path));
+    }
+
+    return ConfiguredCap;
 }
 
 function ToTrackRecord(AccountId: string, ProgressionId: string, Row: TrackRow | undefined): TrackRecord{
@@ -185,7 +193,6 @@ function ParseGrantBody(Body: unknown, Notes: string[]): ParsedGrant | undefined
         return undefined;
     }
 
-    const Cap = GetGrantCap();
     const Tracks = new Map<string, number>();
 
     for(const Entry of TrackList){
@@ -209,6 +216,8 @@ function ParseGrantBody(Body: unknown, Notes: string[]): ParsedGrant | undefined
 
     // The cap is per track and request, so entries repeating one track can't add it twice
     for(const [ProgressionId, Total] of Tracks){
+        const Cap = GetGrantCap(ProgressionId);
+
         if(Total > Cap){
             Notes.push(`${ProgressionId} total ${Total} is over the cap of ${Cap}, cut to ${Cap}`);
             Tracks.set(ProgressionId, Cap);
@@ -423,7 +432,7 @@ export function GrantProgressionInTrack(AccountId: string, ProgressionId: string
             return {Status: 400};
         }
 
-        const Cap = GetGrantCap();
+        const Cap = GetGrantCap(ProgressionId);
         let Clamped = Amount;
 
         if(Clamped < 0){
@@ -600,7 +609,7 @@ export function ConfirmRank(AccountId: string, ProgressionId: string, RankRaw: s
 // DELETE /progression/:uid/:track: back to progress 0 and ranks 0
 // 1.10.5 reforging resets only a completed weapon XP track, not mastery or prestige.
 export function IsWeaponReforgeTrack(Id: string): boolean {
-    return Local1105Enabled() && /^ExperienceTrack_Weapon_(Axe|ChainBlades|Hammer|Repeaters|Spear|Strikers|Sword)$/.test(Id);
+    return Local1105Enabled() && WEAPON_EXPERIENCE_TRACK.test(Id);
 }
 
 export function ResetTrack(AccountId: string, ProgressionId: string, Who: Caller, ReforgeOnly = false): RealReply{
