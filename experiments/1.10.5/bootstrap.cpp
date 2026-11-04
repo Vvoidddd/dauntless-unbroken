@@ -20,6 +20,7 @@
 #include "SDK/ReplicationGraph_classes.hpp"
 #include "SDK/exploration_game_mode_bpc_classes.hpp"
 #include "EscalationSelectionGuard.h"
+#include "startup-hook-gate.h"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
 extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
 extern "C" { void ApexReportGuardEarly(); void* ApexEarlyContinue = nullptr; void ApexReportGuard(); void* ApexReportContinue = nullptr; void* ApexReportNext = nullptr; }
@@ -402,12 +403,15 @@ static void DumpHuntTables() {
     }
 }
 static void InstallApexReportGuard();
+static void InstallEscalationSelectionGuard();
 static void Tick(void* self, float delta, char render) {
     if (Server) InstallApexReportGuard();
     OriginalTick(self, delta, render);
     UpdateCellFusionTime();
     if (!Server) return; // Client must never run server stamina work or Sleep(25).
     auto* currentWorld = SDK::UWorld::GetWorld();
+    if (currentWorld && currentWorld->PersistentLevel && currentWorld->AuthorityGameMode)
+        InstallEscalationSelectionGuard();
     auto* currentDriver = currentWorld ? currentWorld->NetDriver : nullptr;
     if (currentDriver && !currentDriver->ServerConnection) {
         for (auto* connection : currentDriver->ClientConnections) {
@@ -450,6 +454,23 @@ static void Tick(void* self, float delta, char render) {
         }
     }
     Sleep(25);
+}
+static bool EscalationSelectionGuardInstalled = false;
+static void InstallEscalationSelectionGuard() {
+    if (!StartupHookGate::ShouldInstall(SDK::UWorld::GetWorld() != nullptr, EscalationSelectionGuardInstalled)) return;
+    const auto result = MH_CreateHook(reinterpret_cast<void*>(Base + 0x266ec40), ProcessEvent1105,
+        reinterpret_cast<void**>(&OriginalProcessEvent1105));
+    if (result != MH_OK) {
+        Note("escalation_selection_guard_create_failed\n");
+        return;
+    }
+    if (MH_EnableHook(reinterpret_cast<void*>(Base + 0x266ec40)) != MH_OK) {
+        MH_RemoveHook(reinterpret_cast<void*>(Base + 0x266ec40));
+        Note("escalation_selection_guard_enable_failed\n");
+        return;
+    }
+    EscalationSelectionGuardInstalled = true;
+    Note("escalation_selection_guard_enabled guard=1105\n");
 }
 static LONG CALLBACK Exception(EXCEPTION_POINTERS* info) {
     if (info->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
@@ -665,9 +686,6 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
         };
         if (memcmp(reinterpret_cast<void*>(Base + 0x266ec40), processEventBytes, sizeof(processEventBytes)))
             Fail("process_event_bytes_mismatch\n");
-        if (!Hook(0x266ec40, ProcessEvent1105, reinterpret_cast<void**>(&OriginalProcessEvent1105)))
-            Fail("process_event_hook_failed\n");
-        Note("escalation_selection_guard_enabled guard=1105\n");
         if (GetEnvironmentVariableW(L"DR_1105_GAMESERVER_KEY", ServerKey, 65) != 64 ||
             wcsspn(ServerKey, L"0123456789abcdef") != 64) Fail("missing_local_server_credential\n");
         const unsigned char processBytes[] = {0x40,0x55,0x53,0x41,0x54,0x41,0x56,0x41,0x57,0x48,0x8d,0x6c,0x24,0xc9,0x48,0x81,0xec,0xd0,0x00,0x00,0x00};

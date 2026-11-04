@@ -471,6 +471,8 @@ jobs:
             -fno-omit-frame-pointer DauntlessUnbrokenInternalServer/tests/fall-recovery-policy.cpp \
             -o "$out/fall-recovery-sanitized"
           "$out/fall-recovery-sanitized"
+          g++ -std=c++20 -Wall -Wextra -Werror -O2 experiments/1.10.5/test-startup-hook-gate.cpp -o "$out/startup-hook-gate"
+          "$out/startup-hook-gate"
 
   internal-server-dll:
     name: Server DLL (Windows x64)
