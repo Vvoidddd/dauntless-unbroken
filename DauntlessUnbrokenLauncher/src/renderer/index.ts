@@ -2100,8 +2100,9 @@ function renderRail(): void {
   else libraryGame.removeAttribute("aria-current");
   const libraryState = $("#library-game-state");
   const gameReady = !!snap?.install.installed && snap.install.verified && snap.install.missingFiles === 0 && snap.install.dllsOk;
-  libraryState.textContent = gameReady ? t("hint_ready") : "";
-  libraryState.classList.toggle("is-ready", gameReady);
+  libraryState.textContent = snap?.status?.maintenance ? "Maintenance" : gameReady ? t("hint_ready") : "";
+  libraryState.classList.toggle("is-ready", gameReady && !snap?.status?.maintenance);
+  libraryState.classList.toggle("is-maintenance", snap?.status?.maintenance === true);
   const chip = $("#account-chip");
   const user = snap?.account.hasKey ? snap.account.username : null;
   // Quick account switching and server selection share the existing account menu.

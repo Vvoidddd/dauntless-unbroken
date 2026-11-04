@@ -13,3 +13,9 @@ test("the library home has a dedicated game banner", () => {
   assert.match(theme, /\.play-cover/);
   assert.match(theme, /hero-umbral-nayzaga\.jpg/);
 });
+
+test("the selected library tile reflects maintenance state", () => {
+  assert.match(renderer, /libraryState\.textContent = snap\?\.status\?\.maintenance/);
+  assert.match(renderer, /is-maintenance/);
+  assert.match(theme, /\.library-game-state\.is-maintenance/);
+});
