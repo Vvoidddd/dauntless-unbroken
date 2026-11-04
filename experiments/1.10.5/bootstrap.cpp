@@ -18,6 +18,7 @@
 #include "SDK/GameplayAbilities_classes.hpp"
 #include "SDK/ReplicationGraph_classes.hpp"
 #include "SDK/exploration_game_mode_bpc_classes.hpp"
+#include "EscalationSelectionGuard.h"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
 extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
 
@@ -51,6 +52,11 @@ static void Note(const char* text) {
     DWORD written;
     WriteFile(Log, text, static_cast<DWORD>(strlen(text)), &written, nullptr);
     FlushFileBuffers(Log);
+}
+static void (*OriginalProcessEvent1105)(SDK::UObject*, SDK::UFunction*, void*);
+static void ProcessEvent1105(SDK::UObject* object, SDK::UFunction* function, void* parameters) {
+    if (!EscalationSelectionGuard1105::Allow(object, function, parameters, Note)) return;
+    OriginalProcessEvent1105(object, function, parameters);
 }
 static void SetText(SDK::UTextBlock* block, const SDK::FText& value) {
     if (!block) return;
@@ -586,6 +592,15 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     }
     if (Server) {
         RestoreAbilityDispatch();
+        const unsigned char processEventBytes[] = {
+            0x40,0x55,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57,
+            0x48,0x81,0xec,0xf0,0x00,0x00,0x00,0x48,0x8d,0x6c,0x24,0x30
+        };
+        if (memcmp(reinterpret_cast<void*>(Base + 0x266ec40), processEventBytes, sizeof(processEventBytes)))
+            Fail("process_event_bytes_mismatch\n");
+        if (!Hook(0x266ec40, ProcessEvent1105, reinterpret_cast<void**>(&OriginalProcessEvent1105)))
+            Fail("process_event_hook_failed\n");
+        Note("escalation_selection_guard_enabled guard=1105\n");
         if (GetEnvironmentVariableW(L"DR_1105_GAMESERVER_KEY", ServerKey, 65) != 64 ||
             wcsspn(ServerKey, L"0123456789abcdef") != 64) Fail("missing_local_server_credential\n");
         const unsigned char processBytes[] = {0x40,0x55,0x53,0x41,0x54,0x41,0x56,0x41,0x57,0x48,0x8d,0x6c,0x24,0xc9,0x48,0x81,0xec,0xd0,0x00,0x00,0x00};
