@@ -9,5 +9,7 @@ test("the library home exposes current activity without inventing account data",
   assert.match(renderer, /function playActivity/);
   assert.match(renderer, /lastPlayedAt/);
   assert.match(renderer, /onlineSeconds\(snap\)/);
+  assert.match(renderer, /Achievements/);
+  assert.match(renderer, /BADGE_HOURS\.length/);
   assert.match(renderer, /playActivity\(snap\)/);
 });

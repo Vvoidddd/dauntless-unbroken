@@ -796,11 +796,11 @@ function playReady(snap: Snapshot): HTMLElement[] {
 function playActivity(snap: Snapshot): HTMLElement {
   const lastPlayed = snap.playtime.lastPlayedAt ? formatDate(snap.playtime.lastPlayedAt, state.lang) : "Not played yet";
   const played = snap.playtime.onlineSeconds === null ? "—" : formatPlaytime(onlineSeconds(snap), state.lang);
-  const sessions = typeof snap.playtime.sessions === "number" && Number.isFinite(snap.playtime.sessions) ? `${snap.playtime.sessions}` : "0";
+  const achievements = `${badgeProgress(onlineSeconds(snap)).unlocked.length}/${BADGE_HOURS.length}`;
   return h("div", { class: "play-activity", "aria-label": "Game activity" },
     h("div", { class: "play-activity-item" }, h("span", {}, "Last played"), h("strong", {}, lastPlayed)),
     h("div", { class: "play-activity-item" }, h("span", {}, "Play time"), h("strong", {}, played)),
-    h("div", { class: "play-activity-item" }, h("span", {}, "Sessions"), h("strong", {}, sessions)));
+    h("div", { class: "play-activity-item" }, h("span", {}, "Achievements"), h("strong", {}, achievements)));
 }
 
 function playRunning(snap: Snapshot): HTMLElement[] {
