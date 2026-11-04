@@ -49,8 +49,10 @@ namespace Networking {
                     continue;
                 }
 
+                const auto CastFlags = Actor->Class->CastFlags;
                 const bool Urgent = Actor->bReplicateMovement || Actor->bTearOff || Actor->bNetTemporary ||
-                    Actor->IsA(EClassCastFlags::Pawn) || Actor->IsA(EClassCastFlags::PlayerController);
+                    static_cast<uint64>(CastFlags & EClassCastFlags::Pawn) != 0 ||
+                    static_cast<uint64>(CastFlags & EClassCastFlags::PlayerController) != 0;
                 if (!Cadence.Due(Actor, Actor->Index, Now, Actor->NetUpdateFrequency, Urgent)) {
                     ++DR_ActorUpdatesDeferred;
                     continue;
