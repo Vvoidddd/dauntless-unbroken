@@ -2061,9 +2061,10 @@ function renderRail(): void {
   const locked = !snap || snap.busy || snap.task !== null || snap.game.running || offlineActive();
   const hasMenu = !!snap?.server || others.length > 0;
   if (!hasMenu || locked) state.serverMenu = false;
-  renderRegion(chip, JSON.stringify([state.lang, user, snap?.server?.name ?? null, snap?.status?.name ?? null, others, accounts, locked, state.serverMenu]), () => {
+  const approvedAvatar = snap?.account.profilePicture?.status === "approved" ? snap.account.profilePicture.imageDataUrl : null;
+  renderRegion(chip, JSON.stringify([state.lang, user, approvedAvatar, snap?.server?.name ?? null, snap?.status?.name ?? null, others, accounts, locked, state.serverMenu]), () => {
     const inner = [
-      h("span", { class: `avatar${user ? "" : " empty"}`, "aria-hidden": "true" }, user ? Array.from(user)[0].toUpperCase() : "?"),
+      h("span", { class: `avatar${user ? "" : " empty"}`, "aria-hidden": "true" }, approvedAvatar ? h("img", {class:"avatar-image", src:approvedAvatar, alt:""}) : user ? Array.from(user)[0].toUpperCase() : "?"),
       h(
         "span",
         { class: "account-text" },
