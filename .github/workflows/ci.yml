@@ -45,7 +45,7 @@ jobs:
       server_port: ${{ steps.paths.outputs.server_port }}
       native: ${{ steps.paths.outputs.native }}
       server_kit: ${{ steps.paths.outputs.server_kit }}
-      server_kit_sandbox: ${{ steps.paths.outputs.server_kit_sandbox }}
+      server_kit_phases: ${{ steps.paths.outputs.server_kit_phases }}
       docs: ${{ steps.paths.outputs.docs }}
       all_checks: ${{ steps.paths.outputs.all_checks }}
     steps:
@@ -82,6 +82,7 @@ jobs:
           native=false
           server_kit=false
           server_kit_sandbox=false
+          server_kit_phases='[]'
           docs=false
           all_checks=false
           if [ "$EVENT" = workflow_dispatch ] || [ "$files" = "*" ]; then all_checks=true; fi
@@ -116,13 +117,21 @@ jobs:
             launcher=true; server_port=true; native=true; server_kit=true; server_kit_sandbox=true; docs=true
           fi
 
+          if [ "$server_kit" = true ]; then
+            if [ "$server_kit_sandbox" = true ]; then
+              server_kit_phases='["unit","remote","sandbox"]'
+            else
+              server_kit_phases='["unit","remote"]'
+            fi
+          fi
+
           {
             echo "node_packages=$node_packages"
             echo "launcher=$launcher"
             echo "server_port=$server_port"
             echo "native=$native"
             echo "server_kit=$server_kit"
-            echo "server_kit_sandbox=$server_kit_sandbox"
+            echo "server_kit_phases=$server_kit_phases"
             echo "docs=$docs"
             echo "all_checks=$all_checks"
           } >> "$GITHUB_OUTPUT"
@@ -514,13 +523,13 @@ jobs:
   server-kit-work:
     name: Server kit (${{ matrix.phase }})
     needs: changes
-    if: needs.changes.outputs.server_kit == 'true' && (matrix.phase != 'sandbox' || needs.changes.outputs.server_kit_sandbox == 'true')
+    if: needs.changes.outputs.server_kit == 'true'
     runs-on: windows-latest
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        phase: [unit, remote, sandbox]
+        phase: ${{ fromJSON(needs.changes.outputs.server_kit_phases) }}
     defaults:
       run:
         shell: powershell
