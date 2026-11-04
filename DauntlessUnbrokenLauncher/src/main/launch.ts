@@ -6,7 +6,7 @@ import path from "node:path";
 import { isValidHost } from "../shared/invite";
 import { isPlausibleAccountKey } from "../shared/username";
 import { EXE_NAME } from "./constants";
-import type { GameLanguage } from "../shared/types";
+import type { GameLanguage, Language } from "../shared/types";
 
 export interface LaunchSettings {
   host: string;
@@ -43,6 +43,13 @@ export function gameLocale(setting: GameLanguage, systemLocale: string): string 
 }
 
 const GAME_LOCALES = ["en-US", "de-DE", "es-ES", "fr-FR", "it-IT", "ja-JP", "pt-BR", "ru-RU"];
+const LAUNCHER_GAME_LOCALES: Record<Language, GameLanguage> = {
+  en: "en-US", fi: "en-US", de: "de-DE", es: "es-ES", fr: "fr-FR", it: "it-IT", ja: "ja-JP", pt: "pt-BR", ru: "ru-RU",
+};
+
+export function gameLocaleForLauncherLanguage(language: Language): GameLanguage {
+  return LAUNCHER_GAME_LOCALES[language];
+}
 
 export function buildLaunchArgs(s: LaunchSettings): string[] {
   if (!isValidHost(s.host)) throw new Error("invalid host");
