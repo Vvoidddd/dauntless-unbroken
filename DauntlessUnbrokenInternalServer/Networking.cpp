@@ -26,8 +26,6 @@ namespace Networking {
         Actors.clear();
         static ReplicationCadence Cadence;
         static UWorld* PreviousWorld = nullptr;
-        static UClass* PawnClass = APawn::StaticClass();
-        static UClass* ControllerClass = AController::StaticClass();
         if (PreviousWorld != World) { Cadence.Clear();PreviousWorld = World; }
         const double Now = GetTickCount64() / 1000.0;
         Cadence.Prune(Now);
@@ -52,7 +50,7 @@ namespace Networking {
                 }
 
                 const bool Urgent = Actor->bReplicateMovement || Actor->bTearOff || Actor->bNetTemporary ||
-                    Actor->IsA(PawnClass) || Actor->IsA(ControllerClass);
+                    Actor->IsA(EClassCastFlags::Pawn) || Actor->IsA(EClassCastFlags::PlayerController);
                 if (!Cadence.Due(Actor, Actor->Index, Now, Actor->NetUpdateFrequency, Urgent)) {
                     ++DR_ActorUpdatesDeferred;
                     continue;
