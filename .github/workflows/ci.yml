@@ -98,6 +98,10 @@ jobs:
             fi
             case "$path" in
               .github/*|AGENTS.md|CONTRIBUTING.md) all_checks=true ;;
+              DauntlessUnbrokenMetagame/test/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true ;;
+              DauntlessUnbrokenGateway/test/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true ;;
+              DauntlessUnbrokenContent/test/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true ;;
+              DauntlessUnbrokenDeployServer/test/*) node_packages+='"DauntlessUnbrokenDeployServer",'; server_port=true ;;
               DauntlessUnbrokenMetagame/*) node_packages+='"DauntlessUnbrokenMetagame",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
               DauntlessUnbrokenGateway/*) node_packages+='"DauntlessUnbrokenGateway",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
               DauntlessUnbrokenContent/*) node_packages+='"DauntlessUnbrokenContent",'; server_port=true; server_kit=true; server_kit_sandbox=true ;;
