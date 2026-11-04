@@ -18,6 +18,22 @@ test('invalid island event backend response does not stop the dashboard', async 
   } finally { await new Promise(resolve=>server.close(resolve)); }
 });
 
+test('live host view uses fresh fleet readings when no snapshot file is configured', async () => {
+ const key='live-fleet-fallback-test-key';
+ const fetcher=async url => {
+   if(url.pathname==='/unbroken/api/GetAllUsers') return Response.json({Users:[]});
+   if(url.pathname==='/unbroken/api/ServerStatus') return Response.json({players:[],instances:[],playersOnline:0});
+   if(url.pathname==='/gameservers') return Response.json({capacity:{running:2,pending:1,limit:10,draining:false}});
+   return Response.json({});
+ };
+ const server=await startDashboard({key,port:0,backend:'http://127.0.0.1:61000',fetcher});
+ try {
+   const res=await fetch(`http://127.0.0.1:${server.address().port}/api/live-hosts`,{headers:{'x-dashboard-key':key}});
+   assert.equal(res.status,200);
+   const body=await res.json(); assert.equal(body.hosts[0].online,true); assert.equal(body.hosts[0].running,2); assert.equal(body.hosts[0].pending,1);
+ } finally {await new Promise(resolve=>server.close(resolve));}
+});
+
 test('live host snapshots require owner auth and exclude unexpected fields', async () => {
  const dir=await mkdtemp(join(tmpdir(),'dashboard-live-'));
  const file=join(dir,'live.json'),key='dashboard-read-only-test-key';

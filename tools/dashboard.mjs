@@ -157,7 +157,13 @@ export async function startDashboard({key, backend, port = 61110, logs = {}, ser
     if (typeof supplied !== 'string' || !timingSafeEqual(digest(supplied), digest(key))) { res.writeHead(401).end(); return; }
     res.setHeader('Content-Type', 'application/json');
     if(req.method === 'GET' && req.url === '/api/live-hosts'){
-      if(!liveStatusFile){res.writeHead(503).end(JSON.stringify({error:'Live status is not configured.'}));return;}
+      if(!liveStatusFile){
+        const fleet=fleetSummary(sample,workerMonitor.state,failure,Date.now(),ausMonitor.state,germanyMonitor.state,eu2Monitor.state);
+        const hosts=fleet.rows.filter(row=>row.id!==2).map(row=>({name:row.name,online:row.online,at:row.at,cpu:row.cpu,
+          memoryUsedMB:row.ramUsedMB,memoryTotalMB:row.ramTotalMB,running:row.capacity?.running??row.hunts,
+          pending:row.capacity?.pending??null,limit:row.capacity?.limit??null,draining:row.capacity?.draining??null}));
+        res.end(JSON.stringify({at:new Date().toISOString(),hosts}));return;
+      }
       try{
         const stat=await lstat(liveStatusFile);
         if(!stat.isFile() || stat.isSymbolicLink() || stat.size>16384)throw Error('invalid status');
