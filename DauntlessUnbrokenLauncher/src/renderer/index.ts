@@ -1261,7 +1261,7 @@ function renderNews(): void {
         );
       }
     }
-    return [h("div", { class: "page" }, h("h1", { class: "page-title", id: "news-title" }, title), ...body)];
+    return [h("div", { class: "page news-page" }, h("h1", { class: "page-title", id: "news-title" }, title), ...body)];
   });
 }
 
