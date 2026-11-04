@@ -644,6 +644,28 @@ test("public mode end to end: join, register, install, play through the relay, g
   await hx.c.shutdown();
 });
 
+test("PLAY rejects same-size content changes after an install", async () => {
+  const hx = harness(RELAY_PORT);
+  try {
+    await hx.c.init();
+    meta.opts.validCodes?.add("INTEGRITY-CODE");
+    assert.deepEqual(await hx.c.submitInvite(invite(cert.fingerprint, "INTEGRITY-CODE")), { ok: true });
+    assert.deepEqual(await hx.c.register("Integrity_Check"), { ok: true, username: "Integrity_Check" });
+    assert.deepEqual(await hx.c.startInstall(), { ok: true });
+
+    const pak = path.join(hx.installDir, "Archon", "Content", "Paks", "pakchunk0-WindowsNoEditor.pak");
+    const damaged = readFileSync(pak);
+    damaged[0] ^= 0xff;
+    writeFileSync(pak, damaged);
+
+    assert.deepEqual(await hx.c.play(), { ok: false, error: { code: "game_files_invalid", detail: "1" } });
+    assert.equal(hx.spawns.length, 0);
+  } finally {
+    hx.child()?.emit("exit", 0);
+    await hx.c.shutdown();
+  }
+});
+
 test('saved disabled region still launches and resets preference to Automatic', async () => {
   const hx=harness(); regionMode=true; regionPosts.length=0;
   meta.opts.validCodes!.add('REGION-CODE');
