@@ -189,6 +189,18 @@ it('private hunts allocate immediately, poll quickly, and never take a public wa
     CancelMatchmaking(publicPlayer.UserId);
 });
 
+it('public hunts poll quickly while waiting for a ready server', async () => {
+    const hunt = `CR19_PlayerHunt_Public_Fast_${++Hunts}`;
+    const player = NewPlayer();
+    const body = {gameMode: 'ISLAND', gameArgs: '', playerHuntId: hunt};
+    const joined = await Call('POST', '/candidate/join', player.Token, body);
+    assert.equal(joined.status, 200);
+    assert.equal(joined.json.candidateStatusPeriodMillis, 1000);
+    assert.equal((await Call('GET', '/candidate/status', player.Token)).json.candidateStatusPeriodMillis, 1000);
+    const {CancelMatchmaking} = await import('../src/controllers/matchmaking.js');
+    CancelMatchmaking(player.UserId);
+});
+
 // New players join along the path, all with the same body; returns them
 async function JoinAll(ThePath: Path){
     const Players = Array.from({ length: ThePath.Players }, () => NewPlayer());
