@@ -30,6 +30,20 @@ it('repairs native cosmetic ownership once, retaining legacy evidence, gear and 
     }finally{delete process.env.LOCAL_1105_REALM;delete process.env.BIND_HOST;}
 });
 
+it('repairs imported cosmetics when the public backend identifies build 365075',async()=>{
+    process.env.BIND_HOST='127.0.0.1';process.env.TARGET_CHANGELIST='365075';delete process.env.LOCAL_1105_REALM;
+    try{
+        const {UserId,CharacterId}=await MakePlayer();
+        const db=GetDb().$client;
+        const legacy={catalogId:'WP_IH_SERRATED',instanceId:'purchased-skin',updateVersion:0};
+        db.prepare('INSERT OR REPLACE INTO inventories (characterId,instancedItems,stackedItems) VALUES (?,?,?)').run(CharacterId,JSON.stringify([legacy]),'[]');
+        const result=await GetInventoryForUserIdAndCharacterId(UserId,CharacterId);
+        assert.equal(result.success,true);
+        assert.deepEqual(result.data!.instancedItems,[]);
+        assert.deepEqual(result.data!.stackedItems,[{catalogId:'WP_IH_SERRATED',quantity:1}]);
+    }finally{delete process.env.TARGET_CHANGELIST;delete process.env.BIND_HOST;}
+});
+
 it('ordinary and seasonal bounties sharing a slot survive reciprocal updates',async()=>{
     process.env.BIND_HOST='127.0.0.1';process.env.LOCAL_1105_REALM='1';
     try{
