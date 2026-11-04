@@ -13,6 +13,21 @@ import { GetTrackRecord } from "../src/controllers/realprogression";
 before(StartApp);
 after(async () => { await StopApp(); RemoveTestDb(() => GetDb().$client.close()); });
 
+it("accepts the full 1.10.5 weapon XP needed for level 20 in one grant", async () => {
+    await WithEnv({BIND_HOST: "127.0.0.1", LOCAL_1105_REALM: "1", PROGRESSION_CONFIG_DIR: path.resolve("../experiments/1.10.5/progression")}, async () => {
+        const {UserId} = await MakePlayer();
+        const Track = "ExperienceTrack_Weapon_Sword";
+        const Reply = await Call("POST", `/progression/${UserId}`, {gs: true, body: {progress_tracks: [{progression_id: Track, progress: 27775}], objectives: []}});
+
+        assert.equal(Reply.status, 200);
+        assert.equal(Reply.json.payload.progress_tracks[0].progress, 27775);
+        assert.equal(ComputeEarnedRanks(GetProgressionPath(Track)!, 27775, false).EarnedFreeRank, 20);
+
+        const Other = await Call("POST", `/progression/${UserId}`, {gs: true, body: {progress_tracks: [{progression_id: "MasteryTrack_PlayerLevel", progress: 27775}], objectives: []}});
+        assert.equal(Other.json.payload.progress_tracks[0].progress, 5000);
+    });
+});
+
 it("allows completed 1.10.5 weapon reforges only, with a rank and Aetherheart for each reforge", async () => {
     await WithEnv({BIND_HOST: "127.0.0.1", LOCAL_1105_REALM: "1", PROGRESSION_ALLOW_DELETE: undefined,
         PROGRESSION_CONFIG_DIR: path.resolve("../experiments/1.10.5/progression")}, async () => {
