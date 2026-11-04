@@ -2,7 +2,7 @@
   "date": "2026-11-03T18:00:00Z",
   "title": "Dauntless Unbroken",
   "release_version": "1.10.5 - November 3 Update",
-  "description": "Latest Unbroken fixes, account migration and known issues. Update your launcher and fully restart the game to load client fixes.",
+  "description": "Unbroken account information, recent fixes and issues still being investigated. Update your launcher and fully restart the game to load client fixes.",
   "language": "en",
   "permalink": "https://github.com/Vvoidddd/dauntless-unbroken/releases/latest",
   "notes": [
@@ -13,7 +13,7 @@
         {
           "type": "text",
           "title": "Welcome to 1.10.5",
-          "description": "Use your existing Unbroken account key. Update to launcher 1.0.54 or newer and fully restart the game.",
+          "description": "Use your existing Unbroken account key. Update your launcher and fully restart the game.",
           "background": "",
           "cta": "",
           "url": "",
@@ -76,7 +76,7 @@
                 "Reforging now permits the level-20 weapon XP reset. All seven weapon prestige tracks award Aetherhearts on subsequent reforges.",
                 "Quest dialogue and Training Grounds routing have been corrected.",
                 "Public matchmaking groups eligible requests for the same hunt; private hunts stay limited to you and your party.",
-                "Ordinary bounties no longer overwrite seasonal challenge slots. Daily and weekly challenge work is still on hold.",
+                "Ordinary bounties no longer overwrite seasonal challenge slots. Daily and weekly challenge changes still need in-game verification.",
                 "Slayer Link reward pools accept Combat Merits and Aethersparks; missing pools are restored without resetting link progress."
               ]
             }
@@ -103,7 +103,8 @@
                 "Weapon meters, Thrax and chain-blade recovery, consumables, projectile damage and corruption-related zero-health states remain under investigation.",
                 "Omnicell visibility and activation, Radiant Escalation effects and Lightbound Koshai bubbles still need validation.",
                 "Missing cosmetics, bounty rewards, Trials and island unlocks, and Slayer Link reward display are being checked.",
-                "Please report any reforge that charges currency without resetting weapon XP or updating its Slayer's Path requirement."
+                "Please report any reforge that charges currency without resetting weapon XP or updating its Slayer's Path requirement.",
+                "Daily and weekly challenge completion, refresh and reward claims still need end-to-end in-game verification."
               ]
             }
           ]
