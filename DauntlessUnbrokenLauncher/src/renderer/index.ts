@@ -755,6 +755,7 @@ function renderPlay(): void {
     renderRegion(container, "loading", () => [h("div", { class: "play-content" }, h("div", { class: "card-row" }, h("div", { class: "spinner" }), t("loading")))]);
     return;
   }
+  const playClass = state.offlineView ? "play-offline" : snap.phase === "ready" || snap.phase === "running" ? "play-home" : "";
   const sig = JSON.stringify([
     state.lang,
     snap.phase,
@@ -776,7 +777,7 @@ function renderPlay(): void {
   ]);
   renderRegion(container, sig, () => {
     let parts: HTMLElement[];
-    if (state.offlineView) return [h("div", { class: "play-content" }, ...playOffline())];
+    if (state.offlineView) return [h("div", { class: `play-content ${playClass}` }, ...playOffline())];
     switch (snap.phase) {
       case "loading":
         parts = [h("div", { class: "card-row" }, h("div", { class: "spinner" }), t("loading"))];
@@ -806,7 +807,7 @@ function renderPlay(): void {
         parts = playRunning(snap);
         break;
     }
-    return [h("div", { class: "play-content" }, ...(snap.phase === "ready" || snap.phase === "running" ? [] : [renderSteps(snap)]), ...parts)];
+    return [h("div", { class: `play-content ${playClass}` }, ...(snap.phase === "ready" || snap.phase === "running" ? [] : [renderSteps(snap)]), ...parts)];
   });
 }
 

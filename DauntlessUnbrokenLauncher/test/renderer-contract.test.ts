@@ -30,3 +30,19 @@ test("the news page keeps long updates in a readable branded surface", () => {
   assert.match(styles, /\.news-page\s*\{/);
   assert.match(styles, /\.news-page \.news-item::before\s*\{/);
 });
+
+test("the ready play view has a focused library home surface", () => {
+  const source = readFileSync(path.join(root, "src/renderer/index.ts"), "utf8");
+  const styles = readFileSync(path.join(root, "src/renderer/unbroken-theme.css"), "utf8");
+  assert.match(source, /class: `play-content \$\{playClass\}`/);
+  assert.match(source, /const playClass = state\.offlineView \? "play-offline"/);
+  assert.match(styles, /\.play-home\s*\{/);
+  assert.match(styles, /\.play-home \.hero-title\s*\{/);
+});
+
+test("the launcher navigation keeps a readable library rail", () => {
+  const styles = readFileSync(path.join(root, "src/renderer/unbroken-theme.css"), "utf8");
+  assert.match(styles, /:root\[data-style="unbroken"\][\s\S]*--rail-w: 220px/);
+  assert.match(styles, /\.nav-item \{ display: flex; flex-direction: row;/);
+  assert.match(styles, /\.nav-item\[aria-current="page"\]::before \{ left: 0;/);
+});
