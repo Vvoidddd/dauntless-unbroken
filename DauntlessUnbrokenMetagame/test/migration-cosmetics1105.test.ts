@@ -35,12 +35,31 @@ it('repairs imported cosmetics when the public backend identifies build 365075',
     try{
         const {UserId,CharacterId}=await MakePlayer();
         const db=GetDb().$client;
-        const legacy={catalogId:'WP_IH_SERRATED',instanceId:'purchased-skin',updateVersion:0};
-        db.prepare('INSERT OR REPLACE INTO inventories (characterId,instancedItems,stackedItems) VALUES (?,?,?)').run(CharacterId,JSON.stringify([legacy]),'[]');
+        const legacy=[
+            {catalogId:'WP_IH_SERRATED',instanceId:'purchased-skin',updateVersion:0},
+            {catalogId:'LT_BASIC_04',instanceId:'purchased-lantern',updateVersion:0},
+            {catalogId:'EM_PLAYER_GENERIC_001',instanceId:'purchased-emote',updateVersion:0},
+            {catalogId:'BNC_FABRIC_000',instanceId:'purchased-fabric',updateVersion:0}
+        ];
+        db.prepare('INSERT OR REPLACE INTO inventories (characterId,instancedItems,stackedItems) VALUES (?,?,?)').run(CharacterId,JSON.stringify(legacy),'[]');
         const result=await GetInventoryForUserIdAndCharacterId(UserId,CharacterId);
         assert.equal(result.success,true);
         assert.deepEqual(result.data!.instancedItems,[]);
-        assert.deepEqual(result.data!.stackedItems,[{catalogId:'WP_IH_SERRATED',quantity:1}]);
+        assert.deepEqual(result.data!.stackedItems,legacy.map(item=>({catalogId:item.catalogId,quantity:1})));
+    }finally{delete process.env.TARGET_CHANGELIST;delete process.env.BIND_HOST;}
+});
+
+it('does not apply 1.10.5 cosmetic conversion to the 1.4.4 backend',async()=>{
+    process.env.BIND_HOST='127.0.0.1';process.env.TARGET_CHANGELIST='239827';delete process.env.LOCAL_1105_REALM;
+    try{
+        const {UserId,CharacterId}=await MakePlayer();
+        const db=GetDb().$client;
+        const legacy={catalogId:'WP_IH_SERRATED',instanceId:'legacy-skin',updateVersion:0};
+        db.prepare('INSERT OR REPLACE INTO inventories (characterId,instancedItems,stackedItems) VALUES (?,?,?)').run(CharacterId,JSON.stringify([legacy]),'[]');
+        const result=await GetInventoryForUserIdAndCharacterId(UserId,CharacterId);
+        assert.equal(result.success,true);
+        assert.deepEqual(result.data!.instancedItems,[legacy]);
+        assert.deepEqual(result.data!.stackedItems,[]);
     }finally{delete process.env.TARGET_CHANGELIST;delete process.env.BIND_HOST;}
 });
 
