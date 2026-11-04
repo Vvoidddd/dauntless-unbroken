@@ -7,9 +7,10 @@ import {randomUUID} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {eq} from 'drizzle-orm';
 import {GetDb} from '../src/db';
-import {entitlements,inventory,inventorytransactions,onetimejobs,userapikeys,users} from '../src/db/schema';
+import {entitlements,inventory,inventorytransactions,loadouts,onetimejobs,userapikeys,users} from '../src/db/schema';
 import {HashUserAPIKey} from '../src/controllers/auth';
 import {GrantReward,RewardAccount,RewardCatalog} from '../src/controllers/adminrewards';
+import {SetLoadoutSlotData} from '../src/controllers/loadout';
 import {MakePlayer,StackQuantity} from './helpers';
 import {StartApp,StopApp,Call} from './appclient';
 import catalog from '../src/vendor/admin_grant_catalog.json';
@@ -125,6 +126,17 @@ test('weapon grants preserve identity and customizations, upgrade in place and n
  assert.throws(()=>GrantReward('UID-owner',{...upgrade,rank:14}),/already used/);
  const lower=GrantReward('UID-owner',{...request(a,id,1),rank:2});assert.equal(lower.rankAfter,15);assert.equal(lower.upgraded,false);
  assert.deepEqual(read(),saved);assert.equal(RewardAccount(a.UserId).history[1].rankAfter,15);
+});
+
+test('weapon rank grants refresh equipped loadout data used for native power',async()=>{
+ const a=await MakePlayer(),id='WP_EB_LERAWR',db=GetDb();
+ GrantReward('UID-owner',{...request(a,id,1),rank:3});
+ const owned=JSON.parse(db.select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get()!.instancedItems)[0];
+ const slot={slot_index:0,weapon:{item_id:id,instance_id:owned.instanceId,instance_data:owned.itemData}};
+ assert.equal(SetLoadoutSlotData(a.UserId,a.CharacterId,'0',JSON.stringify(slot)),true);
+ GrantReward('UID-owner',{...request(a,id,1),rank:15});
+ const saved=JSON.parse(db.select().from(loadouts).where(eq(loadouts.characterId,a.CharacterId)).get()!.loadouts)[0];
+ assert.equal(JSON.parse(saved.weapon.instance_data).CurrentLevel,15);
 });
 
 test('weapon catalogue exposes real rank caps and rejects invalid ranks, non-weapons and corrupt existing data',async()=>{
