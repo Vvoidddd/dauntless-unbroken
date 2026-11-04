@@ -27,7 +27,7 @@ test('1.10.5 Update Notes use the native payload and stay limited to the matchin
         assert.equal(reply.json.message, 'OK');
         const notes = reply.json.payload;
         assert.equal(notes.title, 'Dauntless Unbroken');
-        assert.equal(notes.release_version, '1.10.5 - Public Release');
+        assert.equal(notes.release_version, '1.10.5 - November 3 Update');
         assert.ok(Number.isFinite(Date.parse(notes.date)));
         assert.equal(notes.notes.length, 4);
         for (const category of notes.notes) {
