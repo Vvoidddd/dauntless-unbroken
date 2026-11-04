@@ -877,7 +877,7 @@ static void GrantNativeBountyItems(UObject* Object, void* Parms) {
     if (!Globals::AmServer || !Object || !Parms || !Object->IsA(UPlayerEventModeComponent::StaticClass()))
         return;
 
-    auto* Items = reinterpret_cast<Params::PlayerEventModeComponent_OnBountyItemsGranted*>(Parms)->ItemsGranted;
+    const auto& Items = reinterpret_cast<Params::PlayerEventModeComponent_OnBountyItemsGranted*>(Parms)->ItemsGranted;
     if (!Items.IsValid() || Items.Num() <= 0 || Items.Num() > 32)
         return;
 
