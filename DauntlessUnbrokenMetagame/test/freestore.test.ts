@@ -98,20 +98,6 @@ it('paid competing SKUs recheck funds and overlapping bundles never duplicate co
     });
 });
 
-it('legacy imported Rams in users.notes can pay a priced 1.10.5 offer', async () => {
-    const A = await MakePlayer();
-    await WithEnv({STORE_RAMS_TEST_ACCOUNT: A.UserId, STORE_WEEKLY_ROTATION: undefined}, () => {
-        GetDb().update(users).set({notes: 1500}).where(eq(users.userId, A.UserId)).run();
-        GetDb().insert(inventory).values({characterId: A.CharacterId, instancedItems: '[]', stackedItems: '[]'}).run();
-
-        const token = CreateStorePurchase(A.UserId, 'notes', SKU).purchaseToken;
-        RedeemStorePurchase(A.UserId, 'notes', token);
-
-        assert.equal(GetDb().select({notes: users.notes}).from(users).where(eq(users.userId, A.UserId)).get()!.notes, 750);
-        assert.equal(StackQuantity(A.CharacterId, ITEM), 1);
-    });
-});
-
 it('missing, corrupt and invalid Rams balances fail closed without repairing player inventory',async()=>{
     const A=await MakePlayer();
     await WithEnv({STORE_RAMS_TEST_ACCOUNT:A.UserId,STORE_WEEKLY_ROTATION:undefined},()=>{

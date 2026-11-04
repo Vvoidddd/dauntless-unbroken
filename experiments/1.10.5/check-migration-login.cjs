@@ -21,13 +21,14 @@ async function main(){
   mode='bad';await assert.rejects(login(key,'TEST-ONCE'),/another account/);assert.equal(db.prepare('SELECT count(*) n FROM users').get().n,0);
   mode='good';const before=calls;const results=await Promise.all([login(key,'TEST-ONCE'),login(key,'TEST-ONCE')]);assert.ok(results.every(r=>r.UserId===uid));assert.equal(calls,before+1);
   assert.equal(db.prepare('SELECT usesRemaining n FROM invitecodes').get().n,0);assert.equal(db.prepare('SELECT isAdmin n FROM users').get().n,0);
-  assert.equal(db.prepare('SELECT data FROM characters').get().data,tables.characters[0].data);assert.equal(db.prepare('SELECT instancedItems FROM inventories').get().instancedItems,tables.inventories[0].instancedItems);assert.deepEqual(JSON.parse(db.prepare('SELECT stackedItems FROM inventories').get().stackedItems),[{catalogId:'rams',quantity:200},{catalogId:'CURRENCY_PJM_WEAPON',quantity:217}]);
+  assert.equal(db.prepare('SELECT data FROM characters').get().data,tables.characters[0].data);assert.equal(db.prepare('SELECT instancedItems FROM inventories').get().instancedItems,tables.inventories[0].instancedItems);assert.deepEqual(JSON.parse(db.prepare('SELECT stackedItems FROM inventories').get().stackedItems),[{catalogId:'CURRENCY_NOTES',quantity:200},{catalogId:'CURRENCY_PJM_WEAPON',quantity:217}]);
   const emptyInventory=db.prepare('SELECT * FROM inventories WHERE characterId=?').get(emptyCharacter);
   assert.equal(emptyInventory.instancedItems,'[]');assert.deepEqual(JSON.parse(emptyInventory.stackedItems),[{catalogId:'CURRENCY_PJM_WEAPON',quantity:200}]);
   const tracks=db.prepare("SELECT * FROM progress_tracks WHERE progressionId LIKE 'ExperienceTrack_Weapon_%'").all();assert.equal(tracks.length,7);assert.ok(tracks.every(r=>r.progress===0&&r.confirmedFreeRank===1));
   db.prepare('UPDATE characters SET data=?').run('new-test-progress');await login(key,'');assert.equal(db.prepare('SELECT data FROM characters').get().data,'new-test-progress');assert.equal(calls,before+1);
-  const snapshot=JSON.parse(original);completeExisting(db,hashKey(key),snapshot);completeExisting(db,hashKey(key),snapshot);
-  assert.equal(JSON.parse(db.prepare('SELECT stackedItems FROM inventories').get().stackedItems)[1].quantity,217);
+  const snapshot=JSON.parse(original);db.prepare('UPDATE users SET notes=500 WHERE userId=?').run(uid);completeExisting(db,hashKey(key),snapshot);completeExisting(db,hashKey(key),snapshot);
+  assert.deepEqual(JSON.parse(db.prepare('SELECT stackedItems FROM inventories').get().stackedItems),[{catalogId:'CURRENCY_NOTES',quantity:700},{catalogId:'CURRENCY_PJM_WEAPON',quantity:217}]);
+  assert.equal(db.prepare('SELECT notes FROM users WHERE userId=?').get(uid).notes,0);
   assert.equal(JSON.parse(db.prepare('SELECT stackedItems FROM inventories WHERE characterId=?').get(emptyCharacter).stackedItems)[0].quantity,200);
   assert.equal(db.prepare('SELECT count(*) n FROM imports1105').get().n,1);assert.equal(db.pragma('integrity_check',{simple:true}),'ok');
   console.log('Invite admission, source failure, foreign-row rollback, duplicate requests, non-admin import, zero weapon XP, inventory/quest preservation and no overwrite passed.');
