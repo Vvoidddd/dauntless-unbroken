@@ -2166,7 +2166,8 @@ function setView(v: View): void {
   state.view = v;
   if (v === "news") state.newsSeen = true;
   for (const nav of Array.from(document.querySelectorAll<HTMLButtonElement>("[data-titlebar-view]"))) {
-    nav.setAttribute("aria-current", nav.dataset.titlebarView === v ? "page" : "false");
+    if (nav.dataset.titlebarView === v) nav.setAttribute("aria-current", "page");
+    else nav.removeAttribute("aria-current");
   }
   for (const view of VIEWS) $(`#view-${view}`).hidden = view !== v;
   $("#actionbar").hidden = false;

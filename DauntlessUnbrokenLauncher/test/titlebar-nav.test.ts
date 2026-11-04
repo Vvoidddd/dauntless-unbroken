@@ -12,4 +12,6 @@ test("the title bar exposes library and community navigation", () => {
   assert.match(html, /data-titlebar-view="play"/);
   assert.match(html, /data-titlebar-view="news"/);
   assert.match(renderer, /data-titlebar-view/);
+  assert.match(renderer, /removeAttribute\("aria-current"\)/);
+  assert.doesNotMatch(renderer, /nav\.setAttribute\("aria-current", nav\.dataset\.titlebarView === v \? "page" : "false"\)/);
 });
