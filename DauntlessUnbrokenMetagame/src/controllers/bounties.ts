@@ -48,19 +48,38 @@ const DEFAULT_DRAFT_DATA = {
 };
 
 function Board(tx: Tx, AccountId: string){
-    const Bounties = tx.select().from(bounties).where(eq(bounties.accountId, AccountId)).orderBy(asc(bounties.slotIndex), asc(bounties.bountyId)).all().filter(Row => CanRestoreBounty(Row.bountyId)).map((Row) => {
-        const Element = JSON.parse(Row.data);
+    const Bounties = tx.select().from(bounties).where(eq(bounties.accountId, AccountId)).orderBy(asc(bounties.slotIndex), asc(bounties.bountyId)).all().filter(Row => CanRestoreBounty(Row.bountyId)).flatMap((Row): any[] => {
+        let Element: any;
+        try {
+            Element = JSON.parse(Row.data);
+        } catch {
+            logger.warn(`Ignoring malformed bounty data for ${AccountId} (${Row.bountyId})`);
+            return [];
+        }
+        if(!IsPlainObject(Element)){
+            logger.warn(`Ignoring non-object bounty data for ${AccountId} (${Row.bountyId})`);
+            return [];
+        }
 
         // The client zeroes every bounty member except drafted_timestamp
         if(typeof Element.drafted_timestamp !== "string"){
             Element.drafted_timestamp = Row.updatedDate;
         }
 
-        return Element;
+        return [Element];
     });
 
     const Draft = tx.select().from(bountydraft).where(eq(bountydraft.accountId, AccountId)).get();
-    const DraftData = Draft != undefined ? JSON.parse(Draft.data) : {...DEFAULT_DRAFT_DATA};
+    let DraftData: Record<string, any> = {...DEFAULT_DRAFT_DATA};
+    if(Draft != undefined){
+        try {
+            const Parsed: unknown = JSON.parse(Draft.data);
+            if(IsPlainObject(Parsed)) DraftData = Parsed;
+            else logger.warn(`Ignoring non-object bounty draft data for ${AccountId}`);
+        } catch {
+            logger.warn(`Ignoring malformed bounty draft data for ${AccountId}`);
+        }
+    }
     if (Local1105Enabled()) {
         for (const Field of ['current_draft_choices', 'previous_draft_selections']) {
             if (Array.isArray(DraftData[Field])) DraftData[Field] = DraftData[Field].filter((Id: unknown) => typeof Id === 'string' && CanRestoreBounty(Id));

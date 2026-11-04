@@ -42,3 +42,25 @@ it('restores supported bounties without destroying quarantined migration progres
     } finally { delete process.env.LOCAL_1105_REALM; delete process.env.BIND_HOST; }
     assert.equal(GetBountyReply(UserId).payload.bounties.length,2);
 });
+
+it('hides malformed imported bounty JSON without changing the preserved rows', async () => {
+    const {UserId} = await MakePlayer();
+    const db = GetDb().$client;
+    db.prepare('INSERT INTO bounties (accountId,bountyId,slotIndex,updateVersion,data,updatedDate) VALUES (?,?,?,?,?,?)')
+        .run(UserId, 'Bounty_Bronze_ASInterrupts', 0, 1, '{not-json', '2026-11-03T00:00:00Z');
+    db.prepare('INSERT INTO bountydraft (accountId,data,updatedDate) VALUES (?,?,?)')
+        .run(UserId, '{not-json', '2026-11-03T00:00:00Z');
+
+    process.env.BIND_HOST='127.0.0.1'; process.env.LOCAL_1105_REALM='1';
+    try {
+        const board = GetBountyReply(UserId).payload;
+        assert.deepEqual(board.bounties, []);
+        assert.deepEqual(board.draft_data, {
+            current_draft_choices: [], previous_draft_selections: [],
+            bronze_count: 0, silver_count: 0, gold_count: 0
+        });
+    } finally { delete process.env.LOCAL_1105_REALM; delete process.env.BIND_HOST; }
+
+    assert.equal((db.prepare('SELECT data FROM bounties WHERE accountId=?').get(UserId) as any).data, '{not-json');
+    assert.equal((db.prepare('SELECT data FROM bountydraft WHERE accountId=?').get(UserId) as any).data, '{not-json');
+});
