@@ -111,6 +111,7 @@ static void UpdateCellFusionTime() {
     const auto now = GetTickCount64();
     if (now < next) return;
     next = now + (table ? 30000 : 2000);
+    if (!StartupHookGate::ObjectRegistryReady(SDK::UObject::GObjects)) return;
     if (!table || SDK::UObject::GObjects->GetByIndex(index) != table) {
         table = SDK::UObject::FindObject<SDK::UDataTable>("DataTable cell_exchange_table.cell_exchange_table");
         index = table ? table->Index : -1;
@@ -580,7 +581,7 @@ static void RestoreAbilityDispatch() {
 BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     if (reason != DLL_PROCESS_ATTACH) return TRUE;
     DisableThreadLibraryCalls(module);
-    wchar_t path[32768], enabled[2];
+    static wchar_t path[32768] = {}, enabled[2] = {};
     GetModuleFileNameW(nullptr, path, 32768);
     if (GetEnvironmentVariableW(L"DR_1105_LOCAL_LAB", enabled, 2) != 1 || enabled[0] != L'1' ||
          !ExactBuild(path)) return FALSE;
@@ -593,7 +594,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     CombatProbe = Server && wcscmp(world, L"combat-probe") == 0;
     ServerPort = CombatProbe ? 63872 : Dojo ? 63871 : 63870;
     if (CombatProbe) {
-        wchar_t url[4096]={}, port[8]={};
+        static wchar_t url[4096] = {}, port[8] = {};
         const auto size=GetEnvironmentVariableW(L"DR_1105_HUNT_URL",url,4096);
         if (!size || size>=4096 || wcsncmp(url,L"/Game/Maps/islands/",18)) return FALSE;
         HuntUrl=url;
@@ -605,14 +606,14 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     }
     ProfileName=CombatProbe ? L"profile-hunt-"+std::to_wstring(ServerPort) : Dojo ? L"profile-dojo" : L"profile";
 
-    wchar_t host[64] = {};
+    static wchar_t host[64] = {};
     const DWORD hostLength = GetEnvironmentVariableW(Server ? L"DR_1105_BIND_IP" : L"DR_1105_HOST", host, 64);
     if (hostLength) {
         if (hostLength >= 64 || (!PrivateIp(host) && !(Server && wcscmp(host, L"0.0.0.0") == 0))) return FALSE;
         if (Server) BindIp = host;
         else {
             PresenceHost = host;
-            wchar_t port[8]={};
+            static wchar_t port[8] = {};
             const DWORD n=GetEnvironmentVariableW(L"DR_1105_PORT",port,8);
             unsigned number=62002;
             if(n){
@@ -624,7 +625,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
         }
     }
     if (!Server) {
-        wchar_t chatPort[8] = {};
+        static wchar_t chatPort[8] = {};
         const DWORD n = GetEnvironmentVariableW(L"DR_1105_XMPP_PORT", chatPort, 8);
         if (n) {
             if (n >= 8) return FALSE;
@@ -636,7 +637,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
     }
     LocalServerCommand = L"Dauntless-Win64-Shipping.exe -server -unattended -nullrhi -nosound -NoAsyncLoadingThread -EpicPortal -NoEAC -MULTIHOME=" + BindIp + L" -port=" + std::to_wstring(ServerPort) +
         L" -CULTURE=en-US -UserDir=C:/dr/build-1.10.5-20261030/" + ProfileName + L"/ -SaveToUserDir";
-    wchar_t clientLog[32768] = {};
+    static wchar_t clientLog[32768] = {};
     const DWORD logLength = GetEnvironmentVariableW(L"DR_1105_LOG", clientLog, 32768);
     const auto serverLog = L"C:/dr/build-1.10.5-20261030/" + (CombatProbe ? L"native-hunt-"+std::to_wstring(ServerPort) : Dojo ? std::wstring(L"native-dojo") : std::wstring(L"native-server")) + L".log";
     Log = CreateFileW(!Server && logLength > 0 && logLength < 32768 ? clientLog : Server ? serverLog.c_str() : L"C:/dr/build-1.10.5-20261030/native-client.log", FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
