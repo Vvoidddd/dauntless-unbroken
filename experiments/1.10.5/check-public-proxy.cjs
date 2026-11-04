@@ -17,6 +17,9 @@ async function main(){
    assert.equal((await fetch(base+route,{headers:{'x-unbroken-launcher-version':'1.0.45'}})).status,200);
   }
   assert.equal((await (await fetch(base+'/unbroken/api/LauncherPolicy')).json()).minimumLauncherVersion,'1.0.45');
+  process.env.MAINTENANCE_MODE='1';
+  assert.equal((await fetch(base+'/unbroken/api/Register',{method:'POST',headers:{'x-unbroken-launcher-version':'1.0.45'}})).status,503);
+  delete process.env.MAINTENANCE_MODE;
   assert.equal(needsUpdate('1.0.45-test.1','1.0.45'),true);assert.equal(needsUpdate('1.0.46','1.0.45'),false);
   console.log('Public minimum version and canonical route checks passed.');
  }finally{await Promise.all([new Promise(r=>proxy.close(r)),new Promise(r=>upstream.close(r))]);}

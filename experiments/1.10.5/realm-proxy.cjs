@@ -47,6 +47,9 @@ function createProxy(port=62000,publicOptions=null,login=null,options={}) {
     if(route==='/unbroken/api/launcherpolicy'&&req.method==='GET'){
       res.writeHead(200,{'content-type':'application/json','cache-control':'no-store'}).end(JSON.stringify(policy));return;
     }
+    if(process.env.MAINTENANCE_MODE!==undefined&&process.env.MAINTENANCE_MODE!=='0'&&req.method==='POST'&&route==='/unbroken/api/register'){
+      res.writeHead(503,{'content-type':'application/json','cache-control':'no-store'}).end(JSON.stringify({error:'maintenance'}));return;
+    }
     const minimum=policy.platforms?.[req.headers['x-unbroken-platform']]??policy.minimumLauncherVersion;
     if(['/unbroken/api/getuserinfo','/unbroken/api/register','/unbroken/api/admission'].includes(route)&&needsUpdate(req.headers['x-unbroken-launcher-version'],minimum)){
       res.writeHead(426,{'content-type':'application/json','cache-control':'no-store'}).end(JSON.stringify({error:'launcher_update_required',minimumLauncherVersion:minimum,message:`Update Dauntless Unbroken Launcher to ${minimum} or newer to play 1.10.5. Your account key stays the same.`}));return;
@@ -69,7 +72,7 @@ function createProxy(port=62000,publicOptions=null,login=null,options={}) {
         if(automatic||!response.ok){
           res.writeHead(response.status,{'content-type':'application/json','cache-control':'no-store'}).end(await response.text());
         }else {await response.body?.cancel();reply(200,result);}
-      })().catch(e=>{console.warn(JSON.stringify({event:'account-login-failed',message:e.message,ms:Date.now()-now}));if(!res.destroyed)reply([401,403,429].includes(e.status)?e.status:automatic?503:400,{message:e.message});});return;
+      })().catch(e=>{console.warn(JSON.stringify({event:'account-login-failed',message:e.message,ms:Date.now()-now}));if(!res.destroyed)reply([401,403,429,503].includes(e.status)?e.status:automatic?503:400,{message:e.message});});return;
     }
     if(req.url.startsWith('/test/')){download(req,res,port).catch(()=>{if(!res.headersSent)res.writeHead(502);res.end();});return;}
     const upstream=http.request({host:'127.0.0.1',port,path:req.url,method:req.method,headers:forwarded(req),timeout:30000},r=>{
@@ -106,6 +109,7 @@ if(require.main===module){
   const state=path.resolve(__dirname,'../../../backend-state'),hosted=path.join(state,'hosted.json');
   if(fs.existsSync(hosted)){
     const config=JSON.parse(fs.readFileSync(hosted)),Database=require('../../DauntlessUnbrokenMetagame/node_modules/better-sqlite3');
+    Object.assign(process.env,require('./maintenance-config.cjs').readMaintenance(path.join(state,'maintenance.json')));
     const db=new Database(path.join(state,'realm.db'),{fileMustExist:true,timeout:5000});
     const login=require('./migrate-on-login.cjs').createLogin(db,config.migration);
     const options={gatewaySecret:JSON.parse(fs.readFileSync(path.join(state,'secrets.json'))).gatewaySecret,publicMigration:config.migration?.requireInvite===false,policy:()=>{
