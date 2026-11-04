@@ -13,6 +13,7 @@
 #include "equipment-replication-policy.h"
 #include "MinHook/MinHook.h"
 #include "SDK/Archon_structs.hpp"
+#include "SDK/Archon_classes.hpp"
 #include "SDK/Engine_classes.hpp"
 #include "SDK/UMG_classes.hpp"
 #include "SDK/w_store_item_bpw_classes.hpp"
@@ -20,6 +21,7 @@
 #include "SDK/ReplicationGraph_classes.hpp"
 #include "SDK/exploration_game_mode_bpc_classes.hpp"
 #include "EscalationSelectionGuard.h"
+#include "maintenance-access.h"
 extern "C" { void JourneyGuard(); void* JourneyContinue = nullptr; void* JourneyFailure = nullptr; }
 extern "C" { void WorldListenGuard(); void* WorldListenContinue = nullptr; }
 extern "C" { void ApexReportGuardEarly(); void* ApexEarlyContinue = nullptr; void ApexReportGuard(); void* ApexReportContinue = nullptr; void* ApexReportNext = nullptr; }
@@ -56,8 +58,47 @@ static void Note(const char* text) {
     FlushFileBuffers(Log);
 }
 static void (*OriginalProcessEvent1105)(SDK::UObject*, SDK::UFunction*, void*);
+static bool ReadEnvironment(const wchar_t* name, wchar_t* value, DWORD capacity, std::wstring_view* result) {
+    const DWORD length = GetEnvironmentVariableW(name, value, capacity);
+    if (length == 0) {
+        if (GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
+            *result = {};
+            return true;
+        }
+        return false;
+    }
+    if (length >= capacity) return false;
+    *result = std::wstring_view(value, length);
+    return true;
+}
+static bool MaintenanceDenies(SDK::APlayerController* player) {
+    wchar_t mode[8] = {}, allowlist[4096] = {};
+    std::wstring_view modeView, allowlistView;
+    if (!ReadEnvironment(L"MAINTENANCE_MODE", mode, ARRAYSIZE(mode), &modeView) ||
+        (!modeView.empty() && modeView != L"0" && modeView != L"1")) return true;
+    if (modeView.empty() || modeView == L"0") return false;
+    if (!ReadEnvironment(L"MAINTENANCE_ALLOWED_ACCOUNT_IDS", allowlist, ARRAYSIZE(allowlist), &allowlistView) ||
+        !player || !player->PlayerState ||
+        !player->PlayerState->IsA(SDK::AArchonPlayerState::StaticClass())) return true;
+    auto* state = static_cast<SDK::AArchonPlayerState*>(player->PlayerState);
+    auto* getId = state->Class ? state->Class->GetFunction("ArchonPlayerState", "GetUniqueIdAsString") : nullptr;
+    if (!getId) return true;
+    struct { SDK::FString ReturnValue; } parameters{};
+    state->ProcessEvent(getId, &parameters);
+    const auto& id = parameters.ReturnValue;
+    if (!id.IsValid() || id.Num() < 2 || id.Num() > 65 || id.CStr()[id.Num() - 1] != L'\0') return true;
+    return !MaintenanceAccess1105::Allows(modeView, allowlistView, std::wstring_view(id.CStr(), id.Num() - 1));
+}
 static void ProcessEvent1105(SDK::UObject* object, SDK::UFunction* function, void* parameters) {
     if (!EscalationSelectionGuard1105::Allow(object, function, parameters, Note)) return;
+    if (function && function->GetName() == "K2_PostLogin" && parameters) {
+        auto* player = *reinterpret_cast<SDK::APlayerController**>(parameters);
+        if (!player || MaintenanceDenies(player)) {
+            if (player) SDK::UGameplayStatics::RemovePlayer(player, true);
+            Note("maintenance_native_player_denied\n");
+            return;
+        }
+    }
     OriginalProcessEvent1105(object, function, parameters);
 }
 static void SetText(SDK::UTextBlock* block, const SDK::FText& value) {
@@ -667,6 +708,12 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID) {
             Fail("process_event_bytes_mismatch\n");
         if (!Hook(0x266ec40, ProcessEvent1105, reinterpret_cast<void**>(&OriginalProcessEvent1105)))
             Fail("process_event_hook_failed\n");
+        const unsigned char postLoginBytes[] = {
+            0x48,0x89,0x5c,0x24,0x10,0x48,0x89,0x74,0x24,0x18,0x57,0x48,0x83,0xec,0x60
+        };
+        if (memcmp(reinterpret_cast<void*>(Base + 0x196f330), postLoginBytes, sizeof(postLoginBytes)))
+            Fail("post_login_bytes_mismatch\n");
+        Note("maintenance_native_gate_enabled_at_k2_post_login\n");
         Note("escalation_selection_guard_enabled guard=1105\n");
         if (GetEnvironmentVariableW(L"DR_1105_GAMESERVER_KEY", ServerKey, 65) != 64 ||
             wcsspn(ServerKey, L"0123456789abcdef") != 64) Fail("missing_local_server_credential\n");

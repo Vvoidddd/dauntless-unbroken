@@ -1,6 +1,9 @@
 param([ValidateSet('ramsgate','dojo','combat-probe')][string]$World = 'ramsgate', [string]$BindIp = '127.0.0.1', [string]$Hunt = 'ShatteredIsles_IslandA', [ValidateRange(63872,63935)][int]$HuntPort = 63872, [string]$Players = '')
 $ErrorActionPreference = 'Stop'
 $lab = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
+. (Join-Path $PSScriptRoot 'maintenance-config.ps1')
+$maintenance = Get-DRMaintenanceEnvironment (Join-Path $lab 'backend-state\maintenance.json')
+foreach ($name in $maintenance.Keys) { Set-Item -Path "Env:$name" -Value ([string]$maintenance[$name]) }
 $exe = Join-Path $lab 'game\Archon\Binaries\Win64\Dauntless-Win64-Shipping.exe'
 $running = @(Get-CimInstance Win32_Process -Filter "Name = 'Dauntless-Win64-Shipping.exe'" | Where-Object ExecutablePath -eq $exe)
 $parsed = $null
