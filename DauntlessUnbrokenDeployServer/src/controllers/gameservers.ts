@@ -613,8 +613,25 @@ export function GetTrialsData(IsElite: boolean, At: Date = new Date()): TrialsDa
     };
 }
 
+const TRIALS_HUNT_ID = /^Arena_MatchmakerHunt_(Hard|Elite)_\d{3}$/;
+
+export function ValidateActiveTrialsHuntId(HuntId: string, At: Date = new Date()): string {
+    const Match = TRIALS_HUNT_ID.exec(HuntId);
+    if(Match == undefined){
+        throw new Error(`Invalid Trials hunt id ${HuntId}`);
+    }
+
+    const Active = GetTrialsData(Match[1] === "Elite", At).TrialsHuntId;
+    if(HuntId !== Active){
+        throw new Error(`Trials hunt ${HuntId} is not the active Trials hunt; expected ${Active}`);
+    }
+
+    return Active;
+}
+
 export async function StartupGameserverWithHuntIdAndPlayers(HuntId: string, ExpectedPlayers: string[]){
-    const TrialsData = HuntId.includes("Arena") ? GetTrialsData(HuntId.includes("Elite")) : undefined;
+    const TrialHuntId = HuntId.includes("Arena") ? ValidateActiveTrialsHuntId(HuntId) : undefined;
+    const TrialsData = TrialHuntId == undefined ? undefined : GetTrialsData(TrialHuntId.includes("Elite"));
     const MatchmakerHuntId = TrialsData == undefined ? GetMatchmakerHuntIdFromPlayerHuntId(HuntId) : TrialsData.TrialsHuntId;
     let BehemothPath = TrialsData == undefined ? GetBehemothPathFromMatchmakerHuntId(MatchmakerHuntId!) : TrialsData.Behemoth;
     let MapPath = TrialsData == undefined ? GetMapPathFromMatchmakerHuntId(MatchmakerHuntId!) : TRIALS_MAP_PATH;
