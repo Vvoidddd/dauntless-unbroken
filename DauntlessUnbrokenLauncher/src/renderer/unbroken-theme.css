@@ -40,7 +40,10 @@
 .account-switch { min-height: 48px; padding: 6px 28px 6px 10px; }
 .account-label { font-size: 9px; letter-spacing: .04em; }
 .account-name { font-family: var(--font-display); font-size: 12px; font-weight: 500; }
+.avatar-wrap { position: relative; display: inline-flex; flex: none; }
 .avatar { border-radius: 8px; width: 32px; height: 32px; font-size: 12px; box-shadow: none; }
+.avatar-audience { position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center; width: 15px; height: 15px; border: 1px solid var(--dr-navy); border-radius: 50%; background: var(--dr-deep); color: var(--dr-glow); }
+.avatar-audience .icon { width: 10px; height: 10px; }
 .server-menu { top: calc(100% + 10px); bottom: auto; left: auto; right: 0; width: 286px; border-radius: 10px; background: var(--dr-navy); }
 .titlebar-controls { height: 36px; gap: 3px; }
 .win-btn { width: 36px; height: 36px; border-radius: 7px; }

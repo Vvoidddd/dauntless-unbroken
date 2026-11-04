@@ -2095,8 +2095,9 @@ function renderRail(): void {
   if (!hasMenu || locked) state.serverMenu = false;
   const approvedAvatar = snap?.account.profilePicture?.status === "approved" ? snap.account.profilePicture.imageDataUrl : null;
   renderRegion(chip, JSON.stringify([state.lang, user, approvedAvatar, snap?.server?.name ?? null, snap?.status?.name ?? null, others, accounts, locked, state.serverMenu]), () => {
+    const avatar = h("span", { class: `avatar${user ? "" : " empty"}`, "aria-hidden": "true" }, approvedAvatar ? h("img", {class:"avatar-image", src:approvedAvatar, alt:""}) : user ? Array.from(user)[0].toUpperCase() : "?");
     const inner = [
-      h("span", { class: `avatar${user ? "" : " empty"}`, "aria-hidden": "true" }, approvedAvatar ? h("img", {class:"avatar-image", src:approvedAvatar, alt:""}) : user ? Array.from(user)[0].toUpperCase() : "?"),
+      h("span", { class: "avatar-wrap" }, avatar, approvedAvatar ? h("span", { class: "avatar-audience", title: "Visible to accepted friends", "aria-hidden": "true" }, icon("people")) : null),
       h(
         "span",
         { class: "account-text" },
