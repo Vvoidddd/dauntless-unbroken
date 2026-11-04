@@ -38,6 +38,13 @@ private support inbox, even while registration is busy. It returns a report ID f
 **Export diagnostics** saves a file when uploading is unavailable. Keys, tokens, saves and
 databases are excluded; nothing uploads automatically.
 
+The report contains the launcher version, platform, architecture, memory totals, high-level
+connection/install/play state, the last launcher error and the tail of the two rotating launcher
+logs (`launcher.log` and `launcher.old.log`). Main-process unhandled rejections and runtime warnings
+are recorded in those logs so a failed background operation has a useful trail. Local paths, invite
+links, account keys, bearer tokens, webhook credentials, databases and saves are redacted or omitted.
+The report is bounded before upload; it does not include arbitrary files from the user-data folder.
+
 1. Install a launcher package from the project's release. On Windows use
    `DauntlessUnbrokenLauncher-Setup.exe`. On Linux use the AppImage, `.deb`, `.rpm`, or portable
    ZIP described in [LINUX.md](LINUX.md). Check the download against `SHA256SUMS.txt` from the same
