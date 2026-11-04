@@ -276,3 +276,26 @@ test('all catalogue entries are available, including developer titles and equipm
  const bulk=GrantReward('UID-owner',bulkRequest(a,'weapons'));assert.equal(bulk.total,catalog.items.filter(i=>i.grantable&&['Weapons','Weapon parts'].includes(i.category)&&typeof i.maxRank==='number').length);
  assert.equal(saved().filter((i:any)=>i.catalogId.startsWith('AR_')).length,2);
 });
+
+test('1.10.5 admin grants exclude legacy skins absent from native cosmetic catalogs',async()=>{
+ const previous={BIND_HOST:process.env.BIND_HOST,LOCAL_1105_REALM:process.env.LOCAL_1105_REALM};
+ process.env.BIND_HOST='127.0.0.1';process.env.LOCAL_1105_REALM='1';
+ try{
+  const a=await MakePlayer(),ids=['WP_AC_UMBRAL_PAPER_00','WP_EB_BLAZE_BUGBEAR_00'];
+  const db=GetDb();
+  GrantReward('UID-owner',request(a,'CURRENCY_NOTES',1));
+  const saved={catalogId:ids[0],instanceId:'legacy-skin',updateVersion:0};
+  db.update(inventory).set({instancedItems:JSON.stringify([saved])}).where(eq(inventory.characterId,a.CharacterId)).run();
+  for(const id of ids){
+   assert.equal(RewardCatalog(id).items.some(i=>i.id===id),false);
+   assert.throws(()=>GrantReward('UID-owner',request(a,id,1)),/not in the verified rewards catalogue/);
+  }
+  const result=GrantReward('UID-owner',{accountId:a.UserId,characterId:a.CharacterId,bundle:'transmogs',reason:'Catalogue test',requestId:randomUUID()});
+  const row=GetDb().select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get()!;
+  assert.deepEqual(JSON.parse(row.instancedItems).find((i:any)=>i.catalogId===ids[0]),saved);
+  assert.equal([...JSON.parse(row.instancedItems),...JSON.parse(row.stackedItems)].some((i:any)=>i.catalogId===ids[1]),false);
+  assert.ok(result.total>0);
+  delete process.env.LOCAL_1105_REALM;
+  for(const id of ids)assert.equal(RewardCatalog(id).items.some(i=>i.id===id),true);
+ }finally{for(const [key,value] of Object.entries(previous)){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
+});

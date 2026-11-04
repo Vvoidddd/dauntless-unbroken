@@ -12,6 +12,9 @@ import {Local1105Enabled,NativeStackedCosmetic} from './local1105';
 export class RewardError extends Error {constructor(public status:number,message:string){super(message);}}
 const RewardItems:((typeof catalog.items)[number]&{unit?:string})[]=[...catalog.items,{id:'escalation_xp_boost_entitlement',name:'Escalation XP boost',category:'Boosts',kind:'entitlement',unique:false,grantable:true,unit:'hours',aliases:['esca boost','escalation boost']}];
 const Items=new Map(RewardItems.map(item=>[item.id,item]));
+// These legacy skins are absent from their 1.10.5 native cosmetic tables.
+const Missing1105=new Set(['WP_AC_UMBRAL_PAPER_00','WP_EB_BLAZE_BUGBEAR_00']);
+const Available=(id:string)=>!Local1105Enabled()||!Missing1105.has(id);
 const uid=(value:unknown):value is string=>typeof value==='string'&&/^UID-[A-Za-z0-9-]{1,100}$/.test(value);
 const prefix='admin AccountGrant:';
 const CosmeticCategories=['Transmogs','Dyes','Other cosmetics','Titles','Flares','Banner sigils','Banner fabrics','Banner standards','Banner plants'];
@@ -67,10 +70,10 @@ export function RewardCatalog(query:unknown='',category:unknown='',offset:unknow
     const start=typeof offset==='string'&&/^\d+$/.test(offset)?Number(offset):offset;
     if(typeof start!=='number'||!Number.isSafeInteger(start)||start<0||start>100000)throw new RewardError(400,'Invalid catalogue offset');
     const q=SearchText(query),words=q.split(' ').filter(Boolean);
-    const found=SearchItems.filter(({item,text})=>(!category||item.category===category)&&(words.every(word=>text.includes(word))||text.replaceAll(' ','').includes(q.replaceAll(' ',''))));
+    const found=SearchItems.filter(({item,text})=>Available(item.id)&&(!category||item.category===category)&&(words.every(word=>text.includes(word))||text.replaceAll(' ','').includes(q.replaceAll(' ',''))));
     const score=(entry:typeof SearchItems[number])=>!q?0:entry.name===q||entry.id===q?0:entry.name.startsWith(q)?1:words.every(word=>entry.name.includes(word))?2:3;
     found.sort((a,b)=>score(a)-score(b)||Number(b.item.grantable)-Number(a.item.grantable));
-    return {items:found.slice(start,start+100).map(({item})=>item),total:found.length,offset:start,hasMore:start+100<found.length,categories:[...new Set(RewardItems.map(item=>item.category))],bundles:Bundles.map(({id,name,items})=>({id,name,total:items.length}))};
+    return {items:found.slice(start,start+100).map(({item})=>item),total:found.length,offset:start,hasMore:start+100<found.length,categories:[...new Set(RewardItems.map(item=>item.category))],bundles:Bundles.map(({id,name,items})=>({id,name,total:items.filter(item=>Available(item.id)).length}))};
 }
 
 export function RewardAccount(accountId:unknown){
@@ -91,7 +94,7 @@ export function GrantReward(actorId:string,input:unknown){
     if(!uid(b.accountId)||typeof b.characterId!=='string'||!/^[A-Za-z0-9_-]{1,100}$/.test(b.characterId))throw new RewardError(400,'Select an account and character');
     if(typeof b.requestId!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(b.requestId))throw new RewardError(400,'Invalid reward request ID');
     if(typeof b.reason!=='string'||!b.reason.trim()||b.reason.length>500||/[\x00-\x1f\x7f]/.test(b.reason))throw new RewardError(400,'An audit reason of 1–500 characters is required');
-    const bundle=Bundles.find(entry=>entry.id===b.bundle),item=typeof b.catalogId==='string'?Items.get(b.catalogId):undefined;
+    const bundle=Bundles.find(entry=>entry.id===b.bundle),item=typeof b.catalogId==='string'&&Available(b.catalogId)?Items.get(b.catalogId):undefined;
     const weapon=typeof item?.maxRank==='number';
     if(b.bundle!==undefined){
         if(!bundle)throw new RewardError(400,'Unknown reward bundle');
@@ -105,7 +108,7 @@ export function GrantReward(actorId:string,input:unknown){
     }
     // Keep the single-item receipt serialization unchanged for existing retries.
     const request={actorId,accountId:b.accountId,characterId:b.characterId,...(bundle?{bundle:bundle.id}:{catalogId:item!.id,quantity:b.quantity as number}),reason:b.reason.trim(),requestId:b.requestId,...(weapon?{rank:b.rank as number}:{})};
-    const entries=bundle?bundle.items:[item!];
+    const entries=bundle?bundle.items.filter(entry=>Available(entry.id)):[item!];
     const body=JSON.stringify(request),receipt=`dashboard-grant:${b.requestId}`,route=prefix+b.requestId;
     return GetDb().transaction(tx=>{
         // Inventory receipts expire after 30 days. A permanent marker makes old retries harmless too.
