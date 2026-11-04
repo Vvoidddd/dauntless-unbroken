@@ -779,7 +779,7 @@ export class Controller {
     try{
       const key=await this.keys.load(slot);if(!key)return err('key_rejected');
       const result=await renameProfileUsername(ep,key,value);
-      if(!result.ok)return err(result.error==='username_taken'?'username_taken':result.error==='rate_limited'?'rate_limited':result.error==='server_unreachable'?'server_unreachable':'username_invalid');
+      if(!result.ok)return err(result.error==='username_taken'?'username_taken':result.error==='username_moderated'?'username_moderated':result.error==='rate_limited'?'rate_limited':result.error==='server_unreachable'?'server_unreachable':'username_invalid');
       await this.settings.update(s=>{s.usernames[sid]=result.username;});
       this.publish();
       return OK;

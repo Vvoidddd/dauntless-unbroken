@@ -42,7 +42,7 @@ import {ApproveProfilePicture, GetApprovedProfilePicture, GetProfilePictureStatu
 
 export const unbrokenApiRouter = Router();
 
-const ProfilePictureRateLimit = rateLimit({keyGenerator: req => `profile-picture:${String((req as any).AuthData?.userId || 'unknown')}`, windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: 'draft-8', legacyHeaders: false, message: {error: 'rate_limited'}});
+const ProfilePictureRateLimit = rateLimit({keyGenerator: req => `profile-picture:${String((req as any).DauntlessUnbrokenUserInfo?.UserId || 'unknown')}`, windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: 'draft-8', legacyHeaders: false, message: {error: 'rate_limited'}});
 
 unbrokenApiRouter.get('/ProfilePicture', HasDauntlessUnbrokenUserApiKey, (req: any, res) => {
     res.setHeader('Cache-Control', 'no-store');

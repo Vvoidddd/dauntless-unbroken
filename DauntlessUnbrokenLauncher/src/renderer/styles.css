@@ -224,7 +224,7 @@ img {
   justify-items: center;
   gap: 6px;
   padding: 2px 0 4px;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--dr-azure) 35%, transparent), transparent);
+  background: var(--dr-navy);
 }
 
 .tile-logo {
@@ -938,7 +938,7 @@ img {
 }
 
 .art.show {
-  opacity: 1;
+  opacity: 0.72;
 }
 
 .hero-shade {
@@ -949,8 +949,8 @@ img {
       90deg,
       color-mix(in srgb, var(--dr-ink) 86%, transparent) 0%,
       color-mix(in srgb, var(--dr-ink) 52%, transparent) 34%,
-      color-mix(in srgb, var(--dr-ink) 8%, transparent) 56%,
-      transparent 68%
+      color-mix(in srgb, var(--dr-ink) 28%, transparent) 56%,
+      color-mix(in srgb, var(--dr-ink) 18%, transparent) 100%
     ),
     linear-gradient(
       0deg,
@@ -1298,6 +1298,34 @@ img {
   max-width: 660px;
   display: grid;
   gap: 14px;
+}
+
+/* The home page stays practical: game art sits behind the library surface instead of turning the
+   launch action into a decorative hero panel. */
+.play-content.play-home {
+  max-width: 760px;
+  gap: 12px;
+}
+
+.play-home .hero-title {
+  font-size: 32px;
+  line-height: 1.1;
+  text-shadow: none;
+}
+
+.play-home .hero-text,
+.play-home .eyebrow {
+  text-shadow: none;
+}
+
+.play-home .card {
+  border-radius: 6px;
+  padding: 14px 16px;
+  box-shadow: none;
+}
+
+.play-home .eyebrow {
+  font-size: 11px;
 }
 
 .eyebrow {
@@ -1874,10 +1902,16 @@ img {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 28px;
-  padding: 18px 40px 22px;
-  min-height: 104px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--dr-ink) 55%, transparent), color-mix(in srgb, var(--dr-ink) 88%, transparent));
+  padding: 14px 40px 16px;
+  min-height: 88px;
+  background: var(--dr-navy);
   border-top: 1px solid var(--line);
+}
+
+.actionbar .big-button {
+  height: 56px;
+  border-radius: 5px;
+  box-shadow: none;
 }
 
 /* Never drawn over the big button, whatever the language and window width. The clip margin keeps
@@ -2382,6 +2416,37 @@ img {
   }
 }
 
+/* The embedded preview and small laptop windows keep the library readable by dropping the
+   secondary server rail before the main game view becomes a narrow strip. */
+@media (max-width: 760px) {
+  :root {
+    --rail-w: 176px;
+    --panel-w: 0px;
+  }
+
+  .world {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .world .server-panel {
+    display: none;
+  }
+
+  .view {
+    padding: 20px 18px 18px;
+  }
+
+  .actionbar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px 18px 14px;
+  }
+
+  .actionbar .big-button {
+    width: 100%;
+  }
+}
+
 /* ------------------------------------------------------------------ server panel */
 
 .server-panel {
@@ -2392,7 +2457,7 @@ img {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background: linear-gradient(180deg, var(--glass), var(--glass-strong));
+  background: var(--dr-navy);
   border-left: 1px solid var(--line);
   padding: 22px 20px 18px;
   gap: 18px;

@@ -64,7 +64,7 @@ const state = {
   snap: null as Snapshot | null,
   task: null as TaskProgress | null,
   lang: "en" as Language,
-  view: (PREVIEW_MODE ? "settings" : "play") as View,
+  view: "play" as View,
   inviteText: "",
   revealed: new Set<string>(), // streamer mode: the values shown with the eye, until the launcher closes
   username: "",
@@ -157,7 +157,7 @@ const keyInput = h("input", {
   "data-fk": "key",
 });
 
-const profilePictureInput = h("input", {class:"sr-only", id:"profile-picture-input", type:"file", accept:"image/png,image/jpeg,image/webp", "data-fk":"profile-picture-input"}) as HTMLInputElement;
+const profilePictureInput = h("input", {class:"sr-only", id:"profile-picture-input", type:"file", accept:"image/png,image/jpeg,image/webp", tabindex:"-1", "aria-hidden":"true", "data-fk":"profile-picture-input"}) as HTMLInputElement;
 profilePictureInput.addEventListener("change", () => {
   const file = profilePictureInput.files?.[0];
   profilePictureInput.value = "";
@@ -1638,10 +1638,17 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
     if(result.ok){state.profileUsername="";state.profileUsernameNote="Username saved. It passed the automatic name checks.";}
     else if(result.error.code === "username_taken") state.profileUsernameNote="That username is already taken.";
     else if(result.error.code === "username_invalid") state.profileUsernameNote="Use 3–16 letters, numbers, or underscores.";
+    else if(result.error.code === "username_moderated") state.profileUsernameNote="That username is not available.";
     else if(result.error.code === "rate_limited") state.profileUsernameNote="Username changes are temporarily limited. Try again later.";
     else state.profileUsernameNote="The username could not be saved. Check the server connection and try again.";
     renderSettings();
   }, {fk:"profile-username-save"});
+  username.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      saveUsername.click();
+    }
+  });
   return card("settings-section profile-card",
     h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:"profile-status"}, status), h("p", {class:"small-print"}, "Pictures are checked automatically for unsafe content. Other players only see approved pictures."))),
     h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("div", {class:"profile-username-row"}, username, saveUsername)),
@@ -2406,7 +2413,7 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   if (e.key === "Tab") {
-    const focusable = Array.from(document.querySelectorAll<HTMLElement>("#modal-root button:not(:disabled)"));
+    const focusable = Array.from(document.querySelectorAll<HTMLElement>("#modal-root button:not(:disabled), #modal-root input:not(:disabled), #modal-root textarea:not(:disabled), #modal-root select:not(:disabled), #modal-root [href], #modal-root [tabindex]:not([tabindex=\"-1\"])"));
     if (focusable.length === 0) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];

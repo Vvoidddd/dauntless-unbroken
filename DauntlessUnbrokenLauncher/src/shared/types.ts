@@ -48,6 +48,7 @@ export type ErrorCode =
   | "invite_invalid_format"
   | "invite_invalid"
   | "username_invalid"
+  | "username_moderated"
   | "username_taken"
   | "registration_closed"
   | "bad_request"
