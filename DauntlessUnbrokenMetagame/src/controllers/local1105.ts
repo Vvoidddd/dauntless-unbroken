@@ -7,10 +7,10 @@ export function NativeStackedCosmetic(id: string): boolean {
     return /^(AR_|WP_|LT_|EM_|BNC_)/.test(id) && (itemKinds as Record<string,string>)[id] === 'stacked';
 }
 
-// Enable the native 1.10.5 compatibility data only for the matching build.
+// Opt-in compatibility mode for the isolated 365075 realm only.
 export function Local1105Enabled() {
     return process.env.BIND_HOST === '127.0.0.1' &&
-        (process.env.TARGET_CHANGELIST === '365075' || process.env.LOCAL_1105_REALM === '1' || !!process.env.LOCAL_1105_ACCOUNT_ID);
+        (process.env.LOCAL_1105_REALM === '1' || !!process.env.LOCAL_1105_ACCOUNT_ID);
 }
 export function Local1105Account(id: unknown): id is string {
     return Local1105Enabled() && typeof id === 'string' &&
