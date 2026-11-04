@@ -195,6 +195,7 @@
 .maintenance-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-color: var(--dr-azure); background: linear-gradient(90deg, color-mix(in srgb, var(--dr-azure) 12%, var(--dr-navy)), var(--dr-navy)); }
 .maintenance-kicker { color: var(--dr-ice); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .maintenance-state { color: var(--dr-ice); font-size: 13px; font-weight: 600; }
+.maintenance-worlds { border-color: var(--dr-azure); background: linear-gradient(135deg, color-mix(in srgb, var(--dr-azure) 10%, var(--dr-navy)), var(--dr-navy)); }
 .instance { position: relative; overflow: hidden; }
 .instance-behemoth { position: absolute; right: 12px; bottom: 8px; width: 74px; height: 74px; object-fit: contain; opacity: .22; pointer-events: none; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--dr-glow) 50%, transparent)); }
 .instance.k-hunt .instance-title, .instance.k-hunt .instance-meta, .instance.k-hunt .instance-bar { position: relative; z-index: 1; }

@@ -36,11 +36,12 @@ type Modal =
   | { kind: "offline_restore" };
 
 const PREVIEW_MODE = !window.launcher;
+const PREVIEW_MAINTENANCE = PREVIEW_MODE && new URLSearchParams(window.location.search).get("mode") === "maintenance";
 const PREVIEW_SNAPSHOT = {
   phase: "ready", busy: false, server: {mode:"public",host:"eu1.example",port:443,name:"EU1",hasShare:false,hasPendingInvite:false,loopback:false,fingerprint:null}, savedServers: [], connect:{checking:false,problem:null,tailscaleInstalled:false,lastCheckedAt:null},
     account:{sessionOnly:false,saved:[],username:"Korone",hasKey:true,offerBackup:false,profilePicture:{status:"approved",reason:"approved by local moderation",imageDataUrl:previewProfileAvatar}},
   install:{dir:"C:\\Games\\Dauntless Unbroken",defaultDir:"C:\\Games\\Dauntless Unbroken",installed:true,missingFiles:0,verified:true,dllsOk:true,freeBytes:120000000000,requiredBytes:0,totalBytes:0,vcRuntimeMissing:[],directXMissing:[],contentAvailable:true},
-  task:null,game:{running:false,relayPort:null},playtime:{onlineSeconds:0,offlineSeconds:0,sessions:[],totalSeconds:0},settings:{graphics:4,exposure:"game",windowed:false,language:"en",gameLanguage:"auto",showConsole:false,discordPresence:true,streamerMode:false},app:{version:"1.0.55",packaged:false,updateReady:false,platform:"win32"},status:{name:"EU1",online:true,version:"1.10.5",commit:"local",sourceUrl:null,registration:"OPEN",playersOnline:3,players:[{name:"Korone",where:"city",instance:"ramsgate"},{name:"Aria",where:"hunt",instance:"hunt-01"},{name:"Moss",where:"dojo",instance:"dojo-01"}],instances:[{id:"ramsgate",kind:"city",title:"Ramsgate",map:"Ramsgate",behemoth:null,players:1,maxPlayers:100,startedAt:null},{id:"hunt-01",kind:"hunt",title:"Hunt: Nayzaga",map:"Hunt_Nayzaga",behemoth:"Nayzaga",players:1,maxPlayers:4,startedAt:null},{id:"dojo-01",kind:"dojo",title:"Training Dojo",map:"Dojo",behemoth:null,players:1,maxPlayers:4,startedAt:null}],contentPort:61002,uptimeSeconds:12345,limited:false},availableHuntRegions:["main"],statusUnsupported:false,lastError:null,notice:null
+  task:null,game:{running:false,relayPort:null},playtime:{onlineSeconds:0,offlineSeconds:0,sessions:[],totalSeconds:0},settings:{graphics:4,exposure:"game",windowed:false,language:"en",gameLanguage:"auto",showConsole:false,discordPresence:true,streamerMode:false},app:{version:"1.0.55",packaged:false,updateReady:false,platform:"win32"},status:{name:"EU1",online:true,maintenance:PREVIEW_MAINTENANCE || undefined,version:"1.10.5",commit:"local",sourceUrl:null,registration:"OPEN",playersOnline:3,players:[{name:"Korone",where:"city",instance:"ramsgate"},{name:"Aria",where:"hunt",instance:"hunt-01"},{name:"Moss",where:"dojo",instance:"dojo-01"}],instances:[{id:"ramsgate",kind:"city",title:"Ramsgate",map:"Ramsgate",behemoth:null,players:1,maxPlayers:100,startedAt:null},{id:"hunt-01",kind:"hunt",title:"Hunt: Nayzaga",map:"Hunt_Nayzaga",behemoth:"Nayzaga",players:1,maxPlayers:4,startedAt:null},{id:"dojo-01",kind:"dojo",title:"Training Dojo",map:"Dojo",behemoth:null,players:1,maxPlayers:4,startedAt:null}],contentPort:61002,uptimeSeconds:12345,limited:false},availableHuntRegions:["main"],statusUnsupported:false,lastError:null,notice:null
 } as any;
 const PREVIEW_API = new Proxy({}, {get:(_target, property: string) => {
   if(property === "getSnapshot") return async () => PREVIEW_SNAPSHOT;
@@ -1432,7 +1433,9 @@ function renderServer(): void {
       h("p", { class: "page-sub" }, t("server_auto")),
       card("", kv, h("div", { class: "card-row", style: undefined }, button(t("sp_refresh"), () => void api.refreshStatus(), { icon: "refresh", fk: "srv-refresh" }), status?.sourceUrl ? linkButton(t("sp_source"), () => open("server_source"), { icon: "external", fk: "srv-source" }) : null)),
     ];
-    if (status?.limited) {
+    if (status?.maintenance) {
+      parts.push(card("maintenance-worlds", h("span", { class: "maintenance-kicker" }, "Maintenance"), h("h2", { class: "card-title" }, "EU1 is offline"), h("p", { class: "card-text" }, "Worlds and player activity will return when the server is back.")));
+    } else if (status?.limited) {
       parts.push(card("", h("h2", { class: "card-title" }, t("server_players")), h("p", { class: "card-text" }, t("sp_signin"))));
     } else if (status) {
       const instances = sortInstances(status.instances);
