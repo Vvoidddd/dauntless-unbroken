@@ -62,6 +62,8 @@ test("the server view replaces live-world data with maintenance state", () => {
 test("the local preview can render the maintenance state", () => {
   assert.match(renderer, /PREVIEW_MAINTENANCE/);
   assert.match(renderer, /mode.*maintenance/);
+  assert.match(renderer, /community-maintenance/);
+  assert.match(theme, /\.community-maintenance/);
 });
 
 test("maintenance home copy does not claim the game is ready", () => {
