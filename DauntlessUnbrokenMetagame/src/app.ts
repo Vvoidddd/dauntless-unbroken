@@ -24,8 +24,13 @@ import { unbrokenApiRouter } from "./routes/unbrokenapi.js";
 import { DescribeOrigin, IsProxiedRequest, RefuseProxiedInDevAuthMode } from "./middleware/RequestOrigin.js";
 import { BodyLog, Redact } from "./middleware/BodyLog.js";
 import { backupRouter } from './routes/backup';
+import { ParseSlowRequestThreshold, SlowRequestDiagnostics } from './middleware/SlowRequestDiagnostics';
 
 export const app = express();
+const SlowRequestThreshold = ParseSlowRequestThreshold(process.env.LOG_SLOW_REQUEST_MS);
+if (SlowRequestThreshold !== undefined) {
+    app.use(SlowRequestDiagnostics(SlowRequestThreshold, (event) => logger.warn(event, 'Request diagnostic')));
+}
 app.use(TrackBackendHealth);
 // Keep discovery reachable so a banned launcher can display the actual reason.
 app.use((req,res,next)=>{if(/^\/unbroken\/api\/ServerStatus\/?$/i.test(req.path) || req.method==='POST'&&/^\/unbroken\/api\/SupportReport\/?$/i.test(req.path) || CheckPlayerAccess(req,res))next();});
