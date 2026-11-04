@@ -1944,9 +1944,20 @@ export class Controller {
 
   private async prepareGameInstall(): Promise<ActionResult> {
     const dir = this.installDir;
+    const manifest = this.p.manifest;
+    if (!manifest) return this.fail("server_error", "game manifest unavailable");
 
     await this.inspectInstall();
     if (this.install.missing.length > 0) return this.fail("game_files_invalid", String(this.install.missing.length));
+
+    const verified = await verifyInstall(dir, manifest.files, {
+      fullHash: true,
+      trusted: (f, size, mtime) => this.verified.isTrusted(dir, f, size, mtime),
+    });
+    if (verified.bad.length > 0) {
+      for (const problem of verified.bad) this.verified.forget(dir, problem.file);
+      return this.fail("game_files_invalid", String(verified.bad.length));
+    }
 
     // Same checks as play.ps1 on every launch: the exe and both DLLs by hash.
     const exePin = this.p.exePin ?? { relativePath: EXE_RELATIVE_PATH, sha256: PINNED_EXE_SHA256 };
