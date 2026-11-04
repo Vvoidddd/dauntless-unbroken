@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { EventEmitter } from 'node:events';
 import { createSocket } from 'node:dgram';
+import { spawn } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
 import { IsUdpPortBound, WaitForServerReady } from '../src/controllers/readiness';
 
@@ -58,6 +59,22 @@ test('UDP readiness detects a bound port and waits for a listener when no marker
         assert.equal(await IsUdpPortBound(port), true);
     } finally {
         await new Promise<void>(resolve => listener.close(() => resolve()));
+        await rm(dir, { recursive: true, force: true });
+    }
+});
+
+test('a real child exiting during startup is rejected promptly', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'hunt-child-ready-'));
+    const reserve = createSocket('udp4');
+    await new Promise<void>(resolve => reserve.bind(0, '0.0.0.0', resolve));
+    const port = (reserve.address() as {port: number}).port;
+    await new Promise<void>(resolve => reserve.close(() => resolve()));
+    const child = spawn(process.execPath, ['-e', 'setTimeout(() => process.exit(42), 100)'], { stdio: 'ignore' });
+    try {
+        await assert.rejects(WaitForServerReady(child, port, path.join(dir, 'ready'), 5000), /exited before listening/);
+        assert.equal(child.exitCode, 42);
+    } finally {
+        if (child.exitCode === null) child.kill();
         await rm(dir, { recursive: true, force: true });
     }
 });

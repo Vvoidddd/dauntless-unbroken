@@ -280,6 +280,11 @@ async function StartServerNow(Map: string, Behemoth: string | undefined, Matchma
 
     const Id = crypto.randomUUID();
     const ReadyFile = path.join(ReadyDir, `${Id}.ready`);
+    const TimeoutMs = GameserverStartupTimeoutMs();
+    const LaunchStarted = process.hrtime.bigint();
+    const Role = IsRamsgate ? 'city' : IsTrainingDojo ? 'training' : 'hunt';
+    let Phase: 'starting' | 'ready' | 'unchecked' = TimeoutMs > 0 ? 'starting' : 'unchecked';
+    const ElapsedMs = () => Math.round(Number(process.hrtime.bigint() - LaunchStarted) / 1e6);
 
     if(Port == undefined){
         ReleaseReservation();
@@ -343,13 +348,16 @@ async function StartServerNow(Map: string, Behemoth: string | undefined, Matchma
             const Finished = Gameservers.find(Server => Server.id === Id);
             if (Finished) void CleanupServer(Finished);
         }
+        const Detail = { event: 'game_server_exit', serverId: Id, role: Role, port: Port, pid: Child.pid,
+            phase: Phase, elapsedMs: ElapsedMs(), exitCode: Code, signal: Signal,
+            exitCodeHex: Code === null ? null : `0x${(Code >>> 0).toString(16).toUpperCase().padStart(8, '0')}` };
         const Line = `Game server on port ${Port} (pid ${Child.pid}) exited ${Signal != null ? `on ${Signal}` : `with code ${Code}`}`;
 
         if(Code === 0){
-            logger.info(Line);
+            logger.info(Detail, Line);
         }
         else{
-            logger.warn(Line);
+            logger.warn(Detail, Line);
         }
     });
 
@@ -384,13 +392,15 @@ async function StartServerNow(Map: string, Behemoth: string | undefined, Matchma
     SpawnedChildren.set(Id,Child);
     Spawned();
     try {
-        const TimeoutMs = GameserverStartupTimeoutMs();
         if (TimeoutMs > 0) {
             await WaitForServerReady(Child, Port, ReadyFile, TimeoutMs);
             NewGameserver.readyAt = Date.now();
+            Phase = 'ready';
+            logger.info({ event: 'game_server_ready', serverId: Id, role: Role, port: Port, pid: Child.pid, elapsedMs: ElapsedMs() }, 'Game server ready');
             ReleaseReservation();
         }
     } catch (error) {
+        logger.warn({ event: 'game_server_start_failed', serverId: Id, role: Role, port: Port, pid: Child.pid, elapsedMs: ElapsedMs() }, 'Game server failed readiness');
         if (Gameservers.includes(NewGameserver) && Child.pid && ProcessIsAlive(Child.pid)) Child.kill();
         else if (IsHunt || (IsRamsgate && CityPoolEnabled())) await CleanupServer(NewGameserver);
         throw error;

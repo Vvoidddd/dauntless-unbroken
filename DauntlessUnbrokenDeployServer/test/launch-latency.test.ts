@@ -8,6 +8,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createSocket, type Socket } from 'node:dgram';
+import { logger } from '../src/logger';
 
 process.env.SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP = "0.3";
 const game = require("../src/controllers/gameservers") as typeof import("../src/controllers/gameservers.js");
@@ -82,13 +83,26 @@ test("hunt startup failure during readiness grace is rejected and returns its po
     process.env.GAMESERVER_STARTUP_GRACE_MS = "50";
     game.UseProcessFunctionsForTests({ Spawn: () => {
         const child = Object.assign(new EventEmitter(), { pid: pid++, unref() {} });
-        setTimeout(() => child.emit("exit", 1, null), 10);
+        setTimeout(() => child.emit("exit", 0xC00000FD, null), 10);
         return child as unknown as ChildProcess;
     }, IsAlive: () => true });
+    const events: any[] = [];
+    const originalWarn = logger.warn;
+    logger.warn = ((...values: any[]) => { if (typeof values[0] === 'object') events.push(values[0]); }) as typeof logger.warn;
     try {
         await assert.rejects(game.StartupGameserverWithArgs(args), /exited before listening/);
         assert.equal(game.GameserverStateForTests().FreePorts.length, before);
+        const exit = events.find(event => event.event === 'game_server_exit');
+        assert.equal(exit.phase, 'starting');
+        assert.equal(exit.exitCode, 0xC00000FD);
+        assert.equal(exit.exitCodeHex, '0xC00000FD');
+        assert.equal(exit.role, 'hunt');
+        assert.equal(typeof exit.elapsedMs, 'number');
+        assert.equal(typeof exit.serverId, 'string');
+        assert.ok(events.some(event => event.event === 'game_server_start_failed' && event.serverId === exit.serverId));
+        assert.doesNotMatch(JSON.stringify(events), /MonsterClass|EXPECTED_PLAYERS|NO_BEHEMOTH/);
     } finally {
+        logger.warn = originalWarn;
         process.env.GAMESERVER_STARTUP_GRACE_MS = "0";
     }
 });

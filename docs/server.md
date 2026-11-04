@@ -94,6 +94,8 @@ C:\DauntlessUnbroken\bin\Stack.ps1 status -Root C:\DauntlessUnbroken
 
 Check the supervisor, backend, content and deploy logs under the installation's data/logs directory. Keep account keys, game-server credentials, database exports and complete environment files private.
 
+The deploy log includes `game_server_ready`, `game_server_start_failed` and `game_server_exit` events. Match them by `serverId` to see the world role, port, process ID and elapsed time. Exit events distinguish `starting`, `ready` and `unchecked` (readiness checking disabled) and include the exit code in decimal and hexadecimal, or the terminating signal. A ready event records the allocator's configured readiness check, not a successful player join. The events omit process arguments and player identities.
+
 A component-only restart uses `restart -Only <component>`. Restarting the deploy/hunt services can end active hunts; changing documentation or publishing a launcher does not require that restart.
 
 ## Where to go next
