@@ -11,6 +11,7 @@ import {
     GetApprovedProfilePicture,
     GetProfilePictureStatus,
     ListProfilePictureModeration,
+    ProfilePictureModerationMode,
     RejectProfilePicture,
     SubmitProfilePicture
 } from '../src/controllers/profilepictures';
@@ -25,8 +26,16 @@ const png32 = 'data:image/png;base64,' + Buffer.concat([
 
 after(() => RemoveTestDb(() => GetDb().$client.close()));
 
-test('profile pictures remain private until moderation approves them', async () => {
+test('profile picture moderation defaults to the local automatic classifier', () => {
+    const previous = process.env.PROFILE_PICTURE_MODERATION;
     delete process.env.PROFILE_PICTURE_MODERATION;
+    assert.equal(ProfilePictureModerationMode(), 'nsfwjs');
+    if(previous === undefined) delete process.env.PROFILE_PICTURE_MODERATION;
+    else process.env.PROFILE_PICTURE_MODERATION = previous;
+});
+
+test('profile pictures remain private until moderation approves them', async () => {
+    process.env.PROFILE_PICTURE_MODERATION = 'manual';
     const db = GetDb();
     db.insert(users).values({userId: 'UID-pfp', name: 'PfpTest', notes: 0}).run();
     const directory = path.join(path.dirname(process.env.DB_FILENAME!), 'profile-pictures');

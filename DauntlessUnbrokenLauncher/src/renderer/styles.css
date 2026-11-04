@@ -2963,6 +2963,57 @@ img {
 .profile-status-rejected { border-color: color-mix(in srgb, var(--dr-steel) 55%, var(--dr-deep)); color: var(--dr-steel); }
 .profile-status-rejected .profile-status-dot { background: var(--dr-steel); }
 
+.profile-policy {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--dr-deep);
+}
+
+.profile-policy-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--dr-deep);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--dr-ink) 54%, transparent);
+}
+
+.profile-policy-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--dr-glow);
+}
+
+.profile-policy-item span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-policy-item strong,
+.profile-policy-item small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-policy-item strong {
+  color: var(--dr-frost);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.profile-policy-item small {
+  color: var(--dr-steel);
+  font-size: 10px;
+}
+
 .profile-username {
   display: grid;
   gap: 6px;
@@ -2988,6 +3039,10 @@ img {
 .profile-card {
   border-radius: 6px;
   box-shadow: none;
+}
+
+@media (max-width: 520px) {
+  .profile-policy { grid-template-columns: 1fr; }
 }
 
 .profile-username-row .input {

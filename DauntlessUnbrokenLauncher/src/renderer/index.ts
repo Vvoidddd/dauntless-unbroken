@@ -1630,7 +1630,7 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
   if (!snap.server || !snap.account.hasKey) return null;
   const profile = snap.account.profilePicture;
   const statusKey = profile?.status ?? "empty";
-  const status = statusKey === "approved" ? "Visible to accepted friends" : statusKey === "pending" ? "Waiting for moderation" : statusKey === "rejected" ? "Rejected by moderation" : "No profile picture set";
+  const status = statusKey === "approved" ? "Approved" : statusKey === "pending" ? "Waiting for moderation" : statusKey === "rejected" ? "Rejected by moderation" : "No profile picture set";
   const pictureNote = statusKey === "pending" && profile?.imageDataUrl
     ? "Your previous approved picture remains visible to accepted friends while this replacement is reviewed."
     : statusKey === "rejected" && profile?.imageDataUrl
@@ -1660,7 +1660,10 @@ function profilePictureCard(snap: Snapshot): HTMLElement | null {
     }
   });
   return card("settings-section profile-card",
-    h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:`profile-status profile-status-${statusKey}`}, statusKey === "approved" ? icon("people", "profile-status-icon") : null, h("span", {class:"profile-status-dot", "aria-hidden":"true"}), status), h("p", {class:"small-print"}, pictureNote))),
+    h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? "Account"), h("p", {class:`profile-status profile-status-${statusKey}`}, statusKey === "approved" ? icon("check", "profile-status-icon") : null, h("span", {class:"profile-status-dot", "aria-hidden":"true"}), status), h("p", {class:"small-print"}, pictureNote))),
+    h("div", {class:"profile-policy"},
+      h("div", {class:"profile-policy-item"}, icon("people", "profile-policy-icon"), h("span", {}, h("strong", {}, "Audience"), h("small", {}, "Accepted friends only"))),
+      h("div", {class:"profile-policy-item"}, icon("shield", "profile-policy-icon"), h("span", {}, h("strong", {}, "Safety"), h("small", {}, "Automatic content check")))),
     h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, "Username"), h("div", {class:"profile-username-row"}, username, saveUsername)),
     state.profileUsernameNote ? h("p", {class:"small-print", role:"status"}, state.profileUsernameNote) : null,
     state.profilePictureNote ? h("p", {class:"small-print", role:"status"}, state.profilePictureNote) : null,

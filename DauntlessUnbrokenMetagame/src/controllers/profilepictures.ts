@@ -68,6 +68,10 @@ type Prediction = {className: string, probability: number};
 const NSFW_THRESHOLDS: Record<string, number> = {Porn: 0.2, Hentai: 0.2, Sexy: 0.6};
 let nsfwModel: Promise<nsfwjs.NSFWJS> | null = null;
 
+export function ProfilePictureModerationMode(): string {
+    return process.env.PROFILE_PICTURE_MODERATION || 'nsfwjs';
+}
+
 export function EvaluateNsfwPredictions(predictions: readonly Prediction[]) {
     const match = predictions.find(prediction => NSFW_THRESHOLDS[prediction.className] !== undefined && prediction.probability >= NSFW_THRESHOLDS[prediction.className]);
     return match ? {status: 'rejected' as const, reason: `automatically rejected: ${match.className.toLowerCase()} content`} : {status: 'approved' as const, reason: 'automatically approved by local image moderation'};
@@ -114,7 +118,7 @@ export function GetProfilePictureStatus(accountId: string){
 }
 
 async function AutomaticallyModerate(image: ParsedImage): Promise<{status: PictureStatus, reason: string}> {
-    const mode = process.env.PROFILE_PICTURE_MODERATION || 'manual';
+    const mode = ProfilePictureModerationMode();
     if(mode === 'manual') return {status: 'pending', reason: 'awaiting moderator review'};
     if(mode !== 'nsfwjs') throw Error('moderation_unavailable');
     if(image.mimeType === 'image/webp') throw Error('unsupported_image_format');
