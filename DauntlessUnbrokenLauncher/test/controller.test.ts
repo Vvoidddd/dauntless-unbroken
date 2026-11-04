@@ -1919,3 +1919,32 @@ test("connected launcher refreshes news without restarting and bounds polling", 
     assert.equal(count(), before + 1);
   } finally { content.opts.news = previous; await hx.c.shutdown(); }
 });
+
+test("shutdown waits for a background extras refresh and contains its failure", async () => {
+  const hx = harness();
+  let release!: () => void;
+  let started!: () => void;
+  const extrasStarted = new Promise<void>(resolve => { started = resolve; });
+  const extrasRelease = new Promise<void>(resolve => { release = resolve; });
+  const controller = hx.c as any;
+  controller.loadExtras = async () => {
+    started();
+    await extrasRelease;
+    throw new Error("test background extras failure");
+  };
+  try {
+    await hx.c.init();
+    await hx.c.submitInvite(invite(cert.fingerprint));
+    await extrasStarted;
+    let finished = false;
+    const closing = hx.c.shutdown().then(() => { finished = true; });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(finished, false);
+    release();
+    await closing;
+    assert.equal(finished, true);
+  } finally {
+    release();
+    await hx.c.shutdown();
+  }
+});

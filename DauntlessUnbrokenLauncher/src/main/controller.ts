@@ -231,6 +231,7 @@ export class Controller {
   private newsCheckedAt = -Infinity;
   private newsLoading = false;
   private branding: Branding | null = null;
+  private extrasTask: Promise<void> | null = null;
   private art = new Map<string, { file: string; type: string }>();
   private relay: Relay | null = null;
   private relayStopTask:Promise<void>=Promise.resolve();
@@ -633,7 +634,7 @@ export class Controller {
         await this.checkAccount();
         if (!current()) return OK;
         await this.inspectInstall();
-        if (current()) void this.loadExtras();
+        if (current()) this.startExtras();
       } else {
         this.reachable = false;
         if (res.kind === "bad_answer") this.connectProblem = "bad_answer";
@@ -877,8 +878,8 @@ export class Controller {
       this.status = res.status;
       this.statusUnsupported = false;
       this.failedPolls = 0;
-      if (this.branding === null) void this.loadExtras();
-      else void this.refreshNews();
+      if (this.branding === null) this.startExtras();
+      else this.startNewsRefresh();
     } else if (res.kind === "unsupported") {
       this.statusUnsupported = true;
       this.failedPolls = 0;
@@ -914,6 +915,22 @@ export class Controller {
       const items = await fetchNews(ep, this.news ?? []);
       if (generation === this.statusGen) { this.news = items; this.publish(); }
     } finally { this.newsLoading = false; }
+  }
+
+  private startNewsRefresh(): void {
+    if (this.shuttingDown || this.extrasTask) return;
+    const task = this.refreshNews();
+    this.extrasTask = task;
+    void task.catch(error => log.warn(`background news refresh failed: ${describeError(error)}`))
+      .finally(() => { if (this.extrasTask === task) this.extrasTask = null; });
+  }
+
+  private startExtras(): void {
+    if (this.shuttingDown || this.extrasTask) return;
+    const task = this.loadExtras();
+    this.extrasTask = task;
+    void task.catch(error => log.warn(`background launcher extras failed: ${describeError(error)}`))
+      .finally(() => { if (this.extrasTask === task) this.extrasTask = null; });
   }
 
   private async loadExtras(): Promise<void> {
@@ -2200,6 +2217,7 @@ export class Controller {
     this.setStatusPolling(false);
     this.job?.cancel();
     this.taskAbort?.abort();
+    await this.extrasTask?.catch(() => undefined);
 
     const offlineStartTask = this.offlineStartTask;
 
