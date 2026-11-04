@@ -521,7 +521,7 @@ try {
     # ---------------------------------------------------------------------------------------------
     Write-DRStep 'Folders'
     # ---------------------------------------------------------------------------------------------
-    foreach ($d in @($P.Root, $P.Bin, $P.Data, $P.Config, $P.Keys, $P.Tls, $P.Logs, $P.Run, $P.Branding, $P.Backups, $P.Downloads, (Join-Path $P.Logs 'install'), (Join-Path $P.Data 'allowlist'))) {
+    foreach ($d in @($P.Root, $P.Bin, $P.Data, $P.Config, $P.Keys, $P.Tls, $P.Logs, $P.Run, $P.Branding, $P.Backups, $P.Downloads, (Join-Path $P.Logs 'install'), (Join-Path $P.Data 'allowlist'), (Join-Path $P.Data 'dashboard-control'))) {
         if (-not (Test-Path -LiteralPath $d)) {
             if (Test-Do $d 'Create folder') { New-Item -ItemType Directory -Force -Path $d | Out-Null }
         }
@@ -999,6 +999,8 @@ try {
     $meta['BIND_HOST'] = $BindIp
     $meta['AUTH_MODE'] = 'APIKEY'
     $meta['DB_FILENAME'] = & $fwd $P.Db
+    $dashboardControl = Join-Path $P.Data 'dashboard-control'
+    $meta['ISLAND_EVENT_CONTROL_FILE'] = & $fwd (Join-Path $dashboardControl 'island-event.json')
     $meta['BACKUP_ROOT'] = & $fwd $P.Backups
     $meta['TARGET_CHANGELIST'] = $DRPinned.Changelist
     # Public mode: every friend's launcher relays the game's traffic from its own 127.0.0.1:61000.
@@ -1028,6 +1030,7 @@ try {
     $deploy['PORT_RANGE_END'] = "$UdpEnd"
     $deploy['GAMESERVER_BINARY_PATH'] = & $fwd $exe
     $deploy['METAGAME_API_KEY'] = $gsKey
+    $deploy['DRAIN_FILE'] = & $fwd (Join-Path $dashboardControl 'drain.flag')
     if (-not $deploy['SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP']) { $deploy['SECONDS_TO_WAIT_BETWEEN_GAMESERVER_STARTUP'] = '10' }
     if (-not $deploy.Contains('RAMSGATE_POOL')) { $deploy['RAMSGATE_POOL'] = '1' }
     if (-not $deploy.Contains('ENABLE_DOJO')) { $deploy['ENABLE_DOJO'] = '0' }
@@ -1158,6 +1161,8 @@ try {
         if (Test-Path -LiteralPath $P.AllowlistEnv) { Set-DRAcl $P.AllowlistEnv $sys }
         $alDir = Join-Path $P.Data 'allowlist'
         if (Test-Path -LiteralPath $alDir) { $alAcl = $full.Clone(); $alAcl[$svcSid] = $(if ($Sandbox) { 'FullControl' } else { 'ReadAndExecute' }); Set-DRAcl $alDir $alAcl }
+        $dashboardControl = Join-Path $P.Data 'dashboard-control'
+        if (Test-Path -LiteralPath $dashboardControl) { $controlAcl = $full.Clone(); $controlAcl[$svcSid] = $(if ($Sandbox) { 'FullControl' } else { 'Modify' }); Set-DRAcl $dashboardControl $controlAcl }
     }
     if (-not $svcSid) { Write-DRInfo '(what-if: permissions are set once the service account exists)' }
     elseif (Test-Do $Root 'Restrict permissions to Administrators, SYSTEM and the service account') {
