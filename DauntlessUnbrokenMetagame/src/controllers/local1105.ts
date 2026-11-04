@@ -1,6 +1,12 @@
 import { GetDb } from '../db';
 import { GetConfiguredPaths } from './progressionconfig';
 import itemKinds from '../vendor/store_item_kinds_1105.json';
+import itemIds from '../vendor/item_ids_1105.json';
+
+const NativeItemIds = new Set(itemIds.map(id => id.toUpperCase()));
+export function NativeItem1105(id: unknown): id is string {
+    return typeof id === 'string' && NativeItemIds.has(id.toUpperCase());
+}
 
 // Only exact native cosmetic definitions qualify; weapon/armour prefixes alone include gear.
 export function NativeStackedCosmetic(id: string): boolean {

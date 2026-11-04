@@ -7,14 +7,12 @@ import {ApplyInventoryTransactionInTx,MAX_STACK_QUANTITY} from './inventory';
 import {RecordProgressionEvent} from './progressionevents';
 import {RecordLoadoutVersion} from './savehistory';
 import {GrantEntitlementInTx} from './entitlements';
-import {Local1105Enabled,NativeStackedCosmetic} from './local1105';
+import {Local1105Enabled,NativeItem1105,NativeStackedCosmetic} from './local1105';
 
 export class RewardError extends Error {constructor(public status:number,message:string){super(message);}}
 const RewardItems:((typeof catalog.items)[number]&{unit?:string})[]=[...catalog.items,{id:'escalation_xp_boost_entitlement',name:'Escalation XP boost',category:'Boosts',kind:'entitlement',unique:false,grantable:true,unit:'hours',aliases:['esca boost','escalation boost']}];
 const Items=new Map(RewardItems.map(item=>[item.id,item]));
-// These legacy skins are absent from their 1.10.5 native cosmetic tables.
-const Missing1105=new Set(['WP_AC_UMBRAL_PAPER_00','WP_EB_BLAZE_BUGBEAR_00']);
-const Available=(id:string)=>!Local1105Enabled()||!Missing1105.has(id);
+const Available=(id:string)=>!Local1105Enabled()||id==='escalation_xp_boost_entitlement'||NativeItem1105(id);
 const uid=(value:unknown):value is string=>typeof value==='string'&&/^UID-[A-Za-z0-9-]{1,100}$/.test(value);
 const prefix='admin AccountGrant:';
 const CosmeticCategories=['Transmogs','Dyes','Other cosmetics','Titles','Flares','Banner sigils','Banner fabrics','Banner standards','Banner plants'];

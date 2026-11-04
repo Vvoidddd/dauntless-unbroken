@@ -7,7 +7,7 @@ import { DoesCharacterBelongToUserId } from "./character";
 import type { Tx } from "./savehistory";
 import { FindFusionItemIndex, IsValidFusionRemoval, IsValidFusionSave, MiddlemanConflictError, MiddlemanValidationError, NormaliseFusionItem, ValidateFusionCompletions } from "./middleman";
 import { MiddlemanFusionGuards } from "../features";
-import { Local1105Enabled, NativeStackedCosmetic } from './local1105';
+import { Local1105Account, Local1105Enabled, NativeItem1105, NativeStackedCosmetic } from './local1105';
 
 export type InventoryError = "forbidden" | "not_found" | "conflict" | "insufficient_quantity" | "invalid_inventory_item" | "invalid_inventory_data" | "db_error";
 export type InventoryResult<T = void> = { success: true, data?: T } | { success: false, error: InventoryError };
@@ -600,6 +600,11 @@ function ApplyPreparedInventoryTransaction(tx: Tx, Prepared: PreparedInventoryTr
         }
     }
 
+    const NativeAccount = Local1105Account(UserId);
+    if(NativeAccount && StackedItemsToAdd.some(Item => !NativeItem1105(Item?.catalogId))){
+        throw new InventoryValidationError('Item is not in the 1.10.5 catalogue');
+    }
+
     let CurrentInventory = tx.query.inventory.findFirst({where: eq(inventory.characterId, CharacterId)}).sync();
 
     if(CurrentInventory == undefined){
@@ -651,6 +656,7 @@ function ApplyPreparedInventoryTransaction(tx: Tx, Prepared: PreparedInventoryTr
                 DidUpdateInstancedItems = true;
             }
             else{
+                if(NativeAccount && !NativeItem1105(ItemToSave?.catalogId)) throw new InventoryValidationError('Item is not in the 1.10.5 catalogue');
                 AssertValidIncomingInstancedItem(ItemToSave, "save");
                 InstancedItems.push(ItemToSave);
                 DidUpdateInstancedItems = true;
@@ -672,6 +678,7 @@ function ApplyPreparedInventoryTransaction(tx: Tx, Prepared: PreparedInventoryTr
                 DidUpdateInstancedItems = true;
             }
             else{
+                if(NativeAccount && !NativeItem1105(ItemToAdd?.catalogId)) throw new InventoryValidationError('Item is not in the 1.10.5 catalogue');
                 AssertValidIncomingInstancedItem(ItemToAdd, "add");
                 InstancedItems.push(ItemToAdd);
                 DidUpdateInstancedItems = true;

@@ -181,3 +181,29 @@ describe("ApplyInventoryTransactionInTx", () => {
         assert.equal(InventoryErrorOf(new Error("SQLITE_BUSY")), undefined);
     });
 });
+
+it('1.10.5 rejects unknown new item grants while retaining legacy saves', async () => {
+    const previous={BIND_HOST:process.env.BIND_HOST,LOCAL_1105_REALM:process.env.LOCAL_1105_REALM,LOCAL_1105_ACCOUNT_ID:process.env.LOCAL_1105_ACCOUNT_ID};
+    process.env.BIND_HOST='127.0.0.1';process.env.LOCAL_1105_REALM='1';delete process.env.LOCAL_1105_ACCOUNT_ID;
+    try{
+        const {UserId,CharacterId}=await MakePlayer(),db=GetDb();
+        const apply=(items:any)=>db.transaction(tx=>ApplyInventoryTransactionInTx(tx,{UserId,CharacterId,TransactionId:Guid(),...items},{Caller:'gameserver'}));
+        apply({StackedItemsToAdd:[Stack('CURRENCY_NOTES',1)]});
+        apply({StackedItemsToAdd:[Stack('BNC_Fabric_Funguy',1)]});
+        apply({InstancedItemsToAdd:[{catalogId:'WP_EB_LERAWR',instanceId:'native-weapon',updateVersion:0}]});
+        assert.throws(()=>apply({StackedItemsToAdd:[Stack('CURRENCY_NOTES',9),Stack('QI_SUPPLY_DROP',1)]}),/1.10.5 catalogue/);
+        for(const id of ['QI_SUPPLY_DROP','WP_GA_TRAINING_GROUNDS','PART_DP_GRIP_TURRET','NOT_A_REAL_ITEM']){
+            assert.throws(()=>apply({StackedItemsToAdd:[Stack(id,1)]}),/1.10.5 catalogue/);
+            assert.throws(()=>apply({InstancedItemsToAdd:[{catalogId:id,instanceId:id,updateVersion:0}]}),/1.10.5 catalogue/);
+            assert.throws(()=>apply({InstancedItemsToSave:[{catalogId:id,instanceId:id,updateVersion:0}]}),/1.10.5 catalogue/);
+        }
+        const saved={catalogId:'PART_DP_GRIP_TURRET',instanceId:'old-part',itemData:'{}',updateVersion:0};
+        db.update(inventory).set({instancedItems:JSON.stringify([saved])}).where(eq(inventory.characterId,CharacterId)).run();
+        apply({InstancedItemsToSave:[{...saved,updateVersion:1}]});
+        assert.equal(JSON.parse(db.select().from(inventory).where(eq(inventory.characterId,CharacterId)).get()!.instancedItems)[0].updateVersion,1);
+        assert.equal(StackQuantity(CharacterId,'CURRENCY_NOTES'),1);
+        process.env.LOCAL_1105_REALM='0';process.env.LOCAL_1105_ACCOUNT_ID='UID-other';
+        apply({StackedItemsToAdd:[Stack('QI_SUPPLY_DROP',1)]});
+        assert.equal(StackQuantity(CharacterId,'QI_SUPPLY_DROP'),1);
+    }finally{for(const [key,value] of Object.entries(previous)){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
+});

@@ -281,7 +281,7 @@ test('1.10.5 admin grants exclude legacy skins absent from native cosmetic catal
  const previous={BIND_HOST:process.env.BIND_HOST,LOCAL_1105_REALM:process.env.LOCAL_1105_REALM};
  process.env.BIND_HOST='127.0.0.1';process.env.LOCAL_1105_REALM='1';
  try{
-  const a=await MakePlayer(),ids=['WP_AC_UMBRAL_PAPER_00','WP_EB_BLAZE_BUGBEAR_00'];
+  const a=await MakePlayer(),ids=['WP_AC_UMBRAL_PAPER_00','WP_EB_BLAZE_BUGBEAR_00','QI_SUPPLY_DROP','PART_DP_GRIP_TURRET','TOKEN_AETHER_SPARK','WP_GA_TRAINING_GROUNDS'];
   const db=GetDb();
   GrantReward('UID-owner',request(a,'CURRENCY_NOTES',1));
   const saved={catalogId:ids[0],instanceId:'legacy-skin',updateVersion:0};
@@ -293,7 +293,7 @@ test('1.10.5 admin grants exclude legacy skins absent from native cosmetic catal
   const result=GrantReward('UID-owner',{accountId:a.UserId,characterId:a.CharacterId,bundle:'transmogs',reason:'Catalogue test',requestId:randomUUID()});
   const row=GetDb().select().from(inventory).where(eq(inventory.characterId,a.CharacterId)).get()!;
   assert.deepEqual(JSON.parse(row.instancedItems).find((i:any)=>i.catalogId===ids[0]),saved);
-  assert.equal([...JSON.parse(row.instancedItems),...JSON.parse(row.stackedItems)].some((i:any)=>i.catalogId===ids[1]),false);
+  for(const id of ids.slice(1))assert.equal([...JSON.parse(row.instancedItems),...JSON.parse(row.stackedItems)].some((i:any)=>i.catalogId===id),false);
   assert.ok(result.total>0);
   delete process.env.LOCAL_1105_REALM;
   for(const id of ids)assert.equal(RewardCatalog(id).items.some(i=>i.id===id),true);
