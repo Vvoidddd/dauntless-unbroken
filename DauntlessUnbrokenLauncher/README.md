@@ -184,17 +184,12 @@ token, or when a colour pair it uses fails WCAG AA.
 
 ## Releases and updates
 
-CI (`.github/workflows/ci.yml`) builds and tests the launcher on Windows and Linux on every push.
-It keeps the Windows installer/ZIP and Linux AppImage/DEB/RPM/ZIP as artifacts for a week.
-`.github/workflows/launcher-release.yml` publishes those exact tested files from `dauntless-unbroken`
-as `launcher-v<version>`, with one combined `SHA256SUMS.txt`, a build provenance attestation for
-every listed file, and a tag at the commit that was built. To release, raise the version:
-
-- by default, a push to `dauntless-unbroken` that passes every check and has a version with no
-  `launcher-v<version>` release yet publishes the installer CI built. Set the repository variable
-  `LAUNCHER_AUTO_RELEASE` to `false` (Settings > Secrets and variables > Actions > Variables) to pause
-  that;
-- or run Actions > **Launcher release** > **Run workflow** on `main`.
+GitHub CI (`.github/workflows/ci.yml`) is manual-only. Run the launcher typecheck, unit tests and
+packaging commands locally before pushing; use Actions > **CI** > **Run workflow** when a hosted run
+is needed. The launcher release workflow builds and tests Windows and Linux packages, keeps the
+artifacts for a week, and publishes `launcher-v<version>` with one combined `SHA256SUMS.txt`, build
+provenance for every listed file and a tag at the commit that was built. To release, raise the version
+and run Actions > **Launcher release** > **Run workflow** on `1.10.5`.
 
 After publishing, the release workflow points the rolling `launcher-updates` release at the new
 Windows Squirrel package. Launcher 1.0.4+ checks at startup, every five minutes while idle, and when its window regains focus (at most once per minute). Checks pause during gameplay or file tasks; an update never forces a restart during a game. Linux updates are accepted only when the downloaded artifact matches both its release `SHA256SUMS-LINUX.txt` entry and its published byte count; the launcher fails closed before replacing an AppImage or invoking a package manager. Linux users update through
@@ -204,6 +199,11 @@ GitHub prerelease and never reaches `launcher-updates`. If a run fails halfway, 
 jobs: it finishes what it started. Running the workflow for a version that is published already only
 brings the Windows update feed up to it. Keep GitHub's immutable releases setting off, because
 `launcher-updates` is updated in place.
+
+The `launcher-news` workflow adds the release to the in-launcher news feed automatically. The
+`launcher-discord` workflow refreshes the public download announcement after a successful release
+workflow. Linux packages are updated by installing a newer package or replacing the AppImage or
+portable archive; they do not use the Windows Squirrel feed.
 
 ## License
 

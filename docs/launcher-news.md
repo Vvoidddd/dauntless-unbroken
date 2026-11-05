@@ -1,7 +1,11 @@
 # Publishing launcher news
 
-Edit `news.json` on the repository's `launcher-news` branch. Publish reviewed, player-facing text only; omit account identifiers, credentials, infrastructure details and internal logs.
-The Launcher news workflow also posts main-branch commit subjects and final launcher release notes automatically. Commit subjects must be safe for players to read. Push entries describe source changes; release entries announce downloadable builds. Drafts, prereleases and news-branch updates are excluded.
+Edit `news.json` on the repository's `launcher-news` branch only for reviewed, player-facing posts;
+omit account identifiers, credentials, infrastructure details and internal logs. The public launcher
+news workflow also adds safe source-change subjects and final launcher release notes automatically.
+Push entries describe source changes; release entries announce downloadable builds. Drafts, prereleases
+and news-branch updates are excluded. The workflow retries the GitHub release lookup briefly because
+GitHub can expose a published release a moment after the release event fires.
 
 ```json
 {"items":[{"date":"2026-10-02T20:10:00Z","title":"Server update","body":"Describe the changes players can use."}]}
@@ -11,4 +15,8 @@ Set `CONTENT_NEWS_URL` in the content server environment to `https://raw.githubu
 
 The content server checks GitHub at most once per minute, uses conditional requests, and retains the last successful feed if GitHub fails or the document is invalid. Documents are limited to 1 MB and 50 displayed posts. Titles and bodies are plain text. Entries appear newest first by date.
 
-Connected launchers refresh news at most once per minute during status polling. Allow for both refresh intervals and GitHub caching before expecting a new post. Older launchers pick up news when reconnecting.
+Connected launchers refresh news at most once per minute during status polling. Allow for both refresh
+intervals and GitHub caching before expecting a new post. Older launchers pick up news when reconnecting.
+
+The current public launcher release is
+[Launcher 1.0.57](https://github.com/Vvoidddd/dauntless-unbroken/releases/tag/launcher-v1.0.57).

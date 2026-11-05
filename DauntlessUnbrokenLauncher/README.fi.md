@@ -121,18 +121,12 @@ AA -vaatimusta.
 
 ## Julkaisut ja päivitykset
 
-CI (`.github/workflows/ci.yml`) kääntää ja testaa käynnistimen Windowsissa ja Linuxissa jokaisen
-pushin yhteydessä. Windows-asennusohjelma/ZIP sekä Linuxin AppImage/DEB/RPM/ZIP säilytetään viikon
-ajan. `.github/workflows/launcher-release.yml` julkaisee nämä samat testatut tiedostot
-`main`-haarasta GitHub-julkaisuna `launcher-v<versio>`, yhdellä
-`SHA256SUMS.txt`-tiedostolla ja käännöstodistuksella (build provenance attestation), ja luo tagin
-käännettyyn committiin. Uusi julkaisu syntyy siis nostamalla versiota:
-
-- oletuksena `main`-haaran push, joka läpäisee kaikki tarkistukset ja jonka versiolla ei
-  ole vielä `launcher-v<versio>`-julkaisua, julkaisee CI:n kääntämän asennusohjelman. Tauon saat
-  asettamalla repositorion muuttujan `LAUNCHER_AUTO_RELEASE` arvoon `false` (Settings > Secrets and
-  variables > Actions > Variables);
-- tai aja Actions > **Launcher release** > **Run workflow** `main`-haaralle.
+GitHub CI (`.github/workflows/ci.yml`) on manuaalinen. Aja käynnistimen tyyppitarkistus, testit ja
+paketointi paikallisesti ennen pushia; käytä Actions > **CI** > **Run workflow** -toimintoa, kun
+tarvitset isännöidyn ajon. Julkaisutyönkulku kääntää ja testaa Windows- ja Linux-paketit, säilyttää
+artefaktit viikon ja julkaisee `launcher-v<versio>`-julkaisun yhdellä `SHA256SUMS.txt`-tiedostolla,
+koontitodistuksella (build provenance) ja käännettyyn committiin osoittavalla tagilla. Nosta versiota
+ja aja sitten Actions > **Launcher release** > **Run workflow** haaralle `1.10.5`.
 
 Julkaisun jälkeen työnkulku siirtää jatkuvan `launcher-updates`-julkaisun uuden Windowsin
 Squirrel-paketin kohdalle. Versio 1.0.4+ tarkistaa päivitykset käynnistyessä, viiden minuutin välein ja ikkunaan palatessa (enintään kerran minuutissa). Tarkistukset odottavat pelin tai tiedostotehtävän päättymistä. Linuxissa
@@ -143,6 +137,10 @@ Jos ajo epäonnistuu kesken, aja sen epäonnistuneet työt uudelleen: se viimeis
 julkaistulle versiolle ajettu työnkulku vain päivittää Windowsin päivityssyötteen siihen. Pidä
 GitHubin muuttumattomat julkaisut (immutable releases) pois päältä, koska `launcher-updates`-julkaisua
 päivitetään paikallaan.
+
+`launcher-news` lisää julkaisun käynnistimen uutisvirtaan automaattisesti. `launcher-discord` päivittää
+julkisen latausilmoituksen onnistuneen julkaisutyönkulun jälkeen. Linux päivitetään asentamalla uusi
+paketti tai vaihtamalla AppImage/siirrettävä arkisto; se ei käytä Windowsin Squirrel-syötettä.
 
 ## Lisenssi
 
