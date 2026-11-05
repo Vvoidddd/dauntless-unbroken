@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "ClientStartupGate.h"
 #include "DataTables.h"
 #include "NativeDiagnostics.h"
 #include "SDK.hpp"
@@ -101,6 +102,9 @@ inline bool Patch(SDK::UDataTable* DataTable) {
 // Call from a game-thread tick. Cheap after the first patch: it only re-checks every few seconds
 // that the table object and the patched dates are still in place (re-patches if the table reloads).
 inline void Tick() {
+    if (!ClientStartupGate::WorldReady(SDK::UWorld::GetWorld()))
+        return;
+
     const auto Now = std::chrono::steady_clock::now();
     if (Now < NextCheck)
         return;
