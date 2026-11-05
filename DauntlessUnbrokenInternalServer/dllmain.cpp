@@ -30,6 +30,7 @@
 #include "MinHook/MinHook.h"
 #include "constants.h"
 #include "Networking.h"
+#include "ClientStartupGate.h"
 #include "FallRecovery.h"
 #include "TrialsSchedule.h"
 #include "AutoPressStart.h"
@@ -376,6 +377,9 @@ __declspec(dllexport) const char* DummyLinkFunc() {
     return "mrow :3";
 }
 
+void InitClientHooks();
+static bool ClientHooksInstalled = false;
+
 void MainThread() {
     while (!UWorld::GetWorld()) {
         if (Globals::AmServer) {
@@ -399,6 +403,11 @@ void MainThread() {
 
         if (Globals::EnableLogging)
         std::cout << "Spawned UConsole!" << std::endl;
+
+        if (ClientStartupGate::ShouldInstallClientHooks(UWorld::GetWorld(), ClientHooksInstalled)) {
+            InitClientHooks();
+            ClientHooksInstalled = true;
+        }
     }
     else {
         if (Globals::EnableLogging)
@@ -1415,7 +1424,6 @@ void Init() {
             return 0;
         }, nullptr, 0, nullptr);
         if (BrandingThread) CloseHandle(BrandingThread);
-        InitClientHooks();
     }
 
     DWORD threadId;
