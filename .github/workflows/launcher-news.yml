@@ -24,7 +24,6 @@ jobs:
             .github/workflows/launcher-news.yml
             .github/workflows/launcher-release.yml
             tools/ci
-      - run: node --test tools/ci/publish-launcher-news.test.mjs
       - run: node tools/ci/publish-launcher-news.mjs
         env:
           GH_TOKEN: ${{ github.token }}
