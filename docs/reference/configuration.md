@@ -659,7 +659,7 @@ its own.
 
 | Name | Kind | Default | Values | What it does | Set by |
 |:-----|:-----|:--------|:-------|:-------------|:-------|
-| `LAUNCHER_AUTO_RELEASE` | Repository variable (Settings > Secrets and variables > Actions > Variables), read by `ci.yml` | unset: on | `false` pauses automatic releases; unset, they are on | Automatic launcher releases: a push to `dauntless-unbroken` that passes every check, is still the head of the branch, and has a launcher version with no `launcher-v<version>` release yet publishes that launcher ([Launcher releases]({{ dev_page.url | relative_url }}#launcher-releases)). Only the repository `Vvoidddd/dauntless-unbroken` publishes automatically. While it is `false`, Actions > **Launcher release** > **Run workflow** still publishes by hand. | The repository owner |
+| `LAUNCHER_AUTO_RELEASE` | Legacy repository variable (Settings > Secrets and variables > Actions > Variables), read by the old push-release branch of `ci.yml` | unset | The regular CI workflow is manual-only, so this variable does not enable push-triggered releases. Run Actions > **Launcher release** > **Run workflow** to publish a release; an existing release can be used to repair `launcher-updates`. | The repository owner |
 
 The workflows need no secrets of their own: they use the token GitHub gives every run, with write
 access only in the jobs that publish a release. Code scanning with CodeQL is the repository's default

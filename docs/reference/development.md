@@ -57,10 +57,10 @@ in [Ports and network]({{ ports_page.url | relative_url }}).
 New-Item -ItemType Directory -Force C:\dr | Out-Null
 git -c core.longpaths=true clone https://github.com/Vvoidddd/dauntless-unbroken.git C:\dr\dauntless-unbroken
 git -C C:\dr\dauntless-unbroken config core.longpaths true
-git -C C:\dr\dauntless-unbroken checkout main
+git -C C:\dr\dauntless-unbroken checkout 1.10.5
 ```
 
-`main` is the default branch: pull requests go to it, and the docs site is published
+`1.10.5` is the release branch: pull requests go to it, and the docs site is published
 from its `docs/` folder. Keep the clone at a short path: the server DLL's generated SDK alone has over
 4,000 files, and a clone into a deeply nested folder has failed with "Filename too long"
 ([Troubleshooting]({{ trouble_page.url | relative_url }}#git-filename-too-long)).
@@ -420,9 +420,9 @@ change. The DLL works only with the 1.4.4 exe
 
 ## What CI checks {#ci}
 
-The workflow `.github/workflows/ci.yml` runs on every push to any branch, on every pull request and by
-hand (Actions > **CI** > **Run workflow**). Its jobs run the same commands you can run yourself from
-this page:
+The workflow `.github/workflows/ci.yml` is manual-only (Actions > **CI** > **Run workflow**). Its jobs
+run the same commands you can run yourself from this page. Run the affected checks locally before
+pushing; a hosted CI run is an explicit verification step, not a push or pull-request gate:
 
 | Job | What it runs | Runner |
 |---|---|---|
@@ -446,27 +446,23 @@ each npm package monthly.
 ### Launcher releases {#launcher-releases}
 
 A launcher release is the GitHub release `launcher-v<version>` for the version in
-`DauntlessUnbrokenLauncher/package.json`, published from `dauntless-unbroken` only. Installed launchers update
-to it. To release, raise that version. Then:
+`DauntlessUnbrokenLauncher/package.json`, published from `1.10.5` only. Installed launchers update
+to it. After local checks pass, run Actions > **Launcher release** > **Run workflow** on `1.10.5`.
+The workflow builds and tests Windows and Linux packages when the version has no release, publishes
+the versioned release, updates the rolling `launcher-updates` feed and creates build provenance. If
+the versioned release already exists, it only repairs the rolling feed. Re-run failed jobs if a
+publication is interrupted.
 
-- **Automatically (on by default).** When a push to `dauntless-unbroken` passes every job above, is
-  still the head of the branch, and its launcher version has no `launcher-v<version>` release yet, CI
-  publishes the installer it built and tested in that run, through
-  `.github/workflows/launcher-release.yml`. This happens only in the repository
-  `Vvoidddd/dauntless-unbroken`, not in an external repository. To pause it, set the repository variable
-  `LAUNCHER_AUTO_RELEASE` to `false`
-  ([Configuration]({{ config_page.url | relative_url }}#ci-settings)).
-- **By hand.** Actions > **Launcher release** > **Run workflow** on `dauntless-unbroken` builds that
-  commit and publishes its version. This works while automatic releases are paused too. For a version
-  that is published already, it only brings the self-update feed (the `launcher-updates` release) up
-  to it.
+The `launcher-news` workflow remains automatic on public-branch pushes and published releases. The
+`launcher-discord` workflow refreshes the public download announcement after a successful release
+workflow. These publishers are guarded to the public repository and do not run in the private copy.
 
 A version is published only if it is newer than every earlier one, and it is never replaced. A
 prerelease version (such as `0.2.0-beta.1`) becomes a GitHub prerelease that installed launchers do
 not update to. The details are in the "Checks" section of
-[CONTRIBUTING.md]({{ site.github.repository_url }}/blob/main/CONTRIBUTING.md) and in
+[CONTRIBUTING.md]({{ site.github.repository_url }}/blob/1.10.5/CONTRIBUTING.md) and in
 "Releases and updates" in
-[DauntlessUnbrokenLauncher/README.md]({{ site.github.repository_url }}/blob/main/DauntlessUnbrokenLauncher/README.md).
+[DauntlessUnbrokenLauncher/README.md]({{ site.github.repository_url }}/blob/1.10.5/DauntlessUnbrokenLauncher/README.md).
 
 ---
 

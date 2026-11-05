@@ -20,7 +20,8 @@ Existing Unbroken 1.4.4 players can use their saved account key. The server impo
 - Weekly Rams shop rotation, the once-per-account Void creator reward and Granny Strega crafting/purchases.
 - Fair matchmaking queues, resource admission and idle hunt cleanup.
 - Moderation, health monitoring, Discord key distribution and operator tooling.
-- Windows installer and portable ZIP, plus a native Linux AppImage. Steam Deck support is still being tested.
+- Windows installer and portable ZIP, plus native Linux AppImage, DEB, RPM and portable archives.
+  Linux runs the pinned Windows client through an installed Proton or Wine runtime.
 
 ## Host or develop
 
@@ -36,7 +37,11 @@ Start with [how the server works](docs/server.md), the [Windows installation gui
 | Launcher | `DauntlessUnbrokenLauncher` |
 | Discord key bot | `DauntlessUnbrokenDiscordBot` |
 
-CI builds and tests the services, native integration, launcher, server kit, Linux/OpenBSD ports and documentation. Launcher releases use the version in `DauntlessUnbrokenLauncher/package.json` after required checks pass.
+GitHub CI is manual-only. Run the affected checks locally before pushing; use Actions > **CI** >
+**Run workflow** when a hosted run is needed. Launcher releases use the version in
+`DauntlessUnbrokenLauncher/package.json` and are published from the **Launcher release** workflow.
+Launcher news and the Discord download feed update automatically after public branch changes and
+published releases.
 
 ## Legal
 

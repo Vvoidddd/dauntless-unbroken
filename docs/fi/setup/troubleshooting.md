@@ -54,6 +54,132 @@ Portti on numeroitu ”ovi”, jonka kautta ohjelmat ottavat yhteyttä toisiinsa
 
 Jokainen lokitiedosto, sen muoto ja kierrätys: [Tiedostot ja data]({{ files_page.url | relative_url }}#logs).
 
+## Dauntless Crash Reporter näyttää `EXCEPTION_ACCESS_VIOLATION` {#dauntless-crash-reporter}
+
+**Mitä se tarkoittaa.** Kuvakaappaus on pelin Unreal-kaatumisilmoitus. Se kertoo, että
+`Dauntless_Win64_Shipping` päättyi virheeseen lukiessaan virheellistä muistiosoitetta, mutta ei kerro,
+aiheuttiko sen pelin järjestelmä, ajuri vai ajonaikainen ympäristö. Pelkkä osoite ei ole diagnoosi.
+
+**Ennen uutta yritystä:**
+
+1. Sulje ilmoitus ja peli. Älä poista käynnistintä, pelihakemistoa tai asetuksia, kun keräät tietoja.
+2. Päivitä nykyiseen [1.0.57-käynnistimeen](https://github.com/Vvoidddd/dauntless-unbroken/releases/tag/launcher-v1.0.57)
+   ja käytä sen pelitiedostojen tarkistus- tai korjaustoimintoa ennen uutta käynnistystä.
+3. Jos peli kaatuu uudelleen, valitse käynnistimestä **Asetukset → Tukidiagnostiikka → Vie diagnostiikka**.
+   Raportti on rajattu ja siitä poistetaan tiliavaimet, tunnukset ja paikalliset polut.
+4. Säilytä uusin kansio kansiosta `%LOCALAPPDATA%\Archon\Saved\Crashes\` sekä käynnistimen loki
+   `%APPDATA%\Dauntless Unbroken Launcher\logs\launcher.log`. Tukea varten kerro kaatumisen aika,
+   mitä tapahtui juuri ennen sitä, Windowsin ja näytönohjaimen ajuriversiot sekä käynnistettiinkö peli
+   Steamistä, Protonin/Winen kautta vai Windows-käynnistimestä.
+
+Linuxissa liitä myös käynnistimen diagnostiikan tarjoama rajattu Proton-yhteensopivuusloki ja ajoajan
+tuloste. Älä lähetä koko Electronin käyttäjätietokansiota, varmuuskopioita tai pelihakemistoa.
+Kaatumiskansio ja lokit ovat tutkinnan aineistoa; ne eivät yksin todista käynnistimen aiheuttaneen
+kaatumista.
+
+## Käynnistimen nopea vianmääritys {#quick-launcher-triage}
+
+Tee nämä tässä järjestyksessä ennen tiedostojen poistamista tai uudelleenasennusta:
+
+1. Kirjaa käynnistimen versio, käyttöjärjestelmä, käytetäänkö Steamia ja tarkka toiminto, joka
+   epäonnistui.
+2. Sulje peli, mutta pidä käynnistin auki pelin aikana. Julkisessa tilassa peli käyttää käynnistimen
+   paikallista välitintä HTTP- ja WebSocket-liikenteeseen.
+3. Avaa **Asetukset → Tukidiagnostiikka**. **Avaa lokikansio** näyttää lokit ja **Vie diagnostiikka**
+   tekee rajatun raportin. Älä lähetä tiliavaimia, varmuuskopioita tai koko käyttäjätietokansiota.
+4. Jos ongelma liittyy lataukseen tai pelitiedostoihin, aja käynnistimen tarkistus/korjaus ennen
+   ajonaikaisen ympäristön tai grafiikka-asetusten vaihtamista.
+
+## Käynnistin ei avaudu {#launcher-will-not-open}
+
+Windowsissa lataa tiedosto uudelleen [1.0.57-julkaisusta](https://github.com/Vvoidddd/dauntless-unbroken/releases/tag/launcher-v1.0.57),
+tarkista `SHA256SUMS.txt` ja käytä vahvistetun tiedoston ominaisuuksissa **Unblock**-toimintoa, jos
+Windows pitää sitä estettynä. Älä poista SmartScreeniä käytöstä.
+
+Jos ikkuna välähtää ja sulkeutuu, kokeile käynnistimen `--safe-mode`-tilaa ja säilytä loki ennen kuin
+poistat käyttäjätiedot. Linuxissa tee AppImagesta suoritettava:
+
+```bash
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+```
+
+NixOS:ssa käytä `appimage-run`-komentoa. Jos AppImage/FUSE ei toimi, käytä siirrettävää tarballia.
+
+## Asennus tai päivitys ei käynnisty {#installer-or-update-refuses}
+
+Käytä käyttöjärjestelmän ja arkkitehtuurin mukaista pakettia ja tarkista tarkistussumma:
+
+```bash
+sha256sum -c SHA256SUMS.txt --ignore-missing
+```
+
+Windowsin asennetut käynnistimet käyttävät jatkuvaa `launcher-updates`-syötettä. Linux ei käytä tätä
+Windows-syötettä: asenna uusi DEB/RPM tai vaihda AppImage/siirrettävä arkisto.
+
+## Kutsu ei liity tai palvelin puuttuu {#invite-does-not-join}
+
+- Kopioi koko `dauntless-unbroken://join?...`-linkki. Älä poista sen parametreja.
+- Public/v2 tarvitsee kutsun palvelinosoitteen ja varmenteen sormenjäljen. Private/v1 tarvitsee
+  Tailscalen tai paikallisen testiosoitteen.
+- Varmenteen ristiriita on pysäytysehto. Pyydä isännältä uusi kutsu tai vahvista hänen tekemänsä
+  varmenteen vaihto; älä ohita tarkistusta.
+- Huoltotilassa käynnistin voi näyttää tilan, mutta ei saa käynnistää peliä. Odota ja yritä uudelleen.
+- Julkisessa tilassa pidä käynnistin auki JOIN-toiminnosta PLAY-toimintoon. Peli käyttää paikallista
+  välitintä osoitteessa `127.0.0.1:61000`.
+
+## Rekisteröinti tai kirjautuminen epäonnistuu {#registration-or-sign-in-fails}
+
+Tarkista, että kutsu kuuluu oikealle palvelimelle. Tiliavaimet ovat realm-kohtaisia. Jos varmuuskopio
+ei syntynyt, käytä **Save key backup**- tai **Asetukset → Tili → Etsi olemassa oleva varmuuskopio**
+-toimintoa. Älä julkaise avainta tai bearer-tunnusta tukipyynnössä.
+
+Linuxissa puuttuva työpöydän avainrengas voi estää salatun paikallistallennuksen. Asenna Secret
+Service/KWallet-palvelu tai salli paketin asentaa sen riippuvuus ja yritä uudelleen.
+
+## Pelitiedostot puuttuvat tai ovat väärässä kansiossa {#game-files-missing-or-corrupt}
+
+Tuetussa kansiossa on `Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe`. Vahvista löydetty kansio
+ennen tarkistusta. Käynnistin tarkistaa koon ja SHA-256:n, joten samankokoinen muokattu tiedosto ei
+kelpaa. Älä kopioi DLL-tiedostoja toisesta rakennuksesta. Jos sama tiedosto epäonnistuu toistuvasti,
+vie diagnostiikka ja kirjaa tiedoston nimi sekä HTTP-tila.
+
+## PLAY sulkeutuu tai peli-ikkuna ei näy {#play-closes-or-no-window}
+
+Windowsissa päivitä käynnistin, tarkista Visual C++ -ajonaikainen kirjasto ja näytönohjaimen ajuri
+sekä kokeile ilman ulkopuolisia DLL-injektoreita tai overlayta. Linuxissa tarvitaan Steam Proton,
+Proton-GE, Wine tai Lutris Wine. Muuhun sijaintiin asennetun ympäristön voi testata muuttujilla
+`DAUNTLESS_UNBROKEN_PROTON` tai `DAUNTLESS_UNBROKEN_WINE`.
+
+Vaihda yksi asia kerrallaan ja kerää ajoajan tuloste sekä `launcher.log`.
+
+## Peli pääsee otsikkoruudulle, mutta yhteys ei toimi {#title-screen-cannot-connect}
+
+`certificate mismatch` tarkoittaa, että kutsu ja palvelimen identiteetti eivät täsmää. `upstream
+unreachable`, välitinportin varausvirhe tai aikakatkaisu viittaa paikalliseen välittimeen tai
+saavuttamattomaan isäntään. Tarkista portin `61000` omistaja ja private-kutsussa Tailscale-yhteys:
+
+```bash
+tailscale status
+tailscale ping <host-name-or-100.x.y.z>
+```
+
+Älä vaihda palvelimen salaisuuksia tai lähetä julkista kutsukoodia tukipyyntöön.
+
+## Kaverit, chat tai party eivät päivity {#friends-chat-parties}
+
+Päivitä tila kerran ja tarkista, koskeeko ongelma vain läsnäoloa vai myös kirjautumista. Jos chat
+epäonnistuu yksin, kerää palvelimen ensimmäinen `chat:`-rivi ja tapahtuma-aika. Älä käynnistä
+palvelinta toistuvasti pelaajien ollessa sisällä; ylläpitäjä tarkistaa ensin lokit ja [chat-ohjeen]({{ chat_page.url | relative_url }}).
+
+## Mitä tukipyynnössä tarvitaan {#what-to-send-support}
+
+Lähetä käynnistimen versio, käyttöjärjestelmä, tarkka toiminto ja aika, kutsun public/private-tyyppi,
+ensimmäinen virheilmoitus, rajattu diagnostiikkaraportti ja pelin kaatumisessa uusin crash-kansio.
+Poista tiliavaimet, varmuuskopiot, bearer-tunnukset, webhook-osoitteet, yksityiset kutsukoodit,
+tietokannat, koko pelihakemisto ja tarpeettomat henkilökohtaiset polut. Poikkeusosoite ei yksin kerro
+kaatumisen syytä.
+
 1.4.4:n shipping-peliohjelma ei kirjoita omaa pelilokitiedostoa. `Saved\Logs` sisältää vain pelin
 sisäisen selaimen lokit. Näin luet metagamen lokia tavallisena tekstinä:
 

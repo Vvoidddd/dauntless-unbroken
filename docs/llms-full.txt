@@ -703,7 +703,7 @@ its own.
 
 | Name | Kind | Default | Values | What it does | Set by |
 |:-----|:-----|:--------|:-------|:-------------|:-------|
-| `LAUNCHER_AUTO_RELEASE` | Repository variable (Settings > Secrets and variables > Actions > Variables), read by `ci.yml` | unset: on | `false` pauses automatic releases; unset, they are on | Automatic launcher releases: a push to `dauntless-unbroken` that passes every check, is still the head of the branch, and has a launcher version with no `launcher-v<version>` release yet publishes that launcher ([Launcher releases](https://vvoidddd.github.io/dauntless-unbroken/reference/development.html#launcher-releases)). Only the repository `Vvoidddd/dauntless-unbroken` publishes automatically. While it is `false`, Actions > **Launcher release** > **Run workflow** still publishes by hand. | The repository owner |
+| `LAUNCHER_AUTO_RELEASE` | Legacy repository variable (Settings > Secrets and variables > Actions > Variables), read by the old push-release branch of `ci.yml` | unset | The regular CI workflow is manual-only, so this variable does not enable push-triggered releases. Run Actions > **Launcher release** > **Run workflow** to publish a release; an existing release can be used to repair `launcher-updates`. | The repository owner |
 
 The workflows need no secrets of their own: they use the token GitHub gives every run, with write
 access only in the jobs that publish a release. Code scanning with CodeQL is the repository's default
@@ -4558,10 +4558,10 @@ in [Ports and network](https://vvoidddd.github.io/dauntless-unbroken/reference/p
 New-Item -ItemType Directory -Force C:\dr | Out-Null
 git -c core.longpaths=true clone https://github.com/Vvoidddd/dauntless-unbroken.git C:\dr\dauntless-unbroken
 git -C C:\dr\dauntless-unbroken config core.longpaths true
-git -C C:\dr\dauntless-unbroken checkout main
+git -C C:\dr\dauntless-unbroken checkout 1.10.5
 ```
 
-`main` is the default branch: pull requests go to it, and the docs site is published
+`1.10.5` is the release branch: pull requests go to it, and the docs site is published
 from its `docs/` folder. Keep the clone at a short path: the server DLL's generated SDK alone has over
 4,000 files, and a clone into a deeply nested folder has failed with "Filename too long"
 ([Troubleshooting](https://vvoidddd.github.io/dauntless-unbroken/setup/troubleshooting.html#git-filename-too-long)).
@@ -4921,9 +4921,9 @@ change. The DLL works only with the 1.4.4 exe
 
 ## What CI checks
 
-The workflow `.github/workflows/ci.yml` runs on every push to any branch, on every pull request and by
-hand (Actions > **CI** > **Run workflow**). Its jobs run the same commands you can run yourself from
-this page:
+The workflow `.github/workflows/ci.yml` is manual-only (Actions > **CI** > **Run workflow**). Its jobs
+run the same commands you can run yourself from this page. Run the affected checks locally before
+pushing; a hosted CI run is an explicit verification step, not a push or pull-request gate:
 
 | Job | What it runs | Runner |
 |---|---|---|
@@ -4947,27 +4947,23 @@ each npm package monthly.
 ### Launcher releases
 
 A launcher release is the GitHub release `launcher-v<version>` for the version in
-`DauntlessUnbrokenLauncher/package.json`, published from `dauntless-unbroken` only. Installed launchers update
-to it. To release, raise that version. Then:
+`DauntlessUnbrokenLauncher/package.json`, published from `1.10.5` only. Installed launchers update
+to it. After local checks pass, run Actions > **Launcher release** > **Run workflow** on `1.10.5`.
+The workflow builds and tests Windows and Linux packages when the version has no release, publishes
+the versioned release, updates the rolling `launcher-updates` feed and creates build provenance. If
+the versioned release already exists, it only repairs the rolling feed. Re-run failed jobs if a
+publication is interrupted.
 
-- **Automatically (on by default).** When a push to `dauntless-unbroken` passes every job above, is
-  still the head of the branch, and its launcher version has no `launcher-v<version>` release yet, CI
-  publishes the installer it built and tested in that run, through
-  `.github/workflows/launcher-release.yml`. This happens only in the repository
-  `Vvoidddd/dauntless-unbroken`, not in an external repository. To pause it, set the repository variable
-  `LAUNCHER_AUTO_RELEASE` to `false`
-  ([Configuration](https://vvoidddd.github.io/dauntless-unbroken/reference/configuration.html#ci-settings)).
-- **By hand.** Actions > **Launcher release** > **Run workflow** on `dauntless-unbroken` builds that
-  commit and publishes its version. This works while automatic releases are paused too. For a version
-  that is published already, it only brings the self-update feed (the `launcher-updates` release) up
-  to it.
+The `launcher-news` workflow remains automatic on public-branch pushes and published releases. The
+`launcher-discord` workflow refreshes the public download announcement after a successful release
+workflow. These publishers are guarded to the public repository and do not run in the private copy.
 
 A version is published only if it is newer than every earlier one, and it is never replaced. A
 prerelease version (such as `0.2.0-beta.1`) becomes a GitHub prerelease that installed launchers do
 not update to. The details are in the "Checks" section of
-[CONTRIBUTING.md](https://github.com/Vvoidddd/dauntless-unbroken/blob/main/CONTRIBUTING.md) and in
+[CONTRIBUTING.md](https://github.com/Vvoidddd/dauntless-unbroken/blob/1.10.5/CONTRIBUTING.md) and in
 "Releases and updates" in
-[DauntlessUnbrokenLauncher/README.md](https://github.com/Vvoidddd/dauntless-unbroken/blob/main/DauntlessUnbrokenLauncher/README.md).
+[DauntlessUnbrokenLauncher/README.md](https://github.com/Vvoidddd/dauntless-unbroken/blob/1.10.5/DauntlessUnbrokenLauncher/README.md).
 
 ---
 
@@ -14714,6 +14710,191 @@ setup itself is in [Host a server](https://vvoidddd.github.io/dauntless-unbroken
 | `%APPDATA%\Dauntless Unbroken Launcher\logs\launcher.log` | The friend launcher: joins, connection problems, downloads and the game's command line (with the key hidden). |
 
 Every log file, its format and how it is rotated: [Files and data](https://vvoidddd.github.io/dauntless-unbroken/reference/files.html#logs).
+
+## The Dauntless Crash Reporter shows `EXCEPTION_ACCESS_VIOLATION`
+
+**What it means.** The screenshot belongs to the game's Unreal crash reporter. It identifies
+`Dauntless_Win64_Shipping` and an invalid memory access, but it does not identify which game system,
+driver or runtime caused it. Do not treat the exception address alone as a diagnosis.
+
+**Before trying again:**
+
+1. Close the crash reporter and the game. Leave the launcher installed and do not delete the game
+   folder or its configuration while collecting evidence.
+2. Update to the current launcher release, [1.0.57](https://github.com/Vvoidddd/dauntless-unbroken/releases/tag/launcher-v1.0.57),
+   then use its game-file verification or repair flow before starting the game again.
+3. If it crashes again, use **Settings → Support diagnostics → Export diagnostics** in the launcher.
+   The report is bounded and redacts account keys, tokens and local paths.
+4. Keep the newest folder under `%LOCALAPPDATA%\Archon\Saved\Crashes\` and the launcher log at
+   `%APPDATA%\Dauntless Unbroken Launcher\logs\launcher.log`. If you contact support, include the
+   time of the crash, what happened immediately before it, Windows/GPU driver versions and whether
+   the game was started through Steam, Proton/Wine or the Windows launcher.
+
+On Linux, also include the bounded Proton compatibility log and runtime output offered by launcher
+diagnostics. Do not upload the whole Electron user-data directory, account backups or game folder.
+The crash folder and logs are evidence for diagnosis; they do not by themselves prove that the
+launcher caused the crash.
+
+## Quick launcher triage
+
+Use this order before changing files or reinstalling anything:
+
+1. Write down the launcher version, operating system, whether the game is installed through Steam,
+   and the exact action that failed.
+2. Fully close the game. Leave the launcher open while the game is running; public mode uses its local
+   relay for the game's HTTP and WebSocket traffic.
+3. Open **Settings → Support diagnostics**. Use **Open log folder** to inspect the logs and
+   **Export diagnostics** when you need a bounded report. Do not send account backups, keys or the
+   complete user-data folder.
+4. If the failure is a download or game-file error, run the launcher's verify/repair flow before
+   changing the runtime, graphics settings or server configuration.
+5. Retry once after recording the result. Repeating the same action without a new log usually adds no
+   evidence.
+
+## The launcher will not open
+
+**Windows:** If SmartScreen blocks the installer, download it again from the
+[1.0.57 release](https://github.com/Vvoidddd/dauntless-unbroken/releases/tag/launcher-v1.0.57),
+check `SHA256SUMS.txt`, then use the file's Properties → **Unblock** if Windows still marks the
+verified file as blocked. Do not disable SmartScreen globally.
+
+If the launcher flashes and closes, start it once from its shortcut with `--safe-mode` or use the
+launcher support log if the window stays open. The useful files are the rotating launcher log and the
+Windows application error entry, not a screenshot of the desktop alone. Do not delete the launcher
+user-data folder before exporting diagnostics; it can contain the only copy of the failure log.
+
+**Linux:** Confirm that the AppImage is executable and that the desktop session can start Electron:
+
+```bash
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+```
+
+On NixOS, use `appimage-run`; if AppImage/FUSE is unavailable, use the portable tarball. For a
+packaged install, run the launcher from the application menu and collect its support diagnostics.
+
+## The installer or update refuses to run
+
+Download the package for the operating system and architecture you are using. Do not run an AppImage
+on an ARM64 machine or install a DEB with an RPM package manager. Check the release checksum before
+trying again:
+
+```bash
+sha256sum -c SHA256SUMS.txt --ignore-missing
+```
+
+Windows installed launchers use the rolling `launcher-updates` feed. If an update is offered while a
+game, download or file operation is active, the launcher waits rather than replacing files in use.
+Close the game and retry. Linux does not use that Windows feed: install the new DEB or RPM, replace
+the AppImage, or replace the portable archive. A failed staged update should leave the previous
+launcher in place; keep its log and the checksum result if it does not.
+
+## The invite does not join or the server is missing
+
+- Copy the complete `dauntless-unbroken://join?...` link. Do not remove its query parameters or paste
+  it through a service that rewrites URLs.
+- Public/v2 invites need a reachable server address and the certificate fingerprint in the invite.
+  Private/v1 invites need Tailscale or a loopback test address. A private invite is not a substitute
+  for a public one.
+- If the launcher says the certificate does not match, stop. Do not accept a changed fingerprint
+  unless the host has explicitly rebuilt or replaced its server certificate.
+- If the server is in maintenance, the launcher may show status but must not start a game session.
+  Wait for the host to clear maintenance and retry; do not delete the local account or game files.
+- If a saved server is stale, remove that saved connection and join again with a fresh invite. This
+  does not delete the account key belonging to another saved server.
+
+For a public server, keep the launcher running from **JOIN** through **PLAY**. The game talks to the
+local relay on `127.0.0.1:61000`; the relay carries the traffic over the invite's pinned TLS
+connection. A relay that stops with zero requests means the game never reached the networking stage.
+
+## Registration or sign-in fails
+
+- Confirm that the invite belongs to the server you intend to use. Account keys are tied to their
+  realm; a key from another realm cannot sign in here.
+- Check the launcher log for the first failed request, not the final generic error. Do not paste keys,
+  bearer tokens or the complete invite into a public issue.
+- If a new account registered but the key backup was not saved, use **Save key backup** or
+  **Settings → Account → Locate existing backup** before trying registration again.
+- If secure storage is unavailable, keep the launcher open and use the explicit backup/export flow;
+  never put the key in a text issue or chat message.
+- On Linux, a missing desktop keyring can prevent encrypted local storage. Install the desktop Secret
+  Service/KWallet provider or allow the packaged launcher to install its supported dependency, then
+  retry. The key backup remains a separate readable recovery file.
+
+## Game files are missing, corrupt or in the wrong folder
+
+The supported client contains `Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe`. Use the launcher
+to select the folder and confirm it before verification. It checks the pinned manifest by file size
+and SHA-256, so a same-size modified file is still rejected.
+
+- If the launcher discovers an installation, do not confirm it until the displayed folder is the one
+  you want to use.
+- For an unusual location, choose **I already have the game files** and select the game folder or its
+  `Win64` folder as requested by the launcher.
+- Let a failed download resume before deleting partial files. If the same file fails repeatedly,
+  export diagnostics and record the filename, HTTP status and whether the host's content service is
+  reachable.
+- Do not copy DLLs from another build. The launcher checks its pinned native files before copying and
+  before launch.
+
+## PLAY closes immediately or no game window appears
+
+First confirm that the launcher reached the launch step in `launcher.log` and that the selected game
+folder contains the supported executable. Then check the platform-specific runtime:
+
+- **Windows:** update the launcher, confirm the Visual C++ runtime and graphics drivers are present,
+  and retry without third-party DLL injectors or overlays. Do not replace the pinned game DLLs with
+  files from another installation.
+- **Linux:** the Windows client needs Steam Proton, Proton-GE, Wine or Lutris Wine. The launcher
+  searches native Steam and Flatpak Steam locations, then `wine64`/`wine`, then Lutris Wine. If a
+  runtime is installed elsewhere, set `DAUNTLESS_UNBROKEN_PROTON` or `DAUNTLESS_UNBROKEN_WINE` to
+  the executable/script for one test.
+- **Steam Deck/GNOME/Wayland:** run the native Linux launcher itself without forced Steam
+  compatibility mode. If Proton starts the process but no window appears, keep the launcher runtime
+  output and check whether the session has a valid XWayland authorization environment.
+
+Do not change several runtimes and graphics options at once. A single alternate runtime test makes
+the next log meaningful.
+
+## The game reaches the title screen but cannot connect
+
+Check the server status and launcher log at the same time:
+
+- `certificate mismatch` means the invite and server identity disagree. Get a fresh invite or confirm
+  the host's certificate change; do not bypass the check.
+- `upstream unreachable`, a refused relay port or a timeout means the local relay or host could not
+  connect. Check whether another process owns `61000`, whether the host is online, and whether the
+  private invite's Tailscale path is connected.
+- A public connection with no relay requests usually failed before the game made its first request.
+  Look at the runtime or game crash evidence rather than changing server credentials.
+- A private connection must reach the host's Tailscale or loopback address. `tailscale status` and
+  `tailscale ping <host>` are useful on Linux; on Windows, check the Tailscale client before changing
+  the launcher settings.
+
+Do not expose a public server's gateway secret, account key, bearer token or private invite code in a
+support report.
+
+## Friends, chat or parties do not update
+
+Refresh the launcher status once, then check whether the issue is only presence or also account and
+server access. A player who cannot authenticate will not appear in the friends/presence view. If chat
+alone fails, record the time and the first `chat:` line in the server log; do not repeatedly restart
+the server while players are active. Operators should use the [chat findings](https://vvoidddd.github.io/dauntless-unbroken/findings/chat.html)
+and the server logs before changing feature switches.
+
+## What to send to support
+
+Include:
+
+- launcher version and platform;
+- the exact action and time of the failure;
+- whether the invite was public/v2 or private/v1;
+- the first relevant launcher error and a short description of what was on screen;
+- the exported diagnostics file and, for a game crash, the newest crash-report folder.
+
+Remove account keys, backup files, bearer tokens, webhook URLs, private invite codes, database files,
+full game folders and unrelated personal paths. A redacted launcher report is preferred to a raw log
+bundle. Support cannot determine a crash cause from the exception address alone.
 
 The 1.4.4 shipping client writes no game log file of its own. `Saved\Logs` only holds the embedded
 browser's logs. To read the metagame log as plain text:

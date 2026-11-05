@@ -60,10 +60,10 @@ jokainen portti sivulla [Portit ja verkko]({{ ports_page.url | relative_url }}).
 New-Item -ItemType Directory -Force C:\dr | Out-Null
 git -c core.longpaths=true clone https://github.com/Vvoidddd/dauntless-unbroken.git C:\dr\dauntless-unbroken
 git -C C:\dr\dauntless-unbroken config core.longpaths true
-git -C C:\dr\dauntless-unbroken checkout main
+git -C C:\dr\dauntless-unbroken checkout 1.10.5
 ```
 
-`main` on oletushaara: pull requestit tehdään siihen, ja dokumentaatiosivusto julkaistaan
+`1.10.5` on julkaisuhaara: pull requestit tehdään siihen, ja dokumentaatiosivusto julkaistaan
 sen `docs/`-kansiosta. Pidä klooni lyhyessä polussa: pelkästään palvelin-DLL:n generoidussa SDK:ssa on
 yli 4 000 tiedostoa, ja kloonaus syvälle sisäkkäiseen kansioon on kaatunut virheeseen "Filename too
 long" ([Vianetsintä]({{ trouble_page.url | relative_url }}#git-filename-too-long)).
@@ -441,9 +441,10 @@ jokainen kiinnitys muutetaan samassa muutoksessa. DLL toimii vain 1.4.4-version 
 
 ## Mitä CI tarkistaa {#ci}
 
-Työnkulku `.github/workflows/ci.yml` ajetaan jokaiselle pushille mihin tahansa haaraan, jokaiselle pull
-requestille sekä käsin (Actions > **CI** > **Run workflow**). Sen työt ajavat samat komennot, jotka voit
-ajaa itse tämän sivun ohjeilla:
+Työnkulku `.github/workflows/ci.yml` on manuaalinen (Actions > **CI** > **Run workflow**). Sen työt
+ajavat samat komennot, jotka voit ajaa itse tämän sivun ohjeilla. Aja tarvittavat tarkistukset
+paikallisesti ennen pushia; isännöity CI-ajo käynnistetään erikseen eikä se ole pushin tai pull
+requestin portti:
 
 | Työ | Mitä se ajaa | Ajoympäristö |
 |---|---|---|
@@ -468,27 +469,23 @@ GitHub Actionsille viikoittain, jokaiselle npm-paketille kuukausittain.
 ### Käynnistimen julkaisut {#launcher-releases}
 
 Käynnistimen julkaisu on GitHub-julkaisu `launcher-v<versio>` sille versiolle, joka on
-`DauntlessUnbrokenLauncher/package.json`-tiedostossa, ja se julkaistaan vain `main`-haarasta.
-Asennetut käynnistimet päivittyvät siihen. Julkaistaksesi nosta tuota versiota. Sitten:
+`DauntlessUnbrokenLauncher/package.json`-tiedostossa, ja se julkaistaan vain haarasta `1.10.5`.
+Asennetut käynnistimet päivittyvät siihen. Aja paikalliset tarkistukset ensin ja käynnistä sitten
+Actions > **Launcher release** > **Run workflow** haaralle `1.10.5`. Työnkulku kääntää ja testaa
+Windows- ja Linux-paketit, julkaisee version, päivittää jatkuvan `launcher-updates`-syötteen ja luo
+koontitodisteen. Jos versio on jo julkaistu, työnkulku korjaa vain päivityssyötteen. Jos julkaisu
+keskeytyy, aja epäonnistuneet työt uudelleen.
 
-- **Automaattisesti (oletuksena päällä).** Kun `main`-haaraan tehty push läpäisee kaikki
-  yllä olevat työt, on yhä haaran uusin commit eikä sen käynnistinversiolla ole vielä
-  `launcher-v<versio>`-julkaisua, CI julkaisee samassa ajossa kääntämänsä ja testaamansa
-  asennusohjelman työnkulun `.github/workflows/launcher-release.yml` kautta. Näin tapahtuu vain
-  repositoriossa `Vvoidddd/dauntless-unbroken`, ei koskaan forkissa. Tauon saat asettamalla repositorion
-  muuttujan `LAUNCHER_AUTO_RELEASE` arvoon `false`
-  ([Asetukset]({{ config_page.url | relative_url }}#ci-settings)).
-- **Käsin.** Actions > **Launcher release** > **Run workflow** `main`-haaralle kääntää
-  kyseisen commitin ja julkaisee sen version. Tämä toimii myös silloin, kun automaattiset julkaisut on
-  pysäytetty. Jo julkaistulla versiolla se vain päivittää itsepäivityskanavan (`launcher-updates`-julkaisun)
-  siihen.
+`launcher-news` toimii edelleen automaattisesti julkisen haaran pusheissa ja julkaistuissa versioissa.
+`launcher-discord` päivittää julkisen latausilmoituksen onnistuneen julkaisutyönkulun jälkeen. Nämä
+julkaisijat on rajattu julkiseen repositorioon, eivätkä ne aja yksityisessä kopiossa.
 
 Versio julkaistaan vain, jos se on uudempi kuin kaikki aiemmat, eikä julkaistua versiota koskaan
 korvata. Esiversio (kuten `0.2.0-beta.1`) julkaistaan GitHubin esijulkaisuna, johon asennetut
 käynnistimet eivät päivity. Tarkemmin asiasta kerrotaan tiedoston
-[CONTRIBUTING.md]({{ site.github.repository_url }}/blob/main/CONTRIBUTING.md)
+[CONTRIBUTING.md]({{ site.github.repository_url }}/blob/1.10.5/CONTRIBUTING.md)
 kohdassa "Tarkistukset" ja tiedoston
-[DauntlessUnbrokenLauncher/README.fi.md]({{ site.github.repository_url }}/blob/main/DauntlessUnbrokenLauncher/README.fi.md)
+[DauntlessUnbrokenLauncher/README.fi.md]({{ site.github.repository_url }}/blob/1.10.5/DauntlessUnbrokenLauncher/README.fi.md)
 kohdassa "Julkaisut ja päivitykset".
 
 ---

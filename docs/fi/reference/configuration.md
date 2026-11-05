@@ -669,7 +669,7 @@ Forkilla on omansa.
 
 | Nimi | Laji | Oletus | Arvot | Mitä se tekee | Kuka asettaa |
 |:-----|:-----|:-------|:------|:--------------|:-------------|
-| `LAUNCHER_AUTO_RELEASE` | Repositorion muuttuja (Settings > Secrets and variables > Actions > Variables), jonka `ci.yml` lukee | puuttuu: päällä | `false` pysäyttää automaattiset julkaisut; asettamattomana ne ovat päällä | Käynnistimen automaattiset julkaisut: `dauntless-unbroken`-haaraan tehty push, joka läpäisee kaikki tarkistukset, on yhä haaran uusin commit ja jonka käynnistinversiolla ei ole vielä `launcher-v<versio>`-julkaisua, julkaisee kyseisen käynnistimen ([Käynnistimen julkaisut]({{ dev_page.url | relative_url }}#launcher-releases)). Vain repositorio `Vvoidddd/dauntless-unbroken` julkaisee automaattisesti. Kun arvo on `false`, Actions > **Launcher release** > **Run workflow** julkaisee yhä käsin. | Repositorion omistaja |
+| `LAUNCHER_AUTO_RELEASE` | Vanha repositorion muuttuja (Settings > Secrets and variables > Actions > Variables), jonka `ci.yml` lukee vanhasta push-julkaisun haarasta | puuttuu | Tavallinen CI on manuaalinen, joten tämä muuttuja ei käynnistä push-julkaisuja. Käytä Actions > **Launcher release** > **Run workflow** -toimintoa; olemassa olevan julkaisun ajo voi korjata `launcher-updates`-syötteen. | Repositorion omistaja |
 
 Työnkulut eivät tarvitse omia salaisuuksia: ne käyttävät tunnistetta (token), jonka GitHub antaa
 jokaiselle ajolle, ja kirjoitusoikeus on vain niillä töillä, jotka tekevät julkaisun. CodeQL-koodiskannaus

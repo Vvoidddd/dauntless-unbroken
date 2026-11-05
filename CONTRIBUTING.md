@@ -1,6 +1,6 @@
 # Contributing to Dauntless Unbroken
 
-The default branch is `main` in [Vvoidddd/dauntless-unbroken](https://github.com/Vvoidddd/dauntless-unbroken). Use a focused branch and explain the resulting behavior in your pull request.
+The release branch is `1.10.5` in [Vvoidddd/dauntless-unbroken](https://github.com/Vvoidddd/dauntless-unbroken). Use a focused branch and explain the resulting behavior in your pull request.
 
 ## Development
 
@@ -27,11 +27,16 @@ Build the Jekyll site and check links, code blocks, tables and mobile styles. Th
 
 ## Releases
 
-CI checks the services, native integration, launcher, deployment kits, Linux/OpenBSD paths, documentation and repository hygiene. Required checks must pass before a launcher release. Its version is in `DauntlessUnbrokenLauncher/package.json`.
+GitHub CI is manual-only for now. Run the affected checks locally before pushing; a hosted CI run is
+available through Actions > **CI** > **Run workflow**. The default CodeQL setup is separate from
+that workflow and may still report automatically. The launcher version is in
+`DauntlessUnbrokenLauncher/package.json`.
 
 ### Which CI checks run
 
-Pull requests use the changed paths between the pull request head and the target branch's merge base. A skipped job means that its inputs were not changed; it is expected and does not indicate a failed test.
+When CI is run manually, its selector uses the changed paths between the selected commit and the
+`1.10.5` branch. A skipped job means that its inputs were not changed; it is expected and does not
+indicate a failed test.
 
 - Package source changes under a package's `src/` directory run the affected package and server-port checks. Package build/install metadata and deployment changes also run the Windows server-kit checks, including the sandbox.
 - Package test-only changes run the affected package and server-port checks without rebuilding the Windows server-kit sandbox.
@@ -40,7 +45,20 @@ Pull requests use the changed paths between the pull request head and the target
 - Changes to the CI workflow run the selector, server-kit unit and remote checks. Changes to the CodeQL workflow select the Actions analysis without running unrelated CI suites.
 - Documentation, launcher, native-server and other paths select only their corresponding checks.
 
-Pushes to `main` and scheduled CodeQL analysis run the full analysis set. On a pull request, CodeQL analyzes only languages affected by the changed files.
+CodeQL analysis runs through GitHub's separate code-scanning setup. It is not a substitute for the
+local test commands above.
+
+### Launcher releases
+
+After the local launcher checks pass, merge the version change into `1.10.5`, then run Actions >
+**Launcher release** > **Run workflow** for that branch. The workflow builds and tests the Windows
+and Linux packages when `launcher-v<version>` does not exist, publishes that versioned release,
+updates the rolling `launcher-updates` feed, and publishes build provenance. If the versioned release
+already exists, it only repairs the rolling feed. Re-run failed jobs if a publication is interrupted.
+
+The `launcher-news` workflow remains automatic on public-branch pushes and published releases. The
+`launcher-discord` workflow refreshes the public download announcement after a successful release
+workflow. Neither workflow runs in the private repository.
 
 Use a test environment for in-game verification. Ordinary deployments must not maximize player accounts.
 
