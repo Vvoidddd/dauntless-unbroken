@@ -29,12 +29,12 @@ export interface PinnedDll {
 // The files ship in the launcher's resources and are verified before installation.
 export const PINNED_DLLS: readonly PinnedDll[] = [
   { name: "dxgi.dll", sha256: "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c" },
-  { name: "DauntlessUnbroken.dll", sha256: "4e3987006db5e15aa9c2f97ea1fd8515bee9d61df147e529316c4e4563df2658" },
+  { name: "DauntlessUnbroken.dll", sha256: "3a395bd074631bc10acd056daaff48e75d3df7289206dcb5a98f38ff11860f38" },
 ];
 export const DLL_RELATIVE_PATHS = PINNED_DLLS.map((d) => `${WIN64_RELATIVE_DIR}/${d.name}`);
 
 // The server DLL needs the Visual C++ 2015-2022 runtime (x64).
-export const VC_RUNTIME_FILES = ["MSVCP140.dll", "VCRUNTIME140_1.dll"];
+export const VC_RUNTIME_FILES = ["MSVCP140.dll", "VCRUNTIME140.dll", "VCRUNTIME140_1.dll"];
 
 // Chat and presence (XMPP): pointed at the host instead of Epic, like friend-kit/play.ps1.
 export const XMPP_PORT = 61099;

@@ -5,10 +5,12 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
+#include <ctime>
 #include <cwchar>
 #include <string>
 #include <map>
 #include <unordered_set>
+#include "TrialsRotation.h"
 #include "presence-address.h"
 #include "equipment-replication-policy.h"
 #include "MinHook/MinHook.h"
@@ -175,6 +177,104 @@ static void UpdateCellFusionTime() {
         if (ticks != 36000000000LL) { ticks = 36000000000LL; ++changed; }
     }
     if (changed) Note("middleman_fusion_recipes_one_hour\n");
+}
+static void UpdateTrialsSchedule() {
+    static SDK::UDataTable* table = nullptr;
+    static int index = -1;
+    static int64_t firstTicks = 0;
+    static ULONGLONG next = 0;
+    static int missingChecks = 0;
+    static bool shapeReported = false;
+    const auto now = GetTickCount64();
+    if (now < next) return;
+    next = now + (table ? 30000 : 2000);
+    if (!StartupHookGate::ObjectRegistryReady(SDK::UObject::GObjects)) return;
+    if (!table || SDK::UObject::GObjects->GetByIndex(index) != table) {
+        table = SDK::UObject::FindObject<SDK::UDataTable>("DataTable gen_arena_hunts_schedule.gen_arena_hunts_schedule");
+        index = table ? table->Index : -1;
+        firstTicks = 0;
+    }
+    if (!table) {
+        if (++missingChecks == 30) Note("trials_schedule_table_missing\n");
+        return;
+    }
+    if (!table->RowStruct || table->RowStruct->GetName() != "ScheduleData" ||
+        !table->RowMap.IsValid() || table->RowMap.NumAllocated() > 512) {
+        if (!shapeReported) Note("trials_schedule_table_shape_mismatch\n");
+        shapeReported = true;
+        return;
+    }
+
+    std::vector<std::pair<std::string, SDK::FScheduleData*>> rows;
+    for (const auto& entry : table->RowMap) {
+        const auto name = entry.Key().ToString();
+        if (name.starts_with("Scheduled_Arena_Hunt_")) {
+            if (!entry.Value()) return;
+            auto* row = reinterpret_cast<SDK::FScheduleData*>(entry.Value());
+            if (row->ScheduledItems.Num() < 1 || row->ScheduledItems.Num() > 16) return;
+            rows.emplace_back(name, row);
+        }
+    }
+    if (rows.size() != 161) {
+        if (!shapeReported) {
+            char line[256];
+            sprintf_s(line, "trials_schedule_weekly_rows_mismatch weekly=%zu table=%d\n",
+                rows.size(), table->RowMap.Num());
+            Note(line);
+            if (!rows.empty()) {
+                std::sort(rows.begin(), rows.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+                sprintf_s(line, "trials_schedule_weekly_row_range first=%.96s last=%.96s\n",
+                    rows.front().first.c_str(), rows.back().first.c_str());
+                Note(line);
+            } else {
+                int sampled = 0;
+                for (const auto& entry : table->RowMap) {
+                    sprintf_s(line, "trials_schedule_row_sample name=%.180s\n", entry.Key().ToString().c_str());
+                    Note(line);
+                    if (++sampled == 5) break;
+                }
+            }
+        }
+        shapeReported = true;
+        return;
+    }
+    std::sort(rows.begin(), rows.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+    for (size_t i = 0; i < rows.size(); ++i) {
+        char expected[64];
+        sprintf_s(expected, "Scheduled_Arena_Hunt_%03zu", i + 1);
+        if (rows[i].first != expected) {
+            if (!shapeReported) Note("trials_schedule_weekly_row_names_mismatch\n");
+            shapeReported = true;
+            return;
+        }
+    }
+    const int64_t week = TrialsRotation::WeekAt(static_cast<int64_t>(std::time(nullptr))) - 1;
+    const int64_t expectedTicks = TrialsRotation::UnixToTicks(TrialsRotation::WeekStartUnix(week));
+    if (firstTicks == expectedTicks && *reinterpret_cast<const int64_t*>(&rows[0].second->StartTime) == expectedTicks)
+        return;
+
+    for (size_t i = 0; i < rows.size(); ++i) {
+        auto* row = rows[i].second;
+        const int64_t rowWeek = week + static_cast<int64_t>(i);
+        const auto suffix = TrialsRotation::SuffixForWeek(rowWeek);
+        *reinterpret_cast<int64_t*>(&row->StartTime) = TrialsRotation::UnixToTicks(TrialsRotation::WeekStartUnix(rowWeek));
+        *reinterpret_cast<int64_t*>(&row->EndTime) = TrialsRotation::UnixToTicks(TrialsRotation::WeekStartUnix(rowWeek + 1));
+        row->IsRepeatable = false;
+        for (auto& item : row->ScheduledItems) {
+            const auto current = item.ID.ToString();
+            const wchar_t* difficulty = current.find("_Elite_") != std::string::npos ? L"Elite" :
+                current.find("_Hard_") != std::string::npos ? L"Hard" : nullptr;
+            if (!difficulty) continue;
+            const auto id = std::wstring(L"Arena_MatchmakerHunt_") + difficulty + L"_" +
+                std::wstring(suffix.begin(), suffix.end());
+            item.ID = SDK::UKismetStringLibrary::Conv_StringToName(id.c_str());
+        }
+    }
+    firstTicks = expectedTicks;
+    char line[128];
+    sprintf_s(line, "trials_schedule_patched rows=%zu current=%s\n",
+        rows.size(), TrialsRotation::SuffixForWeek(week + 1).c_str());
+    Note(line);
 }
 // The alternate portrait mode calls SetText, removing its Blueprint binding.
 // Recycled ordinary portraits must refresh text with their new VM too.
@@ -457,6 +557,7 @@ static void Tick(void* self, float delta, char render) {
     if (Server) InstallApexReportGuard();
     OriginalTick(self, delta, render);
     UpdateCellFusionTime();
+    if (!Server) UpdateTrialsSchedule();
     if (!Server) return; // Client must never run server stamina work or Sleep(25).
     auto* currentWorld = SDK::UWorld::GetWorld();
     if (currentWorld && currentWorld->PersistentLevel && currentWorld->AuthorityGameMode)

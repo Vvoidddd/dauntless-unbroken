@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { missingDirectX, gameExitDetail } from '../src/main/windows-runtime';
+import { missingVcRuntime } from '../src/main/system';
+test('Windows prerequisite check includes the proxy loader VC runtime', () => {
+  assert.deepEqual(missingVcRuntime({WINDIR:'C:\\Windows'}, p => !/VCRUNTIME140\.dll$/i.test(p), 'win32'), ['VCRUNTIME140.dll']);
+});
 test('new Windows PC detects legacy DirectX dependencies independently of modern DirectX', () => {
   assert.deepEqual(missingDirectX({WINDIR:'C:\\Windows'}, p => /XINPUT1_3/i.test(p),'win32'), ['X3DAudio1_7.dll','XAPOFX1_5.dll']);
   assert.deepEqual(missingDirectX({},()=>false,'linux'),[]);
