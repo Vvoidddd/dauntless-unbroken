@@ -236,7 +236,7 @@ test("the launcher hero advertises the verified game build", () => {
 test("the local renderer preview reports the package version", () => {
   const packageJson = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8")) as { version: string };
   const renderer = readFileSync(path.join(ROOT, "src", "renderer", "index.ts"), "utf8");
-  assert.match(renderer, new RegExp(`app:\\{version:"${packageJson.version.replace(/\./g, "\\.")}`));
+  assert.ok(renderer.includes(`app:{version:"${packageJson.version}"`));
 });
 
 test("onboarding uses the current game download size", () => {
