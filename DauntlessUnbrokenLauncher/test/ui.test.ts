@@ -227,6 +227,38 @@ test("the compiled-in game manifest is the verified 1.10.5 list", () => {
   assert.match(manifestFingerprint(r.manifest), /^[0-9a-f]{64}$/);
 });
 
+test("the launcher hero advertises the verified game build", () => {
+  const page = readFileSync(path.join(ROOT, "index.html"), "utf8");
+  assert.match(page, /class="tile-version"[^>]*>Game 1\.10\.5<\/div>/);
+  assert.doesNotMatch(page, /class="tile-version"[^>]*>Game 1\.4\.4<\/div>/);
+});
+
+test("the local renderer preview reports the package version", () => {
+  const packageJson = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8")) as { version: string };
+  const renderer = readFileSync(path.join(ROOT, "src", "renderer", "index.ts"), "utf8");
+  assert.match(renderer, new RegExp(`app:\\{version:"${packageJson.version.replace(/\./g, "\\.")}`));
+});
+
+test("onboarding uses the current game download size", () => {
+  for (const language of LANGUAGES) {
+    const text = translate(language, "join_next");
+    assert.match(text, /16 (?:GB|Gt|Go|ГБ)/, language);
+    assert.doesNotMatch(text, /11 (?:GB|Gt|Go|ГБ)/, language);
+  }
+});
+
+test("profile username controls use translated registration labels", () => {
+  const renderer = readFileSync(path.join(ROOT, "src", "renderer", "index.ts"), "utf8");
+  assert.match(renderer, /"aria-label":t\("reg_label"\)/);
+  assert.match(renderer, /usernameState\.textContent = valid \? t\("reg_check_ok"\) : t\("err_username_invalid"\)/);
+});
+
+test("account backup controls use translated accessible names", () => {
+  const renderer = readFileSync(path.join(ROOT, "src", "renderer", "index.ts"), "utf8");
+  assert.match(renderer, /'aria-label':t\("backup_paste_help"\)/);
+  assert.doesNotMatch(renderer, /'aria-label':'Account key backup'/);
+});
+
 test("Spanish uses a decimal comma and Spanish month names", () => {
   assert.equal(formatBytes(1_500_000, "es"), "1,50 MB");
   assert.equal(formatBytes(1_500_000, "en"), "1.50 MB");

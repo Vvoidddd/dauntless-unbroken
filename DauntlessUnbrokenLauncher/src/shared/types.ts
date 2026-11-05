@@ -253,6 +253,7 @@ export interface Snapshot {
   settings: Settings;
   app: { version: string; packaged: boolean; updateReady: boolean; platform?: NodeJS.Platform };
   status: ServerStatus | null;
+  statusCheckedAt?: string | null;
   availableHuntRegions?: Array<'main' | 'ger' | 'us'>;
   statusUnsupported: boolean; // the host answers but has no ServerStatus endpoint yet
   lastError: LauncherError | null;

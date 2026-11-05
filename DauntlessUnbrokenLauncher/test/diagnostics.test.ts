@@ -21,6 +21,40 @@ test('diagnostics use only bounded whitelisted launcher logs and never export ke
   const text=await diagnosticBundle(root,snapshot),result=JSON.parse(text);
   assert.equal(result.launcher,'1.0.16');assert.ok(text.length<270000);
   assert.ok(!text.includes('b'.repeat(48)));assert.ok(!text.includes('private-'));assert.ok(!text.includes('secret-host'));
-  assert.deepEqual(Object.keys(result.logs),['launcher.log','launcher.old.log']);
+  assert.deepEqual(Object.keys(result.logs),['launcher.log','launcher.old.log','steam-0.log','Archon.log']);
+ }finally{await rm(root,{recursive:true,force:true});}
+});
+test('Linux diagnostics include the bounded Proton compatibility log',async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),'unbroken-diagnostics-proton-'));
+ try{
+  await mkdir(path.join(root,'logs'));
+  await writeFile(path.join(root,'logs','steam-0.log'),'Proton: launch failed\nUUK_'+'c'.repeat(48));
+  const snapshot={app:{version:'1.0.16'},phase:'ready',game:{running:false},account:{hasKey:true},server:null,install:{dir:root,installed:true,missingFiles:0,verified:true,dllsOk:true},lastError:null} as Snapshot;
+  const result=JSON.parse(await diagnosticBundle(root,snapshot));
+  assert.match(result.logs['steam-0.log'],/Proton: launch failed/);
+  assert.doesNotMatch(result.logs['steam-0.log'],/c{48}/);
+ }finally{await rm(root,{recursive:true,force:true});}
+});
+test('Linux diagnostics include the bounded Archon game log from the installed game',async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),'unbroken-diagnostics-archon-'));
+ try{
+  await mkdir(path.join(root,'Archon','Saved','Logs'),{recursive:true});
+  await writeFile(path.join(root,'Archon','Saved','Logs','Archon.log'),'Archon launch failed\nUUK_'+'d'.repeat(48));
+  const snapshot={app:{version:'1.0.16'},phase:'ready',game:{running:false},account:{hasKey:true},server:null,install:{dir:root,installed:true,missingFiles:0,verified:true,dllsOk:true},lastError:null} as Snapshot;
+  const result=JSON.parse(await diagnosticBundle(path.join(root,'launcher-data'),snapshot));
+  assert.match(result.logs['Archon.log'],/Archon launch failed/);
+  assert.doesNotMatch(result.logs['Archon.log'],/d{48}/);
+ }finally{await rm(root,{recursive:true,force:true});}
+});
+test('Linux diagnostics include the selected runtime name without its executable path',async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),'unbroken-diagnostics-runtime-'));
+ try{
+  await mkdir(path.join(root,'logs'));
+  const snapshot={app:{version:'1.0.16'},phase:'ready',game:{running:false},account:{hasKey:true},server:null,install:{dir:root,installed:true,missingFiles:0,verified:true,dllsOk:true},lastError:null} as Snapshot;
+  const text=await diagnosticBundle(root,snapshot,{runtimeName:'Proton (GE-Proton10-1)'}),result=JSON.parse(text);
+  assert.equal(result.runtime.name,'Proton (GE-Proton10-1)');
+  assert.ok(!text.includes('/home/'));
+  const rejected=JSON.parse(await diagnosticBundle(root,snapshot,{runtimeName:'/home/slayer/proton'}));
+  assert.equal(rejected.runtime,undefined);
  }finally{await rm(root,{recursive:true,force:true});}
 });

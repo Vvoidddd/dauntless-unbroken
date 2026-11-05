@@ -240,6 +240,7 @@ test('update installation shares the busy guard and permits retry after failure'
   await h.c.installUpdate();assert.equal(calls,1);
   release();await first;assert.equal(h.c.snapshot().busy,false);
   fail=true;await h.c.installUpdate();assert.equal(calls,2);assert.equal(h.c.snapshot().busy,false);
+  assert.deepEqual(h.c.snapshot().lastError,{code:'unknown'});
   fail=false;await h.c.installUpdate();assert.equal(calls,3);
  }finally{release?.();await h.c.shutdown();}
 });
@@ -553,6 +554,24 @@ function get(port: number, p: string): Promise<{ status: number; body: string }>
       .on("error", reject);
   });
 }
+
+test("PLAY keeps compatibility setup errors visible", async () => {
+  meta.opts.validCodes?.add("PREPARE-FAIL");
+  const hx = harness(RELAY_PORT, undefined, undefined, undefined, undefined, undefined, undefined, undefined, {
+    prepareGameLaunch: async () => { throw new Error("Proton prefix initialization did not create a usable Windows prefix"); },
+  });
+  try {
+    await hx.c.init();
+    assert.deepEqual(await hx.c.submitInvite(invite(cert.fingerprint, "PREPARE-FAIL")), { ok: true });
+    assert.deepEqual(await hx.c.register("Prepare_Fail"), { ok: true, username: "Prepare_Fail" });
+    await hx.c.startInstall();
+    const result = await hx.c.play();
+    assert.deepEqual(result, { ok: false, error: { code: "launch_failed", detail: "Error: Proton prefix initialization did not create a usable Windows prefix" } });
+    assert.match(hx.last().lastError?.detail ?? "", /Proton prefix initialization did not create a usable Windows prefix/);
+  } finally {
+    await hx.c.shutdown();
+  }
+});
 
 test("public mode end to end: join, register, install, play through the relay, game exit", async () => {
   const hx = harness(RELAY_PORT, undefined, undefined, undefined, undefined, undefined, () => { throw new Error("Online must not query Offline memory"); });

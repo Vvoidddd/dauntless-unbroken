@@ -32,15 +32,33 @@ test("the mods overview keeps a game-art anchor above its feature grid", () => {
 
 test("the account popover shows the current connection before switch actions", () => {
   assert.match(renderer, /server-menu-current/);
-  assert.match(renderer, /CONNECTED/);
-  assert.match(renderer, /Online · \$\{/);
-  assert.match(renderer, /"Public"/);
+  assert.match(renderer, /t\("account_connected"\)/);
+  assert.match(renderer, /t\("account_switch"\)/);
+  assert.match(renderer, /t\("account_menu_aria"\)/);
+  assert.match(renderer, /t\("account_switch_title"\)/);
+  assert.match(renderer, /t\("sp_online"\)/);
+  assert.match(renderer, /t\(snap\.server\?\.mode === "public" \? "mode_public" : "mode_private"\)/);
   assert.match(theme, /\.server-menu-current/);
   assert.match(renderer, /server-menu-status-dot/);
   assert.match(renderer, /server-menu-profile/);
-  assert.match(renderer, /Friends only/);
+  assert.match(renderer, /t\("profile_friends_only"\)/);
   assert.match(theme, /\.server-menu-status-dot/);
   assert.match(theme, /\.server-menu-profile/);
+});
+
+test("saved account management uses localized copy", () => {
+  assert.match(renderer, /t\("saved_accounts_title"\)/);
+  assert.match(renderer, /t\("saved_accounts_text"\)/);
+  assert.match(renderer, /t\("saved_accounts_locked"\)/);
+  assert.match(renderer, /t\("saved_accounts_progress"\)/);
+  assert.match(renderer, /t\("saved_accounts_remove"\)/);
+  assert.match(renderer, /t\("saved_accounts_add_key"\)/);
+  assert.match(renderer, /t\("reg_key_file"\)/);
+  assert.match(renderer, /account\.current \? t\("account_selected"\) : null/);
+});
+
+test("account history failures use localized copy", () => {
+  assert.match(renderer, /state\.purchaseHistoryNote=history\?"":t\("err_server_unreachable"\)/);
 });
 
 test("the player roster can show the local approved avatar without exposing other pictures", () => {
@@ -63,13 +81,13 @@ test("the server view replaces live-world data with maintenance state", () => {
 
 test("the local preview can render the maintenance state", () => {
   assert.match(renderer, /PREVIEW_MAINTENANCE/);
-  assert.match(renderer, /mode.*maintenance/);
+  assert.match(renderer, /PREVIEW_QUERY_MODE === "maintenance"/);
   assert.match(renderer, /community-maintenance/);
   assert.match(theme, /\.community-maintenance/);
 });
 
 test("maintenance home copy does not claim the game is ready", () => {
-  assert.match(renderer, /EU1 is under maintenance/);
-  assert.match(renderer, /The server is offline/);
+  assert.match(renderer, /t\("maintenance"\)/);
+  assert.match(renderer, /t\("maintenance_worlds"\)/);
   assert.match(renderer, /underMaintenance/);
 });

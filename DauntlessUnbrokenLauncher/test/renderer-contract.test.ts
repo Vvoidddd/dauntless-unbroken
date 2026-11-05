@@ -27,8 +27,8 @@ test("the news page keeps long updates in a readable branded surface", () => {
   const source = readFileSync(path.join(root, "src/renderer/index.ts"), "utf8");
   const styles = readFileSync(path.join(root, "src/renderer/styles.css"), "utf8");
   assert.match(source, /class: "page news-page"/);
-  assert.match(source, /LATEST POST/);
-  assert.match(source, /New post/);
+  assert.match(source, /t\("news_latest_post"\)/);
+  assert.match(source, /t\("news_new_post"\)/);
   assert.match(styles, /\.news-page\s*\{/);
   assert.match(styles, /\.news-page \.news-item::before\s*\{/);
 });
@@ -40,6 +40,15 @@ test("the ready play view has a focused library home surface", () => {
   assert.match(source, /const playClass = state\.offlineView \? "play-offline"/);
   assert.match(styles, /\.play-home\s*\{/);
   assert.match(styles, /\.play-home \.hero-title\s*\{/);
+});
+
+test("the play activity labels use the translation catalog", () => {
+  const source = readFileSync(path.join(root, "src/renderer/index.ts"), "utf8");
+  assert.match(source, /t\("play_activity_aria"\)/);
+  assert.match(source, /t\("play_last_played"\)/);
+  assert.match(source, /t\("play_not_played"\)/);
+  assert.match(source, /t\("play_time"\)/);
+  assert.match(source, /t\("play_achievements"\)/);
 });
 
 test("the launcher navigation keeps a readable library rail", () => {

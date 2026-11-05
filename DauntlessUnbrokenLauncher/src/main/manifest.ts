@@ -1,4 +1,4 @@
-// The game manifest (shared contract 4): the exact list of Dauntless 1.4.4 files, their sizes and
+// The game manifest (shared contract 4): the exact list of Dauntless 1.10.5 files, their sizes and
 // SHA-256 hashes. A copy is compiled into the launcher; the launcher only ever writes files that are
 // in it, and refuses a content server whose manifest is not identical.
 
@@ -79,7 +79,7 @@ export function validateManifest(raw: unknown, expectedBuild: string = EXPECTED_
   if (requireGameExe) {
     const exe = files.find((f) => f.path === EXE_RELATIVE_PATH);
     if (!exe || exe.sha256 !== PINNED_EXE_SHA256 || exe.size !== PINNED_EXE_SIZE) {
-      return { ok: false, reason: "game executable is not the pinned 1.4.4 build" };
+      return { ok: false, reason: "game executable is not the pinned 1.10.5 build" };
     }
   }
 

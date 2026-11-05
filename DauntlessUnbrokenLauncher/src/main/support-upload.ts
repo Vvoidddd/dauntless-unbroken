@@ -1,11 +1,11 @@
 import {randomUUID} from 'node:crypto';
-import {bounded,diagnosticBundle,diagnosticRedact} from './diagnostics';
+import {bounded,diagnosticBundle,diagnosticRedact,type DiagnosticContext} from './diagnostics';
 import {request,type Endpoint} from './http';
 import type {Snapshot,SupportReportResult} from '../shared/types';
 
-export async function uploadSupportReport(ep:Endpoint,userData:string,snapshot:Snapshot,attemptedName:string,getKey:()=>Promise<string|null>):Promise<SupportReportResult>{
+export async function uploadSupportReport(ep:Endpoint,userData:string,snapshot:Snapshot,attemptedName:string,getKey:()=>Promise<string|null>,context:DiagnosticContext = {}):Promise<SupportReportResult>{
  try{
-  const report=JSON.parse(await diagnosticBundle(userData,snapshot));
+  const report=JSON.parse(await diagnosticBundle(userData,snapshot,context));
   // Stay below the gateway's existing 128 KiB cap, including JSON escaping and UTF-8.
   for(const name of Object.keys(report.logs))report.logs[name]=report.logs[name].slice(-24000);
   for(let trim=0;trim<8&&Buffer.byteLength(JSON.stringify(report),'utf8')>96*1024;trim++){

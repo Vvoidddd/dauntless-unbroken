@@ -3,14 +3,14 @@
 *[In English](README.md)*
 
 Windows- ja Linux-sovellus, jonka kaverit asentavat pelatakseen Dauntless Unbroken -palvelimella. Se liittyy
-palvelimelle kutsulla, luo tilin, lataa ja tarkistaa Dauntless 1.4.4:n pelitiedostot ylläpitäjän
+palvelimelle kutsulla, luo tilin, lataa ja tarkistaa Dauntless 1.10.5:n pelitiedostot ylläpitäjän
 omalta palvelimelta, laittaa kaiken valmiiksi ja käynnistää pelin. Kielinä englanti ja suomi.
 
-**Linux:** x86_64-Linuxille julkaistaan AppImage-, deb-, rpm- ja siirrettävät paketit. Windowsin 1.4.4-peliasiakas käynnistyy Protonin tai Winen kautta. Katso [jakelukohtainen Linux-ohje](https://vvoidddd.github.io/dauntless-unbroken/fi/setup/linux.html) tai [LINUX.md](LINUX.md).
+**Linux:** x86_64-Linuxille julkaistaan AppImage-, deb-, rpm- ja siirrettäviä paketteja. Windowsin 1.10.5-peliasiakas käynnistyy Protonin tai Winen kautta. Katso [jakelukohtainen Linux-ohje](https://vvoidddd.github.io/dauntless-unbroken/fi/setup/linux.html) tai [LINUX.md](LINUX.md).
 
 **Sovelluksessa tai tässä repositoriossa ei ole pelitiedostoja.** Ne tulevat ylläpitäjän
 sisältöpalvelimelta, ja jokainen tiedosto tarkistetaan käynnistimeen käännettyä listaa vasten
-(410 tiedostoa, koot ja SHA-256-tiivisteet, `DauntlessUnbrokenContent/data/dauntless-1.4.4.json`).
+(606 tiedostoa, koot ja SHA-256-tiivisteet, `DauntlessUnbrokenContent/data/dauntless-1.10.5.json`).
 Palvelin, joka tarjoaa jotain muuta, hylätään.
 
 **Yhteisö:** [Liity Dauntless Unbroken Discordiin](https://discord.gg/ZJRprHzsgu) saadaksesi apua, pelikavereita ja projektin päivityksiä. Discord-painike näkyy myös aina käynnistimen sivupalkissa.
@@ -27,11 +27,11 @@ Palvelin, joka tarjoaa jotain muuta, hylätään.
 2. Avaa ylläpitäjän lähettämä kutsulinkki tai liitä se Pelaa-sivulle ja paina **LIITY**.
 3. Valitse käyttäjänimi ja paina **REKISTERÖIDY**. Tallenna avaimesta varmuuskopio, kun käynnistin
    tarjoaa sitä.
-4. Paina **ASENNA** (noin 11 Gt). Voit pitää tauon, sulkea käynnistimen ja jatkaa myöhemmin. Jos
-   sinulla on jo Dauntless 1.4.4, valitse sen sijaan **Minulla on jo pelitiedostot** ja liitä
+4. Paina **ASENNA** (noin 16 Gt). Voit pitää tauon, sulkea käynnistimen ja jatkaa myöhemmin. Jos
+   sinulla on jo Dauntless 1.10.5, valitse sen sijaan **Minulla on jo pelitiedostot** ja liitä
    `BaseGame144`-kansiosi (tai sen sisällä olevan `Dauntless`-kansion) polku, tai selaa siihen.
    Käynnistin käyttää peliä siinä kansiossa, jossa se on: se tarkistaa jokaisen tiedoston
-   kiinnitettyä luetteloa vasten, korvaa tiedostot, jotka eroavat 1.4.4:stä, ja laittaa omat
+   kiinnitettyä luetteloa vasten, korvaa tiedostot, jotka eroavat 1.10.5:stä, ja laittaa omat
    `dxgi.dll`- ja `DauntlessUnbroken.dll`-tiedostonsa kansioon `Archon\Binaries\Win64`.
    Puuttuvat ja poikkeavat tiedostot ladataan ylläpitäjän palvelimelta, joten se onnistuu vain, jos
    ylläpitäjä on avannut pelin latauksen. Kopioi kansio ensin, jos jokin toinen asennus käyttää sitä

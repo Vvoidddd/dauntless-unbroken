@@ -19,8 +19,14 @@ test("the selected library tile reflects maintenance state", () => {
   assert.match(renderer, /libraryState\.textContent = snap\?\.status\?\.maintenance/);
   assert.match(renderer, /is-maintenance/);
   assert.match(theme, /\.library-game-state\.is-maintenance/);
-  assert.match(renderer, /Online · Ready/);
+  assert.match(renderer, /t\("sp_online"\)/);
+  assert.match(renderer, /t\("hint_ready"\)/);
   assert.match(theme, /\.library-game-state\.is-online/);
+});
+
+test("the selected library tile exposes launch failures", () => {
+  assert.match(renderer, /libraryState\.classList\.toggle\("is-error", launchFailed\)/);
+  assert.match(theme, /\.library-game-state\.is-error/);
 });
 
 test("the PLAY menu has a compact section label", () => {

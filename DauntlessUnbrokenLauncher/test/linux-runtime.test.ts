@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync,symlinkSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync,symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { detectLinuxRuntime, prepareLinuxGameLaunch } from "../src/main/linux-runtime";
+import { assertLinuxPrefixReady, detectLinuxRuntime, prepareLinuxGameLaunch, protonPrefixReady } from "../src/main/linux-runtime";
 
 function executable(file: string): string {
   mkdirSync(path.dirname(file), { recursive: true });
@@ -92,6 +92,8 @@ test("Linux runtime: auto-detects Steam compatibility tools and prepares Proton 
     assert.equal(runtime?.compatDataDir, path.join(userData, "compat", "proton"));
     assert.equal(runtime?.prefixDir, path.join(userData, "compat", "proton", "pfx"));
     assert.equal(runtime?.env.STEAM_COMPAT_DATA_PATH, path.join(userData, "compat", "proton"));
+    assert.equal(runtime?.env.PROTON_LOG, "1");
+    assert.equal(runtime?.env.PROTON_LOG_DIR, path.join(userData, "logs"));
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -146,7 +148,7 @@ test("Linux runtime: creates the Proton compat-data directory before first initi
     mkdirSync(path.dirname(proton), { recursive: true });
     writeFileSync(
       proton,
-      "#!/bin/sh\n[ -d \"$STEAM_COMPAT_DATA_PATH\" ] || exit 42\n/bin/mkdir -p \"$STEAM_COMPAT_DATA_PATH/pfx/drive_c\"\n",
+      "#!/bin/sh\n[ -d \"$STEAM_COMPAT_DATA_PATH\" ] || exit 42\n[ \"$STEAM_COMPAT_INSTALL_PATH\" = \"$HOME/game\" ] || exit 43\n/bin/mkdir -p \"$STEAM_COMPAT_DATA_PATH/pfx/drive_c/windows/system32\"\n/bin/touch \"$STEAM_COMPAT_DATA_PATH/pfx/drive_c/windows/system32/cmd.exe\"\n",
     );
     chmodSync(proton, 0o755);
     const userData = path.join(home, "data");
@@ -154,10 +156,56 @@ test("Linux runtime: creates the Proton compat-data directory before first initi
       userData,
       { HOME: home, USER: "slayer", PATH: "", DAUNTLESS_UNBROKEN_PROTON: proton },
       home,
-      { autoInstallRuntime: false },
+      { autoInstallRuntime: false, gameInstallDir: path.join(home, "game") },
     );
     assert.equal(prepared.runtimeName, "Proton (custom)");
+    assert.equal(prepared.runtime.env.STEAM_COMPAT_INSTALL_PATH, path.join(home, "game"));
     assert.equal(prepared.configDir, path.join(userData, "compat", "proton", "pfx", "drive_c", "users", "steamuser", "AppData", "Local", "Archon", "Saved", "Config", "WindowsClient"));
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("Linux runtime: recognizes a partial Proton prefix as incomplete", () => {
+  const home = mkdtempSync(path.join(tmpdir(), "dr-linux-proton-partial-"));
+  try {
+    const prefix = path.join(home, "prefix");
+    mkdirSync(path.join(prefix, "drive_c"), { recursive: true });
+    assert.equal(protonPrefixReady(prefix, existsSync), false);
+    mkdirSync(path.join(prefix, "drive_c", "windows", "system32"), { recursive: true });
+    writeFileSync(path.join(prefix, "drive_c", "windows", "system32", "cmd.exe"), "");
+    assert.equal(protonPrefixReady(prefix, existsSync), true);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("Linux runtime: reports an incomplete prefix after initialization", () => {
+  assert.throws(
+    () => assertLinuxPrefixReady("/tmp/partial-prefix", () => false),
+    /Proton prefix initialization did not create a usable Windows prefix/,
+  );
+});
+
+test("Linux runtime: rejects a Proton initialization that leaves the prefix incomplete", { skip: process.platform !== "linux" }, async () => {
+  const home = mkdtempSync(path.join(tmpdir(), "dr-linux-proton-incomplete-init-"));
+  try {
+    const proton = path.join(home, "custom", "proton");
+    mkdirSync(path.dirname(proton), { recursive: true });
+    writeFileSync(
+      proton,
+      "#!/bin/sh\n/bin/mkdir -p \"$STEAM_COMPAT_DATA_PATH/pfx/drive_c\"\n",
+    );
+    chmodSync(proton, 0o755);
+    await assert.rejects(
+      () => prepareLinuxGameLaunch(
+        path.join(home, "data"),
+        { HOME: home, USER: "slayer", PATH: "", DAUNTLESS_UNBROKEN_PROTON: proton },
+        home,
+        { autoInstallRuntime: false },
+      ),
+      /Proton prefix initialization did not create a usable Windows prefix/,
+    );
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

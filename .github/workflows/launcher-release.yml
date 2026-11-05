@@ -454,6 +454,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+      attestations: read
     concurrency:
       group: launcher-feed
       cancel-in-progress: false
@@ -485,6 +486,8 @@ jobs:
           pkg="DauntlessUnbrokenLauncher-$(lv nuget "$VERSION")-full.nupkg"
           [ -f "new/$pkg" ] || fail "$TAG has no $pkg"
           [ "$(find new -name '*-full.nupkg' | wc -l)" -eq 1 ] || fail "$TAG has more than one full package"
+          # The rolling feed is a second release, so verify the package's signed provenance again before copying it.
+          gh attestation verify "new/$pkg" --repo "$GH_REPO" --signer-repo "$GH_REPO" --deny-self-hosted-runners
           # RELEASES must name exactly this package with its SHA-1 and size: Squirrel checks both.
           expected="$(sha1sum "new/$pkg" | cut -d' ' -f1) $pkg $(stat -c %s "new/$pkg")"
           actual="$(sed '1s/^\xEF\xBB\xBF//' new/RELEASES | tr -d '\r' | grep -v '^$')"
@@ -524,7 +527,9 @@ jobs:
   news:
     name: Publish launcher release news
     needs: [prepare, feed]
-    if: ${{ !cancelled() && needs.feed.result == 'success' }}
+    if: >-
+      github.repository == 'Vvoidddd/dauntless-unbroken' &&
+      !cancelled() && needs.feed.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

@@ -3,14 +3,14 @@
 *[Suomeksi](README.fi.md)*
 
 The Windows and Linux app friends install to play on a Dauntless Unbroken server. It joins a server from an
-invite, creates the account, downloads and checks the Dauntless 1.4.4 game files from the host's
+invite, creates the account, downloads and checks the Dauntless 1.10.5 game files from the host's
 own server, sets everything up and starts the game. English and Finnish.
 
-**Linux:** native launcher packages are available for x86_64; the Windows 1.4.4 game client runs through Proton or Wine. See the [distro-by-distro Linux guide](https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html) or [LINUX.md](LINUX.md).
+**Linux:** native launcher packages are available for x86_64; the Windows 1.10.5 game client runs through Proton or Wine. See the [distro-by-distro Linux guide](https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html) or [LINUX.md](LINUX.md).
 
 **No game files are in this app or in this repository.** They come from the host's content server,
-and every file is checked against the list of 410 files, sizes and SHA-256 hashes compiled into the
-launcher (`DauntlessUnbrokenContent/data/dauntless-1.4.4.json`). A server that offers anything else is refused.
+and every file is checked against the list of 606 files, sizes and SHA-256 hashes compiled into the
+launcher (`DauntlessUnbrokenContent/data/dauntless-1.10.5.json`). A server that offers anything else is refused.
 
 **Community:** [Join the Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu) for help, players and project updates.
 
@@ -61,13 +61,13 @@ The report is bounded before upload; it does not include arbitrary files from th
    Older launchers' saved/dismissed backup flags are respected; if no location is known, locate the file.
    **Save key backup** explicitly exports another copy and remembers its location. Keep backups private.
    Desktop/Documents recovery work stays in the background so cloud folders cannot hold sign-in on **PLEASE WAIT**.
-4. The launcher first checks common game locations. If it finds Dauntless 1.4.4, it shows the folder
+4. The launcher first checks common game locations. If it finds Dauntless 1.10.5, it shows the folder
    and asks you to confirm before verifying or changing it. Choose a different folder to download
-   a separate copy. If nothing is found, press **INSTALL** (about 11 GB); downloads resume later.
+   a separate copy. If nothing is found, press **INSTALL** (about 16 GB); downloads resume later.
    For an unusual install location, choose **I already have the game files** instead and paste the path
    of your `BaseGame144` folder (or the `Dauntless` folder inside it), or browse to it. The launcher
    uses the game where it is: it checks every file against its pinned manifest, replaces any file
-   that differs from 1.4.4, and puts its own `dxgi.dll` and `DauntlessUnbroken.dll` in
+   that differs from 1.10.5, and puts its own `dxgi.dll` and `DauntlessUnbroken.dll` in
    `Archon\Binaries\Win64`. Missing or different files are downloaded from your host, so that works
    only if your host has switched on game downloads. Copy the folder first if another setup still
    uses it.
@@ -197,7 +197,7 @@ every listed file, and a tag at the commit that was built. To release, raise the
 - or run Actions > **Launcher release** > **Run workflow** on `main`.
 
 After publishing, the release workflow points the rolling `launcher-updates` release at the new
-Windows Squirrel package. Launcher 1.0.4+ checks at startup, every five minutes while idle, and when its window regains focus (at most once per minute). Checks pause during gameplay or file tasks; an update never forces a restart during a game. Linux users update through
+Windows Squirrel package. Launcher 1.0.4+ checks at startup, every five minutes while idle, and when its window regains focus (at most once per minute). Checks pause during gameplay or file tasks; an update never forces a restart during a game. Linux updates are accepted only when the downloaded artifact matches both its release `SHA256SUMS-LINUX.txt` entry and its published byte count; the launcher fails closed before replacing an AppImage or invoking a package manager. Linux users update through
 their package format or download a newer release. A version is published only if it is newer than
 every earlier one, and never replaced. A prerelease version (such as `0.2.0-beta.1`) becomes a
 GitHub prerelease and never reaches `launcher-updates`. If a run fails halfway, re-run its failed

@@ -6,6 +6,7 @@ import path from "node:path";
 import { isValidHost } from "../shared/invite";
 import { isPlausibleAccountKey } from "../shared/username";
 import { EXE_NAME } from "./constants";
+import { log } from "./log";
 import type { GameLanguage, Language } from "../shared/types";
 
 export interface LaunchSettings {
@@ -78,6 +79,7 @@ export interface LaunchRuntime {
   command: string;
   argsPrefix: string[];
   env: NodeJS.ProcessEnv;
+  captureOutput?: boolean;
 }
 
 // Also needed when the Windows launcher itself runs under Wine/Proton.
@@ -118,6 +120,30 @@ export class GameProcess {
     this.listeners.push(fn);
   }
 
+  private captureRuntimeOutput(child: ChildProcess): () => void {
+    let remaining = 64 * 1024;
+    const buffers: { label: string; data: string }[] = [];
+    for (const [label, stream] of [["stdout", child.stdout], ["stderr", child.stderr]] as const) {
+      if (!stream) continue;
+      const entry = { label, data: "" };
+      buffers.push(entry);
+      stream.setEncoding("utf8");
+      stream.on("data", (chunk: string | Buffer) => {
+        if (remaining <= 0) return;
+        const text = typeof chunk === "string" ? chunk : chunk.toString("utf8");
+        const part = text.slice(0, remaining);
+        entry.data += part;
+        remaining -= part.length;
+      });
+    }
+    return () => {
+      for (const entry of buffers) {
+        if (entry.data) log.warn(`game runtime ${entry.label}: ${entry.data.trimEnd()}`);
+      }
+      if (remaining === 0) log.warn("game runtime output was truncated at 64 KiB");
+    };
+  }
+
   // extraEnv: added to the game's environment (DR_SHOW_CONSOLE=1 keeps the DLL's log window visible).
   start(win64Dir: string, args: string[], runtime?: LaunchRuntime, extraEnv?: Record<string, string>): Promise<void> {
     if (this.child) return Promise.reject(new Error("already running"));
@@ -126,14 +152,20 @@ export class GameProcess {
     const launchArgs = runtime ? [...runtime.argsPrefix, exe, ...args] : args;
     const env = { ...(runtime?.env ?? process.env), ...extraEnv };
     env.WINEDLLOVERRIDES = gameDllOverrides(env.WINEDLLOVERRIDES);
+    if (runtime) {
+      log.info(`launch runtime command: ${describeLaunch(command, launchArgs)}`);
+      log.info(`launch working directory: ${win64Dir}`);
+      log.info(`launch runtime paths: compat-data=${env.STEAM_COMPAT_DATA_PATH || "<unset>"}, install=${env.STEAM_COMPAT_INSTALL_PATH || "<unset>"}`);
+    }
     return new Promise((resolve, reject) => {
       const child = this.spawnFn(command, launchArgs, {
         cwd: win64Dir,
-        stdio: "ignore",
+        stdio: runtime?.captureOutput ? ["ignore", "pipe", "pipe"] : "ignore",
         windowsHide: false,
         detached: false,
         env,
       });
+      const flushRuntimeOutput = runtime?.captureOutput ? this.captureRuntimeOutput(child) : undefined;
       let started = false;
       child.once("spawn", () => {
         started = true;
@@ -145,6 +177,7 @@ export class GameProcess {
         if (!started) reject(e);
       });
       child.once("exit", (code) => {
+        flushRuntimeOutput?.();
         if (this.child === child) this.child = null;
         if (started) this.listeners.forEach((l) => l(false, code));
       });
