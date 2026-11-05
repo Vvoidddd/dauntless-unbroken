@@ -8,22 +8,13 @@
 #  - repository hygiene: no secrets or game files in the tracked files or in the commits being pushed
 #    (tools/ci/check-repo.js)
 #
-# Automatic launcher releases are ON: set the repository variable LAUNCHER_AUTO_RELEASE to false
-# (Settings > Secrets and variables > Actions > Variables) to pause them. A push to dauntless-unbroken that passes
-# every check, is still the head of the branch, and whose DauntlessUnbrokenLauncher/package.json version has no
-# published launcher-v<version> release yet publishes that version (launcher-release.yml) with the
-# installer built and tested here. While paused, Actions > Launcher release > Run workflow
-# publishes by hand.
+# GitHub CI is manual-only for now. Run the same checks locally before pushing changes.
+# Launcher news remains automatic on public-branch pushes and published releases.
 #
 # The same checks, run locally: see "Checks" in CONTRIBUTING.md. Actions are pinned by commit.
 name: CI
 
 on:
-  push:
-    branches:
-      - main
-      - 1.10.5
-  pull_request:
   workflow_dispatch:
 
 permissions:
