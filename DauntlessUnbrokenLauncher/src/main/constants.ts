@@ -29,7 +29,7 @@ export interface PinnedDll {
 // The files ship in the launcher's resources and are verified before installation.
 export const PINNED_DLLS: readonly PinnedDll[] = [
   { name: "dxgi.dll", sha256: "f792ee4c94320411d0bc73c5ce32b611f72c5de6102831fcd336a9f28c86ff5c" },
-  { name: "DauntlessUnbroken.dll", sha256: "d14603793739f883d2d5b0b3fc7410b0270f878ea5f07eea7a1f9f2f40f8128f" },
+  { name: "DauntlessUnbroken.dll", sha256: "25c4bf03d43afc5c3050918037b4d6cc0403333698cf614b24331e145ddea72d" },
 ];
 export const DLL_RELATIVE_PATHS = PINNED_DLLS.map((d) => `${WIN64_RELATIVE_DIR}/${d.name}`);
 
