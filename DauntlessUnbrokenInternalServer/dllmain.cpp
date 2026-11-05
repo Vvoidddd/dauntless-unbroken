@@ -30,7 +30,6 @@
 #include "MinHook/MinHook.h"
 #include "constants.h"
 #include "Networking.h"
-#include "ClientStartupGate.h"
 #include "FallRecovery.h"
 #include "TrialsSchedule.h"
 #include "AutoPressStart.h"
@@ -377,9 +376,6 @@ __declspec(dllexport) const char* DummyLinkFunc() {
     return "mrow :3";
 }
 
-void InitClientHooks();
-static bool ClientHooksInstalled = false;
-
 void MainThread() {
     while (!UWorld::GetWorld()) {
         if (Globals::AmServer) {
@@ -392,29 +388,13 @@ void MainThread() {
 
     Sleep(3 * 1000);
 
-    if (!Globals::AmServer) {
-        UEngine* Engine = UEngine::GetEngine();
+    if (!Globals::AmServer)
+        return;
 
-        UInputSettings::GetDefaultObj()->ConsoleKeys[0].KeyName = UKismetStringLibrary::Conv_StringToName(L"F2");
-
-        UObject* NewObject = UGameplayStatics::SpawnObject(Engine->ConsoleClass, Engine->GameViewport);
-
-        Engine->GameViewport->ViewportConsole = static_cast<UConsole*>(NewObject);
-
-        if (Globals::EnableLogging)
-        std::cout << "Spawned UConsole!" << std::endl;
-
-        if (ClientStartupGate::ShouldInstallClientHooks(UWorld::GetWorld(), ClientHooksInstalled)) {
-            InitClientHooks();
-            ClientHooksInstalled = true;
-        }
-    }
-    else {
-        if (Globals::EnableLogging)
+    if (Globals::EnableLogging)
         std::cout << "UWorld is live!" << std::endl;
 
-        Globals::DoListen = true;
-    }
+    Globals::DoListen = true;
 }
 
 void* OrigGetDefaultMap = nullptr;
@@ -1063,7 +1043,6 @@ void InitClientHooks() {
     RamsStorePilot::Install(Globals::BaseAddress);
 
     DualSense::Install();
-    DualSenseIcons::Install(Globals::BaseAddress);
 
 #if DR_SKIP_EAC_CLIENT_INIT
     MH_CreateHook((void*)(Globals::BaseAddress + 0xEF2440), EACClientInitHook, &OrigEACClientInit);
