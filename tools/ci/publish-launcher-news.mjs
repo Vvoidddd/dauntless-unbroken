@@ -2,6 +2,19 @@ import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';
 
 const clean = (s, max) => String(s ?? '').replace(/[\x00-\x08\x0b-\x1f\x7f]/g,'').trim().slice(0,max);
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+export async function publishedRelease(tag, fetchImpl = fetch, sleepImpl = sleep) {
+  const url = `https://api.github.com/repos/Vvoidddd/dauntless-unbroken/releases/tags/${tag}`;
+  for(let attempt = 0; attempt < 5; attempt++) {
+    const response = await fetchImpl(url, {signal:AbortSignal.timeout(15000)});
+    if(response.ok) return response.json();
+    if(response.status !== 404 || attempt === 4) throw Error('Published release unavailable');
+    await sleepImpl(1000 * 2 ** attempt);
+  }
+  throw Error('Published release unavailable');
+}
+
 export function newsEntry(event, kind, now = new Date()) {
   if(kind === 'release') {
     const r=event.release;
@@ -40,8 +53,6 @@ export async function publish(event, kind) {
 if(process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if(process.argv[2] === '--release') {
     const tag=process.argv[3]; if(!/^launcher-v\d+\.\d+\.\d+$/.test(tag)) throw Error('Invalid launcher tag');
-    const response=await fetch(`https://api.github.com/repos/Vvoidddd/dauntless-unbroken/releases/tags/${tag}`,{signal:AbortSignal.timeout(15000)});
-    if(!response.ok) throw Error('Published release unavailable');
-    await publish({release:await response.json()},'release');
+    await publish({release:await publishedRelease(tag)},'release');
   } else await publish(JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH,'utf8')),process.env.GITHUB_EVENT_NAME);
 }
