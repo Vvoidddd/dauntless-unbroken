@@ -30,6 +30,13 @@ export class LinuxRuntimeMissingError extends Error {
   }
 }
 
+export class LinuxPrefixInitializationError extends Error {
+  constructor() {
+    super("Proton prefix initialization did not create a usable Windows prefix");
+    this.name = "LinuxPrefixInitializationError";
+  }
+}
+
 function executable(file: string): boolean {
   try {
     accessSync(file, fsConstants.X_OK);
@@ -181,7 +188,9 @@ export function detectLinuxRuntime(
         STEAM_COMPAT_DATA_PATH: compatDataDir,
         ...(steamRoot ? { STEAM_COMPAT_CLIENT_INSTALL_PATH: steamRoot } : {}),
         STEAM_COMPAT_APP_ID: "0",
-        PROTON_LOG: "0",
+        // Keep Proton's bounded diagnostics beside the launcher log.
+        PROTON_LOG: runtimeEnv.PROTON_LOG ?? "1",
+        PROTON_LOG_DIR: path.join(userDataDir, "logs"),
         WINEDLLOVERRIDES: gameDllOverrides(runtimeEnv.WINEDLLOVERRIDES),
       },
     };
@@ -220,16 +229,18 @@ function run(command: string, args: string[], env: NodeJS.ProcessEnv, cwd: strin
 }
 
 async function initialize(runtime: DetectedLinuxRuntime, home: string): Promise<void> {
-  if (existsSync(path.join(runtime.prefixDir, "drive_c"))) return;
+  if (protonPrefixReady(runtime.prefixDir)) return;
   if (runtime.kind === "proton") {
     if (runtime.compatDataDir) mkdirSync(runtime.compatDataDir, { recursive: true });
     await run(runtime.command, ["run", "cmd", "/c", "exit"], runtime.env, home);
+    assertLinuxPrefixReady(runtime.prefixDir);
     return;
   }
   const beside = path.join(path.dirname(runtime.command), "wineboot");
   const wineboot = executable(beside) ? beside : fromPath("wineboot", runtime.env);
   if (wineboot) await run(wineboot, ["-u"], runtime.env, home);
   else await run(runtime.command, ["wineboot", "-u"], runtime.env, home);
+  assertLinuxPrefixReady(runtime.prefixDir);
 }
 
 function wineUser(runtime: DetectedLinuxRuntime, env: NodeJS.ProcessEnv): string {
@@ -238,8 +249,17 @@ function wineUser(runtime: DetectedLinuxRuntime, env: NodeJS.ProcessEnv): string
   return raw.replace(/[\\/:*?"<>|]/g, "_").slice(0, 64) || "wineuser";
 }
 
+export function protonPrefixReady(prefixDir: string, exists: (file: string) => boolean = existsSync): boolean {
+  return exists(path.join(prefixDir, "drive_c", "windows", "system32", "cmd.exe"));
+}
+
+export function assertLinuxPrefixReady(prefixDir: string, exists: (file: string) => boolean = existsSync): void {
+  if (!protonPrefixReady(prefixDir, exists)) throw new LinuxPrefixInitializationError();
+}
+
 export interface PrepareLinuxGameLaunchOptions {
   autoInstallRuntime?: boolean;
+  gameInstallDir?: string;
 }
 
 export async function prepareLinuxGameLaunch(
@@ -263,6 +283,8 @@ export async function prepareLinuxGameLaunch(
     }
   }
   if (!detected) throw new LinuxRuntimeMissingError();
+  const gameInstallDir = options.gameInstallDir ? path.resolve(options.gameInstallDir) : null;
+  if (gameInstallDir) detected.env.STEAM_COMPAT_INSTALL_PATH = gameInstallDir;
   await initialize(detected, home);
   const user = wineUser(detected, env);
   const configDir = path.join(detected.prefixDir, "drive_c", "users", user, "AppData", "Local", "Archon", "Saved", "Config", "WindowsClient");
@@ -271,6 +293,7 @@ export async function prepareLinuxGameLaunch(
       command: detected.command,
       argsPrefix: detected.kind === "proton" ? ["run"] : [],
       env: detected.env,
+      captureOutput: true,
     },
     configDir,
     runtimeName: detected.name,

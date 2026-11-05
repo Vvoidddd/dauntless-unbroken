@@ -132,7 +132,7 @@ export interface Platform {
   emitOfflineStatus(s: OfflineStatus): void;
   findTailscale(): string | null;
   findRunningClients(): Promise<number[]>;
-  prepareGameLaunch?(): Promise<{ runtime: LaunchRuntime; configDir: string; runtimeName: string } | null>;
+  prepareGameLaunch?(gameInstallDir: string): Promise<{ runtime: LaunchRuntime; configDir: string; runtimeName: string } | null>;
 
 // Starts the launcher-owned local services without exposing their Electron implementation here.
   startOfflineStack?(onPhase: (phase: "starting-metagame" | "starting-deploy") => void,): Promise<OfflineStackSession | null>;
@@ -177,6 +177,8 @@ export class Controller {
   private activeAccountId: string | null = null;
   private readonly offlineKeys: KeyStore;
   private readonly game: GameProcess;
+  private launchRuntimeName: string | null = null;
+  launchRuntimeNameForDiagnostics(): string | null { return this.launchRuntimeName; }
   private endPlayingSession: (()=>Promise<void>) | null = null;
   private admissionAbort: AbortController | null = null;
   private queue: Snapshot['queue'] = null;
@@ -202,6 +204,7 @@ export class Controller {
   private lastCheckedAt: string | null = null;
   private failedPolls = 0;
   private status: ServerStatus | null = null;
+  private statusCheckedAt: string | null = null;
   private statusUnsupported = false;
   private contentProbe: boolean | null = null;
   private hasKey = false;
@@ -261,7 +264,7 @@ export class Controller {
         this.queue = null;
         const end=this.endPlayingSession; this.endPlayingSession=null;
         if(end) void end().catch(()=>{});
-        if (code !== null && code !== 0) this.lastError = {code:'launch_failed',detail:gameExitDetail(code)};
+        if (code !== null && code !== 0) this.lastError = {code:'launch_failed',detail:gameExitDetail(code, this.hostPlatform, this.launchRuntimeName ?? undefined)};
 
         void this.stopRelay().then(() => this.publish());
         return;
@@ -427,6 +430,7 @@ export class Controller {
       settings: { graphics: this.s.graphics, exposure: this.s.exposure, windowed: this.s.windowed, language: this.s.language, gameLanguage: this.s.gameLanguage, streamerMode: this.s.streamerMode, discordPresence: this.s.discordPresence, showConsole: this.s.showConsole, ...(this.s.huntRegion ? {huntRegion:this.s.huntRegion} : {}) },
       app: { version: this.p.appVersion, packaged: this.p.packaged, updateReady: this.updateReady, platform: this.p.hostPlatform ?? process.platform },
       status: this.status,
+      statusCheckedAt: this.statusCheckedAt,
       availableHuntRegions: this.huntRegions?.gen === this.statusGen ? this.huntRegions.regions : ['main'],
       statusUnsupported: this.statusUnsupported,
       lastError: this.lastError,
@@ -471,7 +475,7 @@ export class Controller {
 
   async maintenance(work:()=>Promise<void>):Promise<ActionResult> {
     if(this.busy||this.task||this.game.running||this.offlineSession||this.offlineStarting)return err('busy');
-    return this.withBusy(async()=>{try{await work();return OK;}catch(error){log.warn('launcher maintenance failed: '+describeError(error));return err('unknown');}});
+    return this.withBusy(async()=>{try{await work();return OK;}catch(error){log.warn('launcher maintenance failed: '+describeError(error));this.lastError={code:'unknown'};return err('unknown');}});
   }
 
   setUpdateReady(): void {
@@ -587,6 +591,7 @@ export class Controller {
     this.connectProblem = null;
     this.news = null;
     this.branding = null;
+    this.art.clear();
     this.keyRejected = false;
     this.failedPolls = 0;
     this.statusGen++;
@@ -740,13 +745,14 @@ export class Controller {
   }
 
   private async refreshProfilePicture(gen: number, ep: Endpoint, key: string, accountId: string): Promise<void> {
+    const previousImageDataUrl = this.profilePicture.imageDataUrl;
     const result = await fetchProfilePicture(ep, key);
     if(gen !== this.statusGen || this.endpoint()?.host !== ep.host) return;
     if(!result.ok){this.profilePicture={status:null,reason:null,imageDataUrl:null};this.publish();return;}
     if(!result.picture){this.profilePicture={status:null,reason:null,imageDataUrl:null};this.publish();return;}
     const imageDataUrl = await fetchProfilePictureImage(ep, accountId, key);
     if(gen !== this.statusGen || this.endpoint()?.host !== ep.host) return;
-    this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl};
+    this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl:imageDataUrl ?? previousImageDataUrl};
     this.publish();
   }
 
@@ -758,14 +764,15 @@ export class Controller {
     this.profilePictureBusy=true;this.publish();
     try{
       const key=await this.keys.load(slot);if(!key)return err('key_rejected');
+      const previousImageDataUrl = this.profilePicture.imageDataUrl;
       const result=await uploadProfilePicture(ep,key,image);
       if(!result.ok){
-        const code=result.error==='invalid_image'||result.error==='image_too_large'||result.error==='invalid_image_dimensions'||result.error==='unsupported_image_format'||result.error==='image_rejected'||result.error==='moderation_unavailable'?'server_error':result.error;
-        return err(code);
+        if(result.error==='server_unreachable'||result.error==='server_error'||result.error==='rate_limited') return err(result.error);
+        return err('server_error', result.error);
       }
       this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl:null};
       const imageDataUrl=await fetchProfilePictureImage(ep,result.picture.accountId,key);
-      this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl};
+      this.profilePicture={status:result.picture.status,reason:result.picture.reason,imageDataUrl:imageDataUrl ?? previousImageDataUrl};
       return OK;
     }finally{this.profilePictureBusy=false;this.publish();}
   }
@@ -800,7 +807,7 @@ export class Controller {
     const ep=this.endpoint();if(!ep)return {ok:false,error:{code:'server_unreachable'}};
     const slot=this.slot(),useKey=this.hasKey&&!this.keyRejected;
     this.supportUploading=true;
-    try{return await uploadSupportReport(ep,this.p.userDataDir,this.snapshot(),attemptedName||this.snapshot().account.username||'',()=>slot&&useKey?this.keys.load(slot):Promise.resolve(null));}
+    try{return await uploadSupportReport(ep,this.p.userDataDir,this.snapshot(),attemptedName||this.snapshot().account.username||'',()=>slot&&useKey?this.keys.load(slot):Promise.resolve(null),{runtimeName:this.launchRuntimeNameForDiagnostics()});}
     finally{this.supportUploading=false;}
   }
 
@@ -861,6 +868,7 @@ export class Controller {
     const { res, stale } = await this.fetchStatus(ep);
     // Overtaken: drop it; the next poll asks again under the new state.
     if (stale) return;
+    this.statusCheckedAt = new Date().toISOString();
     if(this.game.running && !this.offlineSession && Date.now()-this.playtimeCheckedAt >= 60_000) void this.refreshServerPlaytime();
     if (this.game.running && !this.offlineSession && !this.queuePollBusy) {
       this.queuePollBusy = true;
@@ -910,10 +918,9 @@ export class Controller {
     if (!ep || this.newsLoading || (this.news !== null && Date.now() - this.newsCheckedAt < 60000)) return;
     this.newsLoading = true;
     const generation = this.statusGen;
-    this.newsCheckedAt = Date.now();
     try {
       const items = await fetchNews(ep, this.news ?? []);
-      if (generation === this.statusGen) { this.news = items; this.publish(); }
+      if (generation === this.statusGen) { this.news = items; this.newsCheckedAt = Date.now(); this.publish(); }
     } finally { this.newsLoading = false; }
   }
 
@@ -2061,17 +2068,19 @@ export class Controller {
       account?:{userId:string;username:string},
   ): Promise<ActionResult> {
     let prepared: { runtime: LaunchRuntime; configDir: string; runtimeName: string } | null = null;
+    this.launchRuntimeName = null;
 
     if (this.p.prepareGameLaunch) {
       try {
-        prepared = await this.p.prepareGameLaunch();
+        prepared = await this.p.prepareGameLaunch(this.installDir);
       } catch (e) {
         log.error(`compatibility runtime preparation failed: ${describeError(e)}`);
-        return this.fail("launch_failed");
+        return this.fail("launch_failed", describeError(e));
       }
 
       if (this.hostPlatform === "linux" && prepared === null) return this.fail("compat_runtime_missing");
     }
+    this.launchRuntimeName = prepared?.runtimeName ?? null;
 
     let displayRepaired = false;
     const profile=this.p.installFromArchive?path.join(this.p.userDataDir,'game-profile-1.10.5'):null;

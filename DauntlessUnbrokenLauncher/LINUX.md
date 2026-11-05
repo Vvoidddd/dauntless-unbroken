@@ -1,8 +1,8 @@
 # Linux support
 
-Dauntless Unbroken Launcher supports x86_64 Linux. The launcher itself is native Electron; the pinned Dauntless 1.4.4 game client is still the original Windows x86_64 build and is started through Proton or Wine.
+Dauntless Unbroken Launcher supports x86_64 Linux. The launcher itself is native Electron; the pinned Dauntless 1.10.5 game client is still the original Windows x86_64 build and is started through Proton or Wine.
 
-No game files are included in the Linux packages. The launcher downloads or verifies the same pinned 1.4.4 files as the Windows build.
+No game files are included in the Linux packages. The launcher downloads or verifies the same pinned 1.10.5 files as the Windows build.
 
 Full distro-by-distro instructions are on the project site:
 
@@ -75,7 +75,7 @@ NixOS one-off AppImage run:
 nix-shell -p appimage-run --run 'appimage-run ./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage'
 ```
 
-The default game folder on Linux is `~/Games/DauntlessUnbroken`. You can choose another absolute Linux path or point the launcher at an existing Dauntless 1.4.4 folder.
+The default game folder on Linux is `~/Games/DauntlessUnbroken`. You can choose another absolute Linux path or point the launcher at an existing Dauntless 1.10.5 folder. An older 1.4.4 install is handled separately by the migration flow.
 
 ### Steam Deck: launcher closes or the Windows launcher cannot connect
 
@@ -150,15 +150,15 @@ Private/Tailscale servers work on Linux too; the launcher searches the normal Li
 
 ### Game process exists but no window appears
 
-Use **launcher 0.1.13 or newer**. In 0.1.12 the injected client DLL could deadlock during Wine/Proton
+Use a current launcher release. In 0.1.12 the injected client DLL could deadlock during Wine/Proton
 startup while creating its Windows debug console. Proton would stay alive and Discord could show the
 game as running, but Unreal Engine never reached normal window/log initialization.
 
-0.1.13 detects Wine/Proton and skips that client-only console setup. The native `dxgi` override and
+This was fixed in 0.1.13: the launcher detects Wine/Proton and skips that client-only console setup. The native `dxgi` override and
 `DauntlessUnbroken.dll` are still required; the launcher verifies and installs both.
 
 GNOME/Wayland also needs a valid XWayland authorization cookie. The launcher preserves an existing
-`XAUTHORITY`, and 0.1.13 recovers Mutter's `.mutter-Xwaylandauth.*` file from `XDG_RUNTIME_DIR`
+`XAUTHORITY`, and current releases recover Mutter's `.mutter-Xwaylandauth.*` file from `XDG_RUNTIME_DIR`
 when a wrapper or stripped environment omitted it. A missing cookie typically produces
 `Authorization required, but no authorization protocol specified` from Wine and no usable game
 window.
@@ -169,10 +169,10 @@ Keep the launcher open while the game runs.
 
 ## Updates and limitations
 
-The Linux launcher checks the latest stable GitHub launcher release at startup, every five minutes while idle, and when its window regains focus (at most once per minute). Checks pause during gameplay and game-file tasks, and metadata requests time out after ten seconds. When an update is available, the existing update banner appears. AppImage installs replace and relaunch themselves; .deb and .rpm installs download the matching package and request administrator approval through PolicyKit before handing the update to the system package manager. Prereleases are not offered automatically.
+The Linux launcher checks the latest stable GitHub launcher release at startup, every five minutes while idle, and when its window regains focus (at most once per minute). Checks pause during gameplay and game-file tasks, and metadata requests time out after ten seconds. When an update is available, the existing update banner appears. Before any replacement or package-manager call, the launcher requires the release's `SHA256SUMS-LINUX.txt` entry, accepts only this repository's GitHub release-download URLs, and streams the artifact through a byte counter and SHA-256 hash instead of loading the whole package into memory. Missing, malformed, mismatched, untrusted or insecurely redirected downloads are rejected and removed. AppImage installs replace and relaunch themselves; .deb and .rpm installs download the matching package and request administrator approval through PolicyKit before handing the verified file to the system package manager. Prereleases are not offered automatically.
 
 Windows continues to use the existing Squirrel self-update feed.
 
 The supported game target is x86_64. ARM64 Linux is not advertised because the Windows x86_64 game would need an additional CPU-translation layer that this launcher does not manage.
 
-If Proton or Wine starts but the game does not, check the launcher's log directory under its Electron user-data directory. You can force a known-good runtime with one of the environment variables above.
+If Proton or Wine starts but the game does not, check the launcher's log directory under its Electron user-data directory. Proton also writes its `steam-0.log` compatibility report there; the launcher includes that file in diagnostics, bounded and redacted. The launcher keeps the runtime's stdout and stderr for the failed session, up to 64 KiB, and redacts account keys before writing them to `launcher.log`. Normal runtime output stays hidden. You can force a known-good runtime with one of the environment variables above.

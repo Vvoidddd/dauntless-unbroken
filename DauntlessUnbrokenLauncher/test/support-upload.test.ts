@@ -9,8 +9,9 @@ test('support upload stays usable during busy registration, bounds UTF-8, redact
  try{
   await mkdir(path.join(dir,'logs'));await writeFile(path.join(dir,'logs','launcher.log'),'ERROR 🌋 test\n'.repeat(50000)+'\nInviteCode=PRIVATE-INVITE\nUUK_'+'z'.repeat(48));
   const snapshot={app:{version:'1.0.24'},phase:'register',busy:true,game:{running:false},account:{hasKey:false},server:null,install:{dir,installed:false,missingFiles:100,verified:false,dllsOk:false},lastError:{code:'server_unreachable'}} as Snapshot;
-  const key='UUK_'+'a'.repeat(48),result=await uploadSupportReport({host:'127.0.0.1',port:(server.address() as any).port,pin:null},dir,snapshot,'NewSlayer',async()=>key);
+  const key='UUK_'+'a'.repeat(48),result=await uploadSupportReport({host:'127.0.0.1',port:(server.address() as any).port,pin:null},dir,snapshot,'NewSlayer',async()=>key,{runtimeName:'Wine (system)'});
   assert.equal(result.ok,true);assert.equal(keyHeader,key);assert.equal(body.attemptedName,'NewSlayer');assert.equal(body.report.state.busy,true);assert.ok(bytes<128*1024);
+  assert.equal(body.report.runtime.name,'Wine (system)');
   for(const value of [key,'z'.repeat(48),'PRIVATE-INVITE',dir])assert.ok(!JSON.stringify(body).includes(value));
   assert.equal(await bounded(new Promise<null>(()=>{}),null,10),null);
   assert.ok(!diagnosticRedact('dauntless-unbroken://join?v=2&code=SHOULD-HIDE').includes('SHOULD-HIDE'));

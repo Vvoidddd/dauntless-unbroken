@@ -441,7 +441,7 @@ function registerIpc(c: Controller): void {
         filters:[{name:"Support diagnostics",extensions:["json"]}],properties:["dontAddToRecent","showOverwriteConfirmation"],
       });
       if(result.canceled||!result.filePath)return {ok:false,error:{code:"cancelled"}};
-      await fsp.writeFile(result.filePath,await diagnosticBundle(app.getPath("userData"),c.snapshot()),"utf8");
+      await fsp.writeFile(result.filePath,await diagnosticBundle(app.getPath("userData"),c.snapshot(),{runtimeName:c.launchRuntimeNameForDiagnostics()}),"utf8");
       return {ok:true};
     }catch{return {ok:false,error:{code:"unknown"}};}
     finally{diagnosticsExporting=false;}
@@ -670,13 +670,13 @@ function makePlatform(): Platform {
     offlineFreeMemory: app.isPackaged && process.platform === "win32" ? freemem : undefined,
     prepareGameLaunch:
       process.platform === "linux"
-        ? async () => {
+        ? async (gameInstallDir) => {
             try {
               return await prepareLinuxGameLaunch(
                 app.getPath("userData"),
                 process.env,
                 app.getPath("home"),
-                { autoInstallRuntime: app.isPackaged },
+                { autoInstallRuntime: app.isPackaged, gameInstallDir },
               );
             } catch (e) {
               if (e instanceof LinuxRuntimeMissingError) return null;
