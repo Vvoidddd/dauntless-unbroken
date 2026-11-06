@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "6e8836434fa28c0753034d60324bc7a2cd0767aa",
+      "date": "2026-11-06T04:04:37.912Z",
+      "title": "Latest project updates",
+      "body": "• Public launcher release and news snapshot\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "680141dadc5013efc69f79a674346b88775ced82",
       "date": "2026-11-06T04:02:43.313Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-11-04T09:53:21.268Z",
       "title": "Latest project updates",
       "body": "• Enforce maintenance access in native game worlds\n• Remove unverified native maintenance gate\n• Enforce maintenance access in native PreLogin\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "2e68f5c74ceb0bc29270c45c2e58215e52522100",
-      "date": "2026-11-04T09:36:25.850Z",
-      "title": "Latest project updates",
-      "body": "• Defer escalation guard until server world is ready\n• Add maintenance-first production deployment script\n• Fix native DLL startup stack usage\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
