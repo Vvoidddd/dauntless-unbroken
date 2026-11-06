@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "639e3bd22a5a20942552ae876ed00cd0c2248fd4",
+      "date": "2026-11-06T10:26:52.296Z",
+      "title": "Latest project updates",
+      "body": "• Wait for initial launcher news refresh in test (#140)\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "30afe0b189d89df1aadec74dcb05d5763543aa38",
       "date": "2026-11-06T10:19:08.013Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-11-04T10:32:03.851Z",
       "title": "Latest project updates",
       "body": "• Wait for launcher background content refreshes\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "eb831c4e52ab72c79ec9a04763386057596e98ff",
-      "date": "2026-11-04T10:08:31.895Z",
-      "title": "Latest project updates",
-      "body": "• Sync community unread indicator\n• Add live username validation\n• Fix maintenance home messaging\n• Add connection state indicator\n• Show newest news with varied game art\n• Feature newest update on library home\n• Show profile privacy in account menu\n• Add art-led server header\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
