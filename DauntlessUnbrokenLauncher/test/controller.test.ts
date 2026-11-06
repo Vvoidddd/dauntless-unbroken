@@ -1946,6 +1946,8 @@ test("connected launcher refreshes news without restarting and bounds polling", 
     await hx.c.init();
     await hx.c.submitInvite(invite(cert.fingerprint));
     await waitUntil(() => hx.c.getNews()[0]?.title === "Before");
+    const initialRefresh = (hx.c as any).extrasTask as Promise<void> | null;
+    if (initialRefresh) await initialRefresh;
     content.opts.news = { items: [{ date: "2026-10-02", title: "After", body: "New" }] };
     const count = () => gatewayRequests.filter(r => r === "GET /content/v1/news").length;
     const before = count();
