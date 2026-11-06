@@ -12,8 +12,3 @@ test("the shipped client DLL contains the native Trials schedule patch", () => {
   assert.ok(dll.includes(Buffer.from("gen_arena_hunts_schedule")), "client DLL is missing the Trials schedule table hook");
   assert.ok(dll.includes(Buffer.from("trials_schedule")), "client DLL is missing Trials schedule diagnostics");
 });
-
-test("Trials schedule rewriting only runs in the client", () => {
-  const source = readFileSync(path.resolve(__dirname, "..", "..", "..", "experiments", "1.10.5", "bootstrap.cpp"), "utf8");
-  assert.match(source, /if \(!Server\) UpdateTrialsSchedule\(\);/);
-});

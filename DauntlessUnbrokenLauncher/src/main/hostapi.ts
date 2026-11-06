@@ -91,6 +91,10 @@ export async function fetchHuntRegions(ep: Endpoint, key: string): Promise<Array
     const res = await request(ep, '/unbroken/api/HuntRegion', { headers:statusHeaders(ep,key), timeoutMs:5000,maxBytes:8192 });
     const body = parseJsonBody(res);
     if (res.status !== 200 || !isObject(body)) return null;
+    if (Array.isArray(body.regions)) {
+      const supported = new Set(body.regions.filter((region): region is 'ger' | 'us' => region === 'ger' || region === 'us'));
+      return ['main', ...(supported.has('ger') ? ['ger' as const] : []), ...(supported.has('us') ? ['us' as const] : [])];
+    }
     // Older servers expose one global regional-mode flag, not per-region capabilities.
     return body.enabled === true ? ['main','ger','us'] : ['main'];
   } catch { return null; }

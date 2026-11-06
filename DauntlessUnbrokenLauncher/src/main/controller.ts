@@ -104,7 +104,6 @@ export interface Platform {
   defaultInstallDir: string;
   prepareInstallDir?(dir:string):Promise<string>;
   installFromArchive?(dir:string,signal:AbortSignal,progress:(p:TaskProgress)=>void,files:ManifestFile[]):Promise<void>;
-  finishGameUpgrade?(dir:string):Promise<void>;
   hostPlatform?: NodeJS.Platform;
   appVersion: string;
   packaged: boolean;
@@ -1617,9 +1616,6 @@ export class Controller {
       await this.settings.update((s) => {
         s.verifiedDir = dir;
       });
-      if(this.p.finishGameUpgrade && !(await this.p.findRunningClients()).length){
-        try{await this.p.finishGameUpgrade(dir);}catch(e){log.warn(`Old-game cleanup skipped: ${describeError(e)}`);}
-      }
       log.info(`${mode} finished in ${dir}`);
       this.notice = mode === "install" ? "install_done" : "repair_done";
       return OK;

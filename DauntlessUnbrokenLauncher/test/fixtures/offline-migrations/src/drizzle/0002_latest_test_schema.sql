@@ -1,0 +1,1 @@
+CREATE TABLE profileflags (userId TEXT PRIMARY KEY, flags TEXT NOT NULL DEFAULT '{}');

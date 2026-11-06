@@ -10,7 +10,7 @@ omalta palvelimelta, laittaa kaiken valmiiksi ja käynnistää pelin. Kielinä e
 
 **Sovelluksessa tai tässä repositoriossa ei ole pelitiedostoja.** Ne tulevat ylläpitäjän
 sisältöpalvelimelta, ja jokainen tiedosto tarkistetaan käynnistimeen käännettyä listaa vasten
-(606 tiedostoa, koot ja SHA-256-tiivisteet, `DauntlessUnbrokenContent/data/dauntless-1.10.5.json`).
+(606 tiedostoa, koot ja SHA-256-tiivisteet, `data/dauntless-1.10.5.json`).
 Palvelin, joka tarjoaa jotain muuta, hylätään.
 
 **Yhteisö:** [Liity Dauntless Unbroken Discordiin](https://discord.gg/ZJRprHzsgu) saadaksesi apua, pelikavereita ja projektin päivityksiä. Discord-painike näkyy myös aina käynnistimen sivupalkissa.

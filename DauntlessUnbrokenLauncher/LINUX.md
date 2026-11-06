@@ -75,7 +75,7 @@ NixOS one-off AppImage run:
 nix-shell -p appimage-run --run 'appimage-run ./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage'
 ```
 
-The default game folder on Linux is `~/Games/DauntlessUnbroken`. You can choose another absolute Linux path or point the launcher at an existing Dauntless 1.10.5 folder. An older 1.4.4 install is handled separately by the migration flow.
+The default game folder on Linux is `~/Games/DauntlessUnbroken`. You can choose another absolute Linux path or point the launcher at an existing Dauntless 1.10.5 folder. An older install is left untouched while 1.10.5 is installed in a separate folder.
 
 ### Steam Deck: launcher closes or the Windows launcher cannot connect
 

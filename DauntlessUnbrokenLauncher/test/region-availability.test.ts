@@ -27,8 +27,10 @@ test('region settings only advertise regions enabled by this server',async()=>{
   try {
     const ep={host:'127.0.0.1',port:(server.address() as AddressInfo).port,pin:null};
     assert.deepEqual(await fetchHuntRegions(ep,'UUK_'+'a'.repeat(48)),['main']);
-    body={region:'us',enabled:true,probes:[{region:'ger'},{region:'ger'},{region:'unknown'}]};
-    assert.deepEqual(await fetchHuntRegions(ep,'UUK_'+'a'.repeat(48)),['main','ger','us']);
+    body={region:'us',enabled:true,regions:['main','us'],probes:[{region:'ger'},{region:'ger'},{region:'unknown'}]};
+    assert.deepEqual(await fetchHuntRegions(ep,'UUK_'+'a'.repeat(48)),['main','us']);
+    body={region:'ger',enabled:true,regions:['main','ger'],probes:[]};
+    assert.deepEqual(await fetchHuntRegions(ep,'UUK_'+'a'.repeat(48)),['main','ger']);
     body={enabled:true,probes:[]};assert.deepEqual(await fetchHuntRegions(ep,'UUK_'+'a'.repeat(48)),['main','ger','us']);
     body={};assert.deepEqual(await fetchHuntRegions(ep,'UUK_'+'a'.repeat(48)),['main']);
   } finally {await new Promise<void>(resolve=>server.close(()=>resolve()));}

@@ -3,7 +3,7 @@ const path = require("node:path");
 const fs = require("node:fs");
 const { randomUUID, randomBytes, createHash } = require("node:crypto");
 const helper = require("../runtime/offline-save-db.cjs");
-const metagame = path.resolve(__dirname, "../../DauntlessUnbrokenMetagame");
+const metagame = path.resolve(__dirname, "fixtures/offline-migrations");
 
 function open(file, readonly = false) {
     const db = new DatabaseSync(file, { readOnly: readonly });

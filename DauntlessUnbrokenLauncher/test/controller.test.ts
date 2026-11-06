@@ -42,6 +42,7 @@ let meta: FakeMetagame;
 let content: FakeContentServer;
 let gatewayRequests: string[] = [];
 let regionMode = false;
+let regionAvailability: Array<'main' | 'ger' | 'us'> = ['main'];
 const regionPosts: string[] = [];
 const supportUploads:Array<{key:unknown;body:any}>=[];
 let deviceBlocked = false;
@@ -74,10 +75,10 @@ before(async () => {
       let raw='';req.on('data',chunk=>raw+=chunk);req.on('end',()=>{const body=JSON.parse(raw);supportUploads.push({key:req.headers['x-dauntless-unbroken-user-api-key'],body});res.writeHead(201,{'content-type':'application/json'}).end(JSON.stringify({id:body.id}));});return;
     }
     if (regionMode && req.url === '/unbroken/api/HuntRegion') {
-      if (req.method === 'GET') { req.resume(); res.writeHead(200,{'content-type':'application/json'}).end(JSON.stringify({region:'main',enabled:false,probes:[]})); return; }
+      if (req.method === 'GET') { req.resume(); res.writeHead(200,{'content-type':'application/json'}).end(JSON.stringify({region:'main',enabled:regionAvailability.length>1,regions:regionAvailability,probes:[]})); return; }
       let data=''; req.on('data',chunk=>data+=chunk); req.on('end',()=>{
-        const {region}=JSON.parse(data); regionPosts.push(region);
-        res.writeHead(region==='main'?200:503,{'content-type':'application/json'}).end(JSON.stringify(region==='main'?{region}:{error:'region_unavailable'}));
+        const {region}=JSON.parse(data); regionPosts.push(region); const available=regionAvailability.includes(region);
+        res.writeHead(available?200:503,{'content-type':'application/json'}).end(JSON.stringify(available?{region}:{error:'region_unavailable'}));
       }); return;
     }
     if (req.url === '/unbroken/api/Admission' && admissionResponse) {
@@ -686,7 +687,7 @@ test("PLAY rejects same-size content changes after an install", async () => {
 });
 
 test('saved disabled region still launches and resets preference to Automatic', async () => {
-  const hx=harness(); regionMode=true; regionPosts.length=0;
+  const hx=harness(); regionMode=true; regionAvailability=['main']; regionPosts.length=0;
   meta.opts.validCodes!.add('REGION-CODE');
   try {
     await hx.c.init();
@@ -701,7 +702,25 @@ test('saved disabled region still launches and resets preference to Automatic', 
     assert.equal(hx.spawns.length,1);
     hx.child()!.emit('exit',0);
     await new Promise(resolve=>setTimeout(resolve,100));
-  } finally { regionMode=false; await hx.c.shutdown(); }
+  } finally { regionMode=false; regionAvailability=['main']; await hx.c.shutdown(); }
+});
+
+test('enabled NA region is advertised in launcher state and saved before PLAY', async () => {
+  const hx=harness(); regionMode=true; regionAvailability=['main','us']; regionPosts.length=0;
+  meta.opts.validCodes!.add('NA-REGION-CODE');
+  try {
+    await hx.c.init();
+    await hx.c.submitInvite(invite(cert.fingerprint,'NA-REGION-CODE'));
+    await hx.c.register('NA_Region');
+    await hx.c.startInstall();
+    assert.deepEqual(hx.last().availableHuntRegions,['main','us']);
+    await hx.c.setSettings({huntRegion:'us'});
+    assert.deepEqual(await hx.c.play(),{ok:true});
+    assert.deepEqual(regionPosts,['us']);
+    assert.equal(hx.last().settings.huntRegion,'us');
+    hx.child()!.emit('exit',0);
+    await new Promise(resolve=>setTimeout(resolve,100));
+  } finally { regionMode=false; regionAvailability=['main']; await hx.c.shutdown(); }
 });
 
 test("game language: automatic by default, stored when chosen, an unknown value changes nothing, sent as -epiclocale at PLAY", async () => {

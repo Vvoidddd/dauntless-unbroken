@@ -1,0 +1,7 @@
+{
+  "entries": [
+    { "idx": 0, "when": 1, "tag": "0000_portable_save_test_schema" },
+    { "idx": 1, "when": 2, "tag": "0001_region_preference" },
+    { "idx": 2, "when": 3, "tag": "0002_latest_test_schema" }
+  ]
+}

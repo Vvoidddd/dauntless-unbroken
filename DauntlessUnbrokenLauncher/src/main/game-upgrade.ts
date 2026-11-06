@@ -4,9 +4,7 @@ import { DownloadJob } from './downloader';
 import {log} from './log';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { removeGameFiles } from './game-removal';
-import {verifyInstall} from './verify';
-import type { GameManifest, ManifestFile } from './manifest';
+import type { ManifestFile } from './manifest';
 import type { TaskProgress } from '../shared/types';
 
 const EXE = 'Archon/Binaries/Win64/Dauntless-Win64-Shipping.exe';
@@ -16,17 +14,17 @@ async function hash(file:string):Promise<string|null> {
   try { const h=createHash('sha256'); for await(const b of createReadStream(file))h.update(b); return h.digest('hex'); }
   catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return null;throw e;}
 }
-type Upgrade = { oldDir:string; newDir:string; removeOld:boolean };
+type Upgrade = { oldDir:string; newDir:string };
 async function load(file:string):Promise<Upgrade|null>{
   try {
     const v=JSON.parse(await fs.readFile(file,'utf8'));
-    if(!v||typeof v.oldDir!=='string'||!path.isAbsolute(v.oldDir)||typeof v.newDir!=='string'||!path.isAbsolute(v.newDir)||typeof v.removeOld!=='boolean')throw Error('Invalid game upgrade record');
+    if(!v||typeof v.oldDir!=='string'||!path.isAbsolute(v.oldDir)||typeof v.newDir!=='string'||!path.isAbsolute(v.newDir)||(v.removeOld!==undefined&&typeof v.removeOld!=='boolean'))throw Error('Invalid game upgrade record');
     return v;
   }catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return null;throw e;}
 }
 
 // Keep the existing launcher profile and keys; only the game directory changes.
-export async function prepareGameUpgrade(record:string,selected:string,choose:(oldDir:string,newDir:string)=>Promise<'keep'|'remove'>):Promise<string>{
+export async function prepareGameUpgrade(record:string,selected:string,inform:(oldDir:string,newDir:string)=>Promise<void>):Promise<string>{
   const old=await load(record);
   if(old&&path.resolve(selected)===old.oldDir){
     const target=await hash(path.join(old.newDir,EXE));
@@ -40,24 +38,11 @@ export async function prepareGameUpgrade(record:string,selected:string,choose:(o
   if(newDir.length>150)throw Error('Choose a shorter installation path for 1.10.5.');
   const target=await hash(path.join(newDir,EXE));
   if(target&&target!==NEW_HASH)throw Error('The 1.10.5 destination already contains a different game. Choose another folder.');
-  const removeOld=await choose(selected,newDir)==='remove';
+  await inform(selected,newDir);
   await fs.mkdir(path.dirname(record),{recursive:true});
-  await fs.writeFile(record+'.tmp',JSON.stringify({oldDir:path.resolve(selected),newDir,removeOld}));
+  await fs.writeFile(record+'.tmp',JSON.stringify({oldDir:path.resolve(selected),newDir}));
   await fs.rename(record+'.tmp',record);
   return newDir;
-}
-
-export async function finishGameUpgrade(record:string,current:string,legacy:GameManifest,next:GameManifest,protectedPaths:string[],trash:(file:string)=>Promise<void>):Promise<void>{
-  const saved=await load(record);
-  if(!saved?.removeOld||path.resolve(current)!==saved.newDir)return;
-  // Called only after the new manifest verifies. Refuse changed/shared content.
-  if(await hash(path.join(current,EXE))!==NEW_HASH)throw Error('Verify 1.10.5 before removing 1.4.4.');
-  if((await verifyInstall(current,next.files,{fullHash:true})).bad.length)throw Error('New game verification failed; the old game was kept.');
-  const oldHash=await hash(path.join(saved.oldDir,EXE));
-  if(oldHash&&oldHash!==OLD_HASH)throw Error('The old game changed; cleanup was skipped.');
-  await removeGameFiles(saved.oldDir,legacy,[current,...protectedPaths],async()=>true,trash);
-  await fs.writeFile(record+'.tmp',JSON.stringify({...saved,removeOld:false}));
-  await fs.rename(record+'.tmp',record);
 }
 
 export const GAME_DOWNLOAD_BASE_URL='https://downloads.voidvault.xyz/1.10.5/';
