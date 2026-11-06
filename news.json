@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "5458d21689f1fba41dc936a403e127ae0e8ac4ba",
+      "date": "2026-11-06T10:43:24.684Z",
+      "title": "Latest project updates",
+      "body": "• Allow release workflow to build missing artifacts (#141)\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "639e3bd22a5a20942552ae876ed00cd0c2248fd4",
       "date": "2026-11-06T10:26:52.296Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-11-04T10:47:57.073Z",
       "title": "Latest project updates",
       "body": "• Bump launcher version to 1.1.0\n• Set launcher version to 1.0.56\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "1c240bd84d3bf899efee50b2702895c682ec1191",
-      "date": "2026-11-04T10:32:03.851Z",
-      "title": "Latest project updates",
-      "body": "• Wait for launcher background content refreshes\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
