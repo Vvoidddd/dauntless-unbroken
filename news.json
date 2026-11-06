@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "8589d12d6d5e9061b8174927f96f5ff956f1d90b",
+      "date": "2026-11-06T09:33:33.358Z",
+      "title": "Latest project updates",
+      "body": "• Document launcher-only public scope\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "6e8836434fa28c0753034d60324bc7a2cd0767aa",
       "date": "2026-11-06T04:04:37.912Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-11-04T09:56:19.228Z",
       "title": "Latest project updates",
       "body": "• Refine launcher news surface\n• Refine launcher library layout\n• Add launcher library selection\n• Keep repair states in the game home surface\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "e5ee90ed11327ef9a221da962852211ea4439f79",
-      "date": "2026-11-04T09:53:21.268Z",
-      "title": "Latest project updates",
-      "body": "• Enforce maintenance access in native game worlds\n• Remove unverified native maintenance gate\n• Enforce maintenance access in native PreLogin\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
