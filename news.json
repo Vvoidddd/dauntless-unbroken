@@ -1,0 +1,184 @@
+{
+  "items": [
+    {
+      "id": "680141dadc5013efc69f79a674346b88775ced82",
+      "date": "2026-11-06T04:02:43.313Z",
+      "title": "Latest project updates",
+      "body": "• Public launcher release and news snapshot\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "d794af59dacae8b9b0016225c84862fda6d01911",
+      "date": "2026-11-05T19:19:57.698Z",
+      "title": "Latest project updates",
+      "body": "• Restore launcher code for the public release\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "4ca2af9d06e73f6eba163025ef8fd85d342d5fc9",
+      "date": "2026-11-05T17:46:22.646Z",
+      "title": "Latest project updates",
+      "body": "• Reset 1.10.5 after removing FxckingAngel-authored code\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "5cf4ece50332365dce8b2af0e03ac4be2fb59f9e",
+      "date": "2026-11-05T17:42:08.059Z",
+      "title": "Latest project updates",
+      "body": "• Revert \"Keep friends-only avatars out of shared caches\"\n• Revert \"Limit profile pictures to accepted friends\"\n• Revert \"Merge branch '1.10.5' into fix/1105-currency-balance\"\n• Revert \"Fix OpenBSD SQLite test crash\"\n• Revert \"Add moderated profile settings to launcher\"\n• Revert \"Normalize legacy Rams during 1.10.5 migration\"\n• Revert \"Fix native bounty reward callback iteration\"\n• Revert \"Add launcher library selection\"\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "launcher-v1.0.61",
+      "date": "2026-11-05T06:41:51Z",
+      "title": "Launcher 1.0.61 is available",
+      "body": "Dauntless Unbroken Launcher 1.0.61 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.61-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.61-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.61-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.61-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.61-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.61-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
+    },
+    {
+      "id": "14e79ef311da93e4e0436e3638b2f202499fee51",
+      "date": "2026-11-05T06:37:30.060Z",
+      "title": "Latest project updates",
+      "body": "• Ship pinned 1.10.5 client bootstrap and Trials schedule patch\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "launcher-v1.0.60",
+      "date": "2026-11-05T05:15:08Z",
+      "title": "Launcher 1.0.60 is available",
+      "body": "Dauntless Unbroken Launcher 1.0.60 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.60-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.60-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.60-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.60-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.60-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.60-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
+    },
+    {
+      "id": "98003ac414790db66b4e266132a427166604e6c5",
+      "date": "2026-11-05T05:07:24.224Z",
+      "title": "Latest project updates",
+      "body": "• Release launcher 1.0.60 with crash-safe client DLL\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "b19e65f308be91fa8e095b478a803b1dfae6761a",
+      "date": "2026-11-05T05:01:02.532Z",
+      "title": "Latest project updates",
+      "body": "• Disable unsafe client startup hooks on 1.10.5\n• Ship crash-safe client DLL in public launcher\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "launcher-v1.0.59",
+      "date": "2026-11-05T04:25:16Z",
+      "title": "Launcher 1.0.59 is available",
+      "body": "Dauntless Unbroken Launcher 1.0.59 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.59-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.59-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.59-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.59-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.59-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.59-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
+    },
+    {
+      "id": "9f0d85990499c3e63366a64dc42678acca91c129",
+      "date": "2026-11-05T04:21:10.924Z",
+      "title": "Latest project updates",
+      "body": "• Defer client hooks until world initialization\n• Add startup layout and release version gates\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "launcher-v1.0.58",
+      "date": "2026-11-05T03:51:23Z",
+      "title": "Launcher 1.0.58 is available",
+      "body": "Dauntless Unbroken Launcher 1.0.58 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.58-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.58-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.58-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.58-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.58-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.58-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
+    },
+    {
+      "id": "d78c38427ffebbe6fe6e9761c35f9ba23ef7145a",
+      "date": "2026-11-05T03:47:24.661Z",
+      "title": "Latest project updates",
+      "body": "• Release launcher 1.0.58 with startup crash fix\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "1d3e52417b1ab5baaf03c53109736adcfc410728",
+      "date": "2026-11-05T03:38:09.415Z",
+      "title": "Latest project updates",
+      "body": "• Prevent Trials schedule work before client startup\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "203805ec29ba62b14434defea59d3247bcd00b88",
+      "date": "2026-11-05T03:13:19.631Z",
+      "title": "Latest project updates",
+      "body": "• Document launcher release and troubleshooting\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "ad2ff486e6543b03983d432b6580ccd75d24cc0a",
+      "date": "2026-11-05T02:58:18.054Z",
+      "title": "Latest project updates",
+      "body": "• Retry release lookup before publishing launcher news\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "launcher-v1.0.57",
+      "date": "2026-11-05T02:53:20Z",
+      "title": "Launcher 1.0.57 is available",
+      "body": "Dauntless Unbroken Launcher 1.0.57 for Windows and Linux. \n\nWindows:\n- Installer: `DauntlessUnbrokenLauncher-Setup.exe`\n- Portable: `DauntlessUnbrokenLauncher-1.0.57-win32-x64.zip`\n\nLinux x86_64:\n- Universal AppImage: `DauntlessUnbrokenLauncher-1.0.57-linux-x86_64.AppImage`\n- Debian/Ubuntu/Mint/Pop!_OS: `DauntlessUnbrokenLauncher-1.0.57-linux-amd64.deb`\n- Fedora/openSUSE/RHEL-family: `DauntlessUnbrokenLauncher-1.0.57-linux-x86_64.rpm`\n- Portable ZIP: `DauntlessUnbrokenLauncher-1.0.57-linux-x64.zip`\n- Portable tar.gz: `DauntlessUnbrokenLauncher-1.0.57-linux-x64.tar.gz`\n\nLinux runs the pinned Windows game client through an installed Proton or Wine runtime. The launcher\nauto-detects Steam Proton, Proton-GE, system Wine and Lutris Wine; no game files are bundled.\n\n- Check your download against `SHA256SUMS.txt`, or check where it was built with\n  `gh attestation verify <file> --repo Vvoidddd/dauntless-unbroken`.\n\nThe launcher is not code-signed yet, so Windows SmartScreen may ask you to confirm\n(More info, then Run anyway). If Windows only offers \"Don't run\", check the file's SHA-256\nagainst `SHA256SUMS.txt` from this release (`Get-FileHash <file>` in PowerShell; letter\ncase does not matter; if they differ, delete the file), then unblock it: right-click the\nfile > Properties > Unblock, or `Unblock-File <file>` in PowerShell. Installed Windows\nlaunchers update themselves; Linux users update through their package format or a newer release.\n\nFree software under the GNU AGPL-3.0. No game files are included: the launcher downloads\nthem from your host's server and checks every file against the list built into it."
+    },
+    {
+      "id": "f50c122a04f78d984001834d20972d845ef9edfc",
+      "date": "2026-11-05T02:46:38.005Z",
+      "title": "Latest project updates",
+      "body": "• Run launcher updates without hosted CI checks\n• Run launcher updates without hosted CI checks (#129)\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "59171210bf2e96071220285c707425827aabb70a",
+      "date": "2026-11-05T02:44:43.818Z",
+      "title": "Latest project updates",
+      "body": "• Include workflow files in launcher news test\n• Fix launcher news workflow sparse checkout (#128)\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "94f50bc32f7d2c3b4d82ef8869e1771e080d20a0",
+      "date": "2026-11-04T11:50:59.685Z",
+      "title": "Latest project updates",
+      "body": "• Refresh 1.10.5 maintenance news (#119)\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "1d534eae946ecde6ce275540c62ba4d977192171",
+      "date": "2026-11-04T11:41:09.293Z",
+      "title": "Latest project updates",
+      "body": "• Disable worker routing during maintenance (#118)\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "e495b2567e9be9b7467476e8fcac4ed645844961",
+      "date": "2026-11-04T11:40:52.541Z",
+      "title": "Latest project updates",
+      "body": "• Fix maintenance status and protect migration packages (#117)\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "50ab5c0c753413e4ce46b57f92bd6cd70ab8034d",
+      "date": "2026-11-04T11:10:34.895Z",
+      "title": "Latest project updates",
+      "body": "• Fix automatic launcher publish gate\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "launcher-v1.0.56",
+      "date": "2026-11-04T11:08:21Z",
+      "title": "Launcher 1.0.56 is available",
+      "body": "Launcher 1.0.56 built and tested by CI run 41816549965."
+    },
+    {
+      "id": "3ee4fce987d806890458bfd504a0832841cc4b26",
+      "date": "2026-11-04T10:47:57.073Z",
+      "title": "Latest project updates",
+      "body": "• Bump launcher version to 1.1.0\n• Set launcher version to 1.0.56\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "1c240bd84d3bf899efee50b2702895c682ec1191",
+      "date": "2026-11-04T10:32:03.851Z",
+      "title": "Latest project updates",
+      "body": "• Wait for launcher background content refreshes\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "eb831c4e52ab72c79ec9a04763386057596e98ff",
+      "date": "2026-11-04T10:08:31.895Z",
+      "title": "Latest project updates",
+      "body": "• Sync community unread indicator\n• Add live username validation\n• Fix maintenance home messaging\n• Add connection state indicator\n• Show newest news with varied game art\n• Feature newest update on library home\n• Show profile privacy in account menu\n• Add art-led server header\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "b6b940fb2dfe4453c793739f36a7293c87feee9b",
+      "date": "2026-11-04T09:56:19.228Z",
+      "title": "Latest project updates",
+      "body": "• Refine launcher news surface\n• Refine launcher library layout\n• Add launcher library selection\n• Keep repair states in the game home surface\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "e5ee90ed11327ef9a221da962852211ea4439f79",
+      "date": "2026-11-04T09:53:21.268Z",
+      "title": "Latest project updates",
+      "body": "• Enforce maintenance access in native game worlds\n• Remove unverified native maintenance gate\n• Enforce maintenance access in native PreLogin\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
+      "id": "2e68f5c74ceb0bc29270c45c2e58215e52522100",
+      "date": "2026-11-04T09:36:25.850Z",
+      "title": "Latest project updates",
+      "body": "• Defer escalation guard until server world is ready\n• Add maintenance-first production deployment script\n• Fix native DLL startup stack usage\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    }
+  ]
+}
