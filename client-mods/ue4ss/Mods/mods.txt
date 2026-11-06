@@ -1,0 +1,11 @@
+BehemothHealthBars : 1
+ModMenu : 1
+BehemothTracker : 1
+DamageMeter : 0
+PartMonitor : 0
+CraftStar : 1
+LockOn : 1
+
+
+; Built-in keybinds, do not move up!
+Keybinds : 1

@@ -1,0 +1,91 @@
+# Client mods (UE4SS)
+
+Hunt Damage and Behemoth Parts are temporarily withdrawn pending native crash investigation.
+The launcher disables both in existing installations and removes their scripts before the next
+game start. Their source remains here for investigation and tests; they are excluded from the manifest.
+Fully exit and restart the game after updating. Older launchers and already-running games are unaffected.
+
+Optional client-side mods, installed automatically next to the game exe (`Archon/Binaries/Win64`):
+
+- **UE4SS 3.0.1** (`dwmapi.dll`, `ue4ss/UE4SS.dll`; MIT, see `ue4ss/LICENSE`): the Lua mod loader.
+- **Behemoth Health Bars**: a fixed HP and shield bar at the bottom of the screen (two bars when two behemoths are up).
+- **Behemoth Tracker**: an arrow and distance to the behemoth in the top right.
+- **Hunt Damage** (`DamageMeter`, made by Void): a left-side panel with your core, part, stagger and wound damage,
+  DPS since the first observed hit, each teammate's core damage/share, and the team's core total.
+  The compact view has five aligned value/label rows in a rounded translucent panel.
+  The optional team breakdown adds the team total and individual rows; it is off by default.
+  Totals cover this visit to the hunt and reset for a new session. These are client observations:
+  late joins, distant hits or lost network events can leave damage uncounted. Core damage alone
+  determines DPS and contribution; the four overlapping channels are never added together.
+  Home → Hunt Damage toggles the panel and team breakdown live. It keeps counting while hidden.
+- **Behemoth Parts** (`PartMonitor`, made by Void): a right-side panel for up to two living
+  Behemoths within 50 m, with separate localized headings and a divider. Each named part has
+  an HP bar and state: green above 50%, orange at 50% or below, red for a confirmed break/sever.
+  Broken bars are empty; missing, fixed or otherwise disabled parts stay gray. Core Body receivers
+  are excluded. Actual break descriptions distinguish broken anatomy from unbreakable resistance;
+  armour, wings, vents and antlers use their own verified stage transitions. Names retain
+  the real left/right part data. The narrow single-column list uses image-based glow indicators
+  and thin bars. Every part remains listed, with tighter rows and upward/leftward placement for
+  larger encounters. Wounds turn only the remaining HP fill red until they expire; a true break
+  has a red dot and empty bar. Kharabak's temporary Aether wings show inactive gray outside their
+  active phase instead of falsely reporting a break. Groups retain their order as bosses move,
+  and old rows clear after death, travel or an Escalation round. Home → Behemoth Parts toggles it live.
+- **Mod Menu**: Home opens it, Up/Down (or PgUp/PgDn) choose, End flips the chosen switch. MODS turns
+  whole mods on or off (applied after restarting the game); SETTINGS changes the mods live (shield bar, HP numbers,
+  two bars in escalations, tracker at any distance, uncrafted weapon colour). Settings are saved in
+  `ue4ss/Mods/shared/ModSettings/settings.txt` on each PC and never shipped or overwritten.
+- **Uncrafted Weapons** (`CraftStar`): in the weapon crafting list, weapons you have never crafted get
+  `>> ` in front of their name, in red, gold or purple (picked in the Mod Menu).
+
+- **Lock-on** (`LockOn`): target lock-on. Middle mouse click (R3 on a gamepad)
+  locks the camera onto the behemoth nearest the centre of the view and marks it with a white dot;
+  press again to release. While locked the Slayer faces it. The Mod Menu's "Lock-on: change key"
+  row picks other keys (kept in `ue4ss/Mods/LockOn/key.txt` on each PC). Unlike the others it
+  changes your own camera and facing while locked; nothing is sent to the server.
+
+- **PS5Icons**: PlayStation 5 button prompts and a DualSense picture for the Controls screen. They
+  are not a UE4SS mod: the client DLL (`DauntlessUnbroken.dll`) shows them while a DualSense
+  is connected. Artwork licence and attribution: [PS5Icons/LICENSE.txt](PS5Icons/LICENSE.txt).
+
+They only change what you see on your own screen. The game works without them.
+
+Object discovery is separate from HUD refresh: shared FrameTick reuses boss/attribute-set
+lookups for one second and gets the local player from the compass owner. PartMonitor asks only
+the selected bosses for their components. Live HP, wounds, movement and lock-on input continue
+at their existing cadence; travel/restarts discard discovery caches. Turning Behemoth Parts
+off stops its discovery and removes its widgets. Whole mods can be disabled under Home → MODS,
+then applied by restarting the game.
+
+Shared object guards reject missing classes, and internal identity/ownership matching avoids
+native full-name/path traversal. Part updates run twice per second; input keeps its normal
+cadence. This reduces part polling work without removing wound, break or dual-target displays.
+
+## How they get installed
+
+- **Launcher**: on install, repair and before every launch (`DauntlessUnbrokenLauncher/src/main/client-mods.ts`).
+- **Friend kit**: `friend-kit/setup.ps1` (skip with `-NoMods`).
+
+Both install only files whose SHA-256 matches `manifest.json`, and check them again after copying.
+`ue4ss/UE4SS-settings.ini` preserves existing preferences, except that Lua hot reload and automatic script reload are forced off to prevent live Lua-state teardown crashes. **Ctrl+R safely refreshes the mod menu and settings; restart the game to apply whole-mod on/off changes.** Existing `mods.txt` switches are kept; new bundled mods are added and retired mods are disabled. Mods are Windows only: under Wine/Proton UE4SS is not loaded.
+
+Both installers also migrate `bUseUObjectArrayCache = false` into kept INIs, matching the shipped
+configuration and UE4SS's documented startup-crash workaround. Comments and unrelated settings stay intact.
+
+The launcher puts deleted files back before the next launch. To turn a mod off, use the Mod Menu or
+set it to 0 in `ue4ss/Mods/mods.txt` (that file is kept).
+
+## Changing a mod
+
+Edit the files here, then rebuild the manifest and commit both:
+
+    powershell -ExecutionPolicy Bypass -File client-mods\update-manifest.ps1
+
+`.gitattributes` keeps every file byte-for-byte, so the hashes stay valid on every checkout.
+
+Updates preserve existing mod switches, add newly shipped mods to `mods.txt`, and disable the retired status indicator. CraftStar is added before Keybinds on existing installations; an explicit CraftStar off setting is preserved.
+
+HUD monitor regression check (Lua 5.4): `lua tests/client-mods/damage-meter.lua` from the repository root.
+
+HUD panels use the cooked RobotoCondensed font (Regular labels, Bold values), with no text outline.
+`shared/HudPanel/panel.png` and `indicator.png` are antialiased RGBA artwork created for these mods:
+the panel uses a nine-slice brush and the indicators are images, avoiding missing Unicode glyphs.

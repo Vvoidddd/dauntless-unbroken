@@ -8,7 +8,7 @@ export default defineConfig({
   build: { rollupOptions: { external: ["original-fs"] } },
   resolve: {
     alias: {
-      "@game-manifest": path.resolve(__dirname, "../DauntlessUnbrokenContent/data/dauntless-1.10.5.json"),
+      "@game-manifest": path.resolve(__dirname, "data/dauntless-1.10.5.json"),
     },
   },
 });

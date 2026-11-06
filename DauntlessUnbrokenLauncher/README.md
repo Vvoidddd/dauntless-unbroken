@@ -10,7 +10,7 @@ own server, sets everything up and starts the game. English and Finnish.
 
 **No game files are in this app or in this repository.** They come from the host's content server,
 and every file is checked against the list of 606 files, sizes and SHA-256 hashes compiled into the
-launcher (`DauntlessUnbrokenContent/data/dauntless-1.10.5.json`). A server that offers anything else is refused.
+launcher (`data/dauntless-1.10.5.json`). A server that offers anything else is refused.
 
 **Community:** [Join the Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu) for help, players and project updates.
 

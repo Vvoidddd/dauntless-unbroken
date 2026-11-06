@@ -1,5 +1,5 @@
 // The compiled-in game manifest. At build time Vite resolves "@game-manifest" to
-// DauntlessUnbrokenContent/data/dauntless-1.4.4.json (generated from the verified 1.4.4 zip), so the
+// data/dauntless-1.10.5.json (generated from the verified 1.10.5 package), so the
 // list of files, sizes and hashes is part of the launcher's public source and cannot be changed
 // by a server.
 
