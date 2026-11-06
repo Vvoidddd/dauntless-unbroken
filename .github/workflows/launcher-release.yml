@@ -7,8 +7,8 @@
 #
 # Two ways in, both for the DauntlessUnbrokenLauncher/package.json version at the head of dauntless-unbroken:
 #  - ci.yml calls it once every check passed on a push to dauntless-unbroken, unless the repository variable
-#    LAUNCHER_AUTO_RELEASE is false, when that version has no release yet. It publishes the installer that CI
-#    built and tested (the artifact named by `artifact`).
+#    LAUNCHER_AUTO_RELEASE is false. If CI passes both artifact names, those files are published; if it passes
+#    neither, this workflow builds and tests the Windows and Linux packages itself.
 #  - Run workflow (workflow_dispatch) on dauntless-unbroken builds that commit and publishes its version if
 #    it has no release yet. If it has one, the run only brings the self-update feed up to it, which repairs
 #    a feed that a failed run left behind.
@@ -30,11 +30,11 @@ on:
       artifact:
         description: The artifact of the calling run that holds the release files (from DauntlessUnbrokenLauncher/scripts/collect-release.ps1).
         type: string
-        required: true
+        required: false
       linux_artifact:
         description: The artifact of the calling run that holds the Linux release files.
         type: string
-        required: true
+        required: false
 
 permissions: {}
 
@@ -81,8 +81,10 @@ jobs:
           [ "$REF" = "refs/heads/$DEFAULT_BRANCH" ] || fail "launcher releases are published from $DEFAULT_BRANCH only, not $REF"
           if [ -n "$CALLED_VERSION" ]; then
             [ "$CALLED_VERSION" = "$version" ] || fail "asked to publish $CALLED_VERSION, but package.json at this commit says $version"
-            [ -n "$CALLED_ARTIFACT" ] || fail "no Windows artifact named"
-            [ -n "$CALLED_LINUX_ARTIFACT" ] || fail "no Linux artifact named"
+            if [ -n "$CALLED_ARTIFACT" ] || [ -n "$CALLED_LINUX_ARTIFACT" ]; then
+              [ -n "$CALLED_ARTIFACT" ] || fail "no Windows artifact named"
+              [ -n "$CALLED_LINUX_ARTIFACT" ] || fail "no Linux artifact named"
+            fi
             artifact="$CALLED_ARTIFACT"
             linux_artifact="$CALLED_LINUX_ARTIFACT"
           elif [ "$EVENT" = workflow_dispatch ]; then
