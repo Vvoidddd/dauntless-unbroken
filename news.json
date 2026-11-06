@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "id": "30afe0b189d89df1aadec74dcb05d5763543aa38",
+      "date": "2026-11-06T10:19:08.013Z",
+      "title": "Latest project updates",
+      "body": "• Add NA region selection and fix public launcher build (#139)\n\nSource changes are published. Launcher changes become available after a tested build is released."
+    },
+    {
       "id": "8589d12d6d5e9061b8174927f96f5ff956f1d90b",
       "date": "2026-11-06T09:33:33.358Z",
       "title": "Latest project updates",
@@ -173,12 +179,6 @@
       "date": "2026-11-04T10:08:31.895Z",
       "title": "Latest project updates",
       "body": "• Sync community unread indicator\n• Add live username validation\n• Fix maintenance home messaging\n• Add connection state indicator\n• Show newest news with varied game art\n• Feature newest update on library home\n• Show profile privacy in account menu\n• Add art-led server header\n\nSource changes are published. Launcher changes become available after a tested build is released."
-    },
-    {
-      "id": "b6b940fb2dfe4453c793739f36a7293c87feee9b",
-      "date": "2026-11-04T09:56:19.228Z",
-      "title": "Latest project updates",
-      "body": "• Refine launcher news surface\n• Refine launcher library layout\n• Add launcher library selection\n• Keep repair states in the game home surface\n\nSource changes are published. Launcher changes become available after a tested build is released."
     }
   ]
 }
