@@ -1,0 +1,3001 @@
+// The launcher's page. It draws the Snapshots the main process sends and turns clicks into the
+// small set of calls in preload.ts. It has no network access of its own: news, art and status
+// all come through the main process.
+
+import { $, forceRender, githubMark, h, icon, renderRegion, type IconName } from "./dom";
+
+import newsBadge from "./brand/news-badge.svg";
+import previewProfileAvatar from "./brand/emblem-64.png";
+import behemothArt from "./brand/behemoth-512.png";
+import trialsRepeaterArt from "./brand/trials-repeater.png";
+import heroArt from "./brand/hero-umbral-nayzaga.jpg";
+import {installControllerNavigation} from "./controller-navigation";
+import { buildScene } from "./scene";
+import { isStringKey, translate, type StringKey } from "../shared/i18n";
+import { localized, SOFTWARE, ANXO_FEATURES } from "../shared/credits";
+import { parseInvite } from "../shared/invite";
+import { checkUsername, extractAccountKey } from "../shared/username";
+import { exposureKey, graphicsKey, primaryButton, shortFile, stepIndex, taskView, updateReason, whereKey } from "../shared/ui-model";
+import { formatBytes, formatDate, formatDuration, formatPlaytime, formatRunningTime } from "../shared/format";
+import { BADGE_HOURS, badgeProgress } from "../shared/badges";
+import { sortInstances, type InstanceKind, type ServerStatus, type StatusInstance } from "../shared/status";
+import { EXPOSURE_MODES, GAME_LANGUAGES, GRAPHICS_PRESETS, LANGUAGES, type ActionResult, type Branding, type ExposureMode, type ExternalTarget, type GameLanguage, type GraphicsPreset, type Language, type LauncherError, type NewsItem, type OfflinePhase, type OfflineStatus, type Snapshot, type TaskProgress } from "../shared/types";
+import {isUnbrokenFleet,revivedConnection} from '../shared/server-identity';
+
+type View = "play" | "news" | "server" | "settings" | "mods" | "credits";
+const VIEWS: readonly View[] = ["play", "news", "server", "settings", "mods", "credits"];
+type Modal =
+  | { kind: "invite"; link: string; name: string; host: string; mode: "public" | "private"; fp: string | null }
+  // A public invite whose certificate is not the one this PC's key for that server belongs to.
+  | { kind: "cert_changed"; link: string; name: string; host: string; oldFp: string | null; newFp: string }
+  | { kind: "logout" }
+  | { kind: "add_account" }
+  | { kind: "paste_backup" }
+  | { kind: "remove_account"; id: string; username: string }
+  | { kind: "leave" }
+  | { kind: "remove_server"; id: string; name: string }
+  | { kind: "offline_restore" };
+
+const PREVIEW_MODE = !window.launcher;
+const PREVIEW_QUERY_MODE = PREVIEW_MODE ? new URLSearchParams(window.location.search).get("mode") : null;
+const PREVIEW_MAINTENANCE = PREVIEW_QUERY_MODE === "maintenance";
+const PREVIEW_LAUNCH_FAILED = PREVIEW_QUERY_MODE === "launch-failed";
+const PREVIEW_SNAPSHOT = {
+  phase: "ready", busy: false, server: {mode:"public",host:"eu1.example",port:443,name:"EU1",hasShare:false,hasPendingInvite:false,loopback:false,fingerprint:null}, savedServers: [], connect:{checking:false,problem:null,tailscaleInstalled:false,lastCheckedAt:null},
+    account:{sessionOnly:false,saved:[],username:"Korone",hasKey:true,offerBackup:false,profilePicture:{status:"approved",reason:"approved by local moderation",imageDataUrl:previewProfileAvatar}},
+  install:{dir:"C:\\Games\\Dauntless Unbroken",defaultDir:"C:\\Games\\Dauntless Unbroken",installed:true,missingFiles:0,verified:true,dllsOk:true,freeBytes:120000000000,requiredBytes:0,totalBytes:0,vcRuntimeMissing:[],directXMissing:[],contentAvailable:true},
+ task:null,game:{running:false,relayPort:null},playtime:{onlineSeconds:0,offlineSeconds:0,sessions:[],totalSeconds:0},settings:{graphics:4,exposure:"game",windowed:false,language:"en",gameLanguage:"auto",showConsole:false,discordPresence:true,streamerMode:false},app:{version:"1.0.61",packaged:false,updateReady:false,platform:PREVIEW_LAUNCH_FAILED ? "linux" : "win32"},status:{name:"EU1",online:true,maintenance:PREVIEW_MAINTENANCE || undefined,version:"1.10.5",commit:"local",sourceUrl:null,registration:"OPEN",playersOnline:3,players:[{name:"Korone",where:"city",instance:"ramsgate"},{name:"Aria",where:"hunt",instance:"hunt-01"},{name:"Moss",where:"dojo",instance:"dojo-01"}],instances:[{id:"ramsgate",kind:"city",title:"Ramsgate",map:"Ramsgate",behemoth:null,players:1,maxPlayers:100,startedAt:null},{id:"hunt-01",kind:"hunt",title:"Hunt: Nayzaga",map:"Hunt_Nayzaga",behemoth:"Nayzaga",players:1,maxPlayers:4},{id:"dojo-01",kind:"dojo",title:"Training Dojo",map:"Dojo",behemoth:null,players:1,maxPlayers:4,startedAt:null}],contentPort:61002,uptimeSeconds:12345,limited:false},statusCheckedAt:"2026-11-04T10:00:00Z",availableHuntRegions:["main"],statusUnsupported:false,lastError:PREVIEW_LAUNCH_FAILED ? {code:"launch_failed",detail:"0x00000003: Proton or Wine could not find the game's launch path. Runtime used: Proton (GE-Proton10-1). Check the game folder and selected runtime, then use Repair game files."} : null,notice:null
+} as any;
+const previewSnapshotListeners = new Set<(snap: Snapshot) => void>();
+const PREVIEW_API = new Proxy({}, {get:(_target, property: string) => {
+  if(property === "getSnapshot") return async () => PREVIEW_SNAPSHOT;
+  if(property === "getBranding") return async () => ({backgrounds:[],accent:null});
+  if(property === "getNews") return async () => [
+    {date:"2026-11-04T09:00:00Z", title:"Welcome to EU1", body:"The public server is online. Join the hunt, check the active worlds and keep an eye on this feed for host updates."},
+    {date:"2026-11-03T18:30:00Z", title:"Launcher update", body:"The latest launcher build adds clearer server status, safer profile pictures and a faster path from the library to PLAY."},
+  ];
+  if(property === "getPurchaseHistory") return async () => null;
+  if(property === "offlineStatus") return async () => ({phase:"stopped"});
+  if(property === "setSettings") return async (patch: Record<string, unknown>) => {Object.assign(PREVIEW_SNAPSHOT.settings, patch);for (const listener of previewSnapshotListeners) listener(PREVIEW_SNAPSHOT);return PREVIEW_SNAPSHOT.settings;};
+  if(property === "onSnapshot") return (listener: (snap: Snapshot) => void) => {previewSnapshotListeners.add(listener);};
+  if(property.startsWith("on")) return () => {};
+  if(property === "toggleMaximize") return async () => false;
+  return async () => ({ok:true});
+}}) as typeof window.launcher;
+const api = window.launcher ?? PREVIEW_API;
+const SESSION_KEY_NOTE = "Temporary sign-in: your key stays in memory until you close the launcher. Keep your backup; import it again next time.";
+function openBackupImport(): void {
+  if (state.snap?.app.platform === "linux") showModal({kind:"paste_backup"});
+  else void api.importKeyFile();
+}
+const ART_URL = /^dr-art:\/\/bg\/[0-9a-f]{64}$/;
+const TIME_LOCALES: Record<Language, string> = { en: "en-GB", fi: "fi-FI", de: "de-DE", es: "es-ES", fr: "fr-FR", it: "it-IT", ja: "ja-JP", pt: "pt-BR", ru: "ru-RU" };
+const GAME_LANGUAGE_NAMES: Record<Exclude<GameLanguage, "auto">, string> = { "en-US": "English", "de-DE": "Deutsch", "es-ES": "Español", "fr-FR": "Français", "it-IT": "Italiano", "ja-JP": "日本語", "pt-BR": "Português (Brasil)", "ru-RU": "Русский" };
+
+const state = {
+  snap: null as Snapshot | null,
+  task: null as TaskProgress | null,
+  lang: "en" as Language,
+  view: "play" as View,
+  inviteText: "",
+  revealed: new Set<string>(), // streamer mode: the values shown with the eye, until the launcher closes
+  username: "",
+  keyFormOpen: false,
+  offline: { phase: "stopped" } as OfflineStatus, // the local runtime's last status
+  offlineView: false, // the Play page shows offline play instead of the online server
+  offlineName: "", // the first-run offline username being typed
+  playMenu: false, // the PLAY button's dropdown is open
+  purchaseHistory: null as import("../shared/types").PurchaseHistory|null,
+  purchaseHistoryFor: "",
+  purchaseHistoryBusy: false,
+  purchaseHistoryNote: "",
+  diagnosticsNote: "",
+  gameRemovalNote: "",
+  diagnosticsUploading: false,
+  profilePictureNote: "",
+  profileUsername: "",
+  profileUsernameNote: "",
+  revivedResultDismissed:false,
+  offlineSaveNote: null as string | null, // the last backup or restore that worked, shown under the row
+  existingFormOpen: false,
+  news: [] as NewsItem[],
+  newsSeenKey: null as string | null,
+  serverMenu: false, // the rail's server switcher is open
+  settingsTab: (PREVIEW_MODE ? "account" : "game") as SettingsTab, // the Settings page's open tab
+  branding: { backgrounds: [], accent: null } as Branding,
+  extrasFor: "",
+  extrasAt: 0,
+  localError: null as LauncherError | null,
+  modal: null as Modal | null,
+  modalReturnFocus: null as HTMLElement | null,
+  // Where Escape on the Credits page goes back to: the page and the button that opened it.
+  creditsReturn: null as { view: View; focus: HTMLElement | null } | null,
+  maximized: false,
+  artIndex: -1,
+  artTimer: 0 as number,
+  artLayer: 0,
+};
+
+const backupInput = h('textarea', {class:'input backup-paste',id:'backup-paste',rows:'3',maxlength:'8192',autocomplete:'off',spellcheck:'false','aria-label':t("backup_paste_help")});
+async function usePastedBackup(): Promise<void> {
+  const result = await api.useExistingKey(backupInput.value);
+  if(result.ok) { backupInput.value=''; state.keyFormOpen=false; }
+  else if(result.error?.code !== 'cancelled') state.localError=result.error ?? null;
+  renderAll();
+}
+
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function t(key: StringKey, vars?: Record<string, string | number>): string {
+  return translate(state.lang, key, vars);
+}
+
+function tk(key: string, vars?: Record<string, string | number>): string {
+  return isStringKey(key) ? t(key, vars) : key;
+}
+
+// ------------------------------------------------------------------ persistent inputs
+
+const inviteInput = h("textarea", {
+  class: "textarea",
+  id: "invite-input",
+  rows: 3,
+  spellcheck: "false",
+  autocomplete: "off",
+  "data-fk": "invite",
+  "aria-describedby": "invite-hint",
+});
+const inviteHint = h("div", { class: "hint", id: "invite-hint", "aria-live": "polite" });
+const invitePreview = h("div", { class: "preview", hidden: true });
+
+const usernameInput = h("input", {
+  class: "input input-big",
+  id: "username-input",
+  type: "text",
+  maxlength: 16,
+  spellcheck: "false",
+  autocomplete: "off",
+  "data-fk": "username",
+  "aria-describedby": "username-hint",
+});
+const usernameHint = h("div", { class: "hint", id: "username-hint", "aria-live": "polite" });
+
+const keyInput = h("input", {
+  class: "input",
+  id: "key-input",
+  type: "password",
+  spellcheck: "false",
+  autocomplete: "off",
+  "data-fk": "key",
+});
+
+const profilePictureInput = h("input", {class:"sr-only", id:"profile-picture-input", type:"file", accept:"image/png,image/jpeg", tabindex:"-1", hidden:true, "aria-hidden":"true", "data-fk":"profile-picture-input"}) as HTMLInputElement;
+profilePictureInput.addEventListener("change", () => {
+  const file = profilePictureInput.files?.[0];
+  profilePictureInput.value = "";
+  if (!file) return;
+  if (file.type !== "image/png" && file.type !== "image/jpeg") {
+    state.profilePictureNote = t("profile_picture_choose_error");
+    renderSettings();
+    return;
+  }
+  if (file.size > 100 * 1024) {
+    state.profilePictureNote = t("profile_picture_size_error");
+    renderSettings();
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    if (typeof reader.result !== "string") return;
+    state.profilePictureNote = t("profile_picture_uploading");
+    renderSettings();
+    const result = await api.uploadProfilePicture(reader.result).catch(() => ({ok:false as const, error:{code:"server_error" as const}}));
+    if (result.ok) state.profilePictureNote = t("profile_picture_submitted");
+    else {
+      const detail = "detail" in result.error ? result.error.detail : undefined;
+      if (result.error.code === "server_error" && detail === "image_rejected") state.profilePictureNote = t("profile_picture_rejected");
+      else if (result.error.code === "server_error" && detail === "moderation_unavailable") state.profilePictureNote = t("profile_picture_unavailable");
+      else if (result.error.code === "rate_limited") state.profilePictureNote = t("profile_picture_rate_limited");
+      else if (result.error.code === "server_unreachable") state.profilePictureNote = t("profile_picture_unreachable");
+      else state.profilePictureNote = t("profile_picture_failed");
+    }
+    renderSettings();
+  };
+  reader.onerror = () => {state.profilePictureNote = t("profile_picture_read_error");renderSettings();};
+  reader.readAsDataURL(file);
+});
+
+// "I already have the game files": a path to paste (Vvoidddd, #8). The main process checks it again.
+const existingGameInput = h("input", {
+  class: "input",
+  id: "existing-game-path",
+  type: "text",
+  maxlength: 260,
+  spellcheck: "false",
+  autocomplete: "off",
+  "data-fk": "existing-path",
+});
+existingGameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    void useExistingPath();
+  }
+});
+
+inviteInput.addEventListener("input", () => {
+  state.inviteText = inviteInput.value;
+  updateInviteFeedback();
+  renderActionBar();
+});
+inviteInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    void onPrimary();
+  }
+});
+usernameInput.addEventListener("input", () => {
+  state.username = usernameInput.value;
+  updateUsernameFeedback();
+  renderActionBar();
+});
+usernameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    void onPrimary();
+  }
+});
+keyInput.addEventListener("input", () => renderActionBar());
+keyInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    void useKey();
+  }
+});
+
+function clearInviteInput(): void {
+  state.inviteText = "";
+  inviteInput.value = "";
+  updateInviteFeedback();
+}
+
+function formState() {
+  return {
+    inviteValid: parseInvite(state.inviteText).ok,
+    usernameValid: checkUsername(state.username.trim()) === "ok",
+    existingKey: state.keyFormOpen,
+    keyValid: extractAccountKey(keyInput.value) !== null,
+  };
+}
+
+function groupedFingerprint(fp: string): string {
+  return fp.match(/.{1,4}/g)?.join(" ") ?? fp;
+}
+
+// The first 16 hex digits, enough to compare with what the host shows.
+function shortFingerprint(fp: string): string {
+  return `${groupedFingerprint(fp.slice(0, 16))}…`;
+}
+
+function modeBadge(mode: "public" | "private"): HTMLElement {
+  return mode === "public"
+    ? h("span", { class: "badge badge-public" }, icon("shield"), t("mode_public"))
+    : h("span", { class: "badge badge-private" }, icon("tunnel"), t("mode_private"));
+}
+
+function updateInviteFeedback(): void {
+  const text = state.inviteText.trim();
+  invitePreview.replaceChildren();
+  if (text.length === 0) {
+    invitePreview.hidden = true;
+    inviteInput.removeAttribute("aria-invalid");
+    inviteHint.className = "hint";
+    inviteHint.replaceChildren(t("join_hint"));
+    return;
+  }
+  const r = parseInvite(text);
+  if (r.ok) {
+    inviteInput.removeAttribute("aria-invalid");
+    invitePreview.hidden = false;
+    invitePreview.append(
+      icon("check"),
+      h(
+        "div",
+        { class: "preview-text" },
+        h("div", { class: "preview-name" }, r.invite.name),
+        h("div", { class: "preview-host" }, secret(`${r.invite.host}:${r.invite.port}`, "invite-host")),
+        r.invite.fp ? h("div", { class: "preview-host mono" }, t("link_fingerprint", { fp: hideText(shortFingerprint(r.invite.fp)) })) : null,
+      ),
+      h("span", {}, modeBadge(r.invite.mode)),
+    );
+    inviteHint.className = "hint hint-ok";
+    inviteHint.replaceChildren(t(r.invite.mode === "public" ? "join_ok_public" : "join_ok_private"));
+  } else {
+    invitePreview.hidden = true;
+    inviteInput.setAttribute("aria-invalid", "true");
+    inviteHint.className = "hint hint-bad";
+    inviteHint.replaceChildren(icon("warning"), tk(`invite_err_${r.error}`));
+  }
+}
+
+function updateUsernameFeedback(): void {
+  const check = checkUsername(state.username.trim());
+  usernameHint.className = check === "ok" ? "hint hint-ok" : state.username.length === 0 ? "hint" : "hint hint-bad";
+  if (check === "ok") usernameHint.replaceChildren(icon("check"), t("reg_check_ok"));
+  else usernameHint.replaceChildren(tk(`reg_check_${check}`));
+  if (check !== "ok" && state.username.length > 0) usernameInput.setAttribute("aria-invalid", "true");
+  else usernameInput.removeAttribute("aria-invalid");
+}
+
+// ------------------------------------------------------------------ streamer mode
+
+// Streamer mode keeps what could identify a server or the PC off the screen: addresses, certificate
+// fingerprints, the invite text, the install folder (it holds the Windows user name) and other
+// players' names. A value that the player may need gets an eye button to show it for a moment.
+function streamer(): boolean {
+  return state.snap?.settings.streamerMode === true;
+}
+
+function hideText(text: string): string {
+  return streamer() ? "\u2022\u2022\u2022\u2022\u2022\u2022" : text;
+}
+
+// A hidden value is never on screen: it is swapped for random letters and digits of the same length,
+// and that filler is what gets blurred, so nothing can be recovered from a stream or a screenshot,
+// even by tools that undo a blur. The filler is drawn once per value and kept until the launcher
+// closes (the lists redraw often and must not flicker); it comes from the system's random source,
+// never from the value itself. The same length keeps the layout still when the mode is switched; the
+// eye floats beside the value without taking room.
+const fillers = new Map<string, string>();
+function filler(text: string): string {
+  let out = fillers.get(text);
+  if (out === undefined) {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const bytes = crypto.getRandomValues(new Uint8Array(Array.from(text).length));
+    out = Array.from(bytes, (v) => chars[v % chars.length]).join("");
+    fillers.set(text, out);
+  }
+  return out;
+}
+
+function blurred(text: string, cls = ""): HTMLElement {
+  if (!streamer()) return h("span", { class: cls || undefined }, text);
+  return h("span", { class: `${cls} secret-blur`.trim(), "aria-hidden": "true" }, filler(text));
+}
+
+function secret(text: string, key: string, cls = ""): HTMLElement {
+  if (!streamer()) return h("span", { class: cls || undefined }, text);
+  const shown = state.revealed.has(key);
+  const eye = h("button", { type: "button", class: "secret-eye", title: t(shown ? "streamer_hide" : "streamer_show"), "aria-label": t(shown ? "streamer_hide" : "streamer_show"), "aria-pressed": shown ? "true" : "false" }, icon(shown ? "eye_off" : "eye"));
+  eye.addEventListener("click", () => {
+    if (shown) state.revealed.delete(key);
+    else state.revealed.add(key);
+    refreshSecrets();
+  });
+  return h("span", { class: "secret" }, h("span", { class: `${cls} ${shown ? "" : "secret-blur"}`.trim() || undefined, "aria-hidden": shown ? undefined : "true" }, shown ? text : filler(text)), eye);
+}
+
+function refreshSecrets(): void {
+  document.documentElement.classList.toggle("streamer", streamer());
+  inviteInput.classList.toggle("masked", streamer());
+  for (const sel of ["#view-play", "#view-server", "#view-settings", "#server-panel", "#account-chip"]) forceRender($(sel));
+  updateInviteFeedback();
+  renderAll();
+}
+
+// ------------------------------------------------------------------ small builders
+
+function card(cls: string, ...children: Parameters<typeof h>[2][]): HTMLElement {
+  return h("div", { class: `card ${cls}`.trim() }, ...children);
+}
+
+function linkButton(label: string, onClick: () => void, opts: { icon?: IconName; fk?: string; disabled?: boolean } = {}): HTMLButtonElement {
+  const b = h("button", { type: "button", class: "link-btn", "data-fk": opts.fk, disabled: opts.disabled }, opts.icon ? icon(opts.icon) : null, label);
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+// A risky action (btn-danger) always shows the warning sign, so it does not rely on its colour alone.
+function button(label: string, onClick: () => void, opts: { cls?: string; icon?: IconName; fk?: string; disabled?: boolean } = {}): HTMLButtonElement {
+  const glyph = opts.icon ?? (opts.cls === "btn-danger" ? "warning" : undefined);
+  const b = h("button", { type: "button", class: `btn ${opts.cls ?? ""}`.trim(), "data-fk": opts.fk, disabled: opts.disabled }, glyph ? icon(glyph) : null, label);
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+function stat(label: string, value: string, small = false): HTMLElement {
+  return h("div", { class: "stat" }, h("span", { class: "stat-label" }, label), h("span", { class: `stat-value${small ? " small" : ""}`, title: value }, value));
+}
+
+function serverName(): string {
+  return isUnbrokenFleet(state.snap?.server??null)?'Dauntless Unbroken':state.snap?.status?.name ?? state.snap?.server?.name ?? '';
+}
+
+function open(target: ExternalTarget): void {
+  void api.openExternal(target);
+}
+
+function errorText(e: LauncherError): string {
+  switch (e.code) {
+    case 'server_error':
+      return state.snap&&revivedConnection(state.snap)?'This connection is named Dauntless Revived. Use an Unbroken invite from our Discord, then try again.':t('err_server_error');
+    case 'account_banned':
+      return `You are banned from this server. Reason: ${e.detail || 'Contact support for details.'} You can appeal in Discord.`;
+    case "invite_invalid_format":
+      return e.detail ? tk(`invite_err_${e.detail}`) : t("err_invite_invalid_format");
+    case "username_invalid":
+      return e.detail && e.detail !== "ok" ? tk(`reg_check_${e.detail}`) : t("err_username_invalid");
+    case "disk_space":
+      return e.detail && /^\d+$/.test(e.detail) ? t("err_disk_space_need", { size: formatBytes(Number(e.detail), state.lang) }) : t("err_disk_space");
+    case "relay_port_busy":
+      return t("err_relay_port_busy", { port: e.detail && /^\d+$/.test(e.detail) ? e.detail : "61000" });
+    case "server_unreachable":
+      return t(state.snap?.server?.mode === "public" ? "err_server_unreachable_public" : "err_server_unreachable");
+    case 'launch_failed':
+    case 'windows_runtime_missing':
+      return `${tk(`err_${e.code}`)}${e.detail ? ` ${e.detail}` : ''}`;
+
+    default:
+      return tk(`err_${e.code}`);
+  }
+}
+
+// ------------------------------------------------------------------ play view
+
+function vcWarning(snap: Snapshot): HTMLElement | null {
+  const vc = snap.install.vcRuntimeMissing;
+  const dx = snap.install.directXMissing ?? [];
+  if (!vc.length && !dx.length) return null;
+  return card('card-warn',
+    ...(vc.length ? [h('h3', {class:'card-title'}, icon('warning'), t('vc_title')),
+      h('p', {class:'card-text'}, t('vc_text', {files:vc.join(', ')})),
+      linkButton(t('vc_button'), () => open('vc_redist'), {icon:'external',fk:'vc'})] : []),
+    ...(dx.length ? [h('h3', {class:'card-title'}, icon('warning'), t('dx_title')),
+      h('p', {class:'card-text'}, t('dx_text', {files:dx.join(', ')})),
+      linkButton(t('dx_button'), () => open('directx_runtime'), {icon:'external',fk:'directx'})] : []),
+  );
+}
+
+function eyebrow(snap: Snapshot): HTMLElement {
+  return h("div", { class: "eyebrow" }, snap.server ? serverName() : t("join_eyebrow"), snap.server ? modeBadge(snap.server.mode) : null);
+}
+
+function heading(title: string, text: string | null): HTMLElement[] {
+  const out: HTMLElement[] = [h("h1", { class: "hero-title", id: "play-title" }, title)];
+  if (text) out.push(h("p", { class: "hero-text" }, text));
+  return out;
+}
+
+// Same rule as the Settings page: no switching servers while a task or the game runs.
+function leaveLink(snap: Snapshot): HTMLButtonElement {
+  return linkButton(t("connect_use_other"), () => showModal({ kind: "leave" }), { fk: "leave", disabled: snap.busy || snap.task !== null || snap.game.running });
+}
+
+// Servers joined before: one click to go back to one, no invite to paste. The current one is left out.
+async function switchTo(id: string): Promise<void> {
+  const r = await api.switchServer(id);
+  if (!r.ok && r.error && r.error.code !== "cancelled") {
+    if (!(await api.getSnapshot()).lastError) state.localError = r.error;
+    renderBanners();
+    return;
+  }
+  setView("play");
+}
+
+function savedServerSub(sv: Snapshot["savedServers"][number]): HTMLElement {
+  const address = blurred(`${sv.host}:${sv.port}`);
+  return sv.username ? h("span", {}, `${t("saved_account", { name: sv.username })} · `, address) : h("span", {}, address);
+}
+
+function savedServersCard(snap: Snapshot): HTMLElement | null {
+  const others = snap.savedServers.filter((sv) => !sv.current);
+  if (others.length === 0) return null;
+  const locked = snap.busy || snap.task !== null || snap.game.running;
+  const rows = others.map((sv) =>
+    h(
+      "div",
+      { class: "settings-row" },
+      h(
+        "div",
+        { class: "settings-row-text" },
+        h("span", { class: "settings-row-title" }, sv.name, " ", modeBadge(sv.mode)),
+        h("span", { class: "settings-row-sub mono" }, savedServerSub(sv)),
+      ),
+      h(
+        "div",
+        { class: "settings-actions" },
+        button(t("saved_join"), () => void switchTo(sv.id), { cls: "btn-primary", fk: `saved-${sv.id}`, disabled: locked }),
+        linkButton(t("saved_remove"), () => showModal({ kind: "remove_server", id: sv.id, name: sv.name }), { icon: "close", fk: `saved-rm-${sv.id}`, disabled: locked }),
+      ),
+    ),
+  );
+  return card("", h("h2", { class: "card-title" }, t("saved_title")), h("p", { class: "card-text" }, t("saved_text")), ...rows);
+}
+
+function playJoin(snap: Snapshot): HTMLElement[] {
+  const saved = savedServersCard(snap);
+  return [
+    h("div", {class:"eyebrow"}, t("join_eyebrow")),
+    ...heading(t("join_title"), t("join_text")),
+    ...(saved ? [saved] : []),
+    card("card-accent", h("h2", {class:"card-title"}, t("reg_have_key")),
+      button(t("reg_key_file"), () => openBackupImport(), {cls:"btn-primary",icon:"folder",fk:"join-key-file",disabled:snap.busy}),
+      linkButton(t('backup_paste_toggle'), () => { if(snap.app.platform==="linux"){openBackupImport();return;} state.keyFormOpen=!state.keyFormOpen; renderPlay(); if(state.keyFormOpen) backupInput.focus(); }, {fk:'join-backup-paste'}),
+      ...(state.keyFormOpen ? [h('div',{class:'field'},h('label',{class:'field-label',for:'backup-paste'},t('backup_paste_help')),backupInput,
+        button(t('reg_key_use'),()=>void usePastedBackup(),{cls:'btn-primary',fk:'join-backup-use',disabled:snap.busy}))] : []),
+      h("p", {class:"small-print"}, t("reg_key_note"))),
+    card("",
+      h("div", {class:"field"}, h("label", {class:"field-label",for:"invite-input"}, t("join_label")), inviteInput, invitePreview, inviteHint),
+      h("p", {class:"small-print"}, t("join_next"))),
+  ];
+}
+
+function playConnect(snap: Snapshot): HTMLElement[] {
+  const sv = snap.server!;
+  const name = serverName();
+  const pub = sv.mode === "public";
+  const lastChecked = snap.connect.lastCheckedAt ? t("connect_last_checked", { time: new Date(snap.connect.lastCheckedAt).toLocaleTimeString(TIME_LOCALES[state.lang]) }) : null;
+  const foot = h("div", { class: "card-row" }, lastChecked ? h("span", { class: "hint" }, lastChecked) : null, leaveLink(snap));
+  if (snap.connect.checking || (snap.connect.problem === null && snap.connect.lastCheckedAt === null)) {
+    return [eyebrow(snap), ...heading(t("connect_checking_title", { name }), t(pub ? "connect_checking_text_public" : "connect_checking_text")), card("", h("div", { class: "card-row" }, h("div", { class: "spinner", role: "presentation" }), t("connect_checking_wait")))];
+  }
+  switch (snap.connect.problem) {
+    case "tailscale_missing":
+      return [
+        eyebrow(snap),
+        ...heading(t("connect_ts_title"), t("connect_ts_text", { name })),
+        card(
+          "",
+          h(
+            "ol",
+            { class: "steps-list" },
+            h("li", {}, h("div", {}, h("div", {}, t("connect_step_install")), linkButton(t("connect_btn_install_ts"), () => open("tailscale_download"), { icon: "external", fk: "ts-dl" }))),
+            h(
+              "li",
+              {},
+              h("div", {}, h("div", {}, t(sv.hasShare ? "connect_step_accept" : "connect_step_accept_nolink")), sv.hasShare ? linkButton(t("connect_btn_accept"), () => open("tailscale_share"), { icon: "external", fk: "ts-share" }) : null),
+            ),
+            h("li", {}, t("connect_step_retry")),
+          ),
+        ),
+        foot,
+      ];
+    case "cert_mismatch":
+      return [
+        eyebrow(snap),
+        ...heading(t("connect_cert_title"), null),
+        card(
+          "card-danger",
+          h("h3", { class: "card-title" }, icon("shield"), t("connect_cert_subtitle")),
+          h("p", { class: "card-text" }, t("connect_cert_text", { host: hideText(sv.host) })),
+          h("p", { class: "card-text" }, t("connect_cert_next")),
+        ),
+        foot,
+      ];
+    case "bad_answer":
+      return [eyebrow(snap), ...heading(t("connect_bad_title"), t("connect_bad_text", { host: hideText(sv.host), port: sv.port })), foot];
+    default:
+      return [
+        eyebrow(snap),
+        ...heading(t("connect_unreach_title", { name }), t(pub ? "connect_unreach_text_public" : "connect_unreach_text", { host: hideText(sv.host) })),
+        card(
+          "",
+          h(
+            "ul",
+            { class: "check-list" },
+            ...(pub
+              ? [h("li", {}, t("connect_check_internet")), h("li", {}, t("connect_check_server")), h("li", {}, t("connect_check_firewall"))]
+              : [h("li", {}, t("connect_check_ts_on")), h("li", {}, t("connect_check_share")), h("li", {}, t("connect_check_server"))]),
+          ),
+        ),
+        foot,
+      ];
+  }
+}
+
+async function useKey(): Promise<void> {
+  const key = extractAccountKey(keyInput.value);
+  if (!key) {
+    state.localError = { code: "key_invalid" };
+    renderBanners();
+    return;
+  }
+  const r = await api.useExistingKey(key);
+  if (r.ok) {
+    keyInput.value = "";
+    state.keyFormOpen = false;
+    state.localError = null;
+  } else if (!state.snap?.lastError) {
+    state.localError = r.error;
+  }
+  renderAll();
+}
+
+async function useExistingPath(): Promise<void> {
+  if (!existingGameInput.value.trim()) {
+    existingGameInput.focus();
+    return;
+  }
+  const r = await api.useExistingGamePath(existingGameInput.value);
+  if (r.ok) {
+    existingGameInput.value = "";
+    state.existingFormOpen = false;
+    state.localError = null;
+  } else if (!state.snap?.lastError) {
+    state.localError = r.error;
+  }
+  renderAll();
+}
+
+// The "I already have the game files" card: a link that opens a form to paste the folder or browse to it.
+function existingGameCard(snap: Snapshot): HTMLElement {
+  const form = state.existingFormOpen
+    ? h(
+        "div",
+        { class: "field" },
+        h("label", { class: "field-label", for: "existing-game-path" }, t("install_existing_path")),
+        existingGameInput,
+        h(
+          "div",
+          { class: "card-row" },
+          button(t("install_existing_use"), () => void useExistingPath(), { cls: "btn-primary", icon: "check", fk: "existing-use", disabled: snap.busy }),
+          button(t("install_existing_browse"), () => void api.useExistingGameFolder(), { icon: "folder", fk: "existing-browse", disabled: snap.busy }),
+        ),
+        h("p", { class: "small-print" }, t("install_existing_note")),
+      )
+    : null;
+  return card(
+    "",
+    h(
+      "div",
+      { class: "card-row" },
+      linkButton(state.existingFormOpen ? t("install_existing_hide") : t("install_existing"), () => {
+        state.existingFormOpen = !state.existingFormOpen;
+        renderPlay();
+        if (state.existingFormOpen) existingGameInput.focus();
+      }, { icon: "folder", fk: "existing", disabled: snap.busy }),
+      h("span", { class: "hint" }, t("install_existing_text")),
+    ),
+    form,
+  );
+}
+
+function playRegister(snap: Snapshot): HTMLElement[] {
+  const name = serverName();
+  const out: HTMLElement[] = [eyebrow(snap), ...heading(t("reg_title"), t("reg_text", { name }))];
+  if (snap.lastError?.code === "key_rejected") {
+    out.push(card("card-warn", h("h3", { class: "card-title" }, icon("key"), t("reg_rejected_title")), h("p", { class: "card-text" }, t("reg_rejected", { name }))));
+  }
+  if (snap.status?.registration === "NONE") {
+    out.push(card("card-warn", h("h3", { class: "card-title" }, icon("warning"), t("reg_closed_title")), h("p", { class: "card-text" }, t("reg_closed"))));
+  }
+  const keyForm = state.keyFormOpen ? h("div", {class:"field"},
+    h("label", {class:"field-label",for:"key-input"}, t("reg_key_label")), keyInput,
+    button(t("reg_key_use"), () => void useKey(), {cls:"btn-primary",icon:"key",fk:"key-use",disabled:snap.busy})) : null;
+  out.push(
+    card("card-accent",
+      h("h3", {class:"card-title"}, t("reg_have_key")),
+      button(t("reg_key_file"), () => openBackupImport(), {cls:"btn-primary",icon:"folder",fk:"key-file",disabled:snap.busy}),
+      linkButton(t('backup_paste_toggle'),()=>showModal({kind:'paste_backup'}),{fk:'register-backup-paste',disabled:snap.busy}),
+      h("p", {class:"small-print"}, t("reg_key_note")),
+      linkButton(state.keyFormOpen ? t("reg_have_key_hide") : t("reg_key_label"), () => {
+        if(snap.app.platform==="linux"){openBackupImport();return;}
+        state.keyFormOpen = !state.keyFormOpen;
+        renderPlay();
+        renderActionBar();
+        if (state.keyFormOpen) keyInput.focus();
+      }, {icon:"key",fk:"key-toggle"}),
+      keyForm),
+    card("",
+      h("div", {class:"field"}, h("label", {class:"field-label",for:"username-input"}, t("reg_label")), usernameInput, usernameHint),
+      h("p", {class:`small-print reg-invite${snap.server?.hasPendingInvite ? " included" : ""}`},
+        icon(snap.server?.hasPendingInvite ? "check" : "info"),
+        snap.server?.hasPendingInvite ? t("reg_invite_included") : t("reg_invite_missing"))));
+  return out;
+}
+
+function playInstall(snap: Snapshot): HTMLElement[] {
+  if (snap.install.discovering) return [eyebrow(snap), ...heading(t("install_searching"), "")];
+  if (snap.install.detectedDirs?.length) return [eyebrow(snap), ...heading(t("install_found"), t("install_confirm")),
+    ...snap.install.detectedDirs.map((dir, i) => card("card-accent",
+      h("p", { class: "card-text selectable" }, secret(dir, `detected-${i}`)),
+      h("p", { class: "small-print" }, t("install_existing_note")),
+      button(t("install_existing_use"), () => void api.useExistingGamePath(dir), { cls: "btn-primary", icon: "check", disabled: snap.busy }))),
+    card("", button(t("install_fresh"), () => void api.dismissDetectedGames(), { icon: "folder", disabled: snap.busy })),
+    existingGameCard(snap)];
+  const name = serverName();
+  const pub = snap.server?.mode === "public";
+  const low = snap.install.freeBytes !== null && snap.install.freeBytes < snap.install.requiredBytes;
+  const out: HTMLElement[] = [eyebrow(snap), ...heading(t("install_title"), t(pub ? "install_text_public" : "install_text", { name }))];
+  out.push(
+    card(
+      "",
+      h(
+        "div",
+        { class: "stats" },
+        stat(t("install_size"), formatBytes(snap.install.totalBytes, state.lang)),
+        stat(t("install_free"), snap.install.freeBytes === null ? "–" : formatBytes(snap.install.freeBytes, state.lang)),
+        stat(t("install_need_label"), formatBytes(snap.install.requiredBytes, state.lang)),
+      ),
+      h(
+        "div",
+        { class: "settings-row" },
+        h("div", { class: "settings-row-text" }, h("span", { class: "settings-row-title" }, t("install_folder")), h("span", { class: "settings-row-sub selectable" }, secret(snap.install.dir, "install-dir"))),
+        button(t("install_change"), () => void api.chooseInstallDir(), { icon: "folder", fk: "change-dir", disabled: snap.busy }),
+      ),
+      low ? h("div", { class: "hint hint-bad" }, icon("warning"), t("install_low_space")) : null,
+    ),
+  );
+  if (!snap.install.contentAvailable) out.push(card("card-warn", h("h3", { class: "card-title" }, icon("warning"), t("install_no_content_title")), h("p", { class: "card-text" }, t("install_no_content"))));
+  const vc = vcWarning(snap);
+  if (vc) out.push(vc);
+  out.push(existingGameCard(snap));
+  return out;
+}
+
+function playInstalling(snap: Snapshot): HTMLElement[] {
+  const kind = state.task?.kind ?? snap.task?.kind ?? "verify";
+  const title = kind === 'unpack' ? 'Unpacking game files' : kind === "download" ? t("installing_download_title") : kind === "dlls" ? t("task_dlls") : t("installing_verify_title");
+  return [eyebrow(snap), ...heading(title, t("task_note"))];
+}
+
+function playUpdate(snap: Snapshot): HTMLElement[] {
+  const reason = updateReason(snap);
+  const text = reason === "missing" ? t("update_missing", { n: snap.install.missingFiles }) : reason === "unverified" ? t("update_unverified") : t("update_dlls");
+  const out: HTMLElement[] = [eyebrow(snap), ...heading(t("update_title"), text)];
+  const vc = vcWarning(snap);
+  if (vc) out.push(vc);
+  out.push(existingGameCard(snap));
+  return out;
+}
+
+function newsTeaser(): HTMLElement | null {
+  const item = state.news[0];
+  if (!item) return null;
+  const unread = newsKey(item) !== state.newsSeenKey;
+  const c = card(
+    "",
+    h(
+      "div",
+      { class: "news-teaser" },
+      h("div", { class: "news-teaser-media" }, h("img", { src: newsArtFor(0), alt: "" }), unread ? h("span", {}, t("news_new_badge")) : null),
+      item.date ? h("span", { class: "news-teaser-date" }, formatDate(item.date, state.lang)) : null,
+      h("strong", {}, item.title),
+      h("div", { class: "card-row" }, linkButton(t("news_read_more"), () => setView("news"), { fk: "news-more" })),
+    ),
+  );
+  return c;
+}
+
+function newsKey(item: NewsItem | undefined): string | null {
+  return item ? `${item.date ?? ""}\u0000${item.title}` : null;
+}
+
+function newsStorageKey(snap: Snapshot | null): string | null {
+  const server = snap?.server;
+  return server ? `du-news-seen:${server.mode}:${server.host}:${server.port}` : null;
+}
+
+function restoreNewsSeen(snap: Snapshot | null): void {
+  const storageKey = newsStorageKey(snap);
+  if (!storageKey) {
+    state.newsSeenKey = null;
+    return;
+  }
+  try {
+    state.newsSeenKey = localStorage.getItem(storageKey);
+  } catch {
+    state.newsSeenKey = null;
+  }
+}
+
+function rememberNewsSeen(): void {
+  state.newsSeenKey = newsKey(state.news[0]);
+  const storageKey = newsStorageKey(state.snap);
+  if (!storageKey || !state.newsSeenKey) return;
+  try {
+    localStorage.setItem(storageKey, state.newsSeenKey);
+  } catch {
+    // A blocked or full profile must not stop the Posts view from working.
+  }
+}
+
+const NEWS_ART = [trialsRepeaterArt, heroArt, behemothArt, previewProfileAvatar] as const;
+function newsArtFor(index: number): string {
+  return NEWS_ART[index % NEWS_ART.length];
+}
+
+function backupLocationText(snap:Snapshot):string{
+  const file=snap.account.desktopBackupPath;
+  const shown=snap.settings.streamerMode?'••••••':file;
+  if(!snap.account.backupTracked)return 'Save a backup or locate an existing copy to remember its location.';
+  if(!file)return 'Backup was previously handled. Locate your existing copy to record its location. No new Desktop copy will be created.';
+  return snap.account.backupMissing
+    ? `Backup moved or missing. Last known location: ${shown}. Locate it to update this record; no Desktop copy will be recreated.`
+    : `Account-key backup: ${shown}. Keep this file private. Moving it will not create another Desktop copy.`;
+}
+
+function playReady(snap: Snapshot): HTMLElement[] {
+  const user = snap.account.username;
+  const underMaintenance = snap.status?.maintenance === true;
+  const launchFailed = snap.lastError?.code === "launch_failed";
+  const maintenanceName = serverName();
+  const readyTitle = underMaintenance ? t("maintenance") : launchFailed ? t("launch_failed_short") : user ? t("ready_title", { user }) : t("ready_title_nouser");
+  const readyText = underMaintenance ? t("maintenance_worlds") : launchFailed ? t("ready_launch_failed") : t("ready_text");
+  const out: HTMLElement[] = [
+    h("div", { class: "play-cover", role: "img", "aria-label": "Dauntless Unbroken" },
+      h("div", { class: "play-cover-copy" }, h("span", {}, "DAUNTLESS UNBROKEN"), h("strong", {}, serverName())),
+      h("span", { class: "play-cover-build" }, snap.status?.version ?? snap.app.version)),
+    eyebrow(snap),
+    ...heading(readyTitle, readyText),
+    playActivity(snap),
+  ];
+  if (snap.status?.maintenance) out.unshift(card("maintenance-card", h("span", { class: "maintenance-kicker" }, t("maintenance")), h("strong", { class: "maintenance-state" }, t("maintenance_offline", { name: maintenanceName }))));
+  out.push(
+    card(
+      "",
+      h(
+        "div",
+        { class: "card-row" },
+        h("span", { class: "badge" }, icon("settings"), t("ready_graphics", { preset: t(graphicsKey(snap.settings.graphics)) })),
+        h("span", { class: "badge" }, t(snap.settings.windowed ? "ready_windowed" : "ready_fullscreen")),
+        linkButton(t("ready_change"), () => setView("settings"), { fk: "ready-change" }),
+      ),
+    ),
+  );
+  if (snap.account.offerBackup) {
+    out.push(
+      card(
+        "card-accent",
+        h("h3", { class: "card-title" }, t("backup_title")),
+        h("p", { class: "card-text" }, t("backup_text")),
+        h("div", { class: "card-row" }, button(t("backup_save"), () => void api.saveKeyBackup(), { cls: "btn-primary", icon: "key", fk: "backup-save" }), button(t("backup_later"), () => void api.dismissBackupOffer(), { fk: "backup-later" })),
+      ),
+    );
+  }
+  if(snap.account.backupTracked)out.push(card('',
+    h('p',{class:'card-text'},backupLocationText(snap)),
+    snap.account.backupMissing?button('Locate existing backup…',()=>void api.locateKeyBackup(),{fk:'backup-locate',disabled:snap.busy}):null));
+  const vc = vcWarning(snap);
+  if (vc) out.push(vc);
+  const teaser = newsTeaser();
+  if (teaser && !snap.account.offerBackup) out.push(teaser);
+  return out;
+}
+
+function playActivity(snap: Snapshot): HTMLElement {
+  const lastPlayed = snap.playtime.lastPlayedAt ? formatDate(snap.playtime.lastPlayedAt, state.lang) : t("play_not_played");
+  const played = snap.playtime.onlineSeconds === null ? "—" : formatPlaytime(onlineSeconds(snap), state.lang);
+  const achievements = `${badgeProgress(onlineSeconds(snap)).unlocked.length}/${BADGE_HOURS.length}`;
+  return h("div", { class: "play-activity", "aria-label": t("play_activity_aria") },
+    h("div", { class: "play-activity-item" }, h("span", {}, t("play_last_played")), h("strong", {}, lastPlayed)),
+    h("div", { class: "play-activity-item" }, h("span", {}, t("play_time")), h("strong", {}, played)),
+    h("div", { class: "play-activity-item" }, h("span", {}, t("play_achievements")), h("strong", {}, achievements)));
+}
+
+function playRunning(snap: Snapshot): HTMLElement[] {
+  const out: HTMLElement[] = [eyebrow(snap), ...heading(t("running_title"), t("running_text"))];
+  if (snap.server?.mode === "public") {
+    out.push(card("card-accent", h("h3", { class: "card-title" }, t("running_public_title")), h("p", { class: "card-text" }, t("running_public_text"))));
+  }
+  return out;
+}
+
+function renderPlay(): void {
+  const snap = state.snap;
+  const container = $("#view-play");
+  if (!snap) {
+    renderRegion(container, "loading", () => [h("div", { class: "play-content" }, h("div", { class: "card-row" }, h("div", { class: "spinner" }), t("loading")))]);
+    return;
+  }
+  const playClass = state.offlineView ? "play-offline" : snap.phase === "join" || snap.phase === "connect" ? "" : "play-home";
+  const sig = JSON.stringify([
+    state.lang,
+    snap.phase,
+    snap.busy,
+    snap.server,
+    snap.connect,
+    snap.account,
+    snap.install,
+    snap.settings,
+    snap.status?.registration ?? null,
+    snap.status?.name ?? null,
+    snap.status?.maintenance ?? false,
+    snap.lastError?.code === "key_rejected",
+    state.keyFormOpen,
+    state.existingFormOpen,
+    state.offlineView,
+    state.offline,
+    state.news[0]?.title ?? null,
+    snap.phase === "installing" ? state.task?.kind ?? snap.task?.kind : null,
+  ]);
+  renderRegion(container, sig, () => {
+    let parts: HTMLElement[];
+    if (state.offlineView) return [h("div", { class: `play-content ${playClass}` }, ...playOffline())];
+    switch (snap.phase) {
+      case "loading":
+        parts = [h("div", { class: "card-row" }, h("div", { class: "spinner" }), t("loading"))];
+        break;
+      case "join":
+        parts = playJoin(snap);
+        break;
+      case "connect":
+        parts = playConnect(snap);
+        break;
+      case "register":
+        parts = playRegister(snap);
+        break;
+      case "install":
+        parts = playInstall(snap);
+        break;
+      case "installing":
+        parts = playInstalling(snap);
+        break;
+      case "update":
+        parts = playUpdate(snap);
+        break;
+      case "ready":
+        parts = playReady(snap);
+        break;
+      case "running":
+        parts = playRunning(snap);
+        break;
+    }
+    return [h("div", { class: `play-content ${playClass}` }, ...(snap.phase === "ready" || snap.phase === "running" ? [] : [renderSteps(snap)]), ...parts)];
+  });
+}
+
+// ------------------------------------------------------------------ action bar
+
+const progressEls = (() => {
+  const title = h("span", { class: "progress-title" });
+  const percent = h("span", { class: "progress-percent" });
+  const fill = h("div", { class: "bar-fill" });
+  const bar = h("div", { class: "bar", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100 }, fill);
+  const meta = h("div", { class: "progress-meta" });
+  const file = h("div", { class: "progress-file" });
+  const cancel = linkButton("", () => void api.cancelTask(), { fk: "task-cancel" });
+  // Not a live region: the numbers change four times a second. The progressbar role gives the
+  // value on request, and #action-live announces the milestones.
+  const root = h("div", { class: "progress", "aria-live": "off" }, h("div", { class: "progress-head" }, title, percent, cancel), bar, meta, file);
+  return { root, title, percent, fill, bar, meta, file, cancel };
+})();
+
+function renderProgress(task: TaskProgress): void {
+  const v = taskView(task, state.lang);
+  const p = progressEls;
+  p.title.textContent = t(v.titleKey);
+  p.percent.textContent = v.indeterminate ? "" : `${v.percent.toFixed(v.percent < 10 ? 1 : 0).replace(".", state.lang === "en" ? "." : ",")} %`;
+  p.fill.style.width = `${v.indeterminate ? 35 : v.percent}%`;
+  p.bar.classList.toggle("paused", task.paused);
+  p.bar.classList.toggle("indeterminate", v.indeterminate);
+  p.bar.setAttribute("aria-valuenow", String(Math.round(v.percent)));
+  p.bar.setAttribute("aria-label", t(v.titleKey));
+  const bits: (string | null)[] = [
+    v.bytesText,
+    v.speedText,
+    v.etaText ? t("task_eta", { time: v.etaText }) : null,
+    t("task_files", { done: task.filesDone, total: task.filesTotal }),
+  ];
+  const current = shortFile(task.currentFile);
+  const meta: Node[] = [];
+  for (const b of bits) if (b) meta.push(h("span", {}, b));
+  p.meta.replaceChildren(...meta);
+  p.file.textContent = current && task.kind !== "dlls" ? t("task_current", { file: current }) : "";
+  p.cancel.textContent = t("task_cancel");
+}
+
+function renderSteps(snap: Snapshot): HTMLElement {
+  const current = stepIndex(snap.phase);
+  const keys: StringKey[] = ["step_join", "step_register", "step_install", "step_play"];
+  const items: HTMLElement[] = [];
+  keys.forEach((k, i) => {
+    const cls = i < current || snap.phase === "running" ? "done" : i === current ? "current" : "";
+    items.push(
+      h(
+        "li",
+        { class: `step ${cls}`, "aria-current": i === current ? "step" : undefined },
+        h("span", { class: "step-dot" }, cls === "done" ? icon("check") : String(i + 1)),
+        h("span", { class: "step-label" }, t(k)),
+      ),
+    );
+  });
+  return h("ol", { class: "setup-track", "aria-label": t("steps_label") }, ...items);
+}
+
+function actionHint(snap: Snapshot): string {
+  if (snap.lastError?.code === "launch_failed") return t("ready_launch_failed");
+  switch (snap.phase) {
+    case "join":
+      return t("hint_join");
+    case "connect":
+      return snap.connect.checking ? t("hint_connecting") : snap.connect.problem === "cert_mismatch" ? t("hint_cert") : t("hint_connect");
+    case "register":
+      return t(state.keyFormOpen ? "reg_key_label" : "hint_register");
+    case "install":
+      if (snap.install.discovering) return t("install_searching");
+      if (snap.install.detectedDirs?.length) return t("install_confirm");
+      return t("hint_install", { size: formatBytes(snap.install.totalBytes, state.lang) });
+    case "update":
+      return t("hint_update");
+    case "ready":
+      return t("hint_ready");
+    case "running":
+      return t("hint_running");
+    default:
+      return "";
+  }
+}
+
+// The running session's seconds so far (0 when the game is closed).
+function sessionSeconds(snap: Snapshot): number {
+  const start = snap.playtime.sessionStartedAt !== null ? Date.parse(snap.playtime.sessionStartedAt) : NaN;
+  return Number.isFinite(start) ? Math.max(0, (Date.now() - start) / 1000) : 0;
+}
+
+// Online seconds (as the server counted them for this account) and offline seconds (the offline
+// save's own count), each with the running session of its kind; the server's count is fetched again
+// when an online game ends.
+function onlineSeconds(snap: Snapshot): number {
+  return snap.playtime.onlineSeconds ?? 0;
+}
+
+function offlineSeconds(snap: Snapshot): number {
+  return snap.playtime.offlineSeconds + (snap.playtime.sessionOffline ? sessionSeconds(snap) : 0);
+}
+
+// Under the hint: the time played in that mode (online on the Play page, offline in offline play),
+// and this session's time while the game runs.
+function playtimeText(snap: Snapshot, offline = false): string {
+  const played = offline ? offlineSeconds(snap) : onlineSeconds(snap);
+  const total = t("playtime_total", { time: offline || snap.playtime.onlineSeconds !== null ? formatPlaytime(played, state.lang) : "—" });
+  if (snap.playtime.sessionStartedAt !== null) return `${t("playtime_session", { time: formatPlaytime(sessionSeconds(snap), state.lang) })} · ${total}`;
+  return played >= 60 ? total : "";
+}
+
+function playtimeLine(snap: Snapshot, offline = false): HTMLElement | null {
+  const text = playtimeText(snap, offline);
+  return text ? h("div", { class: "playtime" }, text) : null;
+}
+
+// Settings > Account: the time played and the hour badges (locked ones in grey). The badges count
+// online hours only: those are the server's count, which a player cannot change.
+function playtimeCard(snap: Snapshot): HTMLElement {
+  const total = onlineSeconds(snap) + offlineSeconds(snap);
+  const p = badgeProgress(onlineSeconds(snap));
+  const summary = t("playtime_summary", { n: String(snap.playtime.sessions), time: formatPlaytime(snap.playtime.lastSessionSeconds, state.lang) });
+  const online = t("playtime_online", { server: snap.server?.name ?? "Dauntless Unbroken", time: snap.playtime.onlineSeconds === null ? "—" : formatPlaytime(onlineSeconds(snap), state.lang) });
+  const offline = t("playtime_offline", { time: formatPlaytime(offlineSeconds(snap), state.lang) });
+  // The page's CSP refuses style attributes; the CSSOM sets the width.
+  const fill = h("div", { class: "playtime-bar-fill" });
+  fill.style.width = `${(p.fraction * 100).toFixed(1)}%`;
+  const next =
+    p.next === null
+      ? t("playtime_all")
+      : t("playtime_next", { name: t(`badge_${p.next}`), time: formatPlaytime(Math.ceil(p.secondsToNext / 60) * 60, state.lang) });
+  return card(
+    "settings-section playtime-card",
+    h("h2", { class: "card-title" }, t("playtime_title")),
+    h(
+      "div",
+      { class: "playtime-head" },
+      h("div", { class: "playtime-total" }, formatPlaytime(total, state.lang)),
+      h("div", { class: "playtime-meta" }, h("span", { class: "settings-row-sub" }, online), h("span", { class: "settings-row-sub" }, offline), h("span", { class: "settings-row-sub" }, summary), h("span", { class: "settings-row-sub" }, t("playtime_note"))),
+    ),
+    h(
+      "div",
+      { class: "playtime-next" },
+      h("span", {}, next),
+      h("span", { class: "settings-row-sub" }, t("playtime_badges_online")),
+      h("div", { class: "playtime-bar", role: "progressbar", "aria-label": next, "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(Math.floor(p.fraction * 100)) }, fill),
+    ),
+    h(
+      "ul",
+      { class: "pt-badges" },
+      ...BADGE_HOURS.map((hours) => {
+        const got = p.unlocked.includes(hours);
+        const name = t(`badge_${hours}`);
+        return h(
+          "li",
+          { class: `pt-badge${got ? " is-unlocked" : ""}`, title: `${name} · ${hours} h` },
+          h("span", { class: "pt-badge-name" }, name),
+          h("span", { class: "pt-badge-hours" }, `${hours} h`),
+          h("progress", { class: "pt-badge-progress", max: String(hours * 3600), value: String(Math.min(onlineSeconds(snap), hours * 3600)), "aria-label": name }),
+        );
+      }),
+    ),
+  );
+}
+
+const primary = $("#primary") as HTMLButtonElement;
+
+function renderActionBar(): void {
+  const snap = state.snap;
+  const info = $("#action-info");
+  if (!snap) {
+    primary.disabled = true;
+    primary.textContent = t("btn_wait");
+    return;
+  }
+  renderPlayMenu();
+  if (snap.queue?.state === 'waiting') {
+    const q=snap.queue;
+    const duration=(seconds:number)=>Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');
+    const reason=q.reason==='starting'?'Your instance is starting.':q.reason==='capacity'?'Waiting for server capacity.':'Finding a matching group.';
+    const estimate=q.estimatedWaitSeconds?` Recent admission pace suggests ~${duration(q.estimatedWaitSeconds)} more; this can change.`:' An accurate estimate is not available yet.';
+    const message=`Waiting for ${q.kind === 'hunt' ? 'a hunt' : 'Ramsgate'} · ${q.position} of ${q.total} players · ${q.groupsTotal?`Group ${q.groupPosition} of ${q.groupsTotal} · `:''}Waited ${duration(q.waitSeconds??0)}. ${reason}${estimate}`;
+    primary.disabled=true;primary.textContent='Queued';primary.setAttribute('data-action','none');
+    renderRegion(info,JSON.stringify(q),()=>[h('div',{class:'launch-readiness',role:'status'},h('span',{class:'action-hint'},message),...(!snap.game.running?[button('Leave queue',()=>void api.cancelQueue(),{fk:'cancel-queue'})]:[]))]);
+    announce(`Waiting for ${q.kind==='hunt'?'a hunt':'Ramsgate'}, position ${q.position} of ${q.total}. ${reason}`);
+    return;
+  }
+  if (state.offlineView) {
+    const active = offlineActive();
+    primary.textContent = t(active ? "off_btn" : "off_btn_play");
+    primary.disabled = active || snap.game.running || snap.task !== null;
+    primary.classList.toggle("is-running", active);
+    primary.classList.remove("is-pause");
+    primary.classList.toggle("is-ready", !active && !reducedMotion.matches);
+    primary.setAttribute("data-action", active ? "none" : "offline");
+    renderRegion(info, JSON.stringify([state.lang, "offline", state.offline.phase, playtimeText(snap, true)]), () => [h("div", { class: "action-hint" }, t(active ? "off_hint_active" : "off_hint_idle")), playtimeLine(snap, true)]);
+    return;
+  }
+  const b = primaryButton(snap, formState());
+  const maintenanceBlocked = snap.status?.maintenance === true && snap.status.maintenanceAllowed !== true;
+  primary.textContent = t(b.labelKey);
+  primary.disabled = b.disabled || maintenanceBlocked;
+  if (maintenanceBlocked) primary.textContent = t("maintenance");
+  primary.classList.toggle("is-running", b.action === "none" && snap.phase === "running");
+  primary.classList.toggle("is-pause", b.action === "pause" || b.action === "resume");
+  primary.classList.toggle("is-ready", b.action === "play" && !b.disabled && !reducedMotion.matches);
+  primary.setAttribute("data-action", b.action);
+
+  const task = snap.phase === "installing" ? state.task ?? snap.task : null;
+  if (task) {
+    if (!info.contains(progressEls.root)) info.replaceChildren(progressEls.root);
+    renderProgress(task);
+    forceRender(info);
+    const v = taskView(task, state.lang);
+    announce(v.indeterminate ? t(v.titleKey) : `${t(v.titleKey)}: ${Math.floor(v.percent / 10) * 10} %`);
+  } else {
+    const maintenanceName = serverName();
+    const actionHintText = snap.status?.maintenance ? t("maintenance") : snap.lastError?.code === "launch_failed" ? t("launch_failed_short") : actionHint(snap);
+    renderRegion(info, JSON.stringify([state.lang, snap.phase, snap.connect.checking, snap.connect.problem, snap.install.totalBytes, snap.status?.maintenance === true, maintenanceName, actionHintText, playtimeText(snap)]), () => [h("div", { class: "launch-readiness" }, h("span", { class: "launch-status-icon", "aria-hidden": "true" }, icon(snap.status?.maintenance ? "warning" : snap.phase === "ready" || snap.phase === "running" ? "check" : "play")), h("span", { class: "action-hint" }, actionHintText)), playtimeLine(snap)]);
+    announce(actionHintText);
+  }
+}
+
+// The action bar's screen reader announcements: what to do next, and download milestones (every
+// 10 %). Nothing else in the bar is a live region.
+function announce(text: string): void {
+  const live = $("#action-live");
+  if (live.textContent !== text) live.textContent = text;
+}
+
+async function onPrimary(): Promise<void> {
+  const snap = state.snap;
+  if (!snap) return;
+  if (state.offlineView) {
+    if (!offlineActive()) await startOffline();
+    return;
+  }
+  const b = primaryButton(snap, formState());
+  if (b.disabled || b.action === "none") return;
+  state.localError = null;
+  let result: { ok: boolean; error?: LauncherError } | undefined;
+  switch (b.action) {
+    case "join": {
+      const text = state.inviteText.trim();
+      // A changed certificate gets the warning first, never a direct join.
+      const m = await inviteModal(text);
+      if (m?.kind === "cert_changed") {
+        showModal(m);
+        return;
+      }
+      result = await api.submitInvite(text);
+      if (result.ok) clearInviteInput();
+      else if (result.error?.code === "cert_changed") {
+        const again = await inviteModal(text);
+        if (again) showModal(again);
+        return;
+      }
+      break;
+    }
+    case "retry":
+      result = await api.retryConnect();
+      break;
+    case "new_invite":
+      showModal({ kind: "leave" });
+      return;
+    case "use_key": await useKey(); return;
+    case "register":
+      result = await api.register(state.username.trim());
+      if (result.ok) {
+        state.username = "";
+        usernameInput.value = "";
+        updateUsernameFeedback();
+      }
+      break;
+    case "install":
+    case "update":
+      result = await api.startInstall();
+      break;
+    case "play":
+      result = await api.play();
+      break;
+    case "pause":
+      await api.pauseTask();
+      break;
+    case "resume":
+      await api.resumeTask();
+      break;
+  }
+  if (result && !result.ok && result.error && result.error.code !== "cancelled") {
+    const latest = await api.getSnapshot();
+    if (!latest.lastError) state.localError = result.error;
+    onSnapshot(latest);
+  }
+}
+
+primary.addEventListener("click", () => void onPrimary());
+
+// ------------------------------------------------------------------ server panel
+
+function instanceTitle(i: StatusInstance): string {
+  switch (i.kind) {
+    case "city":
+      return t("inst_title_city");
+    case "dojo":
+      return t("inst_title_dojo");
+    case "tutorial":
+      return t("inst_title_tutorial");
+    case "hunt":
+      return t("inst_title_hunt", { behemoth: i.behemoth ?? (i.title.replace(/^Hunt:\s*/i, "") || t("kind_hunt")) });
+  }
+}
+
+const KIND_ICON: Record<InstanceKind, IconName> = { city: "city", hunt: "hunt", dojo: "dojo", tutorial: "tutorial" };
+
+function instanceCard(i: StatusInstance): HTMLElement {
+  const pct = i.occupancyKnown !== false && i.maxPlayers > 0 ? Math.min(100, (i.players / i.maxPlayers) * 100) : 0;
+  const fill = h("span", {});
+  fill.style.width = `${pct}%`;
+  return h(
+    "div",
+    { class: `instance k-${i.kind}` },
+    i.kind === "hunt" ? h("img", { class: "instance-behemoth", src: behemothArt, alt: "" }) : null,
+    h("div", { class: "instance-icon" }, icon(KIND_ICON[i.kind])),
+    h("div", { class: "instance-title", title: instanceTitle(i) }, instanceTitle(i)),
+    h(
+      "div",
+      { class: "instance-meta" },
+      h("span", {}, i.occupancyKnown === false ? t('inst_count_unknown') : i.maxPlayers > 0 ? t("inst_players", { n: i.players, max: i.maxPlayers }) : t("inst_players_nomax", { n: i.players })),
+      h("span", {}, t("inst_running", { time: formatRunningTime(i.startedAt, Date.now(), state.lang) })),
+    ),
+    h("div", { class: "instance-bar", "aria-hidden": "true" }, fill),
+  );
+}
+
+function playerList(status: ServerStatus, max: number): HTMLElement {
+  const byId = new Map(status.instances.map((i) => [i.id, i]));
+  const approvedAvatar = state.snap?.account.profilePicture?.status === "approved" ? state.snap.account.profilePicture.imageDataUrl : null;
+  const currentUser = state.snap?.account.username;
+  const shown = status.players.slice(0, max);
+  const items = shown.map((p) => {
+    const inst = p.instance ? byId.get(p.instance) : undefined;
+    const where = inst && inst.kind === "hunt" ? `${t(whereKey(p.where))} · ${inst.behemoth ?? instanceTitle(inst)}` : t(whereKey(p.where));
+    return h(
+      "li",
+      { class: `player w-${p.where}` },
+      h("span", { class: "player-avatar", "aria-hidden": "true" }, p.name === currentUser && approvedAvatar ? h("img", { class: "player-avatar-image", src: approvedAvatar, alt: "" }) : Array.from(p.name)[0]?.toUpperCase() ?? "?"),
+      h("span", { class: "player-text" }, h("span", { class: `player-name${streamer() ? " secret-blur" : ""}` }, streamer() ? filler(p.name) : p.name), h("span", { class: "player-where" }, where)),
+    );
+  });
+  const list = h("ul", { class: "players" }, ...items);
+  if (status.players.length > max) list.appendChild(h("li", { class: "player-where", style: undefined }, t("sp_more", { n: status.players.length - max })));
+  return list;
+}
+
+function statusCheckedLabel(snap: Snapshot | null): string | null {
+  const checkedAt = snap?.statusCheckedAt;
+  if (!checkedAt) return null;
+  const time = Date.parse(checkedAt);
+  if (!Number.isFinite(time)) return null;
+  const timeText = new Intl.DateTimeFormat(TIME_LOCALES[state.lang], { hour: "numeric", minute: "2-digit" }).format(time);
+  return t("connect_last_checked", { time: timeText });
+}
+
+function renderPanel(): void {
+  const panel = $("#server-panel");
+  const snap = state.snap;
+  const minute = Math.floor(Date.now() / 30000);
+  const sig = JSON.stringify([state.lang, snap?.server ?? null, snap?.status ?? null, snap?.statusCheckedAt ?? null, snap?.statusUnsupported, snap?.phase === "connect", snap?.connect.problem, snap?.connect.checking, minute]);
+  renderRegion(panel, sig, () => {
+    if (!snap || !snap.server) {
+      return [
+        h("div", { class: "sp-head" }, h("span", { class: "sp-kicker" }, t("sp_title")), h("span", { class: "sp-name" }, t("rail_not_joined"))),
+        h("p", { class: "sp-empty" }, t("sp_nojoin")),
+        panelFoot(null),
+      ];
+    }
+    const status = snap.status;
+    const reachable = snap.phase !== "connect";
+    const online = reachable && (status ? status.online && !status.maintenance : true);
+    const head = h(
+      "div",
+      { class: "sp-head" },
+      h("span", { class: "sp-kicker" }, t("sp_title")),
+      h("span", { class: "sp-name" }, serverName()),
+      h("div", { class: "sp-state" }, h("span", { class: `dot ${online ? "online" : "offline"}`, "aria-hidden": "true" }), online ? t("sp_online") : t("sp_offline"), modeBadge(snap.server.mode)),
+    );
+    // Not reachable, or refused for its certificate: say so instead of "waiting", and do not show
+    // an old player list as if it were live.
+    if (snap.phase === "connect" && !snap.connect.checking && snap.connect.problem) {
+      const text = snap.connect.problem === "cert_mismatch" ? t("connect_cert_subtitle") : t("sp_no_answer");
+      return [head, h("p", { class: `sp-empty${snap.connect.problem === "cert_mismatch" ? " sp-problem" : ""}` }, text), panelFoot(null)];
+    }
+    if (!status) {
+      return [head, h("p", { class: "sp-empty" }, reachable && snap.statusUnsupported ? t("sp_unsupported") : t("sp_waiting")), panelFoot(null)];
+    }
+    if (status.maintenance) {
+      return [
+        head,
+        card("maintenance-worlds", h("span", { class: "maintenance-kicker" }, t("maintenance")), h("strong", { class: "maintenance-state" }, t("maintenance_offline", { name: serverName() })), h("p", { class: "card-text" }, t("maintenance_worlds"))),
+        panelFoot(status),
+      ];
+    }
+    // The server shows who is online to registered players only: say so instead of an empty list
+    // (and no "0 players", no "no worlds running", which would not be true).
+    if (status.limited) {
+      return [
+        head,
+        h("div", { class: "sp-section" }, h("div", { class: "sp-section-title" }, t("server_players"), icon("people")), h("p", { class: "sp-empty" }, t("sp_signin"))),
+        panelFoot(status),
+      ];
+    }
+    const instances = sortInstances(status.instances);
+    return [
+      head,
+      h(
+        "div",
+        { class: "sp-section" },
+        h("div", { class: "sp-section-title" }, t("server_players"), icon("people")),
+        h("div", { class: "sp-count" }, h("span", { class: "sp-count-num" }, String(status.playersOnline)), h("span", { class: "sp-count-label" }, t(status.playersOnline === 1 ? "sp_players_one_label" : "sp_players_other_label"))),
+        status.players.length > 0 ? playerList(status, 8) : h("p", { class: "sp-empty" }, t("sp_nobody")),
+      ),
+      h(
+        "div",
+        { class: "sp-section" },
+        h("div", { class: "sp-section-title" }, t("sp_worlds")),
+        instances.length > 0 ? h("div", { class: "instances" }, ...instances.slice(0, 6).map(instanceCard)) : h("p", { class: "sp-empty" }, t("sp_no_worlds")),
+        instances.length > 6 ? linkButton(t("sp_all_worlds", { n: instances.length }), () => setView("server"), { fk: "all-worlds" }) : null,
+      ),
+      panelFoot(status),
+    ];
+  });
+}
+
+function panelFoot(status: ServerStatus | null): HTMLElement {
+  const checked = statusCheckedLabel(state.snap);
+  return h(
+    "div",
+    { class: "sp-foot" },
+    status
+      ? h(
+          "div",
+          { class: "sp-foot-row" },
+          h("span", {}, t("sp_version", { version: [status.version, status.commit].filter(Boolean).join(" · ") || "–" })),
+          linkButton(t("sp_source"), () => open("server_source"), { icon: "external", fk: "sp-source" }),
+        )
+      : null,
+    h(
+      "div",
+      { class: "sp-foot-row" },
+      checked ? h("span", { class: "sp-checked", title: checked }, checked) : null,
+      h("span", {}, t("about_version", { v: state.snap?.app.version ?? "" })),
+      linkButton(t("about_source"), () => open("project_source"), { icon: "external", fk: "sp-launcher-source" }),
+    ),
+  );
+}
+
+// ------------------------------------------------------------------ news page
+
+function renderNews(): void {
+  const container = $("#view-news");
+  const snap = state.snap;
+  const sig = JSON.stringify([state.lang, state.news, snap?.server?.name ?? null, snap?.status?.name ?? null, snap?.status?.maintenance ?? false]);
+  renderRegion(container, sig, () => {
+    const title = snap?.server ? t("news_title", { name: serverName() }) : t("news_title_generic");
+    const body: HTMLElement[] = [];
+    if (!snap?.server) body.push(card("", h("p", { class: "card-text" }, t("news_offline"))));
+    else if (state.news.length === 0) {
+      if (snap.status?.maintenance) body.push(card("community-maintenance", h("span", { class: "maintenance-kicker" }, t("maintenance")), h("strong", { class: "maintenance-state" }, t("maintenance_offline", { name: serverName() })), h("p", { class: "card-text" }, t("maintenance_posts"))));
+      else body.push(card("", h("p", { class: "card-text" }, t("news_empty"))));
+    }
+    else {
+      const latest = state.news[0];
+      body.push(h("div", { class: "community-cover" },
+        h("img", { src: newsArtFor(0), alt: "" }),
+        h("div", { class: "community-cover-copy" },
+          h("span", {}, t("news_latest_post")),
+          h("strong", {}, latest.title),
+          latest.date ? h("small", {}, formatDate(latest.date, state.lang)) : null)));
+      for (const [index, n] of state.news.entries()) {
+        body.push(
+          h(
+            "article",
+            { class: "card news-item" },
+            h("div", { class: "news-media" }, h("img", { src: newsArtFor(index), alt: "" }), h("span", {}, index === 0 ? t("news_new_post") : t("news_server_post"))),
+            n.date ? h("time", { class: "news-date", datetime: n.date }, formatDate(n.date, state.lang)) : null,
+            h("h2", { class: "news-title" }, n.title),
+            h("p", { class: "news-body" }, n.body),
+          ),
+        );
+      }
+    }
+    return [h("div", { class: "page news-page" }, h("h1", { class: "page-title", id: "news-title" }, title), ...body)];
+  });
+}
+
+
+// ------------------------------------------------------------------ mods page
+
+// The optional client mods (client-mods/ in the repository): what each one does.
+// Information only; the launcher installs them and the in-game Mod Menu switches them.
+const MODS: readonly { icon: IconName; name: StringKey; text: StringKey; use: StringKey }[] = [
+  { icon: "hunt", name: "mod_dm_name", text: "mod_dm_text", use: "mod_dm_use" },
+  { icon: "hunt", name: "mod_pm_name", text: "mod_pm_text", use: "mod_pm_use" },
+  { icon: "puzzle", name: "mod_cst_name", text: "mod_cst_text", use: "mod_cst_use" },
+  { icon: "heart", name: "mod_bhb_name", text: "mod_bhb_text", use: "mod_bhb_use" },
+  { icon: "hunt", name: "mod_trk_name", text: "mod_trk_text", use: "mod_trk_use" },
+  { icon: "settings", name: "mod_menu_name", text: "mod_menu_text", use: "mod_menu_use" },
+];
+
+// Mods by anxo0, in their own section at the bottom of the page.
+const ANXO_MODS: readonly { icon: IconName; name: StringKey; text: StringKey; use: StringKey }[] = [
+  { icon: "eye", name: "mod_lock_name", text: "mod_lock_text", use: "mod_lock_use" },
+];
+
+function modCard(by: StringKey | null, m: { icon: IconName; name: StringKey; text: StringKey; use: StringKey }): HTMLElement {
+  return h("div", { class: "mod-card" },
+    by ? h("span", { class: "mod-by" }, t(by)) : null,
+    h("strong", { class: "mod-name" }, icon(m.icon), t(m.name)),
+    h("span", { class: "mod-text" }, t(m.text)),
+    h("span", { class: "mod-use" }, t(m.use)),
+  );
+}
+
+function renderMods(): void {
+  renderRegion($("#view-mods"), state.lang, () => [
+    h("div", { class: "page mods-page" },
+      h("h1", { class: "page-title", id: "mods-title" }, t("nav_mods")),
+      h("p", { class: "page-sub" }, t("mods_subtitle")),
+      card(
+        "mods-overview",
+        h("div", { class: "mods-cover" }, h("img", { src: behemothArt, alt: "" }), h("span", {}, t("mods_hunt_systems"))),
+        h("h2", { class: "mods-title" }, t("mods_title")),
+        h("p", { class: "card-text mods-intro" }, t("mods_intro")),
+        h("div", { class: "mods-grid" }, ...MODS.map((m) => modCard(m.name === "mod_dm_name" || m.name === "mod_pm_name" ? "mod_dm_by" : null, m))),
+      ),
+      card("",
+        h("h2", { class: "card-title" }, icon("info"), t("mods_notes_title")),
+        h("p", { class: "card-text" }, t("mods_note_local")),
+        h("p", { class: "card-text" }, t("mods_note_settings")),
+        h("p", { class: "small-print" }, t("mods_note_windows")),
+      ),
+
+      card(
+        "mods-author",
+        h("span", { class: "badge mods-badge" }, t("mods_anxo_badge")),
+        h("h2", { class: "mods-title" }, t("mods_anxo_title")),
+        h("p", { class: "card-text mods-intro" }, t("mods_anxo_intro")),
+        h("div", { class: "mods-grid" }, ...ANXO_MODS.map((m) => modCard("mods_anxo_by", m))),
+      ),
+      h("p", { class: "small-print mods-credit" }, t("mods_anxo_credit")),
+      linkButton("anxo0 · GitHub", () => open("creator_anxo"), { icon: "external", fk: "mods-anxo" }),
+    ),
+  ]);
+}
+
+// ------------------------------------------------------------------ server page
+
+function renderServer(): void {
+  const container = $("#view-server");
+  const snap = state.snap;
+  const minute = Math.floor(Date.now() / 30000);
+  const sig = JSON.stringify([state.lang, snap?.server ?? null, snap?.savedServers ?? [], snap?.status ?? null, snap?.phase, snap?.connect.problem, snap?.busy, !!snap?.task, snap?.game.running, minute]);
+  renderRegion(container, sig, () => {
+    if (!snap?.server) {
+      return [h("div", { class: "page" }, h("h1", { class: "page-title", id: "server-title" }, t("nav_server")), card("", h("p", { class: "card-text" }, t("sp_nojoin"))))];
+    }
+    const sv = snap.server;
+    const status = snap.status;
+    const rows: [string, Node | string][] = [
+      [t("server_address"), secret(`${sv.host}:${sv.port}`, "server-address", "mono")],
+      [t("server_connection"), sv.mode === "public" ? t("server_connection_public") : t("server_connection_private")],
+    ];
+    if (sv.fingerprint) rows.push([t("server_fingerprint"), secret(groupedFingerprint(sv.fingerprint), "server-fp", "fingerprint")]);
+    if (status) {
+      rows.push([t("server_registration"), status.registration ? tk(`reg_mode_${status.registration}`) : "–"]);
+      rows.push([t("server_version"), [status.version, status.commit].filter(Boolean).join(" · ") || "–"]);
+      rows.push([t("server_uptime"), formatDuration(status.uptimeSeconds, state.lang)]);
+    }
+    const kv = h("dl", { class: "kv" });
+    for (const [k, v] of rows) kv.append(h("dt", {}, k), h("dd", {}, v));
+    const parts: HTMLElement[] = [
+      h("div", { class: "server-cover", role: "img", "aria-label": `${serverName()} server` },
+        h("img", { src: heroArt, alt: "" }),
+        h("div", { class: "server-cover-copy" }, h("span", {}, "DAUNTLESS UNBROKEN"), h("strong", { id: "server-title" }, serverName()), h("small", {}, status?.version ?? t("server_status_default")), h("span", { class: `server-cover-status ${status?.maintenance ? "maintenance" : status?.online ? "online" : "offline"}` }, status?.maintenance ? t("maintenance") : status?.online ? t("sp_online") : t("sp_offline")))),
+      h("p", { class: "page-sub" }, t("server_auto")),
+      card("", kv, h("div", { class: "card-row", style: undefined }, button(t("sp_refresh"), () => void api.refreshStatus(), { icon: "refresh", fk: "srv-refresh" }), status?.sourceUrl ? linkButton(t("sp_source"), () => open("server_source"), { icon: "external", fk: "srv-source" }) : null)),
+    ];
+    if (status?.maintenance) {
+      parts.push(card("maintenance-worlds", h("span", { class: "maintenance-kicker" }, t("maintenance")), h("h2", { class: "card-title" }, t("maintenance_offline", { name: serverName() })), h("p", { class: "card-text" }, t("maintenance_worlds"))));
+    } else if (status?.limited) {
+      parts.push(card("", h("h2", { class: "card-title" }, t("server_players")), h("p", { class: "card-text" }, t("sp_signin"))));
+    } else if (status) {
+      const instances = sortInstances(status.instances);
+      parts.push(
+        h(
+          "div",
+          { class: "grid-2" },
+          card("", h("h2", { class: "card-title" }, t("server_players_count", { n: status.playersOnline })), status.players.length ? playerList(status, 100) : h("p", { class: "card-text" }, t("sp_nobody"))),
+          card("", h("h2", { class: "card-title" }, t("server_worlds")), instances.length ? h("div", { class: "instances" }, ...instances.map(instanceCard)) : h("p", { class: "card-text" }, t("sp_no_worlds"))),
+        ),
+      );
+    }
+    const saved = savedServersCard(snap);
+    if (saved) parts.push(saved);
+    parts.push(h("div", { class: "card-row" }, leaveLink(snap)));
+    return [h("div", { class: "page page-server" }, ...parts)];
+  });
+}
+
+// ------------------------------------------------------------------ settings page
+
+function settingsRow(title: string | Node, sub: string | Node | null, ...actions: (HTMLElement | null)[]): HTMLElement {
+  return h(
+    "div",
+    { class: "settings-row" },
+    h("div", { class: "settings-row-text" }, h("span", { class: "settings-row-title" }, title), sub ? h("span", { class: "settings-row-sub" }, sub) : null),
+    h("div", { class: "settings-actions" }, ...actions),
+  );
+}
+
+interface DropdownOption<T> {
+  value: T;
+  label: string;
+  lang?: string;
+}
+
+// A select in the launcher's own style: the native <select> opens a list drawn by Windows. A button
+// (the closed look of .select, so <label for> still points at it) and a listbox, with the keys a
+// select has: Up/Down/Home/End move, Enter/Space choose, Escape and Tab close, typing a letter jumps.
+function dropdown<T extends string | number>(opts: { id: string; fk: string; value: T; options: DropdownOption<T>[]; onChange: (v: T) => void; disabled?: boolean }): HTMLElement {
+  const current = opts.options.find((o) => o.value === opts.value) ?? opts.options[0];
+  const listId = `${opts.id}-list`;
+  const btn = h("button", { type: "button", class: "select dropdown-button", id: opts.id, "data-fk": opts.fk, "aria-haspopup": "listbox", "aria-expanded": "false", "aria-controls": listId, disabled: opts.disabled }, current.label);
+  if (current.lang) btn.setAttribute("lang", current.lang);
+  const list = h("ul", { class: "dropdown-list", id: listId, role: "listbox", tabindex: "-1", hidden: true });
+  const items = opts.options.map((o, i) => {
+    const li = h("li", { class: "dropdown-option", role: "option", id: `${opts.id}-opt-${i}`, "aria-selected": o.value === current.value ? "true" : "false", lang: o.lang }, o.label);
+    li.addEventListener("mousedown", (e) => e.preventDefault()); // keep focus on the list
+    li.addEventListener("click", () => choose(i));
+    li.addEventListener("mousemove", () => highlight(i));
+    list.appendChild(li);
+    return li;
+  });
+  const wrap = h("div", { class: "dropdown" }, btn, list);
+  let active = Math.max(0, opts.options.indexOf(current));
+
+  function highlight(i: number): void {
+    active = (i + items.length) % items.length;
+    items.forEach((li, j) => li.classList.toggle("active", j === active));
+    list.setAttribute("aria-activedescendant", items[active].id);
+    items[active].scrollIntoView({ block: "nearest" });
+  }
+  function onOutside(e: MouseEvent): void {
+    if (!wrap.contains(e.target as Node)) close(false);
+  }
+  function open(): void {
+    if (opts.disabled || !list.hidden) return;
+    list.hidden = false;
+    btn.setAttribute("aria-expanded", "true");
+    // Open upwards when there is no room below (the language card sits at the bottom of the page).
+    const below = window.innerHeight - btn.getBoundingClientRect().bottom;
+    wrap.classList.toggle("dropdown-up", below < list.offsetHeight + 12);
+    highlight(Math.max(0, opts.options.indexOf(current)));
+    list.focus();
+    document.addEventListener("mousedown", onOutside, true);
+  }
+  function close(refocus: boolean): void {
+    if (list.hidden) return;
+    list.hidden = true;
+    btn.setAttribute("aria-expanded", "false");
+    document.removeEventListener("mousedown", onOutside, true);
+    if (refocus) btn.focus();
+  }
+  function choose(i: number): void {
+    close(true);
+    const o = opts.options[i];
+    if (o && o.value !== current.value) opts.onChange(o.value);
+  }
+
+  btn.addEventListener("click", () => (list.hidden ? open() : close(true)));
+  btn.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      open();
+    }
+  });
+  list.addEventListener("keydown", (e) => {
+    const moves: Record<string, () => number> = { ArrowDown: () => active + 1, ArrowUp: () => active - 1, Home: () => 0, End: () => items.length - 1 };
+    if (moves[e.key]) {
+      e.preventDefault();
+      highlight(moves[e.key]());
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      choose(active);
+    } else if (e.key === "Escape") {
+      e.preventDefault(); // so Escape closes the list, not the page behind it
+      e.stopPropagation();
+      close(true);
+    } else if (e.key === "Tab") {
+      close(false);
+    } else if (e.key.length === 1) {
+      const k = e.key.toLowerCase();
+      const next = opts.options.findIndex((o, j) => j > active && o.label.toLowerCase().startsWith(k));
+      const first = opts.options.findIndex((o) => o.label.toLowerCase().startsWith(k));
+      if (next >= 0 || first >= 0) highlight(next >= 0 ? next : first);
+    }
+  });
+  // Focus leaving the list closes it; a click on the button closes it through the button instead.
+  list.addEventListener("blur", (e) => {
+    if (e.relatedTarget !== btn) close(false);
+  });
+  return wrap;
+}
+
+// A switch slides its knob first and saves after, because saving redraws the page with a new switch
+// already in place and the slide would never be seen.
+function onToggle(sw: HTMLElement, save: (on: boolean) => void): void {
+  sw.addEventListener("click", () => {
+    const on = sw.getAttribute("aria-checked") !== "true";
+    sw.setAttribute("aria-checked", on ? "true" : "false");
+    window.setTimeout(() => save(on), 220);
+  });
+}
+
+type SettingsTab = "game" | "graphics" | "account" | "launcher";
+const SETTINGS_TABS: SettingsTab[] = ["game", "graphics", "account", "launcher"];
+const SETTINGS_TAB_ICONS: Record<SettingsTab, IconName> = { game: "gamepad", graphics: "monitor", account: "user", launcher: "settings" };
+
+// A setting's long explanation sits behind a small info button: a tooltip on hover and on keyboard
+// focus, and the button's accessible name, so the page shows only the setting's name.
+function infoTip(text: string): HTMLElement {
+  return h("button", { type: "button", class: "info-tip", "aria-label": text, "data-tip": text }, icon("info"));
+}
+
+function infoRow(title: HTMLElement, text: string, control: HTMLElement): HTMLElement {
+  return h("div", { class: "settings-row" }, h("div", { class: "settings-row-text" }, h("div", { class: "settings-row-head" }, title, infoTip(text))), control);
+}
+
+function historyOwner(snap:Snapshot|null){return JSON.stringify([snap?.server?.host,snap?.server?.port,snap?.account.username,snap?.account.hasKey]);}
+async function loadPurchaseHistory(){
+  if(state.purchaseHistoryBusy)return;
+  const owner=historyOwner(state.snap);state.purchaseHistoryBusy=true;state.purchaseHistoryNote="";renderSettings();
+  const history=await api.getPurchaseHistory().catch(()=>null);
+  state.purchaseHistoryBusy=false;
+  if(owner!==historyOwner(state.snap)){renderSettings();return;}
+  state.purchaseHistory=history;state.purchaseHistoryFor=owner;
+  state.purchaseHistoryNote=history?"":t("err_server_unreachable");
+  renderSettings();
+}
+function purchaseHistoryCard(snap:Snapshot):HTMLElement|null{
+  if(!snap.account.hasKey||!snap.server)return null;
+  const history=state.purchaseHistoryFor===historyOwner(snap)?state.purchaseHistory:null;
+  const label=(id:string)=>({CURRENCY_NOTES:"Rams",CURRENCY_STEEL_MARKS:"Steel Marks",CURRENCY_GILDED_MARKS:"Gilded Marks"}[id]??id.replace(/^CURRENCY_/,"").replace(/_/g," ").toLowerCase().replace(/^./,c=>c.toUpperCase()));
+  const items=(entries:{catalogId:string;quantity:number}[])=>entries.map(item=>item.quantity.toLocaleString()+" × "+label(item.catalogId)).join(", ");
+  return card("settings-section",
+    h("div",{class:"card-row"},h("h2",{class:"card-title"},"Recent purchases"),button(state.purchaseHistoryBusy?"Loading…":history?"Refresh":"Load purchases",()=>void loadPurchaseHistory(),{fk:"purchase-history",disabled:state.purchaseHistoryBusy})),
+    h("p",{class:"small-print"},"Purchases and crafting charges. Delivery status describes the original transaction."),
+    state.purchaseHistoryNote?h("p",{class:"small-print",role:"status"},state.purchaseHistoryNote):null,
+    history&&!history.purchases.length?h("p",{class:"small-print"},"No recorded purchases yet."):null,
+    history?h("ol",{class:"purchase-history","aria-label":"Recent purchases"},...history.purchases.map(row=>h("li",{},
+      h("strong",{},items(row.items)||"Purchase or crafting charge"),
+      h("span",{class:"small-print"},new Date(row.time).toLocaleString(TIME_LOCALES[state.lang])+" · "+items(row.costs)),
+      h("span",{class:row.status},row.status==="delivered"?"Delivery recorded":row.status==="refunded"?"Currency returned":"Needs review: no item delivery recorded"),
+    ))):null);
+}
+async function exportSupportDiagnostics(){
+  state.diagnosticsNote=t("diag_prepare");renderSettings();
+  const result=await api.exportDiagnostics().catch(()=>({ok:false as const,error:{code:"unknown" as const}}));
+  state.diagnosticsNote=result.ok?t("diag_saved"):result.error.code==="cancelled"?"":t("diag_save_failed");
+  renderSettings();
+}
+
+async function uploadSupportDiagnostics(){
+  if(state.diagnosticsUploading)return;
+  state.diagnosticsUploading=true;state.diagnosticsNote=t("diag_uploading");renderSettings();
+  try{
+    const result=await api.uploadDiagnostics(state.username.trim());
+    state.diagnosticsNote=result.ok?t("diag_uploaded",{id:result.id}):result.error.code==='rate_limited'?t("diag_rate_limited"):t("diag_upload_failed");
+  }catch{state.diagnosticsNote=t("diag_upload_failed");}
+  finally{state.diagnosticsUploading=false;renderSettings();}
+}
+
+function openSupportDiagnostics(): void {
+  state.settingsTab = "game";
+  setView("settings");
+}
+
+async function openSupportLogFolder(){
+  try{if((await api.openLogFolder()).ok)return;}catch{/* show the local fallback below */}
+  state.settingsTab="game";setView("settings");state.diagnosticsNote=t("diag_log_open_failed");renderSettings();
+}
+
+async function switchSavedAccount(id: string): Promise<void> {
+  const result = await api.switchAccount(id);
+  if (!result.ok) { state.localError = result.error; renderBanners(); }
+}
+
+function savedAccountsCard(snap: Snapshot): HTMLElement | null {
+  if (!snap.server) return null;
+  const locked = snap.busy || snap.task !== null || snap.game.running || offlineActive();
+  return card("settings-section",
+    h("h2", {class: "card-title"}, t("saved_accounts_title")),
+    h("p", {class: "card-text"}, t("saved_accounts_text")),
+    h("p", {class: "small-print"}, locked ? t("saved_accounts_locked") : t("saved_accounts_progress")),
+    ...(snap.account.saved ?? []).map(account => settingsRow(
+      secret(account.username, "saved-account-" + account.id),
+      account.current ? t("account_selected") : null,
+      button(account.current ? t("account_selected") : t("account_switch"), () => void switchSavedAccount(account.id), {fk: "account-switch-" + account.id, cls: account.current ? "" : "btn-primary", disabled: locked || account.current}),
+      linkButton(t("saved_accounts_remove"), () => showModal({kind: "remove_account", id: account.id, username: account.username}), {fk: "account-remove-" + account.id, disabled: locked})
+    )),
+    h("div", {class: "card-row"},
+      button(t("reg_key_file"), () => openBackupImport(), {icon: "folder", fk: "account-import", disabled: locked}),
+      linkButton(t('backup_paste_toggle'),()=>showModal({kind:'paste_backup'}),{fk:'account-backup-paste',disabled:locked}),
+      button(t("saved_accounts_add_key"), () => showModal({kind: "add_account"}), {icon: "key", fk: "account-add", disabled: locked}))
+  );
+}
+
+function profilePictureCard(snap: Snapshot): HTMLElement | null {
+  if (!snap.server || !snap.account.hasKey) return null;
+  const profile = snap.account.profilePicture;
+  const statusKey = profile?.status ?? "empty";
+  const status = statusKey === "approved" ? t("profile_status_approved") : statusKey === "pending" ? t("profile_status_pending") : statusKey === "rejected" ? t("profile_status_rejected") : t("profile_status_empty");
+  const pictureNote = statusKey === "pending" && profile?.imageDataUrl
+    ? `${t("profile_status_pending")} · ${t("profile_friends_only")}`
+    : statusKey === "rejected" && profile?.imageDataUrl
+      ? `${t("profile_status_rejected")} · ${t("profile_friends_only")}`
+      : `${t("profile_friends_only")} · ${t("profile_automatic_check")}`;
+  const avatar = profile?.imageDataUrl
+    ? h("img", {class:"profile-avatar-image", src:profile.imageDataUrl, alt:""})
+    : h("span", {class:"profile-avatar-letter", "aria-hidden":"true"}, (snap.account.username ?? "?").slice(0,1).toUpperCase());
+  const username = h("input", {class:"input", id:"profile-username", type:"text", maxlength:"16", value:state.profileUsername || snap.account.username || "", autocomplete:"off", spellcheck:"false", "aria-label":t("reg_label"), "aria-describedby":"profile-username-hint", "data-fk":"profile-username"}) as HTMLInputElement;
+  const usernameState = h("span", {class:"profile-username-state", role:"status"});
+  let saveUsername: HTMLButtonElement;
+  const updateUsernameState = (): void => {
+    const check = checkUsername(username.value.trim());
+    const valid = check === "ok";
+    username.setAttribute("aria-invalid", valid ? "false" : "true");
+    usernameState.textContent = valid ? t("reg_check_ok") : t("err_username_invalid");
+    if (saveUsername) saveUsername.disabled = !valid;
+  };
+  username.addEventListener("input", () => {state.profileUsername=username.value; updateUsernameState();});
+  saveUsername = button(t("profile_username_save"), async () => {
+    state.profileUsernameNote = t("profile_username_saving");
+    renderSettings();
+    const result = await api.renameProfileUsername(state.profileUsername.trim()).catch(() => ({ok:false as const,error:{code:"server_error" as const}}));
+    if(result.ok){state.profileUsername="";state.profileUsernameNote=t("profile_username_saved");}
+    else if(result.error.code === "username_taken") state.profileUsernameNote=t("err_username_taken");
+    else if(result.error.code === "username_invalid") state.profileUsernameNote=t("err_username_invalid");
+    else if(result.error.code === "username_moderated") state.profileUsernameNote=t("err_username_moderated");
+    else if(result.error.code === "rate_limited") state.profileUsernameNote=t("err_rate_limited");
+    else state.profileUsernameNote=t("err_server_unreachable");
+    renderSettings();
+  }, {fk:"profile-username-save"});
+  username.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      saveUsername.click();
+    }
+  });
+  updateUsernameState();
+  return card("settings-section profile-card",
+      h("div", {class:"profile-card-head"}, h("div", {class:"profile-avatar"}, avatar), h("div", {class:"profile-copy"}, h("h2", {class:"card-title"}, snap.account.username ?? t("set_account")), h("p", {class:`profile-status profile-status-${statusKey}`}, statusKey === "approved" ? icon("check", "profile-status-icon") : null, h("span", {class:"profile-status-dot", "aria-hidden":"true"}), status), h("p", {class:"small-print"}, pictureNote))),
+    h("div", {class:"profile-policy"},
+      h("div", {class:"profile-policy-item"}, icon("people", "profile-policy-icon"), h("span", {}, h("strong", {}, t("profile_audience")), h("small", {}, t("profile_friends_only")))),
+      h("div", {class:"profile-policy-item"}, icon("shield", "profile-policy-icon"), h("span", {}, h("strong", {}, t("profile_safety")), h("small", {}, t("profile_automatic_check")))),
+    ),
+     h("div", {class:"profile-username"}, h("label", {class:"field-label", for:"profile-username"}, t("reg_label")), h("p", {class:"small-print profile-username-hint", id:"profile-username-hint"}, t("profile_username_hint")), h("div", {class:"profile-username-row"}, username, saveUsername), usernameState),
+    state.profileUsernameNote ? h("p", {class:"small-print", role:"status"}, state.profileUsernameNote) : null,
+    state.profilePictureNote ? h("p", {class:"small-print", role:"status"}, state.profilePictureNote) : null,
+     h("div", {class:"card-row"}, button(t("profile_choose_picture"), () => profilePictureInput.click(), {fk:"profile-picture-choose"}), h("span", {class:"small-print profile-upload-hint"}, t("profile_upload_hint")), profilePictureInput),
+  );
+}
+
+
+function renderSettings(): void {
+  const container = $("#view-settings");
+  const snap = state.snap;
+  if (!snap) return;
+  const sig = JSON.stringify([state.lang, state.settingsTab, state.offline.phase, state.offlineSaveNote, state.purchaseHistory, state.purchaseHistoryFor, state.purchaseHistoryBusy, state.purchaseHistoryNote, state.diagnosticsNote, state.gameRemovalNote, state.profilePictureNote, state.profileUsernameNote, snap.revived, state.revivedResultDismissed, Math.floor((onlineSeconds(snap) + offlineSeconds(snap)) / 60), snap.playtime.sessions, snap.settings, snap.install.dir, snap.account, snap.server, snap.savedServers, snap.app, snap.phase, snap.busy, !!snap.task]);
+  renderRegion(container, sig, () => {
+    const busy = snap.busy || snap.task !== null || snap.game.running;
+
+    const select = dropdown<GraphicsPreset>({
+      id: "gfx-select",
+      fk: "gfx",
+      value: snap.settings.graphics,
+      options: GRAPHICS_PRESETS.map((g) => ({ value: g, label: t(graphicsKey(g)) })),
+      onChange: (graphics) => void api.setSettings({ graphics }),
+    });
+
+    // Auto exposure (roadmap 4.17): "game" by default; "basic" is the opt-in experiment for the airship.
+    const exposure = dropdown<ExposureMode>({
+      id: "exposure-select",
+      fk: "exposure",
+      value: snap.settings.exposure,
+      options: EXPOSURE_MODES.map((m) => ({ value: m, label: t(exposureKey(m)) })),
+      onChange: (exposure) => void api.setSettings({ exposure }),
+    });
+
+    const windowed = h("button", { type: "button", class: "switch", role: "switch", "aria-checked": snap.settings.windowed ? "true" : "false", "aria-labelledby": "windowed-label", "data-fk": "windowed" });
+    onToggle(windowed, (on) => void api.setSettings({ windowed: on }));
+
+    type HuntRegion = 'auto' | 'main' | 'ger' | 'us';
+    const huntRegion = dropdown<HuntRegion>({
+      id: 'hunt-region',
+      fk: 'hunt-region',
+      value: snap.settings.huntRegion === 'ger' || snap.settings.huntRegion === 'us'
+        ? snap.availableHuntRegions?.includes(snap.settings.huntRegion) ? snap.settings.huntRegion : 'auto'
+        : snap.settings.huntRegion ?? 'auto',
+      options: [{ value: 'auto', label: t('region_auto') }, { value: 'main', label: t('region_main') },
+        ...(snap.availableHuntRegions?.includes('ger') ? [{ value:'ger' as const, label:t('region_ger') }] : []),
+        ...(snap.availableHuntRegions?.includes('us') ? [{ value:'us' as const, label:t('region_us') }] : [])],
+      onChange: (huntRegion) => void api.setSettings({ huntRegion }),
+      disabled: busy,
+    });
+
+    const game = card(
+      "settings-section",
+      h("h2", { class: "card-title" }, t("set_game")),
+      infoRow(h("label", { class: "settings-row-title", for: "hunt-region" }, t("set_region")), t("set_region_text"), huntRegion),
+      settingsRow(
+        t("set_folder"),
+        secret(snap.install.dir, "install-dir"),
+        button(t("set_change_folder"), () => void api.chooseInstallDir(), { icon: "folder", fk: "set-dir", disabled: busy }),
+        button(t("set_open_folder"), () => void api.openGameFolder(), { fk: "set-open" }),
+      ),
+      settingsRow(t("set_repair"), t("set_repair_text"), button(t("set_repair_button"), () => void api.repair(), { icon: "refresh", fk: "set-repair", disabled: busy || !snap.server || !snap.account.hasKey })),
+      settingsRow('Remove downloaded game files',state.gameRemovalNote||'Move game files to the Recycle Bin / Trash. Keep the launcher, accounts, keys and saves.',
+        button('Remove game files',async()=>{
+          state.gameRemovalNote='Checking game files...';renderSettings();
+          try{
+            const result=await api.removeGame();
+            state.gameRemovalNote=result.ok?'Game files moved to the Recycle Bin / Trash. Empty it to free disk space.':result.error.code==='cancelled'?'Removal cancelled.':'Files could not all be removed. Close the game, check folder permissions and try again. No permanent deletion was attempted.';
+          }catch{state.gameRemovalNote='Removal failed. Open the game folder to check the remaining files.';}
+          renderSettings();
+        },{fk:'remove-game',disabled:busy||snap.game.running||snap.task!==null})),
+    );
+
+    const graphics = card(
+      "settings-section",
+      h("h2", { class: "card-title" }, t("set_graphics")),
+      infoRow(h("label", { class: "settings-row-title", for: "gfx-select" }, t("set_graphics_level")), t("set_graphics_text"), select),
+      infoRow(h("label", { class: "settings-row-title", for: "exposure-select" }, t("set_exposure")), t("set_exposure_text"), exposure),
+      infoRow(h("span", { class: "settings-row-title", id: "windowed-label" }, t("set_windowed")), t("set_windowed_help"), windowed),
+    );
+
+    // The launcher's language, every one by its own name (the rail keeps quick buttons for three).
+    const launcherLanguage = dropdown<Language>({
+      id: "launcher-language-select",
+      fk: "launcher-language",
+      value: snap.settings.language,
+      options: LANGUAGES.map((l) => ({ value: l, label: t(`lang_${l}`), lang: l })),
+      onChange: (language) => void api.setSettings({ language }),
+    });
+    // The game's own text language: every language the 1.4.4 client has text for, by its own name.
+    const gameLanguage = dropdown<GameLanguage>({
+      id: "game-language-select",
+      fk: "game-language",
+      value: snap.settings.gameLanguage,
+      options: GAME_LANGUAGES.map((g) => (g === "auto" ? { value: g, label: t("game_lang_auto") } : { value: g, label: GAME_LANGUAGE_NAMES[g], lang: g })),
+      onChange: (gameLanguage) => void api.setSettings({ gameLanguage }),
+    });
+
+    const language = card(
+      "settings-section",
+      h("h2", { class: "card-title" }, t("set_language")),
+      infoRow(h("label", { class: "settings-row-title", for: "launcher-language-select" }, t("set_launcher_language")), t("set_launcher_language_text"), launcherLanguage),
+      infoRow(h("label", { class: "settings-row-title", for: "game-language-select" }, t("set_game_language")), t("set_game_language_text"), gameLanguage),
+    );
+
+    const account = card(
+      "settings-section",
+      h("h2", { class: "card-title" }, t("set_account")),
+      snap.server && snap.account.hasKey
+        ? settingsRow(
+            t("set_signed_in", { user: snap.account.username ?? "?", name: serverName() }),
+            snap.account.sessionOnly ? SESSION_KEY_NOTE : t("set_key_note"),
+            button(t("set_backup"), () => void api.saveKeyBackup(), { icon: "key", fk: "set-backup" }),
+            button(t("set_logout"), () => showModal({ kind: "logout" }), { cls: "btn-danger", fk: "set-logout", disabled: busy }),
+          )
+        : settingsRow(t("set_not_signed"), null),
+      snap.server && snap.account.hasKey ? settingsRow('Account-key backup',backupLocationText(snap),
+        button('Locate existing backup…',()=>void api.locateKeyBackup(),{fk:'set-locate-backup',disabled:busy})) : null,
+      snap.server ? settingsRow(t("set_server_current"), h("span", {}, `${serverName()} (`, secret(`${snap.server.host}:${snap.server.port}`, "server-address"), ")"), button(t("set_add_server"), () => showModal({ kind: "leave" }), { fk: "set-leave", disabled: busy })) : null,
+    );
+
+    // The DLL keeps its log window hidden; players who troubleshoot can bring it back.
+    const showConsole = h("button", { type: "button", class: "switch", role: "switch", "aria-checked": snap.settings.showConsole ? "true" : "false", "aria-labelledby": "console-label", "data-fk": "show-console" });
+    onToggle(showConsole, (on) => void api.setSettings({ showConsole: on }));
+    // Offline play's save: a portable backup to a file, and a restore (asked first: it replaces the
+    // offline save on this PC). Not while offline play runs.
+    const saveLocked = snap.offlineAvailable === false || offlineActive() || snap.game.running;
+    const offlineCard = card(
+      "settings-section",
+      h("h2", { class: "card-title" }, t("off_save_card")),
+      settingsRow(
+        t("off_save_title"),
+        snap.offlineAvailable === false ? 'Your 1.4.4 offline save is preserved. Offline play is not available in 1.10.5 yet.' : state.offlineSaveNote ?? (saveLocked ? t("off_save_locked") : t("off_save_text")),
+        button(t("off_save_backup"), () => void backupOfflineSave(), { icon: "folder", fk: "offline-backup", disabled: saveLocked }),
+        button(t("off_save_restore"), () => showModal({ kind: "offline_restore" }), { icon: "refresh", fk: "offline-restore", disabled: saveLocked }),
+      ),
+    );
+
+    const troubleshooting = card(
+      "settings-section",
+      h("h2", { class: "card-title" }, t("set_troubleshooting")),
+      snap.app.platform === 'linux' ? settingsRow('Steam Deck controls',
+        'Add this AppImage to Steam as a Non-Steam game and open that shortcut in both Desktop and Gaming Mode. Choose a Gamepad layout; the desktop keyboard layout can make A open chat and B open the menu. Leave forced compatibility off for the launcher. Import account backup opens inside the launcher. If your wallet is unavailable, select Sign in until launcher closes; keep your backup for next time.') : null,
+      snap.revived?.supported?settingsRow('Other launchers',
+        snap.revived.detected?'Dauntless Revived files were found. Running both launchers can cause a port conflict.':snap.revived.message||'Check for an old Revived installation.',
+        button('Check for Revived',()=>void api.checkRevived(),{fk:'revived-settings-check',disabled:snap.busy||snap.revived.busy}),
+        (snap.revived.detected||snap.revived.phase==='error')?button('Remove Revived',()=>void removeRevived(),{fk:'revived-settings-remove',disabled:!snap.revived.canRemove||snap.busy||snap.game.running||snap.task!==null||snap.revived.busy}):null,
+        snap.revived.backupPath?button('Open cleanup log / backups',()=>void api.openRevivedBackup(),{fk:'revived-settings-backup'}):null):null,
+
+      settingsRow(t("set_support_diagnostics"),state.diagnosticsNote||t("diag_description"),
+        button(t("set_open_log"),()=>void openSupportLogFolder(),{icon:'folder',fk:'open-log-folder'}),
+        button(t("diag_upload"),()=>void uploadSupportDiagnostics(),{fk:'upload-diagnostics',disabled:state.diagnosticsUploading}),
+        button(t("diag_save_local"),()=>void exportSupportDiagnostics(),{fk:"export-diagnostics"})),
+      infoRow(h("span", { class: "settings-row-title", id: "console-label" }, t("set_show_console")), t("set_show_console_text"), showConsole),
+    );
+    // Other servers joined before: switch to one, or take it off the list (its key stays on this PC).
+    const otherServers = snap.savedServers.some((sv) => !sv.current)
+      ? card(
+          "settings-section",
+          h("div", { class: "settings-row-head card-title" }, h("h2", { class: "card-title-text" }, t("saved_other_title")), infoTip(t("saved_other_text"))),
+          ...snap.savedServers
+            .filter((sv) => !sv.current)
+            .map((sv) =>
+              settingsRow(
+                sv.name,
+                savedServerSub(sv),
+                button(t("saved_switch_to"), () => void switchTo(sv.id), { cls: "btn-primary", fk: `set-saved-${sv.id}`, disabled: busy }),
+                button(t("saved_remove"), () => showModal({ kind: "remove_server", id: sv.id, name: sv.name }), { icon: "close", fk: `set-saved-rm-${sv.id}`, disabled: busy }),
+              ),
+            ),
+        )
+      : null;
+
+    const streamerSwitch = h("button", { type: "button", class: "switch", role: "switch", "aria-checked": streamer() ? "true" : "false", "aria-labelledby": "streamer-label", "data-fk": "streamer" });
+    onToggle(streamerSwitch, (on) => void api.setSettings({ streamerMode: on }));
+    const presenceSwitch = h("button", { type: "button", class: "switch", role: "switch", "aria-checked": snap.settings.discordPresence !== false ? "true" : "false", "aria-labelledby": "discord-presence-label", "data-fk": "discord-presence" });
+    onToggle(presenceSwitch, (on) => void api.setSettings({ discordPresence: on }));
+    const streaming = card(
+      "settings-section",
+      h("h2", { class: "card-title" }, t("set_streaming")),
+      infoRow(h("span", { class: "settings-row-title", id: "discord-presence-label" }, t("set_discord_presence")), t("set_discord_presence_help"), presenceSwitch),
+      h("div", { class: "settings-row" }, h("div", { class: "settings-row-text" }, h("span", { class: "settings-row-title", id: "streamer-label" }, t("set_streamer")), h("span", { class: "settings-row-sub" }, t("set_streamer_help"))), streamerSwitch),
+    );
+
+    const about = card(
+      "settings-section",
+      h("h2", { class: "card-title" }, t("set_about")),
+      h("p", { class: "about-text" }, t("about_version", { v: snap.app.version })),
+      h("p", { class: "about-text" }, t("about_license")),
+      h(
+        "div",
+        { class: "card-row" },
+        linkButton(t("about_source"), () => open("project_source"), { icon: "external", fk: "about-src" }),
+        linkButton(t("about_license_link"), () => open("project_license"), { icon: "external", fk: "about-lic" }),
+        linkButton(t("discord_link"), () => open("discord"), { icon: "external", fk: "about-discord" }),
+      ),
+      h("div", { class: "card-row" }, h("span", { class: "small-print" }, t("about_credits")), linkButton(t("nav_credits"), () => setView("credits"), { fk: "about-credits" })),
+      h("p", { class: "small-print" }, t("about_disclaimer")),
+      h("p", { class: "small-print" }, snap.app.packaged ? t("about_auto_updates") : t("about_dev_build")),
+      snap.app.updateReady ? h("div", { class: "card-row" }, button(t("update_restart"), () => void api.installUpdate(), { cls: "btn-primary", fk: "about-update", disabled: snap.game.running })) : null,
+    );
+
+    // Tabs like the game's own settings menu: one group at a time instead of one long page.
+    const panels: Record<SettingsTab, (HTMLElement | null)[]> = {
+      game: [game],
+      graphics: [graphics],
+      account: [profilePictureCard(snap), savedAccountsCard(snap), account, purchaseHistoryCard(snap), playtimeCard(snap), h("p", {}, "On Windows, Play reports your motherboard UUID and available TPM public-key hash to the selected server for optional moderator device restrictions. The server stores keyed hashes. These identifiers are not verified hardware attestation; a TPM is not required."), otherServers],
+      launcher: [language, offlineCard, troubleshooting, streaming, about],
+    };
+    const tabs = h("div", { class: "settings-tabs", role: "tablist", "aria-label": t("set_title") });
+    for (const tab of SETTINGS_TABS) {
+      const on = state.settingsTab === tab;
+      const b = h("button", { type: "button", class: "settings-tab", role: "tab", id: `set-tab-${tab}`, "aria-selected": on ? "true" : "false", "aria-controls": "settings-panel", tabindex: on ? "0" : "-1", "data-fk": `set-tab-${tab}`, title: t(`set_tab_${tab}`) }, icon(SETTINGS_TAB_ICONS[tab]), h("span", { class: "settings-tab-label" }, t(`set_tab_${tab}`)));
+      b.addEventListener("click", () => {
+        state.settingsTab = tab;
+        renderSettings();
+      });
+      b.addEventListener("keydown", (e) => {
+        const i = SETTINGS_TABS.indexOf(tab);
+        const next = e.key === "ArrowRight" ? SETTINGS_TABS[(i + 1) % SETTINGS_TABS.length] : e.key === "ArrowLeft" ? SETTINGS_TABS[(i + SETTINGS_TABS.length - 1) % SETTINGS_TABS.length] : null;
+        if (!next) return;
+        e.preventDefault();
+        state.settingsTab = next;
+        renderSettings();
+        document.getElementById(`set-tab-${next}`)?.focus();
+      });
+      tabs.appendChild(b);
+    }
+    // Locked settings say why: a click on a greyed-out control otherwise does nothing. The game
+    // process takes a few seconds to really end after its window closes, which is the usual case.
+    const lockReason = snap.game.running ? t("set_locked_game") : snap.task !== null || snap.busy ? t("set_locked_task") : null;
+    const lockNotice = lockReason ? h("div", { class: "settings-locked", role: "status" }, icon("warning"), h("span", {}, lockReason)) : null;
+    const panel = h("div", { class: "settings-panel", id: "settings-panel", role: "tabpanel", "aria-labelledby": `set-tab-${state.settingsTab}` }, lockNotice, ...panels[state.settingsTab]);
+    // The tabs in a row on top, then one panel with every setting in its own row box.
+    return [h("div", { class: "page page-wide" }, h("h1", { class: "page-title", id: "settings-title" }, t("set_title")), h("div", { class: "settings-layout" }, tabs, panel))];
+  });
+}
+
+// ------------------------------------------------------------------ credits page
+
+function creditSoftware(): HTMLElement {
+  return h(
+    "ul",
+    { class: "credit-list software-list" },
+    ...SOFTWARE.map((sw) =>
+      h(
+        "li",
+        { class: "software" },
+        h(
+          "div",
+          { class: "credit-head" },
+          h("span", { class: "credit-name" }, sw.name),
+          h("span", { class: "credit-handle" }, localized(sw.author, state.lang)),
+          h("span", { class: "badge software-license" }, sw.license ?? t("credits_no_license")),
+        ),
+        h("p", { class: "credit-note" }, localized(sw.note, state.lang)),
+      ),
+    ),
+  );
+}
+
+function renderCredits(): void {
+  renderRegion($("#view-credits"), JSON.stringify([state.lang]), () => [
+    h("div", { class: "page credits-page" },
+      h("h1", { class: "page-title", id: "credits-title" }, t("credits_title")),
+      h("p", { class: "page-sub" }, t("credits_intro")),
+      card("settings-section",
+        h("h2", { class: "card-title" }, "anxo0"),
+        h("p", { class: "card-text" }, localized(ANXO_FEATURES, state.lang)),
+        linkButton("github.com/anxo0", () => open("creator_anxo"), { icon: "external", fk: "credit-anxo" })),
+      card("settings-section", h("h2", { class: "card-title" }, t("credits_software")), creditSoftware()),
+      card("settings-section",
+        h("h2", { class: "card-title" }, t("credits_license_title")),
+        h("p", { class: "card-text" }, t("credits_license_text")),
+        h("div", { class: "card-row" },
+          linkButton(t("github_link"), () => open("project_source"), { icon: "external", fk: "cr-source" }),
+          linkButton(t("about_license_link"), () => open("project_license"), { icon: "external", fk: "cr-license" })),
+        h("p", { class: "small-print" }, t("credits_phoenix"))))
+  ]);
+}
+
+// ------------------------------------------------------------------ banners
+
+async function removeRevived():Promise<void>{
+  state.revivedResultDismissed=false;
+  const result=await api.removeRevived().catch(()=>({ok:false as const,error:{code:'unknown' as const}}));
+  if(!result.ok&&result.error.code!=='cancelled'&&result.error.code!=='unknown')state.localError=result.error;
+  renderBanners();
+}
+
+function revivedNotice(snap:Snapshot):HTMLElement|null{
+  const r=snap.revived;
+  if(!r?.supported||!r.detected&&(r.phase==='idle'||state.revivedResultDismissed))return null;
+  const parts:HTMLElement[]=[
+    h('h3',{class:'card-title'},icon('warning'),r.busy?'Removing Dauntless Revived':r.phase==='done'?'Revived cleanup complete':r.phase==='error'?'Revived cleanup needs attention':'Dauntless Revived detected'),
+    h('p',{class:'card-text'},r.message||'Revived files were found on this PC. Running both launchers or their background servers can occupy port 61000 and prevent Play. You can remove the old launcher below.'),
+  ];
+  if(r.busy){
+    const fill=h('div',{class:'bar-fill'});fill.style.width=`${r.percent??35}%`;
+    parts.push(h('div',{class:'bar'+(r.percent===null?' indeterminate':''),role:'progressbar','aria-label':r.message,'aria-valuemin':0,'aria-valuemax':100,'aria-valuenow':r.percent??undefined},fill));
+    parts.push(h('p',{class:'progress-file'},r.currentFile));
+    if(r.total)parts.push(h('p',{class:'progress-meta'},`${r.processed} / ${r.total} items processed`));
+  }
+  parts.push(h('div',{class:'card-row'},
+    (r.detected||r.phase==='error')?button('Remove Revived',()=>void removeRevived(),{fk:'revived-remove',disabled:!r.canRemove||r.busy||snap.busy||snap.game.running||snap.task!==null}):null,
+    button('Check again',()=>void api.checkRevived(),{fk:'revived-check',disabled:r.busy}),
+    r.backupPath?button('Open cleanup log / backups',()=>void api.openRevivedBackup(),{fk:'revived-backup'}):null,
+    !r.detected&&!r.busy?linkButton('Dismiss',()=>{state.revivedResultDismissed=true;renderBanners();},{fk:'revived-dismiss'}):null,
+  ));
+  return card('card-warn',...parts);
+}
+
+
+function renderBanners(): void {
+  const container = $("#banners");
+  const snap = state.snap;
+  const error = snap?.lastError && snap.lastError.code !== "cancelled" && !(snap.phase === "register" && snap.lastError.code === "key_rejected") ? snap.lastError : state.localError;
+  const sig = JSON.stringify([state.lang, error, snap?.notice ?? null, snap?.app.updateReady ?? false, snap?.game.running ?? false, snap?.server, snap?.status?.name, snap?.revived, state.revivedResultDismissed, snap?.account.sessionOnly, snap?.account.hasKey]);
+  renderRegion(container, sig, () => {
+    const out: HTMLElement[] = [];
+    if(snap){
+      const revivedCard=revivedNotice(snap);if(revivedCard)out.push(revivedCard);
+      if(revivedConnection(snap))out.push(card('card-warn',
+        h('h3',{class:'card-title'},icon('warning'),'Revived server selected'),
+        h('p',{class:'card-text'},'This saved connection is named Dauntless Revived. Use a current Unbroken invite to reach our servers. Removing the old launcher does not change this connection.'),
+        h('div',{class:'card-row'},button('Use an Unbroken invite',()=>showModal({kind:'leave'}),{fk:'revived-server-switch',disabled:snap.busy||snap.game.running||!!snap.task}),linkButton('Get invite in Discord',()=>open('discord'),{fk:'revived-server-discord'})),
+      ));
+    }
+
+    if (error) {
+      out.push(
+        h(
+          "div",
+          { class: "banner banner-error", role: "alert" },
+          icon("warning"),
+          h("span", { class: "banner-text" }, errorText(error)),
+          ...(error.code === 'launch_failed' ? [button(t("set_repair"), () => void api.repair(), { icon: "refresh", fk: "repair-after-launch", disabled: snap ? snap.busy || snap.game.running || snap.task !== null : false }), button(t("set_change_folder"), () => void api.chooseInstallDir(), { icon: "folder", fk: "change-folder-after-launch", disabled: snap ? snap.busy || snap.game.running || snap.task !== null : false }), button(t("set_open_log"), () => void openSupportLogFolder(), { icon: "folder", fk: "open-log-after-launch" })] : []),
+          ...(error.code === 'launch_failed' ? [button(t("set_troubleshooting"), openSupportDiagnostics, { fk: "support-after-launch" })] : []),
+          ...(error.code === 'account_banned' ? [linkButton('Go to support',()=>open('discord'),{fk:'ban-support'})] : []),
+          linkButton(t("err_dismiss"), () => {
+            state.localError = null;
+            void api.dismissError();
+            renderBanners();
+          }, { fk: "err-dismiss" }),
+        ),
+      );
+    }
+    if (snap?.account.hasKey && snap.account.sessionOnly) out.push(h("div",{class:"banner banner-notice",role:"status"},icon("info"),h("span",{class:"banner-text"},SESSION_KEY_NOTE)));
+    if (snap?.notice) {
+      out.push(
+        h(
+          "div",
+          { class: "banner banner-notice", role: "status" },
+          icon("info"),
+          h("span", { class: "banner-text" }, tk(`notice_${snap.notice}`)),
+          linkButton(t("err_dismiss"), () => void api.dismissNotice(), { fk: "notice-dismiss" }),
+        ),
+      );
+    }
+    if (snap?.app.updateReady) {
+      out.push(
+        h(
+          "div",
+          { class: "banner banner-update", role: "status" },
+          icon("refresh"),
+          h("span", { class: "banner-text" }, t("update_ready")),
+          button(t("update_restart"), () => void api.installUpdate(), { cls: "btn-primary", fk: "update-restart", disabled: snap.game.running }),
+        ),
+      );
+    }
+    return out;
+  });
+}
+
+// ------------------------------------------------------------------ rail, titlebar, views
+
+const NAV: { view: View; icon: IconName; key: StringKey }[] = [
+  { view: "play", icon: "play", key: "nav_play" },
+  { view: "news", icon: "news", key: "nav_news" },
+  { view: "server", icon: "server", key: "nav_server" },
+
+  { view: "mods", icon: "puzzle", key: "nav_mods" },
+  { view: "settings", icon: "settings", key: "nav_settings" },
+];
+
+function renderRail(): void {
+  const snap = state.snap;
+  const nav = $("#nav");
+  const unread = state.news.length > 0 && newsKey(state.news[0]) !== state.newsSeenKey;
+  const titlebarNews = document.querySelector<HTMLElement>('[data-titlebar-view="news"] .titlebar-nav-badge');
+  if (titlebarNews) titlebarNews.hidden = !unread;
+  renderRegion(nav, JSON.stringify([state.lang, state.view, unread]), () =>
+    NAV.map((n) => {
+      const b = h(
+        "button",
+        { type: "button", class: "nav-item", "aria-current": state.view === n.view ? "page" : undefined, "data-fk": `nav-${n.view}` },
+        icon(n.icon),
+        t(n.key),
+        n.view === "news" && unread ? h("img", { class: "nav-badge", src: newsBadge, alt: t("news_new"), draggable: "false" }) : null,
+      );
+      b.addEventListener("click", () => setView(n.view));
+      return h("li", {}, b);
+    }),
+  );
+  const libraryGame = $("#library-game");
+  if (state.view === "play") libraryGame.setAttribute("aria-current", "page");
+  else libraryGame.removeAttribute("aria-current");
+  const libraryState = $("#library-game-state");
+  const gameReady = !!snap?.install.installed && snap.install.verified && snap.install.missingFiles === 0 && snap.install.dllsOk;
+  const serverOnline = snap?.status?.online === true;
+  const launchFailed = snap?.lastError?.code === "launch_failed";
+  libraryState.textContent = snap?.status?.maintenance ? t("maintenance") : launchFailed ? `${t("sp_online")} · ${t("launch_failed_short")}` : serverOnline && gameReady ? `${t("sp_online")} · ${t("hint_ready")}` : serverOnline ? t("sp_online") : gameReady ? t("hint_ready") : t("sp_offline");
+  libraryState.classList.toggle("is-ready", gameReady && !snap?.status?.maintenance && !launchFailed);
+  libraryState.classList.toggle("is-online", serverOnline && !snap?.status?.maintenance);
+  libraryState.classList.toggle("is-maintenance", snap?.status?.maintenance === true);
+  libraryState.classList.toggle("is-error", launchFailed);
+  const chip = $("#account-chip");
+  const user = snap?.account.hasKey ? snap.account.username : null;
+  // Quick account switching and server selection share the existing account menu.
+  const others = snap?.savedServers.filter((sv) => !sv.current) ?? [];
+  const accounts = snap?.account.saved?.filter(account => !account.current) ?? [];
+  const locked = !snap || snap.busy || snap.task !== null || snap.game.running || offlineActive();
+  const hasMenu = !!snap?.server || others.length > 0;
+  if (!hasMenu || locked) state.serverMenu = false;
+  const approvedAvatar = snap?.account.profilePicture?.status === "approved" ? snap.account.profilePicture.imageDataUrl : null;
+  renderRegion(chip, JSON.stringify([state.lang, user, approvedAvatar, snap?.server?.name ?? null, snap?.status?.name ?? null, others, accounts, locked, state.serverMenu]), () => {
+    const avatar = h("span", { class: `avatar${user ? "" : " empty"}`, "aria-hidden": "true" }, approvedAvatar ? h("img", {class:"avatar-image", src:approvedAvatar, alt:""}) : user ? Array.from(user)[0].toUpperCase() : "?");
+    const inner = [
+      h("span", { class: "avatar-wrap" }, avatar, approvedAvatar ? h("span", { class: "avatar-audience", title: t("profile_friends_only"), "aria-hidden": "true" }, icon("people")) : null),
+      h(
+        "span",
+        { class: "account-text" },
+        h("span", { class: "account-label" }, snap?.server ? serverName() : t("rail_not_joined")),
+        h("span", { class: "account-name" }, user ?? t("rail_not_signed_in")),
+      ),
+    ];
+    if (!hasMenu) return inner;
+    const toggle = h("button", { type: "button", class: "account-switch", "data-fk": "server-switch", "aria-haspopup": "menu", "aria-controls": "account-menu", "aria-expanded": state.serverMenu ? "true" : "false", title: t("account_switch_title"), disabled: locked }, ...inner);
+    toggle.addEventListener("click", () => {
+      state.serverMenu = !state.serverMenu;
+      renderRail();
+    });
+    const manage = h("button", {type: "button", class: "server-menu-item", role: "menuitem", "data-fk": "manage-accounts"}, "Manage accounts…");
+    manage.addEventListener("click", () => {state.serverMenu = false; state.settingsTab = "account"; setView("settings");});
+    const serverStatusClass = snap?.status?.maintenance ? "maintenance" : snap?.status?.online ? "online" : "offline";
+    const serverStatusText = snap?.status?.maintenance ? t("maintenance") : snap?.status?.online ? `${t("sp_online")} · ${t(snap.server?.mode === "public" ? "mode_public" : "mode_private")}` : t("sp_offline");
+    const profileStatus = snap?.account.profilePicture?.status === "approved" ? t("profile_status_approved") : snap?.account.profilePicture?.status === "pending" ? t("profile_status_pending") : t("profile_status_empty");
+    const menu = h(
+      "ul",
+      { class: "server-menu", id: "account-menu", role: "menu", "aria-label": t("account_menu_aria"), hidden: !state.serverMenu },
+      h("li", { class: "server-menu-current", role: "presentation" },
+        h("span", { class: "server-menu-current-kicker" }, t("account_connected").toUpperCase()),
+        h("strong", {}, serverName()),
+        h("span", { class: "server-menu-current-sub" }, h("i", { class: `server-menu-status-dot ${serverStatusClass}`, "aria-hidden": "true" }), serverStatusText),
+        h("span", { class: "server-menu-profile" }, h("span", {}, t("set_account")), h("strong", {}, t("profile_friends_only")), h("span", {}, profileStatus))),
+      h("li", { class: "server-menu-head", role: "presentation" }, t("account_switch")),
+      ...accounts.map(account => {
+        const item = h("button", {type: "button", class: "server-menu-item", role: "menuitem", "data-fk": "quick-account-" + account.id}, secret(account.username, "quick-account-name-" + account.id));
+        item.addEventListener("click", () => {state.serverMenu = false; renderRail(); void switchSavedAccount(account.id);});
+        return h("li", {role: "none"}, item);
+      }),
+      h("li", {role: "none"}, manage),
+      others.length ? h("li", { class: "server-menu-head", role: "presentation" }, t("saved_switch")) : null,
+      ...others.map((sv) => {
+        const item = h("button", { type: "button", class: "server-menu-item", role: "menuitem", "data-fk": `switch-${sv.id}` }, h("span", { class: "server-menu-name" }, sv.name), h("span", { class: "server-menu-sub" }, savedServerSub(sv)));
+        item.addEventListener("click", () => {
+          state.serverMenu = false;
+          renderRail();
+          void switchTo(sv.id);
+        });
+        return h("li", { role: "none" }, item);
+      }),
+    );
+    menu.addEventListener("keydown", (event) => {
+      const items = Array.from(menu.querySelectorAll<HTMLButtonElement>("[role=\"menuitem\"]"));
+      if (!items.length) return;
+      const current = items.indexOf(document.activeElement as HTMLButtonElement);
+      let next = current;
+      if (event.key === "ArrowDown") next = current < items.length - 1 ? current + 1 : 0;
+      else if (event.key === "ArrowUp") next = current > 0 ? current - 1 : items.length - 1;
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = items.length - 1;
+      else return;
+      event.preventDefault();
+      items[next].focus();
+    });
+    return [toggle, menu];
+  });
+  for (const b of Array.from(document.querySelectorAll<HTMLButtonElement>("#lang-switch .lang-btn"))) {
+    b.setAttribute("aria-pressed", b.dataset.lang === state.lang ? "true" : "false");
+  }
+  const credits = $("#credits-btn");
+  if (state.view === "credits") credits.setAttribute("aria-current", "page");
+  else credits.removeAttribute("aria-current");
+}
+
+function setView(v: View): void {
+  const changed = state.view !== v;
+  if (v === "credits" && state.view !== "credits") {
+    const from = document.activeElement;
+    state.creditsReturn = { view: state.view, focus: from instanceof HTMLElement && from !== document.body ? from : null };
+  }
+  state.view = v;
+  if (v === "news") rememberNewsSeen();
+  for (const nav of Array.from(document.querySelectorAll<HTMLButtonElement>("[data-titlebar-view]"))) {
+    if (nav.dataset.titlebarView === v) nav.setAttribute("aria-current", "page");
+    else nav.removeAttribute("aria-current");
+  }
+  for (const view of VIEWS) $(`#view-${view}`).hidden = view !== v;
+  $("#actionbar").hidden = false;
+  renderAll();
+  if (changed && !reducedMotion.matches) {
+    const selected = $(`#view-${v}`);
+    selected.classList.remove("view-entering");
+    void selected.offsetWidth;
+    selected.classList.add("view-entering");
+    window.setTimeout(() => selected.classList.remove("view-entering"), 520);
+  }
+  const heading = document.querySelector<HTMLElement>(`#view-${v} h1`);
+  heading?.setAttribute("tabindex", "-1");
+  if (v !== "play") heading?.focus({ preventScroll: true });
+}
+
+// Escape on the Credits page: back to the page it was opened from, with the focus on the button
+// that opened it (found again by its data-fk if that page was redrawn meanwhile), or on the rail's
+// Credits button.
+function leaveCredits(): void {
+  const back = state.creditsReturn ?? { view: "play" as View, focus: null };
+  state.creditsReturn = null;
+  const fk = back.focus?.getAttribute("data-fk") ?? null;
+  setView(back.view);
+  const again = back.focus?.isConnected
+    ? back.focus
+    : fk
+      ? document.querySelector<HTMLElement>(`#view-${back.view} [data-fk="${CSS.escape(fk)}"]`)
+      : null;
+  (again ?? $("#credits-btn")).focus({ preventScroll: true });
+}
+
+function applyStaticI18n(): void {
+  document.documentElement.lang = state.lang;
+  document.title = t("app_title");
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>("[data-i18n]"))) el.textContent = tk(el.dataset.i18n ?? "");
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>("[data-i18n-aria]"))) el.setAttribute("aria-label", tk(el.dataset.i18nAria ?? ""));
+  for (const el of Array.from(document.querySelectorAll<HTMLImageElement>("img[data-i18n-alt]"))) el.alt = tk(el.dataset.i18nAlt ?? "");
+  inviteInput.placeholder = t("join_placeholder");
+  usernameInput.placeholder = t("reg_placeholder");
+  keyInput.placeholder = t("reg_key_placeholder");
+  existingGameInput.placeholder = t("install_existing_placeholder");
+  $("#win-max").setAttribute("aria-label", t(state.maximized ? "window_restore" : "window_maximize"));
+  $("#github-btn").title = t("github_link");
+}
+
+function initTitlebarNav(): void {
+  for (const nav of Array.from(document.querySelectorAll<HTMLButtonElement>("[data-titlebar-view]"))) {
+    nav.addEventListener("click", () => setView(nav.dataset.titlebarView as View));
+  }
+}
+
+function renderAll(): void {
+  $(".world").classList.toggle("no-panel", state.view !== "play" || state.offlineView || !state.snap?.account.hasKey);
+  applyStaticI18n();
+  updateInviteFeedback();
+  updateUsernameFeedback();
+  renderRail();
+  renderBanners();
+  if (state.view === "play") renderPlay();
+  if (state.view === "news") renderNews();
+  if (state.view === "server") renderServer();
+  if (state.view === "settings") renderSettings();
+  if (state.view === "credits") renderCredits();
+
+  if (state.view === "mods") renderMods();
+  renderActionBar();
+  renderPanel();
+}
+
+// ------------------------------------------------------------------ modals
+
+function showModal(m: Modal): void {
+  if(m.kind === "add_account" && state.snap?.app.platform === "linux") m={kind:"paste_backup"};
+  state.modalReturnFocus = document.activeElement as HTMLElement | null;
+  state.modal = m;
+  renderModal();
+}
+
+function closeModal(): void {
+  state.modal = null;
+  renderModal();
+  state.modalReturnFocus?.focus?.();
+}
+
+function renderModal(): void {
+  const root = $("#modal-root");
+  const m = state.modal;
+  if (!m) {
+    root.hidden = true;
+    root.replaceChildren();
+    return;
+  }
+  const name = serverName();
+  let title = "";
+  let text: HTMLElement[] = [];
+  let confirmLabel = "";
+  let confirmCls = "btn-primary";
+  // Resolves to the next modal to show (a changed certificate), or null to close.
+  let onConfirm: () => Promise<Modal | null> = async () => null;
+  // Show an error from an action whose main-process side did not already report it.
+  const report = async (r: { ok: boolean; error?: LauncherError }): Promise<void> => {
+    if (r.ok || !r.error || r.error.code === "cancelled") return;
+    if (!(await api.getSnapshot()).lastError) state.localError = r.error;
+    renderBanners();
+  };
+  switch (m.kind) {
+    case "invite":
+      title = t("link_title", { name: m.name });
+      text = [h("p", { class: "modal-text" }, t("link_text", { name: m.name, host: hideText(m.host) })), h("div", {}, modeBadge(m.mode))];
+      if (m.fp) text.push(h("p", { class: "modal-text mono" }, t("link_fingerprint", { fp: hideText(shortFingerprint(m.fp)) })));
+      if (state.snap?.server) text.push(h("p", { class: "modal-text" }, t("link_switch_note")));
+      confirmLabel = t("link_join");
+      onConfirm = async () => {
+        const r = await api.submitInvite(m.link);
+        if (!r.ok && r.error.code === "cert_changed") return inviteModal(m.link);
+        await report(r);
+        setView("play");
+        return null;
+      };
+      break;
+    case "cert_changed":
+      title = t("certchg_title");
+      text = [
+        h("p", { class: "modal-text" }, t("certchg_text", { host: hideText(m.host) })),
+        h(
+          "dl",
+          { class: "fp-compare" },
+          h("dt", {}, t("certchg_old")),
+          h("dd", { class: "fingerprint" }, m.oldFp ? groupedFingerprint(m.oldFp) : t("certchg_unknown")),
+          h("dt", {}, t("certchg_new")),
+          h("dd", { class: "fingerprint fp-new" }, groupedFingerprint(m.newFp)),
+        ),
+        h("p", { class: "modal-text modal-warn" }, icon("warning"), h("span", {}, t("certchg_advice"))),
+      ];
+      confirmLabel = t("certchg_confirm");
+      confirmCls = "btn-danger";
+      onConfirm = async () => {
+        const r = await api.submitInvite(m.link, true);
+        if (r.ok && state.inviteText.trim() === m.link) clearInviteInput();
+        await report(r);
+        setView("play");
+        return null;
+      };
+      break;
+    case "paste_backup": {
+      title = "Import account backup";
+      const linux=state.snap?.app.platform === "linux";
+      const input=h('textarea',{class:'input backup-paste',rows:'3',maxlength:'8192',autocomplete:'off',spellcheck:'false','aria-label':t("backup_paste_help"),'data-fk':'paste-backup-text'});
+      const temporary=h('input',{type:'checkbox',id:'temporary-sign-in','data-fk':'temporary-sign-in'});
+      const message=h('p',{class:'modal-text',role:'status','aria-live':'polite'});
+      let importing=false;
+      const run=async(action:()=>Promise<ActionResult>)=>{
+        if(importing)return;
+        importing=true;message.textContent='Checking account…';
+        try {
+          const result=await action();
+          if(state.modal!==m)return;
+          if(result.ok){input.value='';closeModal();}
+          else if(result.error.code!=='cancelled'){
+            message.textContent=errorText(result.error)+(linux&&result.error.code==='key_storage_unavailable'?' Select “Sign in until launcher closes”, then try again.':'');
+          }
+        }catch{if(state.modal===m)message.textContent='Import failed. Please try again.';}
+        finally{importing=false;}
+      };
+      text=[h('p',{class:'modal-text'},'Choose your backup below, paste its full text, or import it from the clipboard.'),
+        ...(linux?[h('label',{class:'backup-session-option',for:'temporary-sign-in'},temporary,' Sign in until launcher closes'),
+          h('p',{class:'small-print'},SESSION_KEY_NOTE+' Use this if your desktop wallet is unavailable in Gaming Mode.')]:[]),
+        message];
+      if(linux){
+        const list=h('div',{class:'backup-file-list','aria-label':'Backup text files'});
+        text.push(h('p',{class:'small-print'},'Files from Desktop, Downloads and Documents. Keep the backup in one of these folders to import without opening another window.'),list);
+        list.textContent='Looking for backup files…';
+        void api.listKeyBackups().then(files=>{
+          if(state.modal!==m)return;
+          list.replaceChildren(...files.map(file=>button(file.name+' — '+file.folder.split(/[\\\\/]/).pop(),()=>void run(()=>api.importKeyFile(file.id,temporary.checked)),{icon:'folder',fk:'backup-file-'+file.id})));
+          if(!files.length)list.textContent='No small .txt files found. Paste your backup below, or put it in Downloads and reopen this window.';
+        }).catch(()=>{if(state.modal===m)list.textContent='Could not list backups. Paste your backup below.';});
+      }
+      text.push(input,h('div',{class:'card-row'},
+        button('Import pasted backup',()=>void run(()=>api.useExistingKey(input.value,temporary.checked)),{cls:'btn-primary',fk:'backup-text-import'}),
+        button('Import from clipboard',()=>void run(()=>api.importKeyClipboard(temporary.checked)),{icon:'key',fk:'backup-clipboard-import'})),
+        linkButton(linux?'Browse another folder (Desktop Mode)':'Browse another folder',()=>void run(()=>api.importKeyFile(undefined,temporary.checked)),{fk:'backup-native-browse'}));
+      confirmLabel='Close';
+      break;
+    }
+    case "add_account": {
+      title = "Add an existing account";
+      const input = h("input", {class: "input", id: "saved-account-key", type: "password", autocomplete: "off", spellcheck: "false", maxlength: 8192, "data-fk": "saved-account-key"});
+      text = [h("p", {class: "modal-text"}, "Enter the other player's launcher account key. Their account will be saved on this PC and selected after validation. Your current account stays saved."), h("label", {class: "field-label", for: "saved-account-key"}, "Account key"), input];
+      confirmLabel = "Save and switch";
+      onConfirm = async () => { const key = input.value; input.value = ""; await report(await api.useExistingKey(key)); return null; };
+      break;
+    }
+    case "remove_account":
+      title = "Remove saved account?";
+      text = [h("p", {class: "modal-text"}, "Remove " + hideText(m.username) + " from this PC's saved accounts? This does not delete the server account or its progress. Exported key backup files are kept.")];
+      confirmLabel = "Remove from PC";
+      confirmCls = "btn-danger";
+      onConfirm = async () => { await report(await api.removeSavedAccount(m.id)); return null; };
+      break;
+    case "logout":
+      title = t("logout_title", { name });
+      text = [h("p", { class: "modal-text" }, t("logout_text"))];
+      confirmLabel = t("logout_confirm");
+      confirmCls = "btn-danger";
+      onConfirm = async () => {
+        await report(await api.logout());
+        return null;
+      };
+      break;
+    case "leave":
+      title = t("leave_title");
+      text = [h("p", { class: "modal-text" }, t("leave_text", { name }))];
+      confirmLabel = t("leave_confirm");
+      onConfirm = async () => {
+        const r = await api.forgetServer();
+        if (!r.ok) {
+          await report(r);
+          return null;
+        }
+        setView("play");
+        return null;
+      };
+      break;
+    case "offline_restore":
+      title = t("off_restore_title");
+      text = [h("p", { class: "modal-text" }, t("off_restore_text"))];
+      confirmLabel = t("off_restore_confirm");
+      onConfirm = async () => {
+        const r = await api.importOfflineSave();
+        if (r.ok) {
+          state.offlineSaveNote = t("off_restore_done");
+          renderSettings();
+        } else await report(r);
+        return null;
+      };
+      break;
+    case "remove_server":
+      title = t("remove_server_title", { name: m.name });
+      text = [h("p", { class: "modal-text" }, t("remove_server_text", { name: m.name }))];
+      confirmLabel = t("remove_server_confirm");
+      onConfirm = async () => {
+        await report(await api.removeSavedServer(m.id));
+        return null;
+      };
+      break;
+  }
+  const cancel = button(m.kind === "invite" ? t("link_cancel") : t("cancel"), () => closeModal(), { fk: "modal-cancel" });
+  const confirm = button(confirmLabel, () => {
+    confirm.disabled = true;
+    void onConfirm()
+      .catch(() => null)
+      .then((next) => {
+        if (next) {
+          state.modal = next;
+          renderModal();
+        } else closeModal();
+      });
+  }, { cls: confirmCls, fk: "modal-confirm" });
+  const dialog = h(
+    "div",
+    { class: `modal${m.kind === "cert_changed" ? " modal-danger" : ""}`, role: m.kind === "cert_changed" ? "alertdialog" : "dialog", "aria-modal": "true", "aria-labelledby": "modal-title" },
+    h("h2", { class: "modal-title", id: "modal-title" }, m.kind === "cert_changed" ? icon("shield") : null, title),
+    ...text,
+    h("div", { class: "modal-actions" }, m.kind === "paste_backup" ? null : cancel, confirm),
+  );
+  root.replaceChildren(dialog);
+  root.hidden = false;
+  // Destructive or risky choices never get the default focus.
+  (m.kind === "logout" || m.kind === "cert_changed" || m.kind === "remove_server" || m.kind === "remove_account" ? cancel : m.kind === "add_account" ? dialog.querySelector<HTMLInputElement>("input")! : m.kind==='paste_backup' ? dialog.querySelector<HTMLElement>(state.snap?.app.platform==='linux'?'input[type=checkbox]':'textarea')! : confirm).focus();
+}
+
+// The server switcher closes on a click anywhere else, and on Escape.
+window.addEventListener("mousedown", (e) => {
+  if (state.serverMenu && !$("#account-chip").contains(e.target as Node)) {
+    state.serverMenu = false;
+    renderRail();
+  }
+});
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && state.serverMenu) {
+    state.serverMenu = false;
+    renderRail();
+    document.querySelector<HTMLButtonElement>(".account-switch")?.focus();
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (!state.modal) {
+    if (e.key === "Escape" && state.view === "credits" && !e.defaultPrevented) {
+      e.preventDefault();
+      leaveCredits();
+    }
+    return;
+  }
+  if (e.key === "Escape") {
+    e.preventDefault();
+    closeModal();
+    return;
+  }
+  if (e.key === "Tab") {
+    const focusable = Array.from(document.querySelectorAll<HTMLElement>("#modal-root button:not(:disabled), #modal-root input:not(:disabled), #modal-root textarea:not(:disabled), #modal-root select:not(:disabled), #modal-root [href], #modal-root [tabindex]:not([tabindex=\"-1\"])"));
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    } else if (!focusable.includes(document.activeElement as HTMLElement)) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+});
+
+// The modal for an invite: the plain "Join?" question, or the certificate warning when this PC's
+// key for that public server belongs to another certificate.
+async function inviteModal(link: string): Promise<Modal | null> {
+  const r = parseInvite(link);
+  if (!r.ok) return null;
+  const inv = r.invite;
+  const check = await api.checkInvite(link);
+  if (check.ok && check.certificateChanged && inv.fp) {
+    return { kind: "cert_changed", link, name: inv.name, host: inv.host, oldFp: check.previousFingerprint, newFp: inv.fp };
+  }
+  return { kind: "invite", link, name: inv.name, host: inv.host, mode: inv.mode, fp: inv.fp };
+}
+
+async function checkInviteLink(): Promise<void> {
+  const link = await api.takeInviteLink();
+  if (!link) return;
+  const m = await inviteModal(link);
+  if (m) showModal(m);
+}
+
+// ------------------------------------------------------------------ hero art (the host's art pack)
+
+function showArt(index: number): void {
+  const list = state.branding.backgrounds.filter((b) => ART_URL.test(b.url));
+  const layers = [$("#art-a"), $("#art-b")];
+  const credit = $("#art-credit");
+  if (list.length === 0) {
+    layers.forEach((l) => l.classList.remove("show"));
+    credit.textContent = "";
+    $("#hero").classList.remove("has-art");
+    return;
+  }
+  const item = list[index % list.length];
+  const next = layers[1 - state.artLayer];
+  const img = new Image();
+  img.onload = () => {
+    next.style.backgroundImage = `url("${item.url}")`;
+    next.classList.add("show");
+    layers[state.artLayer].classList.remove("show");
+    state.artLayer = 1 - state.artLayer;
+    // The built-in scene is covered now: stop its animation (styles.css).
+    $("#hero").classList.add("has-art");
+    credit.textContent = item.credit ? t("art_credit", { credit: item.credit }) : "";
+  };
+  img.src = item.url;
+}
+
+function startArt(): void {
+  window.clearInterval(state.artTimer);
+  state.artIndex = 0;
+  showArt(0);
+  const count = state.branding.backgrounds.length;
+  if (count > 1 && !reducedMotion.matches) {
+    state.artTimer = window.setInterval(() => {
+      state.artIndex++;
+      showArt(state.artIndex);
+    }, 14000);
+  }
+  const accent = state.branding.accent;
+  if (accent && /^#[0-9a-f]{6}$/.test(accent)) document.documentElement.style.setProperty("--host-accent", accent);
+  else document.documentElement.style.removeProperty("--host-accent");
+}
+
+// ------------------------------------------------------------------ data flow
+
+async function loadExtras(snap: Snapshot): Promise<void> {
+  if (!snap.server || snap.phase === "join" || snap.phase === "connect") return;
+  const key = `${snap.server.mode}|${snap.server.host}:${snap.server.port}`;
+  const empty = state.news.length === 0 && state.branding.backgrounds.length === 0;
+  if (key === state.extrasFor && !(empty && Date.now() - state.extrasAt > 5000)) return;
+  const changedServer = key !== state.extrasFor;
+  const previousNewsKey = newsKey(state.news[0]);
+  state.extrasFor = key;
+  state.extrasAt = Date.now();
+  const [news, branding] = await Promise.all([api.getNews(), api.getBranding()]);
+  const newsChanged = JSON.stringify(news) !== JSON.stringify(state.news);
+  const artChanged = JSON.stringify(branding) !== JSON.stringify(state.branding);
+  state.news = news;
+  if (changedServer) restoreNewsSeen(snap);
+  else if (newsChanged && previousNewsKey !== newsKey(news[0]) && state.view === "news") state.newsSeenKey = newsKey(news[0]);
+  if (artChanged) {
+    state.branding = branding;
+    startArt();
+  }
+  if (newsChanged || artChanged) renderAll();
+}
+
+function onSnapshot(snap: Snapshot): void {
+  const langChanged = snap.settings.language !== state.lang;
+  const streamerChanged = snap.settings.streamerMode !== state.snap?.settings.streamerMode;
+  const serverChanged = JSON.stringify(snap.server) !== JSON.stringify(state.snap?.server ?? null);
+  state.snap = snap;
+  state.lang = snap.settings.language;
+  if (serverChanged) restoreNewsSeen(snap);
+  if (snap.phase !== "installing") state.task = null;
+  if (serverChanged && !snap.server) {
+    state.news = [];
+    state.newsSeenKey = null;
+    state.branding = { backgrounds: [], accent: null };
+    state.extrasFor = "";
+    startArt();
+  }
+  if (langChanged) {
+    forceRender($("#view-play"));
+  }
+  if (streamerChanged || serverChanged) {
+    state.revealed.clear();
+    refreshSecrets();
+  }
+  // The game runs next to the launcher: the background holds still meanwhile (styles.css).
+  $("#hero").classList.toggle("game-running", snap.game.running);
+  renderAll();
+  void loadExtras(snap);
+}
+
+function initChrome(): void {
+  const min = $("#win-min");
+  const max = $("#win-max");
+  const close = $("#win-close");
+  min.appendChild(icon("minimize"));
+  max.appendChild(icon("maximize"));
+  close.appendChild(icon("close"));
+  min.addEventListener("click", () => void api.minimize());
+  max.addEventListener("click", () => void api.toggleMaximize());
+  close.addEventListener("click", () => void api.close());
+  if(!PREVIEW_MODE) api.onWindowState((maximized) => {
+    state.maximized = maximized;
+    max.replaceChildren(icon(maximized ? "restore" : "maximize"));
+    max.setAttribute("aria-label", t(maximized ? "window_restore" : "window_maximize"));
+  });
+  for (const b of Array.from(document.querySelectorAll<HTMLButtonElement>("#lang-switch .lang-btn"))) {
+    b.addEventListener("click", () => void api.setSettings({ language: LANGUAGES.find((l) => l === b.dataset.lang) ?? "en" }));
+  }
+  // Credits, Discord and GitHub live in the rail, so they are available on every page, invite or not.
+  const credits = $("#credits-btn");
+  credits.prepend(icon("heart"));
+  credits.addEventListener("click", () => setView("credits"));
+  const github = $("#github-btn");
+  github.appendChild(githubMark());
+  github.addEventListener("click", () => open("project_source"));
+  $("#library-game").addEventListener("click", () => setView("play"));
+
+  $("#discord-btn").addEventListener("click", () => open("discord"));
+  $("#patreon-btn").addEventListener("click", () => open("patreon"));
+  document.addEventListener("visibilitychange", () => void api.setStatusPolling(!document.hidden));
+  window.setInterval(() => {
+    renderPanel();
+    if (state.view === "server") renderServer();
+    if (state.snap?.playtime.sessionStartedAt) {
+      renderActionBar();
+      if (state.view === "settings") renderSettings();
+    }
+  }, 30000);
+}
+
+// ------------------------------------------------------------------ offline play
+
+// Offline play (Discussion #57): PLAY gets a small arrow with "Play offline". The local runtime
+// starts a server on this PC and the Play page follows its phases: starting, a one-time username,
+// running, stopping, stopped or an error.
+const OFFLINE_STEPS: { phase: OfflinePhase; key: string }[] = [
+  { phase: "preparing", key: "off_step_preparing" },
+  { phase: "starting-metagame", key: "off_step_metagame" },
+  { phase: "starting-deploy", key: "off_step_deploy" },
+  { phase: "launching-game", key: "off_step_game" },
+];
+
+const offlineNameInput = h("input", { class: "input input-big", id: "offline-name", maxlength: "16", autocomplete: "off", spellcheck: "false", "data-fk": "offline-name", "aria-describedby": "offline-name-hint" }) as HTMLInputElement;
+const offlineNameHint = h("div", { class: "hint", id: "offline-name-hint", "aria-live": "polite" });
+offlineNameInput.addEventListener("input", () => {
+  state.offlineName = offlineNameInput.value;
+  updateOfflineNameFeedback();
+});
+offlineNameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") void submitOfflineName();
+});
+
+function updateOfflineNameFeedback(): void {
+  const check = checkUsername(state.offlineName.trim());
+  offlineNameHint.className = check === "ok" ? "hint hint-ok" : state.offlineName.length === 0 ? "hint" : "hint hint-bad";
+  if (check === "ok") offlineNameHint.replaceChildren(icon("check"), t("reg_check_ok"));
+  else offlineNameHint.replaceChildren(tk(`reg_check_${check}`));
+  const btn = document.querySelector<HTMLButtonElement>('[data-fk="offline-continue"]');
+  if (btn) btn.disabled = check !== "ok";
+}
+
+async function backupOfflineSave(): Promise<void> {
+  const r = await api.exportOfflineSave();
+  if (r.ok) {
+    state.offlineSaveNote = t("off_backup_done");
+    renderSettings();
+  } else if (r.error.code !== "cancelled") {
+    state.localError = r.error;
+    renderBanners();
+  }
+}
+
+function offlineActive(): boolean {
+  return state.offline.phase !== "stopped" && state.offline.phase !== "error";
+}
+
+async function startOffline(username?: string): Promise<void> {
+  state.offlineView = true;
+  state.playMenu = false;
+  setView("play");
+  // The phases arrive as status events; the result only matters when the start was refused
+  // before any phase was set (for example the online game already running).
+  const r = await api.startOffline(username);
+  if (!r.ok && r.error.code !== "cancelled" && state.offline.phase !== "error") onOfflineStatus({ phase: "error", error: r.error });
+}
+
+async function submitOfflineName(): Promise<void> {
+  const name = state.offlineName.trim();
+  if (checkUsername(name) !== "ok") return;
+  await startOffline(name);
+}
+
+function leaveOffline(): void {
+  state.offlineView = false;
+  state.playMenu = false;
+  renderAll();
+}
+
+function onOfflineStatus(s: OfflineStatus): void {
+  state.offline = s;
+  if (s.phase !== "stopped") state.offlineView = true;
+  if (s.phase === "running" || s.phase === "launching-game") {
+    state.offlineName = "";
+    offlineNameInput.value = "";
+  }
+  renderAll();
+}
+
+function playOffline(): HTMLElement[] {
+  const s = state.offline;
+  const top = h("div", { class: "eyebrow" }, t("off_eyebrow"));
+  switch (s.phase) {
+    case "needs-username": {
+      offlineNameInput.value = state.offlineName;
+      const ok = checkUsername(state.offlineName.trim()) === "ok";
+      const parts: HTMLElement[] = [top, ...heading(t("off_name_title"), t("off_name_text"))];
+      parts.push(
+        card(
+          "",
+          h("div", { class: "field" }, h("label", { class: "field-label", for: "offline-name" }, t("off_name_label")), offlineNameInput, offlineNameHint),
+          s.error ? h("p", { class: "hint hint-bad" }, icon("warning"), errorText(s.error)) : null,
+          h("div", { class: "card-row" }, button(t("off_continue"), () => void submitOfflineName(), { cls: "btn-primary", fk: "offline-continue", disabled: !ok }), linkButton(t("off_cancel"), () => void api.stopOffline().then(leaveOffline), { fk: "offline-cancel" })),
+        ),
+      );
+      queueMicrotask(updateOfflineNameFeedback);
+      return parts;
+    }
+    case "running":
+      return [
+        top,
+        ...heading(t("off_running_title"), t("off_running_text")),
+        // The runtime owns the local servers while the game runs and stops them itself when the game
+        // exits, so there is nothing to press here.
+        card("", h("p", { class: "card-text" }, t("off_running_close")), h("p", { class: "small-print" }, t("off_running_note"))),
+      ];
+    case "stopping":
+      return [top, ...heading(t("off_stopping_title"), null), card("", h("div", { class: "card-row" }, h("div", { class: "spinner", role: "presentation" }), t("off_stopping_wait")))];
+    case "stopped":
+      return [
+        top,
+        ...heading(t("off_stopped_title"), t("off_stopped_text")),
+        card("", h("div", { class: "card-row" }, button(t("off_again"), () => void startOffline(), { cls: "btn-primary", fk: "offline-again" }), linkButton(t("off_back"), leaveOffline, { fk: "offline-back" }))),
+      ];
+    case "error":
+      return [
+        top,
+        ...heading(t("off_error_title"), s.error ? errorText(s.error) : null),
+        card("", h("div", { class: "card-row" }, button(t("off_retry"), () => void startOffline(), { cls: "btn-primary", icon: "refresh", fk: "offline-retry" }), linkButton(t("off_back"), leaveOffline, { fk: "offline-back" }))),
+      ];
+    default: {
+      const at = OFFLINE_STEPS.findIndex((x) => x.phase === s.phase);
+      const steps = h(
+        "ol",
+        { class: "offline-steps" },
+        ...OFFLINE_STEPS.map((x, i) =>
+          h("li", { class: `offline-step ${i < at ? "is-done" : i === at ? "is-current" : ""}`.trim(), "aria-current": i === at ? "step" : undefined }, i < at ? icon("check") : i === at ? h("span", { class: "spinner", role: "presentation" }) : h("span", { class: "offline-dot", "aria-hidden": "true" }), tk(x.key)),
+        ),
+      );
+      const bar = h("div", { class: "offline-bar", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(Math.round((s.progress ?? 0) * 100)), "aria-label": t("off_starting_title") }, h("span", {}));
+      (bar.firstChild as HTMLElement).style.width = `${Math.round((s.progress ?? 0) * 100)}%`;
+      return [
+        top,
+        ...heading(t("off_starting_title"), t("off_starting_text")),
+        // Cancel only before the game starts: once it is launching, the runtime keeps the stack.
+        card("", steps, s.progress !== undefined ? bar : null, s.phase !== "launching-game" ? h("div", { class: "card-row" }, linkButton(t("off_cancel"), () => void api.stopOffline(), { fk: "offline-cancel" })) : null),
+      ];
+    }
+  }
+}
+
+// The PLAY button's arrow and its one-item menu: "Play offline", or back to online play while the
+// Play page shows offline play. Locked while an online game or a download runs.
+const playMore = h("button", { type: "button", class: "play-more", id: "play-more", "aria-haspopup": "menu", "aria-expanded": "false", "aria-controls": "play-menu" }, icon("chevron_down"));
+const playMenu = h("div", { class: "play-menu", id: "play-menu", role: "menu", hidden: true });
+playMore.addEventListener("click", () => {
+  state.playMenu = !state.playMenu;
+  renderPlayMenu();
+});
+window.addEventListener("mousedown", (e) => {
+  if (state.playMenu && !playMore.contains(e.target as Node) && !playMenu.contains(e.target as Node)) {
+    state.playMenu = false;
+    renderPlayMenu();
+  }
+});
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && state.playMenu) {
+    state.playMenu = false;
+    renderPlayMenu();
+    playMore.focus();
+  }
+});
+
+function renderPlayMenu(): void {
+  const snap = state.snap;
+  playMore.hidden = snap?.offlineAvailable === false;
+  if(playMore.hidden){state.playMenu=false;playMenu.hidden=true;return;}
+  const locked = !snap || snap.game.running || snap.task !== null || snap.busy || offlineActive();
+  if (locked) state.playMenu = false;
+  playMore.disabled = locked;
+  playMore.title = t("off_more");
+  playMore.setAttribute("aria-label", t("off_more"));
+  playMore.setAttribute("aria-expanded", state.playMenu ? "true" : "false");
+  playMenu.hidden = !state.playMenu;
+  const item = state.offlineView
+    ? h("button", { type: "button", class: "play-menu-item", role: "menuitem", "data-fk": "play-online" }, icon("globe"), h("span", { class: "play-menu-label" }, t("off_menu_online")))
+    : h("button", { type: "button", class: "play-menu-item", role: "menuitem", "data-fk": "play-offline" }, icon("tunnel"), h("span", { class: "play-menu-label" }, t("off_menu_offline")));
+  item.addEventListener("click", () => (state.offlineView ? leaveOffline() : void startOffline()));
+  playMenu.replaceChildren(h("div", { class: "play-menu-kicker" }, "PLAY OPTIONS"), item);
+}
+
+function initPlayMenu(): void {
+  const wrap = h("div", { class: "play-split" });
+  primary.replaceWith(wrap);
+  wrap.append(primary, playMore, playMenu);
+}
+
+async function main(): Promise<void> {
+  initChrome();
+  initTitlebarNav();
+  buildScene();
+  applyStaticI18n();
+  renderAll();
+  api.onSnapshot(onSnapshot);
+  api.onProgress((p) => {
+    state.task = p;
+    renderActionBar();
+  });
+  api.onInviteLink(() => void checkInviteLink());
+  api.onOfflineStatus(onOfflineStatus);
+  initPlayMenu();
+  onSnapshot(await api.getSnapshot());
+  setView(state.view);
+  onOfflineStatus(await api.offlineStatus());
+  void api.setStatusPolling(!document.hidden);
+  await checkInviteLink();
+}
+
+window.addEventListener('error',event=>{if(!PREVIEW_MODE)void api.reportRendererError(String(event.error?.stack??event.message)).catch(()=>undefined);});
+window.addEventListener('unhandledrejection',event=>{if(!PREVIEW_MODE)void api.reportRendererError('Unhandled rejection: '+String(event.reason?.stack??event.reason)).catch(()=>undefined);});
+void main();
+const stopControllerNavigation=installControllerNavigation();
+window.addEventListener("beforeunload",stopControllerNavigation,{once:true});

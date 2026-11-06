@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Install Dauntless Unbroken
+Comment=Install the native Linux launcher for your distribution
+Icon=system-software-install
+Terminal=true
+Exec=sh -c "setup=\\$(mktemp) && { curl -fL --proto '=https' https://vvoidddd.github.io/dauntless-unbroken/assets/install-launcher.py -o \\"\\$setup\\" && python3 \\"\\$setup\\"; result=\\$?; rm -f \\"\\$setup\\"; printf '\\\\nPress Enter to close setup.'; read reply; exit \\$result; }"
+Categories=Game;

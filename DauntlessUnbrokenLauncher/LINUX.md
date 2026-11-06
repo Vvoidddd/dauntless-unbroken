@@ -1,0 +1,178 @@
+# Linux support
+
+Dauntless Unbroken Launcher supports x86_64 Linux. The launcher itself is native Electron; the pinned Dauntless 1.10.5 game client is still the original Windows x86_64 build and is started through Proton or Wine.
+
+No game files are included in the Linux packages. The launcher downloads or verifies the same pinned 1.10.5 files as the Windows build.
+
+Full distro-by-distro instructions are on the project site:
+
+- [Linux launcher guide (English)](https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html)
+- [Linux-käynnistimen ohje (suomeksi)](https://vvoidddd.github.io/dauntless-unbroken/fi/setup/linux.html)
+
+## Downloads
+
+Steam Deck players: see the [Steam Deck and account-transfer guide](https://vvoidddd.github.io/dauntless-unbroken/setup/steam-deck.html).
+
+Each `launcher-v*` GitHub release contains:
+
+- `DauntlessUnbrokenLauncher-<version>-linux-x86_64.AppImage` — universal option for most desktop distributions.
+- `DauntlessUnbrokenLauncher-<version>-linux-amd64.deb` — Debian, Ubuntu, Linux Mint, Pop!_OS and derivatives.
+- `DauntlessUnbrokenLauncher-<version>-linux-x86_64.rpm` — Fedora, openSUSE and RPM-family distributions.
+- `DauntlessUnbrokenLauncher-<version>-linux-x64.tar.gz` — portable fallback for Arch/Gentoo and other glibc-based desktops.
+- `DauntlessUnbrokenLauncher-<version>-linux-x64.zip` — the same portable application in ZIP form.
+
+| Distribution | Recommended package |
+|---|---|
+| Ubuntu, Debian, Linux Mint, Pop!_OS | `.deb` |
+| Fedora, Nobara, Rocky, AlmaLinux | `.rpm` on mutable systems; AppImage on Atomic/immutable systems |
+| openSUSE Tumbleweed / Leap | `.rpm` |
+| Arch, EndeavourOS, CachyOS, Manjaro | AppImage or `.tar.gz` |
+| NixOS | AppImage through `appimage-run` |
+| Gentoo / Void / other glibc distros | AppImage or `.tar.gz` |
+
+Alpine and other musl-only systems are not advertised because Electron's official Linux binaries target glibc. ARM64 is not supported because the game itself is Windows x86_64.
+
+Check the file against `SHA256SUMS.txt` from the same release before running it.
+
+## Install
+
+AppImage:
+
+```bash
+chmod +x DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+```
+
+Debian/Ubuntu:
+
+```bash
+sudo apt install ./DauntlessUnbrokenLauncher-*-linux-amd64.deb
+```
+
+Fedora:
+
+```bash
+sudo dnf install ./DauntlessUnbrokenLauncher-*-linux-x86_64.rpm
+```
+
+openSUSE:
+
+```bash
+sudo zypper install ./DauntlessUnbrokenLauncher-*-linux-x86_64.rpm
+```
+
+Arch-family / Gentoo / Void portable install:
+
+```bash
+mkdir -p ~/.local/opt/dauntless-unbroken
+tar -xzf DauntlessUnbrokenLauncher-*-linux-x64.tar.gz -C ~/.local/opt/dauntless-unbroken
+~/.local/opt/dauntless-unbroken/DauntlessUnbrokenLauncher
+```
+
+NixOS one-off AppImage run:
+
+```bash
+nix-shell -p appimage-run --run 'appimage-run ./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage'
+```
+
+The default game folder on Linux is `~/Games/DauntlessUnbroken`. You can choose another absolute Linux path or point the launcher at an existing Dauntless 1.10.5 folder. An older 1.4.4 install is handled separately by the migration flow.
+
+### Steam Deck: launcher closes or the Windows launcher cannot connect
+
+Run the **Linux launcher natively**. Proton/Wine runs the Windows game underneath it;
+do not enable Steam compatibility mode for the Linux launcher itself. The Windows
+launcher uses a Windows process-ownership check for its local relay. A log containing
+`local connection rejected: game process ownership could not be verified` means that
+connection was rejected locally, before reaching the server. Factory-resetting the
+Deck or registering another account is not a recovery step for that error.
+
+For an AppImage that closes immediately, first close any other launcher and run it
+from Konsole in Desktop Mode. For the reported 1.0.31 download:
+
+```bash
+chmod +x ./DauntlessUnbrokenLauncher-1.0.31-linux-x86_64.AppImage
+./DauntlessUnbrokenLauncher-1.0.31-linux-x86_64.AppImage --appimage-extract-and-run --safe-mode
+```
+
+Extraction avoids the AppImage mount requirement; `--safe-mode` turns off launcher
+hardware acceleration. These are troubleshooting options, not a confirmed fix for
+every startup failure. Keep Chromium's sandbox enabled. If it still closes, send
+the terminal error to support; launcher-upload logs cannot capture failures that
+happen before the launcher starts. The Linux portable ZIP is another option that
+does not mount an AppImage. Import the existing PC account backup to use the same
+Slayer and progression.
+
+### Remove game files without resetting the Deck
+
+In launcher 1.0.32 and later, Settings → Game → **Remove game files** moves downloaded game content into the
+Recycle Bin / Trash after confirmation. Empty it afterwards to reclaim disk space.
+The launcher, account keys, account-key backups, online progression and
+`Archon/Saved` are kept. Close the game first. A failure leaves remaining files in
+place; there is no fallback to permanent deletion. Portable/custom launcher files
+can be removed separately after closing the launcher; a factory reset is unnecessary.
+
+## Proton and Wine
+
+The launcher creates its own compatibility prefix inside its application data directory and automatically sets the native `dxgi` override required by the Dauntless Unbroken DLLs.
+
+Runtime selection is:
+
+1. `DAUNTLESS_UNBROKEN_PROTON` when explicitly set.
+2. `DAUNTLESS_UNBROKEN_WINE` when explicitly set.
+3. Steam Proton / Proton-GE found under Steam's normal compatibility-tool directories.
+4. `wine64` or `wine` from `PATH`.
+5. Lutris Wine runners under `~/.local/share/lutris/runners/wine`.
+
+Examples:
+
+```bash
+DAUNTLESS_UNBROKEN_PROTON="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton10-1/proton" ./DauntlessUnbrokenLauncher-*.AppImage
+```
+
+```bash
+DAUNTLESS_UNBROKEN_WINE=/usr/bin/wine64 ./DauntlessUnbrokenLauncher-*.AppImage
+```
+
+If the Play button reports that no compatibility runtime exists, install Steam with a Proton version, Proton-GE, Wine, or a Lutris Wine runner and try again.
+
+### Flatpak Steam
+
+Native Steam locations and Flatpak Steam are both auto-detected. Flatpak Steam normally keeps Proton
+under `~/.var/app/com.valvesoftware.Steam/data/Steam`. You can still force one exact runtime when
+troubleshooting:
+
+```bash
+DAUNTLESS_UNBROKEN_PROTON="$HOME/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/Proton - Experimental/proton" \
+  ./DauntlessUnbrokenLauncher-*-linux-x86_64.AppImage
+```
+
+Private/Tailscale servers work on Linux too; the launcher searches the normal Linux Tailscale executable locations and `PATH`.
+
+### Game process exists but no window appears
+
+Use a current launcher release. In 0.1.12 the injected client DLL could deadlock during Wine/Proton
+startup while creating its Windows debug console. Proton would stay alive and Discord could show the
+game as running, but Unreal Engine never reached normal window/log initialization.
+
+This was fixed in 0.1.13: the launcher detects Wine/Proton and skips that client-only console setup. The native `dxgi` override and
+`DauntlessUnbroken.dll` are still required; the launcher verifies and installs both.
+
+GNOME/Wayland also needs a valid XWayland authorization cookie. The launcher preserves an existing
+`XAUTHORITY`, and current releases recover Mutter's `.mutter-Xwaylandauth.*` file from `XDG_RUNTIME_DIR`
+when a wrapper or stripped environment omitted it. A missing cookie typically produces
+`Authorization required, but no authorization protocol specified` from Wine and no usable game
+window.
+
+For public/v2 servers, the game connects to the launcher's local `127.0.0.1:61000` relay. The relay
+then carries the game's HTTP/WebSocket traffic to the public server with its pinned TLS certificate.
+Keep the launcher open while the game runs.
+
+## Updates and limitations
+
+The Linux launcher checks the latest stable GitHub launcher release at startup, every five minutes while idle, and when its window regains focus (at most once per minute). Checks pause during gameplay and game-file tasks, and metadata requests time out after ten seconds. When an update is available, the existing update banner appears. Before any replacement or package-manager call, the launcher requires the release's `SHA256SUMS-LINUX.txt` entry, accepts only this repository's GitHub release-download URLs, and streams the artifact through a byte counter and SHA-256 hash instead of loading the whole package into memory. Missing, malformed, mismatched, untrusted or insecurely redirected downloads are rejected and removed. AppImage installs replace and relaunch themselves; .deb and .rpm installs download the matching package and request administrator approval through PolicyKit before handing the verified file to the system package manager. Prereleases are not offered automatically.
+
+Windows continues to use the existing Squirrel self-update feed.
+
+The supported game target is x86_64. ARM64 Linux is not advertised because the Windows x86_64 game would need an additional CPU-translation layer that this launcher does not manage.
+
+If Proton or Wine starts but the game does not, check the launcher's log directory under its Electron user-data directory. Proton also writes its `steam-0.log` compatibility report there; the launcher includes that file in diagnostics, bounded and redacted. The launcher keeps the runtime's stdout and stderr for the failed session, up to 64 KiB, and redacts account keys before writing them to `launcher.log`. Normal runtime output stays hidden. You can force a known-good runtime with one of the environment variables above.

@@ -1,0 +1,213 @@
+# Dauntless Unbroken Launcher
+
+*[Suomeksi](README.fi.md)*
+
+The Windows and Linux app friends install to play on a Dauntless Unbroken server. It joins a server from an
+invite, creates the account, downloads and checks the Dauntless 1.10.5 game files from the host's
+own server, sets everything up and starts the game. English and Finnish.
+
+**Linux:** native launcher packages are available for x86_64; the Windows 1.10.5 game client runs through Proton or Wine. See the [distro-by-distro Linux guide](https://vvoidddd.github.io/dauntless-unbroken/setup/linux.html) or [LINUX.md](LINUX.md).
+
+**No game files are in this app or in this repository.** They come from the host's content server,
+and every file is checked against the list of 606 files, sizes and SHA-256 hashes compiled into the
+launcher (`DauntlessUnbrokenContent/data/dauntless-1.10.5.json`). A server that offers anything else is refused.
+
+**Community:** [Join the Dauntless Unbroken Discord](https://discord.gg/ZJRprHzsgu) for help, players and project updates.
+
+The launcher uses a compact navigation dock, header account controls and a dedicated launch area. Sora and Manrope fonts are bundled locally; the purple palette and aether background are unchanged. Setup checkpoints and download progress adapt to the current task without measuring the layout on every status update.
+
+## Discord activity
+
+With the Discord desktop app open, the launcher shows **Playing Dauntless Unbroken** with the
+Unbroken icon, elapsed launcher time, and your launcher, download, queue, or online/offline play
+status. Discord's activity-sharing settings must also allow activity to be displayed.
+
+Turn it off under **Settings → Launcher → Discord Rich Presence**. Streamer mode hides it too.
+Activity clears when the launcher closes. Account keys, player names, server addresses, and invite
+codes are never included. Discord is optional; closing it does not affect downloading or playing.
+
+The integration uses local Discord IPC and public application ID `1561808870995664918`; no Discord
+token is required or bundled. Updates are coalesced to at most once every 15 seconds, with a
+30-second reconnect delay when Discord is unavailable.
+
+## For friends
+
+For problems, open **Settings → Support diagnostics**. **Open log folder** shows the local
+rotating logs; **Upload logs** sends a redacted report and account identity to the server's
+private support inbox, even while registration is busy. It returns a report ID for support.
+**Export diagnostics** saves a file when uploading is unavailable. Keys, tokens, saves and
+databases are excluded; nothing uploads automatically.
+
+The report contains the launcher version, platform, architecture, memory totals, high-level
+connection/install/play state, the last launcher error and the tail of the two rotating launcher
+logs (`launcher.log` and `launcher.old.log`). Main-process unhandled rejections and runtime warnings
+are recorded in those logs so a failed background operation has a useful trail. Local paths, invite
+links, account keys, bearer tokens, webhook credentials, databases and saves are redacted or omitted.
+The report is bounded before upload; it does not include arbitrary files from the user-data folder.
+
+1. Install a launcher package from the project's release. On Windows use
+   `DauntlessUnbrokenLauncher-Setup.exe`. On Linux use the AppImage, `.deb`, `.rpm`, or portable
+   ZIP described in [LINUX.md](LINUX.md). Check the download against `SHA256SUMS.txt` from the same
+   release. The Windows installer is not code-signed yet, so SmartScreen may ask you to confirm
+   (More info, then Run anyway); on a PC set to block unrecognised apps, verify the hash, unblock the
+   file (right-click > Properties > Unblock, or `Unblock-File`) and run it again. Code-signing is
+   roadmap item 4.16.
+2. Open the invite link your host sent you, or paste it on the Play page and press **JOIN**.
+3. Pick a username and press **REGISTER**. The launcher creates one Desktop key backup and remembers
+   it across restarts, account switches and name changes. Moving, renaming or deleting it does not
+   create another copy. **Settings / Account / Locate existing backup** verifies the selected file
+   belongs to the current account and updates its recorded location without changing accounts.
+   Importing a backup file remembers that file instead of exporting a Desktop duplicate.
+   Older launchers' saved/dismissed backup flags are respected; if no location is known, locate the file.
+   **Save key backup** explicitly exports another copy and remembers its location. Keep backups private.
+   Desktop/Documents recovery work stays in the background so cloud folders cannot hold sign-in on **PLEASE WAIT**.
+4. The launcher first checks common game locations. If it finds Dauntless 1.10.5, it shows the folder
+   and asks you to confirm before verifying or changing it. Choose a different folder to download
+   a separate copy. If nothing is found, press **INSTALL** (about 16 GB); downloads resume later.
+   For an unusual install location, choose **I already have the game files** instead and paste the path
+   of your `BaseGame144` folder (or the `Dauntless` folder inside it), or browse to it. The launcher
+   uses the game where it is: it checks every file against its pinned manifest, replaces any file
+   that differs from 1.10.5, and puts its own `dxgi.dll` and `DauntlessUnbroken.dll` in
+   `Archon\Binaries\Win64`. Missing or different files are downloaded from your host, so that works
+   only if your host has switched on game downloads. Copy the folder first if another setup still
+   uses it.
+5. Press **PLAY**.
+
+In the footer, on every page (also before you join a server), the GitHub
+button opens this repository in your browser, and **Licenses** provides the bundled software notices.
+
+## Revived launcher conflicts on Windows
+
+The launcher checks for the standard Revived installation and saved profiles at
+startup, when it regains focus and before Play. A warning offers **Remove Revived**;
+the same controls are under **Settings → Troubleshooting → Other launchers**.
+Removal requires confirmation, shows progress and filenames, and limits the old
+uninstaller to 60 seconds. Close the game first.
+
+Revived account keys, profiles and offline saves are moved to a backup folder
+before cleanup. **Open cleanup log / backups** shows that folder and any files
+that could not be removed. Unbroken, shared game files and unrelated processes
+are preserved. Linked folders, overlapping game installs and embedded Unbroken
+files stop automatic removal. Portable/custom installations may need manual cleanup.
+
+A separate warning identifies saved connections named Dauntless Revived and
+offers the Unbroken invite flow. Removing a launcher does not change the selected
+server or move account keys to another server. The known Unbroken fleet displays
+its current name only when both the saved endpoint and certificate match.
+
+
+## Two kinds of server
+
+| | Private (invite v1) | Public (invite v2) |
+|---|---|---|
+| Where | the host's PC | a server with a public IP |
+| How friends connect | Tailscale | directly, over TLS to the server's gateway |
+| Invite | `dauntless-unbroken://join?v=1&host=…&port=61000&code=…&name=…[&share=…]` | `dauntless-unbroken://join?v=2&mode=public&host=…&port=443&fp=…&code=…&name=…` |
+
+In public mode the invite carries `fp`, the SHA-256 of the server's TLS certificate. Every connection
+(status, registration, downloads and the game itself) is checked against it before anything is sent.
+A server with a different certificate gets nothing, and the launcher says "this is not your friend's
+server".
+
+The account key for a public server is tied to that fingerprint. An invite for the same address with
+a different certificate never gets the key: the launcher shows both fingerprints and asks first, and
+the key moves to the new certificate only if you confirm (do that only when your host tells you they
+set the server up again). Private (v1) invites work only with Tailscale addresses (100.64.0.0/10) and
+`*.ts.net` names, because that connection is plain HTTP inside the tailnet. (Loopback addresses such as
+`127.0.0.1` are accepted too, for testing against a server on the same PC.)
+
+The 1.4.4 game only speaks plain HTTP, so in public mode the launcher runs a **local relay** while the
+game runs: the game talks to `http://127.0.0.1:61000` on your own PC, and the relay carries every
+request (and the chat WebSocket) over pinned TLS to the server. Keep the launcher open while you play;
+it asks before closing while the game runs. The relay listens on 127.0.0.1 only and refuses requests
+that come from a web page.
+
+## Security
+
+- The page is sandboxed with context isolation and no Node access. It cannot reach the network at
+  all; the main process makes every request, only to the invite's host. The page talks to the main
+  process through a small typed API (`src/preload.ts`), and every argument is checked again.
+- Strict Content-Security-Policy. Images come only from the app itself or from the host's art pack,
+  fetched by the main process over the pinned connection and served through an internal scheme.
+- Navigation and new windows are blocked. Links open in the browser only from a fixed allow-list:
+  the page names a link (such as `project_source`), never a URL, and the main process opens that
+  link's fixed URL (`src/main/links.ts`).
+- The local account key is encrypted through Electron `safeStorage` using the operating system's
+  secure storage and is masked in the log. Automatic Desktop/Documents copies and manual exports
+  are readable recovery files; keep them private.
+- The key goes only to the invite's host (in public mode only over the pinned connection): with the
+  account check, the downloads and the server status. The server shows who is online to registered
+  players only, so before you register the server panel says to sign in instead of listing anyone.
+  Launchers released before that change send no key and do not know that answer: against a server
+  that has it they show 0 players online and no worlds until they update themselves. Update a server
+  from an older version only after the launcher release with the change is out.
+- Electron fuses: no `ELECTRON_RUN_AS_NODE`, no `NODE_OPTIONS`, no inspector flags, app code only
+  from the integrity-checked asar.
+- The two DLLs the game needs ship with the launcher and are checked against pinned hashes before
+  they are copied and before every launch, like `friend-kit/play.ps1`.
+
+## Development
+
+Requirements: Windows or x86_64 Linux, Node.js 24 and npm 11.19 or newer. Use the npm bundled
+with a current Node.js 24 installation; an older global npm can incorrectly rebuild SQLite's
+bundled Node-API binaries. Linux packaging also needs `rpmbuild`,
+`fakeroot` and `mksquashfs` (the Ubuntu CI job installs `rpm`, `fakeroot` and `squashfs-tools`).
+
+```text
+npm ci
+npm run typecheck
+npm test            # unit tests (node:test), local test servers on ports 62012-62013 and 624xx only
+npm run make        # Windows: Squirrel installer + portable zip
+npm run make:linux  # Linux: AppImage + deb + rpm + portable zip
+npm run collect:linux
+```
+
+`npm test -- relay` runs only the test files whose name contains "relay". The tests cover invite
+parsing, the relay (pinned certificate, wrong certificate, headers, bodies, streaming, keep-alive,
+WebSocket), downloads (resume, verify, repair) over plain HTTP and pinned TLS, Engine.ini, launch
+arguments, the links the launcher may open, the bundled license notices and the whole public-mode flow
+through the controller, and the look: the brand colours and images. They make throwaway self-signed
+certificates in a temp folder.
+
+`DAUNTLESS_UNBROKEN_RELAY_PORT` moves the relay off 61000 for rehearsals on a PC where 61000 is
+taken. The server must then point `QOS_TARGET_URL` at the same port.
+
+The look follows the project's brand (`brand/`, see its README): the eight colours of
+`brand/palette.json` as `--dr-*` tokens in `src/renderer/styles.css`, the behemoth icon and wordmark,
+and bundled Umbral Nayzaga artwork in the default layout. The background is local and static;
+text uses a dark overlay for readability. Artwork sources are documented in `brand/README.md`.
+The legacy procedural scene in `src/renderer/scene.ts` remains the fallback for other layouts;
+its layers hold still while the game runs and respect reduced motion.
+`npm run icon` copies the icons and in-app images from `brand/`, where `python3 brand/build.py` makes
+them. `npm test` fails when a copy is out of date, when the stylesheet has a colour that is not a
+token, or when a colour pair it uses fails WCAG AA.
+
+## Releases and updates
+
+GitHub CI (`.github/workflows/ci.yml`) is manual-only. Run the launcher typecheck, unit tests and
+packaging commands locally before pushing; use Actions > **CI** > **Run workflow** when a hosted run
+is needed. The launcher release workflow builds and tests Windows and Linux packages, keeps the
+artifacts for a week, and publishes `launcher-v<version>` with one combined `SHA256SUMS.txt`, build
+provenance for every listed file and a tag at the commit that was built. To release, raise the version
+and run Actions > **Launcher release** > **Run workflow** on `1.10.5`.
+
+After publishing, the release workflow points the rolling `launcher-updates` release at the new
+Windows Squirrel package. Launcher 1.0.4+ checks at startup, every five minutes while idle, and when its window regains focus (at most once per minute). Checks pause during gameplay or file tasks; an update never forces a restart during a game. Linux updates are accepted only when the downloaded artifact matches both its release `SHA256SUMS-LINUX.txt` entry and its published byte count; the launcher fails closed before replacing an AppImage or invoking a package manager. Linux users update through
+their package format or download a newer release. A version is published only if it is newer than
+every earlier one, and never replaced. A prerelease version (such as `0.2.0-beta.1`) becomes a
+GitHub prerelease and never reaches `launcher-updates`. If a run fails halfway, re-run its failed
+jobs: it finishes what it started. Running the workflow for a version that is published already only
+brings the Windows update feed up to it. Keep GitHub's immutable releases setting off, because
+`launcher-updates` is updated in place.
+
+The `launcher-news` workflow adds the release to the in-launcher news feed automatically. The
+`launcher-discord` workflow refreshes the public download announcement after a successful release
+workflow. Linux packages are updated by installing a newer package or replacing the AppImage or
+portable archive; they do not use the Windows Squirrel feed.
+
+## License
+
+AGPL-3.0-only. See [source and license notices](../NOTICE.md). This is an unofficial community project, not affiliated with or endorsed by Phoenix Labs or Epic Games.
+
+The license texts of the third-party software in the launcher and its two DLLs (among them MinHook,
+Electron and the GitHub Octicons mark) ship with it in `THIRD-PARTY-NOTICES.txt`. The Licenses screen provides the bundled notices.

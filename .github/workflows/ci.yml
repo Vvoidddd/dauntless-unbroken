@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [1.10.5]
+  pull_request:
+    branches: [1.10.5]
+
+permissions: {}
+
+jobs:
+  launcher:
+    name: Launcher checks
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: DauntlessUnbrokenLauncher
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: DauntlessUnbrokenLauncher/package-lock.json
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Read launcher version
+        id: version
+        run: "\"version=$(node -p 'require(\"./package.json\").version')\" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8"
+
+  release:
+    name: Publish launcher release
+    needs: launcher
+    if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/launcher-release.yml
+    with:
+      version: ${{ needs.launcher.outputs.version }}
+      artifact: ''
+      linux_artifact: ''

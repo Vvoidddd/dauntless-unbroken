@@ -1,0 +1,230 @@
+// Starting the game (shared contract 6). The account key is passed as -AUTH_PASSWORD, the way the
+// upstream launcher and friend-kit/play.ps1 do it; it is never logged (see maskArgs).
+
+import { spawn, execFile, type ChildProcess } from "node:child_process";
+import path from "node:path";
+import { isValidHost } from "../shared/invite";
+import { isPlausibleAccountKey } from "../shared/username";
+import { EXE_NAME } from "./constants";
+import { log } from "./log";
+import type { GameLanguage, Language } from "../shared/types";
+
+export interface LaunchSettings {
+  host: string;
+  port: number;
+  key: string;
+  windowed: boolean;
+  gameLocale?: string; // Keep the engine and platform locale aligned; English when left out.
+  account?: {userId:string;username:string};
+}
+
+export const FIXED_ARGS = [
+  "-AUTH_LOGIN=unused",
+  "-AUTH_TYPE=exchangecode",
+  "-epicapp=appidlol",
+  "-epicenv=Prod",
+  "-EpicPortal",
+  "-epicusername=usernamelol",
+  "-epicuserid=useridlol",
+  "-epiclocale=en-US",
+  "-epicsandboxid=sandboxidlol",
+  "-epicdeploymentid=deploymentidlol",
+  // The pinned 1.4.4 executable explicitly supports this client-mode switch.
+  // Private-server launches do not use the original EAC bootstrapper.
+  "-NoEAC",
+  "-RamsStore",
+];
+
+// The -epiclocale for the Game language setting. "auto" takes the operating system's language when
+// the game has text for it (es-419 -> es-ES, pt-PT -> pt-BR), and English otherwise.
+export function gameLocale(setting: GameLanguage, systemLocale: string): string {
+  if (setting !== "auto") return setting;
+  const code = systemLocale.toLowerCase().slice(0, 2);
+  return GAME_LOCALES.find((l) => l.toLowerCase().startsWith(`${code}-`)) ?? "en-US";
+}
+
+const GAME_LOCALES = ["en-US", "de-DE", "es-ES", "fr-FR", "it-IT", "ja-JP", "pt-BR", "ru-RU"];
+const LAUNCHER_GAME_LOCALES: Record<Language, GameLanguage> = {
+  en: "en-US", fi: "en-US", de: "de-DE", es: "es-ES", fr: "fr-FR", it: "it-IT", ja: "ja-JP", pt: "pt-BR", ru: "ru-RU",
+};
+
+export function gameLocaleForLauncherLanguage(language: Language): GameLanguage {
+  return LAUNCHER_GAME_LOCALES[language];
+}
+
+export function buildLaunchArgs(s: LaunchSettings): string[] {
+  if (!isValidHost(s.host)) throw new Error("invalid host");
+  if (!Number.isInteger(s.port) || s.port < 1 || s.port > 65535) throw new Error("invalid port");
+  if (!isPlausibleAccountKey(s.key)) throw new Error("invalid key");
+  // The first argument is the server address; DauntlessUnbroken.dll reads it.
+  const locale = s.gameLocale && GAME_LOCALES.includes(s.gameLocale) ? s.gameLocale : "en-US";
+  if(s.account && (!/^UID-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(s.account.userId)||!s.account.username||s.account.username.length>32||/["\x00-\x1f\x7f]/.test(s.account.username)))throw Error('invalid account identity');
+  const fixed = s.account ? ['-AUTH_LOGIN=unused','-AUTH_TYPE=exchangecode','-EpicPortal','-epicapp=Jackal','-epicenv=Prod',`-epicusername=${s.account.username}`,`-epicuserid=${s.account.userId}`,'-NoEAC',`-culture=${locale}`,`-epiclocale=${locale}`] : FIXED_ARGS.map((a) => (a.startsWith("-epiclocale=") ? `-epiclocale=${locale}` : a));
+  const args = [`${s.host}:${s.port}`, `-AUTH_PASSWORD=${s.key}`, ...fixed];
+  if (s.windowed) args.push("-windowed", "-ResX=1280", "-ResY=720");
+  return args;
+}
+
+export function maskArgs(args: string[]): string[] {
+  return args.map((a) => (/^-AUTH_PASSWORD=/i.test(a) ? "-AUTH_PASSWORD=<hidden>" : a));
+}
+
+export function describeLaunch(exe: string, args: string[]): string {
+  return `${exe} ${maskArgs(args).join(" ")}`;
+}
+
+export type SpawnFn = typeof spawn;
+
+export interface LaunchRuntime {
+  command: string;
+  argsPrefix: string[];
+  env: NodeJS.ProcessEnv;
+  captureOutput?: boolean;
+}
+
+// Also needed when the Windows launcher itself runs under Wine/Proton.
+// Native Windows ignores this variable. Preserve overrides for other DLLs.
+export function gameDllOverrides(existing: string | undefined): string {
+  const parts = (existing ?? "").split(";").map(part => part.trim()).filter(Boolean).flatMap(part => {
+    const equal = part.indexOf("=");
+    if (equal < 0) return [part];
+    const names = part.slice(0, equal).split(",").map(name => name.trim())
+      .filter(name => !/^\*?dxgi(?:\.dll)?$/i.test(name));
+    return names.length ? [`${names.join(",")}${part.slice(equal)}`] : [];
+  });
+  return [...parts, "dxgi=n,b"].join(";");
+}
+
+export function launcherRelaunchOptions(platform:NodeJS.Platform=process.platform,appImage=process.env.APPIMAGE,args=process.argv.slice(1),executable=process.execPath):{args:string[];execPath?:string}{
+  const execPath=platform==='linux' ? appImage&&path.posix.isAbsolute(appImage)?appImage
+    :path.posix.isAbsolute(executable)&&executable.endsWith('/DauntlessUnbrokenLauncher.bin')?executable.slice(0,-4):undefined :undefined;
+  return {args:[...args],...(execPath?{execPath}:{})};
+}
+
+// Tracks the one game process this launcher started.
+export class GameProcess {
+  private child: ChildProcess | null = null;
+  private listeners: ((running: boolean, code: number | null) => void)[] = [];
+
+  constructor(private readonly spawnFn: SpawnFn = spawn) {}
+
+  get running(): boolean {
+    return this.child !== null;
+  }
+
+  get pid(): number | undefined {
+    return this.child?.pid;
+  }
+
+  onChange(fn: (running: boolean, code: number | null) => void): void {
+    this.listeners.push(fn);
+  }
+
+  private captureRuntimeOutput(child: ChildProcess): () => void {
+    let remaining = 64 * 1024;
+    const buffers: { label: string; data: string }[] = [];
+    for (const [label, stream] of [["stdout", child.stdout], ["stderr", child.stderr]] as const) {
+      if (!stream) continue;
+      const entry = { label, data: "" };
+      buffers.push(entry);
+      stream.setEncoding("utf8");
+      stream.on("data", (chunk: string | Buffer) => {
+        if (remaining <= 0) return;
+        const text = typeof chunk === "string" ? chunk : chunk.toString("utf8");
+        const part = text.slice(0, remaining);
+        entry.data += part;
+        remaining -= part.length;
+      });
+    }
+    return () => {
+      for (const entry of buffers) {
+        if (entry.data) log.warn(`game runtime ${entry.label}: ${entry.data.trimEnd()}`);
+      }
+      if (remaining === 0) log.warn("game runtime output was truncated at 64 KiB");
+    };
+  }
+
+  // extraEnv: added to the game's environment (DR_SHOW_CONSOLE=1 keeps the DLL's log window visible).
+  start(win64Dir: string, args: string[], runtime?: LaunchRuntime, extraEnv?: Record<string, string>): Promise<void> {
+    if (this.child) return Promise.reject(new Error("already running"));
+    const exe = path.join(win64Dir, EXE_NAME);
+    const command = runtime?.command ?? exe;
+    const launchArgs = runtime ? [...runtime.argsPrefix, exe, ...args] : args;
+    const env = { ...(runtime?.env ?? process.env), ...extraEnv };
+    env.WINEDLLOVERRIDES = gameDllOverrides(env.WINEDLLOVERRIDES);
+    if (runtime) {
+      log.info(`launch runtime command: ${describeLaunch(command, launchArgs)}`);
+      log.info(`launch working directory: ${win64Dir}`);
+      log.info(`launch runtime paths: compat-data=${env.STEAM_COMPAT_DATA_PATH || "<unset>"}, install=${env.STEAM_COMPAT_INSTALL_PATH || "<unset>"}`);
+    }
+    return new Promise((resolve, reject) => {
+      const child = this.spawnFn(command, launchArgs, {
+        cwd: win64Dir,
+        stdio: runtime?.captureOutput ? ["ignore", "pipe", "pipe"] : "ignore",
+        windowsHide: false,
+        detached: false,
+        env,
+      });
+      const flushRuntimeOutput = runtime?.captureOutput ? this.captureRuntimeOutput(child) : undefined;
+      let started = false;
+      child.once("spawn", () => {
+        started = true;
+        this.child = child;
+        this.listeners.forEach((l) => l(true, null));
+        resolve();
+      });
+      child.once("error", (e) => {
+        if (!started) reject(e);
+      });
+      child.once("exit", (code) => {
+        flushRuntimeOutput?.();
+        if (this.child === child) this.child = null;
+        if (started) this.listeners.forEach((l) => l(false, code));
+      });
+    });
+  }
+}
+
+// Lists running Dauntless clients. Game servers (the same exe started with -server, as on the
+// host's own PC) do not count. Only process ids and a yes/no are read back: other processes'
+// command lines contain their keys and are never logged or returned to the UI.
+export function findRunningClients(platform: NodeJS.Platform = process.platform,execute:typeof execFile=execFile): Promise<number[]> {
+  if (platform === "linux") {
+    return new Promise((resolve) => {
+      execute("pgrep", ["-af", EXE_NAME.replace(/\./g,'\\.')], { timeout: 10000 }, (err, stdout) => {
+        if (err) return resolve([]);
+        resolve(
+          stdout
+            .split(/\r?\n/)
+            .map((line) => line.match(/^\s*(\d+)\s+(.+)$/))
+            .filter((match) => match && !/(^|\s)-server(\s|$)/i.test(match[2]))
+            .map(match=>Number(match![1])),
+        );
+      });
+    });
+  }
+  if (platform !== "win32") return Promise.resolve([]);
+  return new Promise((resolve) => {
+    execute("tasklist.exe", ["/FI", `IMAGENAME eq ${EXE_NAME}`, "/FO", "CSV", "/NH"], { windowsHide: true, timeout: 10000 }, (err, stdout) => {
+      if (err || !stdout.toLowerCase().includes(EXE_NAME.toLowerCase())) return resolve([]);
+      const script =
+        `Get-CimInstance Win32_Process -Filter "Name='${EXE_NAME}'" | ForEach-Object { ` +
+        `if ($_.CommandLine -notmatch '(^|\\s)-server(\\s|$)') { $_.ProcessId } }`;
+      execute(
+        "powershell.exe",
+        ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script],
+        { windowsHide: true, timeout: 15000 },
+        (err2, out2) => {
+          if (err2) return resolve([]);
+          resolve(
+            out2
+              .split(/\r?\n/)
+              .map((l) => l.trim())
+              .filter((l) => /^\d+$/.test(l))
+              .map(Number),
+          );
+        },
+      );
+    });
+  });
+}
